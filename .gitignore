@@ -1,0 +1,11 @@
+# Review output files
+gemini_review_result.txt
+**/gemini_review_result.txt
+
+# Temporary files
+*.tmp
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
