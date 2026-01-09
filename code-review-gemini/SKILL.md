@@ -1,50 +1,91 @@
 ---
 name: Code Review with Gemini
-description: Review changed code with an external code review script using the Gemini CLI. Use when the user asks to review code changes, analyze diffs, find issues in the changed files, suggest improvements, or improve quality.
+description: Perform a code review on recently changed files. Use this Skill when the user asks to review code changes, review changed files, analyze diffs, check code quality, or find issues in recent commits.
 ---
 
 # Code Review with Gemini
 
+## Purpose
+
+This Skill performs a structured code review on recently changed files by:
+1. Collecting the actual git diff based on the current branch
+2. Running an external review script that invokes the Gemini CLI
+3. Summarizing the findings in a clear, prioritized manner
+
+The Skill is designed to be deterministic, auditable, and suitable for engineering workflows.
+
+---
+
 ## Instructions
 
-This Skill helps with performing a code review of recently changed files using an external script and the Gemini CLI.
+When the user expresses intent to review code (for example: reviewing changed files, analyzing diffs, or checking code quality), follow the steps below strictly.
+Please note that do not specify the gemini model in the instructions, as it will be handled in the script.
 
-When the user **expresses intent to review code**, especially phrases such as:
+### Execution steps
 
-- "review the changed files"
-- "analyze the code changes"
-- "check for issues in the diffs"
-- "give me a code review"
-- "find problems in recent commits"
+1. Run the script `scripts/review_with_gemini.sh`.
 
-then:
+2. Observe the script output carefully.  
+   The script will first print a **"Review Scope"** section that includes:
+   - Current branch name
+   <!--- Base commit-->
+   - Head commit
+   - List of changed files
 
-1. Run the attached shell script `scripts/review_with_gemini.sh` to generate a full code review report.
-   The script will:
-   - Collect a diff of changed files (`git diff main...HEAD`)
-   - Call `gemini` CLI to generate a review summary
-   - Save output to `$TMPDIR/gemini_review_result.txt` (or `/tmp/gemini_review_result.txt`)
+3. Before summarizing the review, **pay close attention to the "Review Scope" section** and ensure that all findings align strictly with the listed changed files.
 
-2. After the script runs, read the content of the output file from the temporary directory.
+   - If a finding does not clearly map to a file in the review scope, treat it as **low confidence**.
+   - Do not introduce issues, suggestions, or risks that are unrelated to the displayed diff.
+   - Avoid speculative or generalized advice that cannot be justified by the reviewed changes.
 
-3. Summarize the findings to the user, including:
-   - High priority issues
-   - Medium or stylistic suggestions
-   - Actionable improvement steps
-   - Optionally ask follow-ups to clarify scope
+4. After verifying alignment with the review scope, summarize the Gemini review results for the user.
+
+### Output requirements
+
+Your final response should be structured and concise, and must include:
+
+- **High priority issues**  
+  Issues that may cause bugs, security risks, crashes, or data loss.
+
+- **Medium priority concerns**  
+  Design issues, maintainability problems, or potential performance risks.
+
+- **Low priority or stylistic suggestions**  
+  Readability, naming, formatting, or minor best-practice improvements.
+
+- **Actionable next steps**  
+  Concrete recommendations that the developer can realistically act on.
+
+Do not repeat the full raw Gemini output verbatim unless explicitly asked.  
+Your role is to act as a senior reviewer who filters, validates, and prioritizes the findings.
+
+---
+
+## Constraints
+
+- Only review code that appears in the provided diff.
+- Do not assume project architecture or conventions beyond what is visible in the changes.
+- Do not suggest large-scale refactors unless a clear, high-risk issue justifies it.
+- Prefer correctness and clarity over exhaustive commentary.
+
+---
 
 ## Examples
 
-User says:
-> Please review the changed files and highlight issues.
+**User:**  
+> Review the changed files and tell me if there are any problems.
 
-Expected Skill activation:
+**Expected behavior:**  
 - Run `review_with_gemini.sh`
-- Read the output file from temporary directory
-- Respond with structured review summary
+- Read the "Review Scope" section
+- Validate that review findings match the changed files
+- Respond with a prioritized, scoped code review summary
 
-User says:
-> I want a code quality review of my recent commits.
+---
 
-Expected Skill activation:
-- Same workflow above
+**User:**  
+> Please analyze the recent code changes for quality and risks.
+
+**Expected behavior:**  
+- Same workflow as above
+- Emphasize correctness and risk-related issues first
