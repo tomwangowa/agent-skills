@@ -5,39 +5,29 @@ set -euo pipefail
 # Configuration
 ############################
 
-DEFAULT_BASE_BRANCH="main"
-REVIEW_OUTPUT="gemini_review_result.txt"
+REVIEW_OUTPUT="${TMPDIR:-/tmp}/gemini_review_result.txt"
+
+############################
+# Pre-flight checks
+############################
+
+if ! command -v gemini >/dev/null 2>&1; then
+  echo "Error: 'gemini' CLI is not installed." >&2
+  echo "Install it with: npm install -g @google/gemini-cli" >&2
+  exit 1
+fi
 
 ############################
 # Detect current branch
 ############################
 
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-HEAD_COMMIT=$(git rev-parse --short HEAD)
 
 ############################
-# Determine base commit
+# Collect staged files
 ############################
 
-if [[ "$CURRENT_BRANCH" != "$DEFAULT_BASE_BRANCH" ]]; then
-  BASE_COMMIT=$(git merge-base "$DEFAULT_BASE_BRANCH" HEAD)
-else
-  # Check if HEAD~1 exists (not the first commit)
-  if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
-    BASE_COMMIT=$(git rev-parse HEAD~1)
-  else
-    # First commit: use git's empty tree hash
-    BASE_COMMIT=$(git hash-object -t tree /dev/null)
-  fi
-fi
-
-BASE_COMMIT_SHORT=$(git rev-parse --short "$BASE_COMMIT" 2>/dev/null || echo "initial")
-
-############################
-# Collect changed files
-############################
-
-CHANGED_FILES=$(git diff --name-only "$BASE_COMMIT"...HEAD)
+STAGED_FILES=$(git diff --cached --name-only)
 
 ############################
 # Preview review scope
@@ -45,20 +35,19 @@ CHANGED_FILES=$(git diff --name-only "$BASE_COMMIT"...HEAD)
 
 echo "================ Review Scope ================"
 echo "Branch        : $CURRENT_BRANCH"
-echo "Base commit   : $BASE_COMMIT_SHORT"
-echo "Head commit   : $HEAD_COMMIT"
+echo "Review target : Staged changes"
 echo
-echo "Changed files :"
-if [[ -z "$CHANGED_FILES" ]]; then
+echo "Staged files  :"
+if [[ -z "$STAGED_FILES" ]]; then
   echo "  (none)"
 else
-  echo "$CHANGED_FILES" | sed 's/^/  - /'
+  echo "$STAGED_FILES" | sed 's/^/  - /'
 fi
 echo "=============================================="
 echo
 
-if [[ -z "$CHANGED_FILES" ]]; then
-  echo "No changes detected. Skipping code review."
+if [[ -z "$STAGED_FILES" ]]; then
+  echo "No staged changes detected. Skipping code review."
   exit 0
 fi
 
@@ -67,19 +56,25 @@ fi
 ############################
 
 DIFF_FILE=$(mktemp)
-git diff "$BASE_COMMIT"...HEAD > "$DIFF_FILE"
+git diff --cached > "$DIFF_FILE"
 
 ############################
 # Run Gemini review
 ############################
 
-REVIEW_PROMPT="You are reviewing changes from commit $BASE_COMMIT_SHORT to $HEAD_COMMIT on branch $CURRENT_BRANCH.
+PROMPT_FILE=$(mktemp)
+cat > "$PROMPT_FILE" <<EOF
+You are reviewing staged changes on branch $CURRENT_BRANCH.
 Perform a detailed code review on the following diff. Focus on correctness, security, readability, best practices, and provide a prioritized list of issues and suggested fixes.
 
 Here is the diff:
-$(cat "$DIFF_FILE")"
+$(cat "$DIFF_FILE")
+EOF
 
-gemini "$REVIEW_PROMPT" > "$REVIEW_OUTPUT"
+gemini < "$PROMPT_FILE" > "$REVIEW_OUTPUT"
+
+# Cleanup
+rm -f "$DIFF_FILE" "$PROMPT_FILE"
 
 ############################
 # Output result

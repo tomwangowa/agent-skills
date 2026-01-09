@@ -1,38 +1,37 @@
 ---
 name: Code Review with Gemini
-description: Perform a code review on recently changed files. Use this Skill when the user asks to review code changes, review changed files, analyze diffs, check code quality, or find issues in recent commits.
+description: Perform a code review on staged changes. Use this Skill when the user asks to review staged files, check code quality before committing, or analyze changes about to be committed.
 ---
 
 # Code Review with Gemini
 
 ## Purpose
 
-This Skill performs a structured code review on recently changed files by:
-1. Collecting the actual git diff based on the current branch
+This Skill performs a structured code review on staged changes by:
+1. Collecting the git diff of staged changes (`git diff --cached`)
 2. Running an external review script that invokes the Gemini CLI
 3. Summarizing the findings in a clear, prioritized manner
 
-The Skill is designed to be deterministic, auditable, and suitable for engineering workflows.
+The Skill is designed to be deterministic, auditable, and suitable for pre-commit workflows.
 
 ---
 
 ## Instructions
 
-When the user expresses intent to review code (for example: reviewing changed files, analyzing diffs, or checking code quality), follow the steps below strictly.
+When the user expresses intent to review staged changes (for example: reviewing staged files, checking code before commit, or analyzing changes about to be committed), follow the steps below strictly.
 Please note that do not specify the gemini model in the instructions, as it will be handled in the script.
 
 ### Execution steps
 
 1. Run the script `scripts/review_with_gemini.sh`.
 
-2. Observe the script output carefully.  
+2. Observe the script output carefully.
    The script will first print a **"Review Scope"** section that includes:
    - Current branch name
-   <!--- Base commit-->
-   - Head commit
-   - List of changed files
+   - Review target (Staged changes)
+   - List of staged files
 
-3. Before summarizing the review, **pay close attention to the "Review Scope" section** and ensure that all findings align strictly with the listed changed files.
+3. Before summarizing the review, **pay close attention to the "Review Scope" section** and ensure that all findings align strictly with the listed staged files.
 
    - If a finding does not clearly map to a file in the review scope, treat it as **low confidence**.
    - Do not introduce issues, suggestions, or risks that are unrelated to the displayed diff.
@@ -72,20 +71,20 @@ Your role is to act as a senior reviewer who filters, validates, and prioritizes
 
 ## Examples
 
-**User:**  
-> Review the changed files and tell me if there are any problems.
+**User:**
+> Review the staged files before I commit.
 
-**Expected behavior:**  
+**Expected behavior:**
 - Run `review_with_gemini.sh`
 - Read the "Review Scope" section
-- Validate that review findings match the changed files
+- Validate that review findings match the staged files
 - Respond with a prioritized, scoped code review summary
 
 ---
 
-**User:**  
-> Please analyze the recent code changes for quality and risks.
+**User:**
+> Check the code quality of my staged changes.
 
-**Expected behavior:**  
+**Expected behavior:**
 - Same workflow as above
 - Emphasize correctness and risk-related issues first
