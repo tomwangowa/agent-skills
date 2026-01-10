@@ -1,3 +1,10 @@
+
+這個 repository 計畫收錄我在實務工作中使用的 Claude Code Skills，
+主要目的是將一些重複性高、容易出錯、但又需要一致品質的工程任務（例如 code review、分析 diff、工具串接）流程化、標準化。
+
+這些 Skills 都是以「工程可預期、可審計、不依賴魔法」為設計原則，
+可以直接安裝到本機的 Claude Code 環境中使用，也歡迎依照團隊需求自行擴充或修改。
+
 # Claude Code Skills
 
 A collection of custom skills for [Claude Code](https://claude.ai/code) that extend its capabilities with specialized workflows.
