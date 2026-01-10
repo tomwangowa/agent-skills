@@ -3,6 +3,8 @@ gemini_review_result.txt
 **/gemini_review_result.txt
 commit_msg_result.txt
 **/commit_msg_result.txt
+code_story_result.txt
+**/code_story_result.txt
 
 # Temporary files
 *.tmp

@@ -19,6 +19,7 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 |-------|-------------|
 | [code-review-gemini](./code-review-gemini/) | Perform code reviews on staged changes using the Gemini CLI |
 | [commit-msg-generator](./commit-msg-generator/) | Generate high-quality commit messages following Conventional Commits specification |
+| [code-story-teller](./code-story-teller/) | Analyze git history to tell the evolutionary story of code files |
 
 ## Quick Start
 
@@ -184,6 +185,11 @@ Each skill may have its own dependencies. Check the individual skill directories
 
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - Git (must be run inside a git repository with staged changes)
+
+### code-story-teller
+
+- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
+- Git (must be run inside a git repository with commit history)
 
 ## Documentation
 
