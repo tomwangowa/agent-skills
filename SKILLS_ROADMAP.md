@@ -99,31 +99,6 @@ Automatically generates release notes from commits between versions.
 
 ---
 
-### 🔵 impact-blast-radius-analyzer
-**Priority:** High
-**Category:** Risk Management
-**Trigger:** "analyze blast radius", "check impact of changes"
-
-Analyzes the potential impact of code changes before deployment.
-
-**Planned Features:**
-- Identify affected modules and dependencies
-- Detect potential breaking changes
-- Suggest required test updates
-- List stakeholders who should be notified
-- Calculate risk score
-
-**Use Cases:**
-- Pre-deployment risk assessment
-- Large refactoring planning
-- API change impact analysis
-
-**Dependencies:** Gemini CLI, Git, static analysis tools
-
-**Estimated Complexity:** High
-
----
-
 ### 🔵 context-archaeologist
 **Priority:** Medium
 **Category:** Code Understanding
@@ -169,6 +144,220 @@ Identifies and quantifies technical debt in the codebase.
 - Code quality metrics
 
 **Dependencies:** Gemini CLI, Git, static analysis tools
+
+**Estimated Complexity:** High
+
+---
+
+## Pull Request Skills
+
+This section focuses on skills that enhance the Pull Request workflow - from creation to review to merge.
+
+### 🔵 pr-review-assistant
+**Priority:** High
+**Category:** Code Review & Quality
+**Trigger:** "review this PR", "help review pull request", "analyze PR changes"
+
+Assists in reviewing pull requests by analyzing diffs and providing structured feedback.
+
+**Planned Features:**
+- Analyze PR diff comprehensively
+- Identify potential bugs, security issues, and code smells
+- Check code style and best practices
+- Suggest improvements with specific line references
+- Generate review comments in GitHub-compatible format
+- Prioritize findings (blocking, important, minor, nit)
+- Compare against project coding standards
+- Detect common anti-patterns
+- Generate review summary and verdict
+
+**Use Cases:**
+- Daily PR reviews for team members
+- Pre-merge quality gate
+- Learning tool for junior developers
+- Consistency check across large PRs
+
+**Output Format:**
+```markdown
+## Review Summary
+- Overall verdict: Approve / Request Changes / Comment
+- Files reviewed: 8
+- Issues found: 12 (3 blocking, 5 important, 4 minor)
+
+## Blocking Issues
+1. [security] SQL injection vulnerability in user_controller.js:45
+2. [correctness] Null pointer dereference in payment.go:123
+
+## Important
+...
+
+## Suggestions
+...
+```
+
+**Dependencies:** Gemini CLI, Git, GitHub CLI (optional for posting comments)
+
+**Estimated Complexity:** Medium-High
+
+---
+
+### 🔵 pr-description-generator
+**Priority:** High
+**Category:** Documentation & Workflow
+**Trigger:** "generate PR description", "create pull request", "write PR summary"
+
+Automatically generates comprehensive PR descriptions from commit history.
+
+**Planned Features:**
+- Analyze all commits between base and current branch
+- Categorize changes (features, fixes, refactors, docs)
+- Generate structured PR description
+- Create test plan checklist
+- List affected files and components
+- Calculate impact metrics (lines changed, risk level)
+- Include breaking changes section
+- Auto-link related issues
+- Multi-language support (English & Traditional Chinese)
+
+**Template Format:**
+```markdown
+## Summary
+Brief overview of the PR
+
+## Changes
+### Features
+- Feature 1
+- Feature 2
+
+### Bug Fixes
+- Fix 1
+
+### Refactoring
+- Refactor 1
+
+## Test Plan
+- [ ] Unit tests pass
+- [ ] Integration tests pass
+- [ ] Manual testing completed
+
+## Impact
+- Files changed: 12
+- Lines added: 342
+- Lines removed: 128
+- Risk level: Medium
+- Affected modules: auth, database
+
+## Breaking Changes
+(if any)
+
+## Related Issues
+Closes #123
+Related to #456
+
+🤖 Generated with Gemini CLI
+```
+
+**Use Cases:**
+- Every PR creation
+- Standardize PR documentation
+- Save time writing descriptions
+- Improve PR quality
+
+**Dependencies:** Gemini CLI, Git
+
+**Estimated Complexity:** Medium
+
+---
+
+### 🔵 pr-merge-readiness-checker
+**Priority:** Medium
+**Category:** Quality Gate & Risk Management
+**Trigger:** "check if PR is ready", "can I merge this", "PR readiness"
+
+Validates if a PR is ready to be merged based on multiple criteria.
+
+**Planned Features:**
+- Check CI/CD pipeline status
+- Verify required approvals
+- Detect merge conflicts
+- Check test coverage changes
+- Validate branch protection rules
+- Verify linked issues are resolved
+- Check for unresolved review comments
+- Calculate merge risk score
+- Suggest optimal merge time
+
+**Output Format:**
+```
+PR Readiness Report
+==================
+✅ CI/CD: All checks passed
+✅ Approvals: 2/2 required
+✅ Conflicts: None
+⚠️  Test Coverage: Decreased by 1.2%
+✅ Branch Protection: Compliant
+❌ Unresolved Comments: 3 threads
+
+Risk Score: Medium (65/100)
+Recommendation: Request changes - resolve comments first
+
+Blockers:
+- 3 unresolved review threads
+- Test coverage decreased
+
+Suggested Actions:
+1. Address review comments
+2. Add tests to maintain coverage
+```
+
+**Dependencies:** GitHub CLI, Git, CI/CD integration
+
+**Estimated Complexity:** High
+
+---
+
+### 🔵 pr-impact-analyzer
+**Priority:** High
+**Category:** Risk Analysis
+**Trigger:** "analyze PR impact", "what does this PR affect", "PR blast radius"
+
+Analyzes the downstream impact of PR changes.
+
+**Potential Features:**
+- Identify affected modules and services
+- Find dependent components
+- List teams that should be notified
+- Suggest documentation updates
+- Predict deployment risks
+- Generate rollback plan
+- Estimate performance impact
+
+**Output Format:**
+```
+Impact Analysis
+==============
+Direct Impact:
+- auth-service
+- user-database
+
+Indirect Impact:
+- notification-service (depends on auth)
+- analytics-pipeline (depends on user-database)
+
+Teams to Notify:
+- @backend-team (owners of auth-service)
+- @data-team (owners of analytics-pipeline)
+
+Documentation to Update:
+- API_DOCS.md (auth endpoints changed)
+- DEPLOYMENT.md (new environment variables)
+
+Deployment Risk: Medium
+- Database schema changes require migration
+- API breaking changes need versioning
+```
+
+**Dependencies:** Gemini CLI, Git, dependency analysis tools
 
 **Estimated Complexity:** High
 
@@ -308,16 +497,18 @@ When implementing a new skill:
 ## Priority Matrix
 
 ### High Priority (Implement Soon)
-1. release-notes-generator - High value, medium complexity
-2. impact-blast-radius-analyzer - Prevents production issues
-3. code-story-teller - Helps understand legacy code
+1. **pr-review-assistant** - Most frequently used, improves daily workflow
+2. **pr-description-generator** - Saves time, improves PR quality
+3. **release-notes-generator** - High value, medium complexity
+4. **pr-impact-analyzer** - Prevents production issues, risk analysis
 
 ### Medium Priority (Next Quarter)
-4. context-archaeologist - Good for onboarding
-5. technical-debt-scout - Long-term code quality
+5. **pr-merge-readiness-checker** - Quality gate automation
+6. **context-archaeologist** - Good for onboarding
+7. **technical-debt-scout** - Long-term code quality
 
 ### Low Priority (Future)
-6. Other skills as needed
+8. Other skills as needed
 
 ---
 
