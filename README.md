@@ -11,6 +11,7 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 | Skill | Description |
 |-------|-------------|
 | [code-review-gemini](./code-review-gemini/) | Perform code reviews on staged changes using the Gemini CLI |
+| [commit-msg-generator](./commit-msg-generator/) | Generate high-quality commit messages following Conventional Commits specification |
 
 ## Quick Start
 
@@ -87,6 +88,25 @@ gemini "Hello, test"
    - Show you which files are being reviewed
    - Provide a prioritized summary of findings
 
+### Using commit-msg-generator
+
+1. Stage your changes:
+   ```bash
+   git add <files>
+   ```
+
+2. In Claude Code, request a commit message:
+   ```
+   > generate commit message
+   > help me write a commit message
+   > create commit description
+   ```
+
+3. Claude Code will:
+   - Analyze the staged changes
+   - Generate a commit message following Conventional Commits
+   - Provide a command to use the message
+
 ### Example Workflow
 
 ```bash
@@ -152,6 +172,11 @@ Each skill may have its own dependencies. Check the individual skill directories
 
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - Git (must be run inside a git repository)
+
+### commit-msg-generator
+
+- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
+- Git (must be run inside a git repository with staged changes)
 
 ## Documentation
 

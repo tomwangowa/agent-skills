@@ -1,10 +1,15 @@
 # Review output files
 gemini_review_result.txt
 **/gemini_review_result.txt
+commit_msg_result.txt
+**/commit_msg_result.txt
 
 # Temporary files
 *.tmp
 *.log
+
+# Claude Code local settings
+.claude/settings.local.json
 
 # OS files
 .DS_Store
