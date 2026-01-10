@@ -10,28 +10,102 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 
 | Skill | Description |
 |-------|-------------|
-| [code-review-gemini](./code-review-gemini/) | Perform code reviews using the Gemini CLI |
+| [code-review-gemini](./code-review-gemini/) | Perform code reviews on staged changes using the Gemini CLI |
 
-## Installation
+## Quick Start
 
-Skills in this repository are automatically available to Claude Code when placed in the `~/.claude/skills/` directory.
+### Prerequisites
+
+- [Claude Code CLI](https://claude.ai/code) installed
+- [Node.js](https://nodejs.org/) (for Gemini CLI)
+- Git
+
+### Installation
+
+**Option 1: Clone to skills directory (Recommended)**
 
 ```bash
-# This repository should be located at:
-~/.claude/skills/
+# Clone this repository to your Claude Code skills directory
+git clone <repository-url> ~/.claude/skills
+```
+
+**Option 2: Symlink existing clone**
+
+```bash
+# If you've already cloned this repo elsewhere
+ln -s /path/to/cloned/repo ~/.claude/skills
+```
+
+### Setup Dependencies
+
+Install the Gemini CLI for code review functionality:
+
+```bash
+npm install -g @google/gemini-cli
+```
+
+Configure Gemini CLI with your API key:
+
+```bash
+# Set your Gemini API key
+export GEMINI_API_KEY="your-api-key-here"
+
+# Or add to your shell profile (~/.bashrc, ~/.zshrc, etc.)
+echo 'export GEMINI_API_KEY="your-api-key-here"' >> ~/.zshrc
+```
+
+Get your API key from: [Google AI Studio](https://aistudio.google.com/app/apikey)
+
+### Verify Installation
+
+```bash
+# Check if Claude Code can see your skills
+ls ~/.claude/skills/
+
+# Test the Gemini CLI
+gemini "Hello, test"
 ```
 
 ## Usage
 
-Simply use natural language to trigger a skill. For example:
+### Using code-review-gemini
 
-```
-> review the changed files
-> give me a code review
-> analyze the code changes
+1. Stage your changes:
+   ```bash
+   git add <files>
+   ```
+
+2. In Claude Code, use natural language to trigger the review:
+   ```
+   > review the staged files
+   > check the code quality before I commit
+   > analyze my staged changes
+   ```
+
+3. Claude Code will:
+   - Run the review script
+   - Show you which files are being reviewed
+   - Provide a prioritized summary of findings
+
+### Example Workflow
+
+```bash
+# Make some changes to your code
+vim src/app.js
+
+# Stage the changes
+git add src/app.js
+
+# Open Claude Code and request a review
+claude
+> Review the staged files before I commit
 ```
 
-Claude Code will automatically detect the intent and invoke the appropriate skill.
+Claude will analyze your changes and provide feedback on:
+- Potential bugs or security issues
+- Code quality and best practices
+- Readability and maintainability
+- Suggested improvements
 
 ## Creating a New Skill
 
@@ -78,6 +152,34 @@ Each skill may have its own dependencies. Check the individual skill directories
 
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - Git (must be run inside a git repository)
+
+## Documentation
+
+- **[SETUP.md](./SETUP.md)** - Detailed setup and installation guide
+- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Guide for creating new skills or improving existing ones
+- **[CLAUDE.md](./CLAUDE.md)** - Instructions for Claude Code when working in this repository
+
+## Team Setup
+
+For team deployment, see the [Team Setup](./SETUP.md#team-setup) section in SETUP.md.
+
+Quick installation for team members:
+
+```bash
+# Clone and run installation script
+git clone <repository-url> ~/claude-code-skills
+cd ~/claude-code-skills
+bash install.sh
+```
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+## Troubleshooting
+
+Having issues? Check [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for solutions to common problems.
 
 ## License
 
