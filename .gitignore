@@ -5,6 +5,8 @@ commit_msg_result.txt
 **/commit_msg_result.txt
 code_story_result.txt
 **/code_story_result.txt
+pr_review_result.txt
+**/pr_review_result.txt
 
 # Temporary files
 *.tmp

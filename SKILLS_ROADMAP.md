@@ -71,6 +71,28 @@ Analyzes git history to explain how code evolved and why design decisions were m
 
 ---
 
+### 🟢 pr-review-assistant
+**Status:** Implemented
+**Category:** Code Review & Quality
+**Trigger:** "review this PR", "help review pull request", "analyze PR changes"
+
+AI-powered pull request reviewer that provides comprehensive, structured feedback.
+
+**Features:**
+- Analyzes PR diff comprehensively using GitHub CLI and Gemini AI
+- Identifies bugs, security issues, and code quality problems
+- Provides structured feedback (blocking, important, minor)
+- Includes specific file names and line numbers
+- Generates review summary with risk assessment
+- Supports posting review directly to GitHub
+- Bilingual output (Traditional Chinese with English code terms)
+
+**Dependencies:** Gemini CLI, GitHub CLI, Git
+
+**Complexity:** Medium-High
+
+---
+
 ## Planned Skills
 
 ### 🔵 release-notes-generator
@@ -152,54 +174,6 @@ Identifies and quantifies technical debt in the codebase.
 ## Pull Request Skills
 
 This section focuses on skills that enhance the Pull Request workflow - from creation to review to merge.
-
-### 🔵 pr-review-assistant
-**Priority:** High
-**Category:** Code Review & Quality
-**Trigger:** "review this PR", "help review pull request", "analyze PR changes"
-
-Assists in reviewing pull requests by analyzing diffs and providing structured feedback.
-
-**Planned Features:**
-- Analyze PR diff comprehensively
-- Identify potential bugs, security issues, and code smells
-- Check code style and best practices
-- Suggest improvements with specific line references
-- Generate review comments in GitHub-compatible format
-- Prioritize findings (blocking, important, minor, nit)
-- Compare against project coding standards
-- Detect common anti-patterns
-- Generate review summary and verdict
-
-**Use Cases:**
-- Daily PR reviews for team members
-- Pre-merge quality gate
-- Learning tool for junior developers
-- Consistency check across large PRs
-
-**Output Format:**
-```markdown
-## Review Summary
-- Overall verdict: Approve / Request Changes / Comment
-- Files reviewed: 8
-- Issues found: 12 (3 blocking, 5 important, 4 minor)
-
-## Blocking Issues
-1. [security] SQL injection vulnerability in user_controller.js:45
-2. [correctness] Null pointer dereference in payment.go:123
-
-## Important
-...
-
-## Suggestions
-...
-```
-
-**Dependencies:** Gemini CLI, Git, GitHub CLI (optional for posting comments)
-
-**Estimated Complexity:** Medium-High
-
----
 
 ### 🔵 pr-description-generator
 **Priority:** High
@@ -497,18 +471,17 @@ When implementing a new skill:
 ## Priority Matrix
 
 ### High Priority (Implement Soon)
-1. **pr-review-assistant** - Most frequently used, improves daily workflow
-2. **pr-description-generator** - Saves time, improves PR quality
-3. **release-notes-generator** - High value, medium complexity
-4. **pr-impact-analyzer** - Prevents production issues, risk analysis
+1. **pr-description-generator** - Saves time, improves PR quality
+2. **release-notes-generator** - High value, medium complexity
+3. **pr-impact-analyzer** - Prevents production issues, risk analysis
 
 ### Medium Priority (Next Quarter)
-5. **pr-merge-readiness-checker** - Quality gate automation
-6. **context-archaeologist** - Good for onboarding
-7. **technical-debt-scout** - Long-term code quality
+4. **pr-merge-readiness-checker** - Quality gate automation
+5. **context-archaeologist** - Good for onboarding
+6. **technical-debt-scout** - Long-term code quality
 
 ### Low Priority (Future)
-8. Other skills as needed
+7. Other skills as needed
 
 ---
 
