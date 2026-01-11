@@ -93,6 +93,53 @@ AI-powered pull request reviewer that provides comprehensive, structured feedbac
 
 ---
 
+### 🟢 spec-review-assistant
+**Status:** Implemented
+**Category:** Documentation & Quality Assurance
+**Trigger:** "review this spec", "check specification", "validate requirements doc"
+
+Reviews specification documents before implementation to identify gaps, ambiguities, and potential issues.
+
+**Features:**
+- 5-dimensional analysis: Completeness, Feasibility, Clarity, Workload, Codebase Integration
+- Checks for all 8 essential sections (Background, Requirements, Design, Error Handling, Security, Testing, Deployment, Metrics)
+- Detects vague terms and suggests specific metrics
+- AI-powered contradiction detection
+- Supports 25+ programming languages
+- Generates structured review report with prioritized issues
+- Optional codebase integration (--with-codebase flag)
+
+**Dependencies:** Gemini CLI, jq, Git (optional)
+
+**Complexity:** Medium-High
+
+---
+
+### 🟢 spec-generator
+**Status:** Implemented
+**Category:** Documentation & Planning
+**Trigger:** "generate a spec", "create specification", "I need a spec document"
+
+Generates complete specification documents from simple ideas using Claude's AI capabilities.
+
+**Features:**
+- Transforms brief ideas into comprehensive 150+ line specifications
+- Generates all 8 essential sections automatically
+- Uses Claude Code directly (no external dependencies!)
+- Context-aware (adapts to project tech stack)
+- Produces review-ready specs that pass spec-review-assistant validation
+- Automatic filename suggestion and directory detection
+- Integrated validation (checks for placeholders, vague terms)
+- Conversational refinement (iterate on sections as needed)
+
+**Dependencies:** None - uses Claude Code's native capabilities
+
+**Complexity:** Medium
+
+**Integration:** Works seamlessly with spec-review-assistant for validation
+
+---
+
 ## Planned Skills
 
 ### 🔵 release-notes-generator
@@ -500,5 +547,5 @@ To propose a new skill:
 
 ---
 
-**Last Updated:** 2026-01-10
+**Last Updated:** 2026-01-12
 **Next Review:** End of Q1 2026

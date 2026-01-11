@@ -21,6 +21,8 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 | [commit-msg-generator](./commit-msg-generator/) | Generate high-quality commit messages following Conventional Commits specification |
 | [code-story-teller](./code-story-teller/) | Analyze git history to tell the evolutionary story of code files |
 | [pr-review-assistant](./pr-review-assistant/) | AI-powered pull request reviewer with structured, prioritized feedback |
+| [spec-review-assistant](./spec-review-assistant/) | Review specification documents before implementation to identify gaps, ambiguities, and potential issues |
+| [spec-generator](./spec-generator/) | Generate complete specification documents from simple ideas using Claude's AI capabilities |
 
 ## Quick Start
 
@@ -197,6 +199,17 @@ Each skill may have its own dependencies. Check the individual skill directories
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - [GitHub CLI](https://cli.github.com/): Install from https://cli.github.com/
 - Git with access to the PR repository
+
+### spec-review-assistant
+
+- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
+- jq: `brew install jq` (macOS) or `apt-get install jq` (Ubuntu)
+- Git (optional, for codebase integration)
+
+### spec-generator
+
+- **No external dependencies required!** Uses Claude Code's native capabilities
+- Works immediately out of the box
 
 ## Documentation
 
