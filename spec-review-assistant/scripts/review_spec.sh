@@ -156,15 +156,15 @@ check_completeness() {
 
     # Define expected sections
     local expected_sections=(
-        "Background\|Context\|Overview"
-        "Requirements\|Specifications"
-        "Technical Design\|Architecture"
-        "API\|Interface"
-        "Error Handling\|Edge Cases"
+        "Background|Context|Overview"
+        "Requirements|Specifications"
+        "Technical Design|Architecture"
+        "API|Interface"
+        "Error Handling|Edge Cases"
         "Security"
-        "Testing\|Test Plan"
-        "Deployment\|Rollout"
-        "Metrics\|Success Criteria"
+        "Testing|Test Plan"
+        "Deployment|Rollout"
+        "Metrics|Success Criteria"
     )
 
     local missing_sections=()
