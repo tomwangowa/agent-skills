@@ -1,9 +1,13 @@
 
 這個 repository 計畫收錄我在實務工作中使用的 Claude Code Skills，
-主要目的是將一些重複性高、容易出錯、但又需要一致品質的工程任務（例如 code review、分析 diff、工具串接）流程化、標準化。
+主要目的是將一些重複性高、容易出錯、但又需要一致品質的工程任務（例如 code review、生成 commit message、分析 git history、生成並且審查規格書等）流程化、標準化。
 
 這些 Skills 都是以「工程可預期、可審計、不依賴魔法」為設計原則，
 可以直接安裝到本機的 Claude Code 環境中使用，也歡迎依照團隊需求自行擴充或修改。
+
+另外，我在 Claude Code 裡加入「Review Code with Gemini」的 Skill，主要目的不是追求多一個 AI，而是降低單一模型的盲點。Claude 負責主要開發與上下文理解，但它在檢視自己產生的程式碼時，容易對既有結構過度合理化；Gemini 則扮演相對保守的 reviewer，特別擅長抓邏輯漏洞、邊界條件與防禦性不足的地方。
+
+目前流程是：每完成一個小任務就自動調用 Gemini review，依回饋修正直到 fully approved，確保風險在早期被攔下；最後再用 Gemini 產生一致且可讀的 commit message。這樣做的價值在於把 code review 前移、系統化，並模擬實際團隊中「作者與 reviewer 分工」的狀態，而不是取代人類判斷。
 
 # Claude Code Skills
 
