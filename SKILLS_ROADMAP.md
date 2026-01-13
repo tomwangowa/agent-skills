@@ -172,34 +172,55 @@ Analyzes UI/UX design from screenshots using Claude's native multimodal capabili
 ---
 
 ### 🟢 work-log-analyzer
-**Status:** Implemented
+**Status:** Implemented (Enhanced with Activity Aggregation)
 **Category:** Documentation & Productivity
-**Trigger:** "analyze my work log", "check TODOs in journal", "track project evolution"
+**Trigger:** "analyze my work log", "check TODOs in journal", "track project evolution", "aggregate my activities", "show me this week's work"
 
-Analyzes work logs, journals, and development notes to track project evolution, manage TODOs, and extract insights.
+Analyzes work logs, journals, and development notes to track project evolution, manage TODOs, extract insights, and aggregate structured activity records from activity-logger.
 
 **Features:**
-- 4 query types: Timeline (evolution tracking), TODO (task management), Decision (rationale tracking), Search (keyword finding)
+- **5 query types:**
+  - **Activity Aggregation** (NEW): Aggregate and filter structured activity records from activity-logger
+  - Timeline: Evolution tracking across log entries
+  - TODO: Task management with overdue detection
+  - Decision: Rationale and context tracking
+  - Search: Keyword-based finding
+- **Activity Aggregation capabilities:**
+  - Date range filtering (today, yesterday, this-week, last-week, this-month, all)
+  - Project, type, and tag filtering
+  - Multiple output formats (by-date, by-project, by-type, json)
+  - Cross-platform date handling (macOS/Linux)
+  - Efficient batch processing with jq
 - Intelligent date parsing and overdue task detection
-- Supports multiple log formats (Markdown, plain text, structured, unstructured)
+- Supports multiple log formats (Markdown, plain text, structured, unstructured, JSON)
 - TODO format tolerance (various checkbox styles, completion markers)
 - Chronological timeline generation for project evolution
 - Decision history extraction with context and rationale
-- No external dependencies - uses Claude Code's native capabilities
 - Bilingual output (Traditional Chinese with English technical terms)
 - Includes example work log for immediate testing
+- Shell script for activity aggregation (`aggregate_activities.sh`)
 
-**Dependencies:** None - uses Claude Code's native capabilities
+**Dependencies:**
+- Core features: None - uses Claude Code's native capabilities
+- Activity Aggregation: `jq` (JSON processor), `date` (standard on most systems)
 
 **Complexity:** Medium
 
 **Use Cases:**
+- **Activity reporting** (NEW): Daily/weekly/monthly work reports from activity logs
+- **Cross-session tracking** (NEW): Aggregate work across multiple Claude Code sessions
+- **Project activity analysis** (NEW): Filter and analyze activities by project, type, or tag
 - Daily standup preparation (yesterday's work, today's plan)
 - Sprint retrospective (decisions and progress review)
 - Technical debt tracking (HACK, FIXME, TODO items)
 - Decision documentation (ADR generation from logs)
 - Personal productivity tracking
 - Project continuity and knowledge preservation
+
+**Integration Points:**
+- Seamlessly integrates with activity-logger for structured activity records
+- Can process both traditional work logs and JSON activity records
+- Unified query interface for mixed log sources
 
 ---
 

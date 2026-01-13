@@ -32,6 +32,79 @@ Simply mention the file and ask a question:
 
 ## Supported Query Types
 
+### 0. Activity Aggregation (NEW - 活動彙整)
+
+Aggregate structured activity records from activity-logger into readable work logs:
+
+```
+「彙整我今天的活動」
+「Show me this week's activities」
+「What bug fixes did I do this month?」
+「Generate a daily report from my activities」
+```
+
+**Features:**
+- Aggregates activity records from `~/.claude/activities/`
+- Supports filtering by date range, project, activity type, and tags
+- Multiple output formats: by-date, by-project, by-type, or raw JSON
+- Integrates with activity-logger skill for cross-session tracking
+
+**Example:**
+```bash
+# Command line usage
+~/.claude/skills/work-log-analyzer/scripts/aggregate_activities.sh -r this-week
+
+# Or via Claude Code
+User: Aggregate my activities from this week
+
+Response:
+# 本週工作摘要 (2026-01-08 ~ 2026-01-13)
+
+## 2026-01-13
+
+### 06:57 - [bug_fixed] skills
+**Fixed ARG_MAX issues and git filename quoting**
+- Branch: `main`
+- Files changed: 6
+- Tags: scalability,robustness
+
+### 06:40 - [refactoring] skills
+**Optimized jq performance**
+- Branch: `main`
+- Files changed: 5
+- Tags: performance,optimization
+
+## 統計
+- 總活動數：6 項
+- 完成任務：1 項
+- 修復問題：4 項
+- 重構工作：1 項
+```
+
+**Available filters:**
+- **Date ranges**: `today`, `yesterday`, `this-week`, `last-week`, `this-month`, `all`
+- **Projects**: Filter by project name
+- **Activity types**: `task_completed`, `bug_fixed`, `refactoring`, `research`, `documentation`, `review`
+- **Tags**: Filter by custom tags
+- **Output modes**: `by-date`, `by-project`, `by-type`, `json`
+
+**Script usage:**
+```bash
+# Show today's activities
+aggregate_activities.sh -r today
+
+# Show this week's bug fixes
+aggregate_activities.sh -r this-week -t bug_fixed
+
+# Show all activities for a specific project
+aggregate_activities.sh -p my-project -m by-date
+
+# Export as JSON
+aggregate_activities.sh -r this-month -m json > report.json
+```
+
+---
+
 ### 1. Timeline Queries (演進分析)
 
 Track how implementations, features, or decisions evolved:

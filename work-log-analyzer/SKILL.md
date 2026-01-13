@@ -39,10 +39,27 @@ When the user provides a log file and asks a question (for example: "關於 Sell
    - Identify the format (Markdown, plain text, structured, unstructured)
 
 3. **Understand the query**
+   - **Activity queries** (NEW): "aggregate my activities", "show me today's work", "what did I do this week"
+     - Use the `scripts/aggregate_activities.sh` helper script
+     - Aggregates structured activity records from activity-logger
+     - Supports filtering by date range, project, type, and tags
+     - Formats output as readable work log or structured report
+     - Query types:
+       - Date range: today, yesterday, this-week, last-week, this-month, all
+       - By project: specific project activities
+       - By type: task_completed, bug_fixed, refactoring, research, documentation, review
+       - By tag: activities with specific tags
+     - Output modes:
+       - by-date: Chronological daily report
+       - by-project: Grouped by project
+       - by-type: Grouped by activity type
+       - json: Raw JSON for further processing
+
    - **Timeline queries**: "X 的演進", "how did X evolve", "X 的變化"
      - Extract all entries related to the topic
      - Sort chronologically
      - Summarize major milestones and decisions
+     - Can now also query activity records for technical evolution
 
    - **TODO queries**: "未完成的 TODO", "過期的任務", "pending tasks"
      - Extract all TODO items
@@ -55,6 +72,7 @@ When the user provides a log file and asks a question (for example: "關於 Sell
      - Find relevant discussions and decisions
      - Extract rationale and context
      - Identify decision makers or influencing factors
+     - Can now also search activity contexts for decision rationale
 
    - **Search queries**: General keyword search
      - Find all mentions of the topic
@@ -156,7 +174,63 @@ For best results, maintain consistent formatting throughout your logs.
 
 ## Examples
 
-### Example 1: Timeline Evolution Query
+### Example 1: Activity Aggregation Query (NEW)
+
+**User:**
+> Aggregate my activities from this week
+
+**Expected behavior:**
+1. Run `scripts/aggregate_activities.sh -r this-week`
+2. Parse the Markdown output
+3. Present a formatted summary of the week's activities
+
+**Example output:**
+```markdown
+# 本週工作摘要 (2026-01-08 ~ 2026-01-13)
+
+## 完成的任務 ✅
+- 實作 activity-logger skill (2026-01-13)
+  - 跨 session 活動追蹤功能
+  - Git 整合和自動 context 捕捉
+  - 專案：agent-skills
+
+## 修復的問題 🐛
+- 修正 Git 路徑一致性 (2026-01-13)
+- 移除 credentials 安全性問題 (2026-01-13)
+- 優化 ARG_MAX 處理 (2026-01-13)
+
+## 重構工作 ♻️
+- 優化 jq 批次處理效能 (2026-01-13)
+
+## 統計
+- 總活動數：6
+- 涉及專案：1 (agent-skills)
+- 變更檔案：約 30 個
+```
+
+---
+
+**User:**
+> Show me all bug fixes from last month
+
+**Expected behavior:**
+1. Run `scripts/aggregate_activities.sh -r this-month -t bug_fixed`
+2. Filter activities by type "bug_fixed"
+3. Present chronologically with context
+
+---
+
+**User:**
+> What did I work on in the security-project yesterday?
+
+**Expected behavior:**
+1. Run `scripts/aggregate_activities.sh -r yesterday -p security-project`
+2. Show project-specific activities
+3. Include file changes and tags
+
+---
+
+### Example 2: Timeline Evolution Query
 
 **User:**
 > 我有一個 work.md 檔案，幫我分析「關於 SellerCheck 實作方案的演進」
