@@ -49,13 +49,15 @@ get_date_range() {
     case "$range" in
         today)
             local today_start
-            today_start=$(date -j -f "%Y-%m-%d" "$(date +%Y-%m-%d)" +%s 2>/dev/null || date -d "$(date +%Y-%m-%d)" +%s)
+            # BSD date (macOS)
+            today_start=$(date -j -f "%Y-%m-%d %H:%M:%S" "$(date +%Y-%m-%d) 00:00:00" +%s 2>/dev/null || date -d "$(date +%Y-%m-%d) 00:00:00" +%s)
             echo "$today_start|$now"
             ;;
         yesterday)
             local yesterday_start yesterday_end
-            yesterday_start=$(date -j -v-1d -f "%Y-%m-%d" "$(date +%Y-%m-%d)" +%s 2>/dev/null || date -d "yesterday" +%s)
-            yesterday_end=$(date -j -f "%Y-%m-%d" "$(date +%Y-%m-%d)" +%s 2>/dev/null || date -d "today" +%s)
+            # Yesterday 00:00:00 to today 00:00:00
+            yesterday_start=$(date -j -v-1d -f "%Y-%m-%d %H:%M:%S" "$(date +%Y-%m-%d) 00:00:00" +%s 2>/dev/null || date -d "yesterday 00:00:00" +%s)
+            yesterday_end=$(date -j -f "%Y-%m-%d %H:%M:%S" "$(date +%Y-%m-%d) 00:00:00" +%s 2>/dev/null || date -d "today 00:00:00" +%s)
             echo "$yesterday_start|$yesterday_end"
             ;;
         this-week)
@@ -94,7 +96,8 @@ get_date_range() {
             ;;
         this-month)
             local month_start
-            month_start=$(date -j -f "%Y-%m-01" "$(date +%Y-%m-01)" +%s 2>/dev/null || date -d "$(date +%Y-%m-01)" +%s)
+            # First day of month at 00:00:00
+            month_start=$(date -j -f "%Y-%m-%d %H:%M:%S" "$(date +%Y-%m-01) 00:00:00" +%s 2>/dev/null || date -d "$(date +%Y-%m-01) 00:00:00" +%s)
             echo "$month_start|$now"
             ;;
         all)
