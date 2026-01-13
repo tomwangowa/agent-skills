@@ -28,6 +28,7 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 | [spec-review-assistant](./spec-review-assistant/) | Review specification documents before implementation to identify gaps, ambiguities, and potential issues |
 | [spec-generator](./spec-generator/) | Generate complete specification documents from simple ideas using Claude's AI capabilities |
 | [ui-design-analyzer](./ui-design-analyzer/) | Analyze UI/UX design from screenshots - evaluate usability, accessibility, visual design, and provide improvement suggestions |
+| [work-log-analyzer](./work-log-analyzer/) | Analyze work logs and journals to track project evolution, manage TODOs, and extract insights from development notes |
 
 ## Quick Start
 
@@ -221,6 +222,12 @@ Each skill may have its own dependencies. Check the individual skill directories
 - **No external dependencies required!** Uses Claude Code's native multimodal capabilities
 - Works immediately out of the box
 - Can analyze PNG, JPG, and other image formats
+
+### work-log-analyzer
+
+- **No external dependencies required!** Uses Claude Code's native capabilities
+- Works immediately out of the box
+- Analyzes Markdown, plain text, and various log formats
 
 ## Documentation
 

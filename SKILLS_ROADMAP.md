@@ -171,6 +171,38 @@ Analyzes UI/UX design from screenshots using Claude's native multimodal capabili
 
 ---
 
+### 🟢 work-log-analyzer
+**Status:** Implemented
+**Category:** Documentation & Productivity
+**Trigger:** "analyze my work log", "check TODOs in journal", "track project evolution"
+
+Analyzes work logs, journals, and development notes to track project evolution, manage TODOs, and extract insights.
+
+**Features:**
+- 4 query types: Timeline (evolution tracking), TODO (task management), Decision (rationale tracking), Search (keyword finding)
+- Intelligent date parsing and overdue task detection
+- Supports multiple log formats (Markdown, plain text, structured, unstructured)
+- TODO format tolerance (various checkbox styles, completion markers)
+- Chronological timeline generation for project evolution
+- Decision history extraction with context and rationale
+- No external dependencies - uses Claude Code's native capabilities
+- Bilingual output (Traditional Chinese with English technical terms)
+- Includes example work log for immediate testing
+
+**Dependencies:** None - uses Claude Code's native capabilities
+
+**Complexity:** Medium
+
+**Use Cases:**
+- Daily standup preparation (yesterday's work, today's plan)
+- Sprint retrospective (decisions and progress review)
+- Technical debt tracking (HACK, FIXME, TODO items)
+- Decision documentation (ADR generation from logs)
+- Personal productivity tracking
+- Project continuity and knowledge preservation
+
+---
+
 ## Planned Skills
 
 ### 🔵 release-notes-generator
