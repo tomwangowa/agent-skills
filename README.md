@@ -27,6 +27,7 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 | [pr-review-assistant](./pr-review-assistant/) | AI-powered pull request reviewer with structured, prioritized feedback |
 | [spec-review-assistant](./spec-review-assistant/) | Review specification documents before implementation to identify gaps, ambiguities, and potential issues |
 | [spec-generator](./spec-generator/) | Generate complete specification documents from simple ideas using Claude's AI capabilities |
+| [ui-design-analyzer](./ui-design-analyzer/) | Analyze UI/UX design from screenshots - evaluate usability, accessibility, visual design, and provide improvement suggestions |
 
 ## Quick Start
 
@@ -214,6 +215,12 @@ Each skill may have its own dependencies. Check the individual skill directories
 
 - **No external dependencies required!** Uses Claude Code's native capabilities
 - Works immediately out of the box
+
+### ui-design-analyzer
+
+- **No external dependencies required!** Uses Claude Code's native multimodal capabilities
+- Works immediately out of the box
+- Can analyze PNG, JPG, and other image formats
 
 ## Documentation
 

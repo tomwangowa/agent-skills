@@ -140,6 +140,37 @@ Generates complete specification documents from simple ideas using Claude's AI c
 
 ---
 
+### 🟢 ui-design-analyzer
+**Status:** Implemented
+**Category:** UI/UX & Design Quality
+**Trigger:** "analyze this UI", "review this screenshot", "is this design good", "check interface quality"
+
+Analyzes UI/UX design from screenshots using Claude's native multimodal capabilities.
+
+**Features:**
+- 6-dimensional analysis: Usability, Visual Design, Accessibility, Consistency, Responsive, Improvements
+- WCAG 2.1/2.2 accessibility compliance checking (visual aspects)
+- Color harmony and contrast ratio analysis
+- Touch target size validation (mobile)
+- Design system compliance checking
+- Actionable improvement suggestions with specific values
+- Before/after comparison support
+- Color palette extraction and suggestions
+- No external dependencies - uses Claude Code's native vision
+
+**Dependencies:** None - uses Claude Code's native multimodal capabilities
+
+**Complexity:** Medium
+
+**Use Cases:**
+- Pre-development design review
+- Implementation validation (design vs actual)
+- Accessibility audit (visual compliance)
+- Color scheme improvement
+- Design iteration feedback
+
+---
+
 ## Planned Skills
 
 ### 🔵 release-notes-generator
@@ -547,5 +578,5 @@ To propose a new skill:
 
 ---
 
-**Last Updated:** 2026-01-12
+**Last Updated:** 2026-01-13
 **Next Review:** End of Q1 2026
