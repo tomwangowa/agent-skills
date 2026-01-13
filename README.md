@@ -29,6 +29,7 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 | [spec-generator](./spec-generator/) | Generate complete specification documents from simple ideas using Claude's AI capabilities |
 | [ui-design-analyzer](./ui-design-analyzer/) | Analyze UI/UX design from screenshots - evaluate usability, accessibility, visual design, and provide improvement suggestions |
 | [work-log-analyzer](./work-log-analyzer/) | Analyze work logs and journals to track project evolution, manage TODOs, and extract insights from development notes |
+| [activity-logger](./activity-logger/) | Records work activities from the current session for cross-session aggregation and work log generation |
 
 ## Quick Start
 
@@ -144,6 +145,78 @@ Claude will analyze your changes and provide feedback on:
 - Readability and maintainability
 - Suggested improvements
 
+### Using activity-logger
+
+The activity-logger skill helps you track work activities across multiple Claude Code sessions.
+
+**Initial Setup:**
+
+```bash
+# Initialize the activity logger (creates directory structure)
+~/.claude/skills/activity-logger/scripts/init_activities.sh init
+```
+
+**Logging Activities:**
+
+You can log activities in two ways:
+
+1. **Direct command:**
+   ```bash
+   ~/.claude/skills/activity-logger/scripts/log_activity.sh \
+     -d "Implemented user authentication" \
+     -t task_completed \
+     -c "Added OAuth2 support" \
+     --tags "security,auth"
+   ```
+
+2. **Via Claude Code:**
+   ```
+   > log this activity
+   > record what I just did
+   > save session activity
+   ```
+
+**Activity Types:**
+- `task_completed` - Finished a task or feature
+- `bug_fixed` - Resolved a bug
+- `refactoring` - Code refactoring work
+- `research` - Investigation or exploration
+- `documentation` - Documentation updates
+- `review` - Code review activities
+
+**Managing Activities:**
+
+```bash
+# View current session info
+~/.claude/skills/activity-logger/scripts/init_activities.sh info
+
+# List all activity records
+~/.claude/skills/activity-logger/scripts/init_activities.sh list
+
+# Show statistics by type
+~/.claude/skills/activity-logger/scripts/init_activities.sh stats
+
+# Archive old activities (default: 30 days)
+~/.claude/skills/activity-logger/scripts/init_activities.sh archive 30
+```
+
+**What Gets Recorded:**
+- Session ID (unique per session)
+- Timestamp
+- Project path and name
+- Git branch and remote (with credentials stripped)
+- Changed files (from git status)
+- Recent commits
+- Activity type and description
+- Context and tags
+
+**Activity Records Location:**
+- Active: `~/.claude/activities/`
+- Archived: `~/.claude/activities/processed/`
+
+**Integration with work-log-analyzer:**
+Activity records can be aggregated and analyzed using the work-log-analyzer skill for comprehensive work logging across multiple projects and sessions.
+
 ## Creating a New Skill
 
 1. Create a new directory for your skill:
@@ -228,6 +301,13 @@ Each skill may have its own dependencies. Check the individual skill directories
 - **No external dependencies required!** Uses Claude Code's native capabilities
 - Works immediately out of the box
 - Analyzes Markdown, plain text, and various log formats
+
+### activity-logger
+
+- **Required dependencies:**
+  - `jq` - JSON processor: `brew install jq` (macOS) or `apt-get install jq` (Ubuntu)
+  - `git` - Version control system
+- **Optional:** `openssl` (falls back to `/dev/urandom` or `$RANDOM`)
 
 ## Documentation
 

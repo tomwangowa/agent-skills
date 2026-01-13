@@ -203,6 +203,48 @@ Analyzes work logs, journals, and development notes to track project evolution, 
 
 ---
 
+### 🟢 activity-logger
+**Status:** Implemented
+**Category:** Productivity & Session Management
+**Trigger:** "log this activity", "record what I just did", "save session activity"
+
+Records work activities from the current Claude Code session to enable cross-session activity aggregation and work log generation.
+
+**Features:**
+- Session-based activity tracking across multiple concurrent Claude Code instances
+- Automatic project context capture (git branch, remote, changed files, recent commits)
+- Activity type classification (task_completed, bug_fixed, refactoring, research, documentation, review)
+- Tag-based organization for easy categorization
+- JSON-based storage for structured querying
+- Session management (info, list, stats, archive)
+- Git integration for automatic file change detection
+- Credential sanitization in git URLs
+- Efficient batch processing with jq for scalability
+- Works in all git states (including fresh repos without HEAD)
+- Cross-platform compatibility (macOS/Linux)
+
+**Dependencies:**
+- `jq` - JSON processor (required)
+- `git` - Version control (required)
+- `openssl` - Secure random generation (optional, falls back to /dev/urandom or $RANDOM)
+
+**Complexity:** Medium
+
+**Use Cases:**
+- Cross-session activity aggregation across multiple projects
+- Automatic work log generation from session activities
+- Project time tracking and productivity analysis
+- Context preservation for interrupted work sessions
+- Team activity reporting and standup preparation
+- Integration with work-log-analyzer for comprehensive logging
+
+**Integration Points:**
+- Designed to work with work-log-analyzer skill for activity aggregation
+- Activity records stored in `~/.claude/activities/` as JSON
+- Processed activities archived to `~/.claude/activities/processed/`
+
+---
+
 ## Planned Skills
 
 ### 🔵 release-notes-generator
