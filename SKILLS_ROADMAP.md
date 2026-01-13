@@ -545,6 +545,198 @@ Checks for outdated dependencies and security vulnerabilities.
 
 ---
 
+## Document Template Extensions
+
+### ⚪ spec-generator: Multi-Template Support
+**Category:** Documentation & Planning
+**Priority:** Medium
+**Trigger:** "generate ADR", "create post-mortem", "write API docs"
+
+Extend spec-generator to support multiple document templates beyond technical specifications.
+
+**Proposed Templates** (in priority order):
+
+#### 1. ADR (Architecture Decision Record) - High Priority
+**Use Cases:**
+- Document technical decisions (database choice, framework selection, API design)
+- Capture context, rationale, and trade-offs
+- Link with work-log-analyzer for decision tracking
+
+**Template Sections:**
+- Title and Status (Proposed/Accepted/Deprecated/Superseded)
+- Context (what situation led to this decision)
+- Decision (what was decided)
+- Rationale (why this decision)
+- Alternatives Considered (what else was evaluated)
+- Consequences (pros and cons)
+- Related Decisions
+
+**Example Usage:**
+```
+Generate an ADR for choosing PostgreSQL over MongoDB
+```
+
+**ROI**: Very High - Prevents future confusion, speeds up onboarding
+
+---
+
+#### 2. Post-mortem / Incident Report - High Priority
+**Use Cases:**
+- Document production incidents
+- Root cause analysis
+- Action items for prevention
+- Team learning
+
+**Template Sections:**
+- Summary (duration, impact, severity)
+- Timeline (detailed event sequence)
+- Root Cause Analysis
+- Contributing Factors
+- Resolution Steps
+- Action Items (preventive measures)
+- Lessons Learned
+
+**Example Usage:**
+```
+Generate a post-mortem for the API outage on 2026-01-13
+```
+
+**ROI**: High - Critical for reliability improvement, required by many orgs
+
+---
+
+#### 3. API Documentation - High Priority
+**Use Cases:**
+- Document REST/GraphQL APIs
+- OpenAPI/Swagger compatible
+- Keep docs in sync with code
+
+**Template Sections:**
+- Endpoint overview
+- Request/Response schemas
+- Authentication requirements
+- Error codes and handling
+- Rate limiting
+- Examples (curl, JavaScript, Python)
+
+**Example Usage:**
+```
+Generate API docs for my auth endpoints based on the code
+```
+
+**ROI**: High - Daily use, improves team efficiency
+
+---
+
+#### 4. Troubleshooting Guide / Runbook - Medium Priority
+**Use Cases:**
+- On-call engineer reference
+- Common issues and solutions
+- Step-by-step recovery procedures
+
+**Template Sections:**
+- Problem description
+- Symptoms and detection
+- Root cause
+- Solution steps
+- Prevention measures
+- Related incidents
+
+**Example Usage:**
+```
+Generate a troubleshooting guide for database connection timeouts
+```
+
+**ROI**: Medium - Reduces MTTR, helps on-call engineers
+
+---
+
+#### 5. Migration Plan - Medium Priority
+**Use Cases:**
+- Database schema changes
+- Version upgrades
+- Data format migrations
+
+**Template Sections:**
+- Migration overview and goals
+- Pre-migration checklist
+- Step-by-step migration procedure
+- Rollback plan
+- Testing strategy
+- Risk assessment and mitigation
+
+**Example Usage:**
+```
+Generate a migration plan for upgrading from PostgreSQL 12 to 15
+```
+
+**ROI**: Medium - Critical when needed, but less frequent
+
+---
+
+#### 6. Demo Script / Presentation Guide - Low Priority
+**Use Cases:**
+- Technical presentations
+- Feature demos
+- Training materials
+
+**Template Sections:**
+- Objective and audience
+- Story flow and scenarios
+- Code examples
+- Timing and pacing
+- Q&A preparation
+- Visual aids suggestions
+
+**Example Usage:**
+```
+Generate a demo script for presenting [feature/tool]
+```
+
+**ROI**: Low-Medium - Useful but less frequent than others
+
+---
+
+#### 7. Performance Analysis Report - Low Priority
+**Use Cases:**
+- Performance optimization projects
+- Benchmark comparisons
+- Bottleneck identification
+
+**Example Usage:**
+```
+Generate a performance report based on my load test results
+```
+
+**ROI**: Low-Medium - Specialized use case
+
+---
+
+### Implementation Approach
+
+**Option A: Extend spec-generator (Recommended)**
+- Add template detection to spec-generator
+- Automatically select template based on user's request
+- Use Claude's understanding to choose the right format
+
+**Option B: Separate Skills**
+- Create dedicated skills (adr-generator, post-mortem-generator, etc.)
+- More focused but higher maintenance cost
+
+**Recommendation**: Start with Option A, add 3 most valuable templates:
+1. ADR
+2. Post-mortem
+3. API Documentation
+
+**Estimated Effort**:
+- Infrastructure: 4-6 hours (template system)
+- Per template: 1-2 hours (define structure and examples)
+- Total for 3 templates: 10-12 hours
+
+**Dependencies**: None - extends existing spec-generator (Claude-powered)
+
+---
+
 ## Implementation Guidelines
 
 When implementing a new skill:
