@@ -94,7 +94,6 @@ Comprehensive planning document for UI/UX related skills development.
 
 - [Back to Main README](../README.md)
 - [Skills Roadmap](../SKILLS_ROADMAP.md)
-- [Demo Script](../SKILLS_DEMO_SCRIPT_v2.md)
 - [Setup Guide](../SETUP.md)
 - [Contributing](../CONTRIBUTING.md)
 
