@@ -15,15 +15,15 @@
 
 A collection of custom skills for [Claude Code](https://claude.ai/code) that extend its capabilities with specialized workflows.
 
-## 🚀 30 秒快速了解
+## 🚀 Quick Start - 30 Second Overview
 
-**第一次接觸？** 先看這個視覺化簡報，快速了解完整工作流程：
+**First time here?** Check out this visual presentation for a quick understanding of the complete workflow:
 
-**[📄 A Developer's Day, Reimagined](./docs/AI_Developer_Workflow.pdf)** ⭐ 推薦入門
+**[📄 A Developer's Day, Reimagined](./docs/AI_Developer_Workflow.pdf)** ⭐ Recommended Entry Point
 
-從需求到上線的完整工作流程 | 3 天 → 1 天的效率提升 | 雙 AI 協作價值 | 7 個 Skills 視覺化展示
+Complete workflow from idea to deployment | 3 days → 1 day efficiency boost | Dual-AI collaboration value | 7 Skills visualized
 
-**更多文檔**: [UI/UX Skills 規劃](./docs/UI-UX-Skills-Plan.md) · [Skills Roadmap](./SKILLS_ROADMAP.md) · [文檔目錄](./docs/README.md)
+**More Resources**: [UI/UX Skills Plan](./docs/UI-UX-Skills-Plan.md) · [Skills Roadmap](./SKILLS_ROADMAP.md) · [Docs Index](./docs/README.md)
 
 ---
 
