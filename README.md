@@ -9,9 +9,23 @@
 
 目前流程是：每完成一個小任務就自動調用 Gemini review，依回饋修正直到 fully approved，確保風險在早期被攔下；最後再用 Gemini 產生一致且可讀的 commit message。這樣做的價值在於把 code review 前移、系統化，並模擬實際團隊中「作者與 reviewer 分工」的狀態，而不是取代人類判斷。
 
+---
+
 # Claude Code Skills
 
 A collection of custom skills for [Claude Code](https://claude.ai/code) that extend its capabilities with specialized workflows.
+
+## 🚀 30 秒快速了解
+
+**第一次接觸？** 先看這個視覺化簡報，快速了解完整工作流程：
+
+**[📄 A Developer's Day, Reimagined](./docs/AI_Developer_Workflow.pdf)** ⭐ 推薦入門
+
+從需求到上線的完整工作流程 | 3 天 → 1 天的效率提升 | 雙 AI 協作價值 | 7 個 Skills 視覺化展示
+
+**更多文檔**: [UI/UX Skills 規劃](./docs/UI-UX-Skills-Plan.md) · [Skills Roadmap](./SKILLS_ROADMAP.md) · [文檔目錄](./docs/README.md)
+
+---
 
 ## What are Skills?
 
