@@ -18,20 +18,29 @@ Generate professional interactive presentations with customizable styles, suppor
 
 ## Available Styles
 
-This skill integrates with a rich collection of professionally designed styles. The style directory can be configured via:
-- Environment variable: `$STYLE_YAML_DIR`
-- Default location: `./styles/` (within skill directory)
-- External path: Specified by user at runtime
+**✨ This skill includes 20 professionally designed styles - ready to use out of the box!**
 
-**Default style directory structure:**
+All styles are bundled in the `./styles/` directory. No additional setup required.
+
+You can also use custom styles by:
+- Setting environment variable: `$STYLE_YAML_DIR` to point to your own style directory
+- Specifying external path at runtime
+
+**Included style directory structure:**
 ```
 styles/
-├── editorial/
-├── minimalist/
-├── technical/
-├── traditional/
-├── creative/
-└── ...
+├── editorial/        (3 styles)
+├── minimalist/       (3 styles)
+├── technical/        (2 styles)
+├── traditional/      (4 styles)
+├── creative/         (1 style)
+├── energetic/        (1 style)
+├── material/         (1 style)
+├── artistic/         (1 style)
+├── experimental/     (1 style)
+├── avant-garde/      (1 style)
+├── product/          (1 style)
+└── futuristic/       (1 style)
 ```
 
 ### Style Categories:

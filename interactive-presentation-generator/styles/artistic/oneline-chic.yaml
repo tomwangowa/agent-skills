@@ -1,0 +1,193 @@
+# One-line Chic Template
+# Style: One-line Drawing / Adult Chic / Dusty Colors
+# Concept: Continuous Lines, Harmonious Breathing
+
+template_metadata:
+  id: "oneline-chic"
+  version: "1.0.0"
+  category: "artistic"
+  name:
+    en: "One-line Chic"
+    zh_tw: "單線時髦"
+    ja: "ワンライン・シック"
+  description:
+    en: "A sophisticated and artistic aesthetic featuring continuous line drawings, dusty colors, and elegant flow."
+    zh_tw: "知性流暢的藝術美學，特色為一筆畫風格、莫蘭迪色系 (灰階) 以及優雅的排版流動感。"
+    ja: "途切れない線、調和する呼吸をコンセプトにした、知性的で流麗な一筆書きスタイルの美学。"
+  tags:
+    en: ["artistic", "one-line", "chic", "dusty", "minimalist", "elegant"]
+    zh_tw: ["藝術", "一筆畫", "時髦", "莫蘭迪色", "極簡", "優雅"]
+    ja: ["アーティスティック", "一筆書き", "シック", "ダスティカラー", "ミニマリスト", "エレガント"]
+  recommended_for:
+    en: ["Fashion lookbooks", "Art exhibitions", "Psychology topics", "Interviews", "High-end coaching"]
+    zh_tw: ["時尚 Lookbook", "藝術展覽", "心理學主題", "人物訪談", "高端教練"]
+    ja: ["ファッションルックブック", "アート展示", "心理学のトピック", "インタビュー", "ハイエンドコーチング"]
+
+overall_design_settings:
+  tone: "Intellectual, Flowing, Calm, Artistic, Sophisticated"
+  design_philosophy: "Continuous Continuity - Connecting elements with invisible or visible lines"
+
+  color_palette:
+    base: "#F4F5F7" # Pale Gray / Mist White (#F0F2F0)
+    primary: "#2C3E50" # Midnight Blue / Deep Olive (#4F5D54) - Line Color
+    text: "#2C3E50" # Same as line color
+    background: "#F4F5F7"
+    accent_1: "#8DA399" # Sage Green - Healing & Harmony
+    accent_2: "#9CADCE" # Dusty Blue - Intelligence & Silence
+    accent_3: "#E6E6FA" # Lavender Mist - Highlight
+    highlight: "#E6E6FA"
+    note: "All colors should be grayish/dusty tones. NO vivid colors. NO pure black (#000000) - use Midnight Blue instead."
+
+  typography:
+    heading:
+      font_family: "Playfair Display, Cormorant Garamond, serif"
+      font_description: "Elegant Serif / Mincho. Flowing and refined."
+      size_philosophy: "Thin strokes, elegant curves."
+      font_weight: 400
+      font_size: "48pt"
+      line_height: 1.4
+      style: "italic-emphasis"
+    body:
+      font_family: "Lato, Raleway, sans-serif"
+      font_description: "High readability, thin Sans-serif."
+      readability_notes: "Wide line-height (2.0) to let the design 'breathe'."
+      font_weight: 300
+      font_size: "12pt"
+      line_height: 2.0
+    numbers:
+      font_family: "Cormorant Garamond, serif"
+      style: "Old-style figures, elegant and subtle."
+
+  common_layout_rules:
+    grid_system: "Flow Grid - Elements follow a curved path"
+    spacing_philosophy: "Breathing Room - Wide margins"
+    alignment_principle: "Organic Flow"
+    visual_balance: "Harmonious rather than rigid"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "illustration"
+        description: "One-line Drawing"
+        usage: "Main visual style for all icons and decorations"
+        color: "primary" # Midnight Blue
+        stroke_width: "Variable width (hand-drawn feel)"
+      - type: "shape"
+        description: "Watercolor Wash"
+        usage: "Background blobs behind line drawings"
+        color: "accent_1" # Sage Green or Dusty Blue
+        opacity: 0.3
+      - type: "line"
+        description: "Connecting Thread"
+        usage: "Lines connecting text blocks or photos"
+        style: "Curved, loopy, continuous"
+    image_style:
+      characteristics: "Monochrome or desaturated photos, Arched/Oval cropping"
+      decoration: "Traced with a loose, offset line drawing"
+    color_temperature: "Cool & Dusty (Grayish)"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "One-line Hero"
+    design: |
+      Layout: Horizontal Flow.
+      Visual: A continuous one-line drawing crossing the entire slide (e.g., Profile face turning into a flower).
+      Title: The line becomes the underline or part of the typography.
+      Colors: Midnight Blue line on Pale Gray background.
+      Accent: Soft Sage Green watercolor wash behind the focal point.
+      Overall atmosphere: Artistic, fluid, unified.
+    component: "title_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Process Slide"
+    description: "Flow Story"
+    design: |
+      Layout: Timeline / Narration.
+      Visual: A single long "thread" line moving across the page.
+      Nodes: Loops or knots in the thread act as stops for text.
+      Text: Positioned freely around the loops.
+      Overall atmosphere: Continuous narrative, no breaks.
+    component: "process_slide"
+    safe_area:
+      top: "100px"
+      bottom: "100px"
+      left: "60px"
+      right: "60px"
+
+  - type: "List Slide"
+    description: "Botanical List"
+    design: |
+      Layout: Organic List.
+      Bullets: One-line drawings of leaves, buds, or flowers instead of dots.
+      Background: Subtle organic shapes in pale green.
+      Typography: Wide spacing between items.
+      Overall atmosphere: Growing, natural, gentle.
+    component: "list_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Data Slide"
+    description: "Data Harmony"
+    design: |
+      Layout: Ring Charts.
+      Style: Charts are not filled wedges, but overlapping colored rings (lines).
+      Colors: Sage Green and Dusty Blue rings overlapping.
+      Text: Elegant numbers floating near the rings.
+      Overall atmosphere: Delicate data, not heavy.
+    component: "data_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Image Slide"
+    description: "Photo with Line"
+    design: |
+      Layout: Image Focus.
+      Image: Cropped into an Arch or Oval shape. Monochromatic or desaturated.
+      Decoration: A loose, hand-drawn line traces the shape of the image but is slightly offset/misaligned.
+      Text: Minimal caption.
+      Overall atmosphere: Sketchbook feel, artistic interpretation.
+    component: "image_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Concept Slide"
+    description: "Concept Keyword"
+    design: |
+      Layout: Center Bloom.
+      Keyword: Centered simple text.
+      Decoration: One-line vines or floral patterns growing out from the letters.
+      Overall atmosphere: Idea taking root.
+    component: "concept_slide"
+    safe_area:
+      top: "100px"
+      bottom: "100px"
+      left: "100px"
+      right: "100px"
+
+  - type: "Interview Slide"
+    description: "Conversation Flow"
+    design: |
+      Layout: Dialogue.
+      Photos: Black & White portraits of speakers in circles.
+      Background: Pale blue circles behind portraits.
+      Connection: A thin, continuous line connecting the two speakers (the "flow" of conversation).
+      Text: Quotes placed along the line.
+      Overall atmosphere: Connection, exchange.
+    component: "interview_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"

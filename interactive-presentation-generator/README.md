@@ -22,10 +22,13 @@ Trigger phrases:
 
 ### Style System
 
-The skill integrates with a rich collection of 19 professional styles. The style directory is configurable:
-- Set `$STYLE_YAML_DIR` environment variable to point to your style directory
-- Or place styles in `./styles/` within the skill directory
-- Or provide path when prompted
+**✨ Includes 20 professional styles out of the box!**
+
+All styles are bundled in the `./styles/` directory - no configuration needed.
+
+The skill automatically uses the included styles, but you can also:
+- Set `$STYLE_YAML_DIR` environment variable to use your own style directory
+- Provide custom path when prompted
 
 **Categories:**
 - Editorial (3): fashion-layout, red-editorial, kinfolk-editorial

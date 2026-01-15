@@ -1,0 +1,165 @@
+# Neon Collage Template
+# Style: Tech Art / Avant-Garde / Blueprint
+# Concept: Intellectual Blueprint, Art Taste
+
+template_metadata:
+  id: "neon-collage"
+  version: "1.0.0"
+  category: "avant-garde"
+  name:
+    en: "Neon Collage"
+    zh_tw: "霓虹拼貼"
+    ja: "ネオン・コラージュ"
+  description:
+    en: "An avant-garde aesthetic resembling architectural blueprints mixed with modern art. Features warm gray texture, monochrome photos, and neon yellow accents."
+    zh_tw: "前衛的設計藍圖風格，結合現代藝術拼貼。特色為暖灰紙質背景、黑白照片與霓虹黃幾何圖形。"
+    ja: "建築図面と現代アートを融合させたアバンギャルドな美学。ウォームグレーの質感、モノクロ写真、ネオンイエローのアクセントが特徴。"
+  tags:
+    en: ["avant-garde", "blueprint", "tech-art", "collage", "neon", "architectural"]
+    zh_tw: ["前衛", "藍圖", "科技藝術", "拼貼", "霓虹", "建築"]
+    ja: ["アバンギャルド", "青写真", "テックアート", "コラージュ", "ネオン", "建築的"]
+  recommended_for:
+    en: ["Architecture firms", "Tech startups", "Art galleries", "Fashion analysis", "Conceptual pitches"]
+    zh_tw: ["建築事務所", "科技新創", "藝廊", "時尚分析", "概念提案"]
+    ja: ["建築事務所", "テック系スタートアップ", "アートギャラリー", "ファッション分析", "コンセプト提案"]
+
+overall_design_settings:
+  tone: "Avant-Garde, Constructive, Intellectual, Artistic, Futuristic"
+  design_philosophy: "Intellectual Blueprint - Restricting colors to Beige, Monochrome, and Neon Yellow"
+
+  color_palette:
+    base: "#E0E0D0" # Warm Gray / Beige (Paper texture)
+    primary: "#333333" # Charcoal Gray (Not pure black)
+    text: "#333333"
+    background: "#E0E0D0"
+    accent_1: "#DFFF00" # Neon Yellow (Geometric shapes)
+    accent_2: "#333333" # Secondary accent (Lines)
+    accent_3: "#FFFFFF" # White (Occasional highlights)
+    line_color: "rgba(51, 51, 51, 0.5)" # Thin gray lines (0.5pt)
+    note: "Strict 3-color rule: Beige Background, Monochrome Photos, Neon Yellow Shapes."
+
+  typography:
+    heading:
+      font_family: "Didot, Bodoni, serif" # + Helvetica mix
+      font_description: "Mixed Serif and Sans-serif."
+      size_philosophy: "Contrast between elegant serif titles and technical sans details."
+      font_weight: 700
+      font_size: "56pt"
+      line_height: 1.1
+      style: "mix-mode" # Implies mixed font usage
+    body:
+      font_family: "Helvetica Now, Arial, sans-serif"
+      font_description: "Small, precise Sans-serif aligned to grid."
+      readability_notes: "Clean and technical."
+      font_weight: 400
+      font_size: "10pt" # Smaller body text for technical feel
+      line_height: 1.8
+    numbers:
+      font_family: "Courier New, monospace"
+      style: "Typewriter style for data and annotations."
+
+  common_layout_rules:
+    grid_system: "Graph Paper / Architectural Grid"
+    spacing_philosophy: "Technical Precision"
+    alignment_principle: "Grid-based with intentional collage breaking"
+    visual_balance: "Constructed chaos"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "shape"
+        description: "Neon Geometry"
+        usage: "Neon Yellow Circles, Squares, Triangles overlaying elements"
+        color: "#DFFF00"
+        blend_mode: "multiply" # or normal depending on effect
+      - type: "line"
+        description: "Blueprint Lines"
+        usage: "0.5pt thin gray lines acting as guides or connectors"
+        color: "#333333"
+      - type: "texture"
+        description: "Graph Paper"
+        usage: "Subtle grid background"
+        color: "rgba(0,0,0,0.05)"
+    image_style:
+      characteristics: "Monochrome (Black & White), Cut-out (No background)"
+      layering: "Grid -> Neon Shape -> Photo -> Text"
+    color_temperature: "Neutral (Beige/Gray) with Electric Acid Flash"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Triple Collage"
+    design: |
+      Layout: 3-Column Grid.
+      Visual: Monochrome portrait cut-out.
+      Accent: Neon Yellow Circle or Square overlapping the portrait (behind or in front).
+      Decoration: Concentric thin circles (Target scope) centered on the face.
+      Background: Warm Gray with grid lines.
+      Overall atmosphere: Artistic identity, dissecting the subject.
+    component: "title_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Analysis Slide"
+    description: "Technical Drawing / Anatomy"
+    design: |
+      Layout: Blueprint Style.
+      Background: Fine graph paper grid.
+      Main: Wireframe drawing of a product or concept.
+      Highlight: Part of the wireframe filled with Neon Yellow.
+      Annotations: Thin leader lines extending to labels (Fig.1, Fig.2).
+      Typography: Typewriter font for labels.
+      Overall atmosphere: Analytical, precise, deconstructed.
+    component: "analysis_slide"
+    safe_area:
+      top: "40px"
+      bottom: "40px"
+      left: "40px"
+      right: "40px"
+
+  - type: "Process Slide"
+    description: "Geometric Connection"
+    design: |
+      Layout: Logical Flow.
+      Elements: Neon Yellow geometric shapes (Circle, Square, Triangle).
+      Connection: Dotted or dashed lines connecting them.
+      Visuals: Monochrome photos masked inside the shapes or overlapping them.
+      Overall atmosphere: Structured thought process.
+    component: "process_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Data Slide"
+    description: "Radar Chart Art"
+    design: |
+      Layout: Full Screen Chart.
+      Chart: Radar Chart (Spider web) stretching across the screen.
+      Lines: Thick Neon Yellow data lines.
+      Background: Texture of old maps or blueprints layered subtly.
+      Labels: Typewriter font.
+      Overall atmosphere: Complex metrics visualization.
+    component: "data_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Content Slide"
+    description: "Grid Content"
+    design: |
+      Layout: Modular Grid.
+      Content: Blocks of text and cut-out monochrome images neatly arranged.
+      Accents: Small neon yellow stickers or tape marks.
+      Typography: Mixed Serif headings and Sans-serif body.
+      Overall atmosphere: Magazine layout, organized avant-garde.
+    component: "content_slide"
+    safe_area:
+      top: "50px"
+      bottom: "50px"
+      left: "50px"
+      right: "50px"

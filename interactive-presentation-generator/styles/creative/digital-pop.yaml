@@ -1,0 +1,193 @@
+# Digital Pop / Vitamin Pop Template
+# Style: Vitamin Pop / Digital Neo
+# Concept: Organic shapes, Bright colors, SNS-style friendliness
+
+template_metadata:
+  id: "digital-pop"
+  version: "1.0.0"
+  category: "creative"
+  name:
+    en: "Digital Pop"
+    zh_tw: "維他命流行"
+    ja: "ビタミン・ポップ"
+  description:
+    en: "A lively, modern aesthetic featuring organic shapes, neon colors, and SNS-style interactions."
+    zh_tw: "充滿活力的現代美學，特色為有機形狀、霓虹色彩以及社群媒體風格的互動感。"
+    ja: "有機的なシェイプ、明るい配色、SNS風の親しみやすさを特徴とする、現代的で活気のある美学。"
+  tags:
+    en: ["pop", "neon", "playful", "digital", "creative", "vivid"]
+    zh_tw: ["流行", "霓虹", "俏皮", "數位", "創意", "鮮豔"]
+    ja: ["ポップ", "ネオン", "遊び心", "デジタル", "クリエイティブ", "ビビッド"]
+  recommended_for:
+    en: ["Creative pitches", "Student projects", "Social media reports", "Event intros", "Modern startups"]
+    zh_tw: ["創意提案", "學生專案", "社群媒體報告", "活動介紹", "現代新創"]
+    ja: ["クリエイティブ提案", "学生プロジェクト", "SNSレポート", "イベント紹介", "モダンなスタートアップ"]
+
+overall_design_settings:
+  tone: "Modern, Fluid, Friendly, High Density"
+  design_philosophy: "Digital Pop & Academic - Mixing rigid info with fluid organic shapes"
+
+  color_palette:
+    base: "#FFFFFF"
+    primary: "#000000"
+    text: "#000000"
+    background: "#FFFFFF"
+    accent_1: "#FF00FF" # Vivid Pink
+    accent_2: "#00FFFF" # Cyan
+    accent_3: "#9D00FF" # Purple
+    note: "Use vivid neon colors reminiscent of neon signs. Black is used for text and borders to ground the pop colors."
+
+  typography:
+    heading:
+      font_family: "Montserrat, Roboto, sans-serif"
+      font_description: "Bold Gothic/Sans-serif. High impact."
+      size_philosophy: "Outline fonts (White fill + Black stroke) are encouraged for headings."
+      font_weight: 900
+      font_size: "60pt"
+      line_height: 1.0
+      style: "outline-effect"
+    body:
+      font_family: "Noto Sans JP, Roboto, sans-serif"
+      font_description: "Highly readable Gothic/Sans-serif."
+      readability_notes: "Clear and legible to balance the chaotic visuals."
+      font_weight: 400
+      font_size: "14pt"
+      line_height: 1.6
+    numbers:
+      font_family: "Poppins, sans-serif"
+      style: "Large western numerals to emphasize % data."
+
+  common_layout_rules:
+    grid_system: "Fluid layout - breaking the grid with organic shapes"
+    spacing_philosophy: "Dense information contrasting with visual islands"
+    alignment_principle: "Mixed - Center for visual impact, Cluster for details"
+    visual_balance: "High contrast between text-heavy pages and visual-centric pages"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "shape"
+        description: "Amoeba"
+        usage: "Organic, cloud-like shapes framing the corners or housing images"
+        color: "gradient(accent_1, accent_2)"
+      - type: "pattern"
+        description: "Dot Pattern"
+        usage: "Background texture to add 'pop' feel"
+        color: "#F0F0F0"
+      - type: "icon"
+        description: "SNS-style Icons"
+        usage: "Abstract avatars (shapes with eyes) or playful illustrations"
+        color: "accent_colors"
+    image_style:
+      characteristics: "Cutouts, stickers, lively composition"
+      cropping: "Organic blobs or Rounded Rectangles"
+    color_temperature: "Cool & Vivid (Neon). Avoid muted earth tones."
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Title Composition"
+    design: |
+      Layout: Central Composition.
+      Motif: Large organic object (Cloud/Amoeba) in the center containing the title.
+      Decoration: Scatter small stars, sparkles, and confetti around the center object.
+      Title: Large, Bold, potentially Outline font. Inside the cloud.
+      Background: White with subtle dot pattern.
+      Overall atmosphere: Fun, exploding with energy, welcoming.
+    component: "title_slide"
+    safe_area:
+      top: "100px"
+      bottom: "100px"
+      left: "100px"
+      right: "100px"
+
+  - type: "Content Slide"
+    description: "Text + Data Pop"
+    design: |
+      Layout: Split (Left Text, Right Visual).
+      Left Side: Content text, clearly structured. Use hand-drawn style underlines.
+      Right Side: Colorful Donut Graph (Vivid Pink/Cyan).
+      Data Emphasis: Number inside the donut is EXTREMELY large.
+      Colors: Neon gradients for the chart.
+      Overall atmosphere: High impact, visually stimulating.
+    component: "content_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Process Slide"
+    description: "Organic Timeline"
+    design: |
+      Layout: Vertical winding path.
+      Line: Wavy line (like a plant stem) growing from top to bottom.
+      Nodes: 'Leaf' or 'Bud' icons at key points representing years/stages.
+      Text: Alternating left and right of the stem.
+      Colors: Green/Cyan gradients for the stem.
+      Overall atmosphere: Organic growth, natural flow.
+    component: "timeline_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Relationship Slide"
+    description: "Bubble Cluster / SNS Chat"
+    design: |
+      Layout: Cluster of overlapping circles (Bubbles) OR Chat Bubbles layout.
+      Style: Translucent colors (multiply effect) where bubbles overlap.
+      Chat Style: Phone screen border, message bubbles with avatar icons.
+      Emphasis: Important insights in bold, marker-highlighted text.
+      Avatars: Blob perception shapes with simple faces.
+      Overall atmosphere: Social, connected, interactive.
+    component: "relationship_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Flow Slide"
+    description: "Concept Flow Formula"
+    design: |
+      Layout: Conceptual equation (e.g., A x B = C).
+      Style: Hand-drawn crayon or marker lines.
+      Arrows: Playful, sketchy arrows connecting concepts.
+      Icons: Simple conceptual icons (Lightbulb, Heart, etc.).
+      Overall atmosphere: Explaining hard theory softly.
+    component: "flow_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Steps Slide"
+    description: "Colorful Steps"
+    design: |
+      Layout: Horizontal large arrows.
+      Flow: Left to right.
+      Colors: Gradient step-by-step (Cyan -> Purple -> Pink).
+      Text: Inside the arrow body. White text on neon background.
+      Overall atmosphere: Dynamic progress, clear direction.
+    component: "steps_slide"
+    safe_area:
+      top: "100px"
+      bottom: "100px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Summary Slide"
+    description: "Character Ending"
+    design: |
+      Layout: Center Focus.
+      Character: Large Blob/Amoeba character in center saying "Thank You" or "Contact".
+      Contact Info: Displayed in a row of circular SNS icons below the character.
+      Background: Confetti or Dot pattern.
+      Overall atmosphere: Friendly closure.
+    component: "summary_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"

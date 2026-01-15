@@ -2,15 +2,11 @@
 
 ## 🚀 Quick Start (5 minutes)
 
-### Step 1: Set Up Style Directory (Optional)
+### Step 1: You're Ready! ✨
 
-If you want to use custom styles, set the environment variable:
+**No setup required!** The skill includes 20 professional styles out of the box.
 
-```bash
-export STYLE_YAML_DIR="/path/to/your/styles"
-```
-
-Or place your style YAML files in `./styles/` within the skill directory.
+(Optional: If you want to use custom styles, set `$STYLE_YAML_DIR` environment variable)
 
 ### Step 2: Trigger the Skill
 

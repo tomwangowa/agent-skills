@@ -1,0 +1,178 @@
+# Japonism Flow Template
+# Style: Japonism Textile Flow / Modern Japanese Elegance / Kimono Collage
+# Concept: Washi and Silk, Tradition and Innovation
+
+template_metadata:
+  id: "japonism-flow"
+  version: "1.0.0"
+  category: "traditional"
+  name:
+    en: "Japonism Flow"
+    zh_tw: "和風流儀"
+    ja: "ジャポニスム・フロー"
+  description:
+    en: "An elegant, luxurious aesthetic mixing Washi paper textures, Kimono patterns, and flowing gold lines."
+    zh_tw: "優雅、華麗且流暢的日式美學，結合和紙質感、和服圖騰與流動的金線元素。"
+    ja: "優雅、絢爛、流麗。和紙の質感、着物の柄、流れるような金色のラインを組み合わせた和モダンの美学。"
+  tags:
+    en: ["japanese", "traditional", "kimono", "washi", "gold", "elegant"]
+    zh_tw: ["日式", "傳統", "和服", "和紙", "金箔", "優雅"]
+    ja: ["和風", "伝統", "着物", "和紙", "金箔", "エレガント"]
+  recommended_for:
+    en: ["Cultural presentations", "Luxury hospitality", "Sake/Tea branding", "History", "Artistic portfolios"]
+    zh_tw: ["文化展演", "高級旅宿", "酒茶品牌", "歷史主題", "藝術作品集"]
+    ja: ["文化プレゼンテーション", "高級ホスピタリティ", "日本酒/お茶のブランディング", "歴史", "アートポートフォリオ"]
+
+overall_design_settings:
+  tone: "Elegant, Gorgeous, Flowing, Narrative"
+  design_philosophy: "Layers of Tradition - Collage of diverse textures (Matte Washi vs Shiny Silk)"
+
+  color_palette:
+    base: "#F6F4E8" # Ecru Washi
+    primary: "#2B2B2B" # Sumi Ink (Charcoal)
+    text: "#2B2B2B"
+    background: "#F6F4E8"
+    accent_1: "#B8860B" # Rusted Gold / Antique Gold
+    accent_2: "#C32121" # Scarlet (Traditional Red)
+    accent_3: "#1D365D" # Indigo Blue
+    texture: "Washi paper fibers, Gold leaf noise"
+    note: "Contrast matte paper texture with shiny metallic gold lines."
+
+  typography:
+    heading:
+      font_family: "Noto Serif JP, Ryumin, serif"
+      font_description: "Heavy Mincho (Serif). Bold and calligraphic."
+      size_philosophy: "Mixed Vertical and Horizontal writing for dynamic composition."
+      font_weight: 900
+      font_size: "60pt"
+      line_height: 1.2
+      writing_mode: "vertical-rl" # Suggestion for layout engine
+    body:
+      font_family: "Noto Serif JP, Yu Mincho, serif"
+      font_description: "Delicate, thin Mincho."
+      readability_notes: "Generous spacing (Ma / Negative Space) to create rhythm."
+      font_weight: 300
+      font_size: "14pt"
+      line_height: 2.2
+    numbers:
+      font_family: "Didot, serif"
+      style: "Elegant Western Serif to contrast with Kanji."
+
+  common_layout_rules:
+    grid_system: "Asymmetric Composition"
+    spacing_philosophy: "Ma (Negative Space) - Intentional emptiness"
+    alignment_principle: "Off-center balance"
+    visual_balance: "Collage layering (Textile overlapping)"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "texture"
+        description: "Kimono Patterns"
+        usage: "Yuzen, Shibori, Seigaiha patterns clipped into flowing shapes"
+        style: "Collage layers"
+      - type: "line"
+        description: "Flowing Curve"
+        usage: "Gold lines traversing the screen like a Hagoromo (celestial raiment)"
+        color: "accent_1"
+        style: "Brush stroke width variation"
+      - type: "effect"
+        description: "Gold Leaf Scatter"
+        usage: "Noise texture or speckles in the negative space"
+        color: "#C5A059"
+    image_style:
+      characteristics: "Torn paper edges (Deckle edge), Washi texture overlay"
+      cropping: "Organic torn shapes or circular windows (En-sou)"
+    color_temperature: "Warm & Natural (Paper/Gold)"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Obi Flow Cover"
+    design: |
+      Layout: Diagonal Flow.
+      Visual: A thick, gorgeous curved band (like a Kimono Obi) crossing the screen diagonally.
+      Pattern: The band contains intricate Kimono patterns (Red/Gold).
+      Title: Vertical writing (bold Mincho) placed over the Obi or in the white space.
+      Background: Washi paper texture.
+      Overall atmosphere: Grand opening, theatrical.
+    component: "title_slide"
+    safe_area:
+      top: "0px"
+      bottom: "0px"
+      left: "0px"
+      right: "0px"
+
+  - type: "Concept Slide"
+    description: "Ukiyo-e Collage"
+    design: |
+      Layout: Organic Collage.
+      Image: Classic Ukiyo-e (Wave, Mt. Fuji) cropped in a torn-paper shape.
+      Placement: Layered over the Washi background with a drop shadow to show paper thickness.
+      Decoration: Gold leaf scattered around the edges.
+      Text: Poetic short text positioned to balance the weight.
+      Overall atmosphere: Artistic, historic depth.
+    component: "concept_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Process Slide"
+    description: "Kumihimo Timeline"
+    design: |
+      Layout: Winding Path.
+      Line: A single red braided cord (Kumihimo) flowing through the screen.
+      Nodes: Ornamental knots (Musubi) marking the milestones.
+      Text: Arranged vertically or horizontally along the cord.
+      Overall atmosphere: Connected destiny, craftsmanship.
+    component: "timeline_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Image Slide"
+    description: "En-sou Window"
+    design: |
+      Layout: Zen Circle.
+      Image: Placed inside a rough brush-stroke circle (En-sou).
+      Decoration: Flowing gold lines (Kasumi/Mist) drifting behind the circle.
+      Background: Clean Washi paper.
+      Overall atmosphere: Focused, meditative.
+    component: "image_slide"
+    safe_area:
+      top: "50px"
+      bottom: "50px"
+      left: "50px"
+      right: "50px"
+
+  - type: "Data Slide"
+    description: "Kamon Pattern Chart"
+    design: |
+      Layout: Patterned Data.
+      Chart: Donut or Pie chart.
+      Fills: Instead of solid colors, use traditional patterns (Seigaiha/Waves, Asanoha/Hemp) for each segment.
+      Colors: Indigo, Scarlet, Gold.
+      Overall atmosphere: Traditional meets analytical.
+    component: "data_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Content Slide"
+    description: "Vertical Story"
+    design: |
+      Layout: Vertical Writing Focus.
+      Text Area: Vertical text (Tategaki) on the right side.
+      Decoration: Silhouette of Wisteria (Fuji) or Willow hanging from the top-left corner.
+      Background: Subtle gradient of gold dust at the bottom.
+      Overall atmosphere: Narrative, literary.
+    component: "content_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"

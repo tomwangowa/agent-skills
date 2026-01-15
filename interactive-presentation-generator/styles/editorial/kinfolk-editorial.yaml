@@ -1,0 +1,170 @@
+# Kinfolk Editorial Template
+# Style: Modern Editorial / Lifestyle Magazine / Warmth and Sophistication
+# Concept: Communicating through White Space and Atmosphere
+
+template_metadata:
+  id: "kinfolk-editorial"
+  version: "1.0.0"
+  category: "editorial"
+  name:
+    en: "Kinfolk Editorial"
+    zh_tw: "Kinfolk 生活風格"
+    ja: "キンフォーク・エディトリアル"
+  description:
+    en: "A calm, organic, and intellectual magazine aesthetic featuring earth tones, elegant typography, and generous white space."
+    zh_tw: "平靜、有機且充滿知性的雜誌風格，特色為大地色系、優雅排版與大量的留白設計。"
+    ja: "アースカラー、エレガントなタイポグラフィ、そしてゆったりとした余白を特徴とする、静穏で有機的かつ知的な雑誌の美学。"
+  tags:
+    en: ["editorial", "lifestyle", "calm", "organic", "warm", "minimalist"]
+    zh_tw: ["編輯", "生活風格", "平靜", "有機", "溫暖", "極簡"]
+    ja: ["エディトリアル", "ライフスタイル", "静穏", "オーガニック", "暖かい", "ミニマリスト"]
+  recommended_for:
+    en: ["Lifestyle brands", "Art portfolios", "Interior design", "Wellness pitches", "Brand stories"]
+    zh_tw: ["生活風格品牌", "藝術作品集", "室內設計", "身心靈提案", "品牌故事"]
+    ja: ["ライフスタイルブランド", "アートポートフォリオ", "インテリアデザイン", "ウェルネスピッチ", "ブランドストーリー"]
+
+overall_design_settings:
+  tone: "Calm, Emotional, Organic, Intellectual"
+  design_philosophy: "Communicating through White Space and Atmosphere - No heavy borders, natural light aesthetic"
+
+  color_palette:
+    base: "#F3F0EB"
+    primary: "#333333"
+    text: "#333333"
+    background: "#F3F0EB"
+    accent_1: "#E07A5F"
+    accent_2: "#708D81"
+    highlight: "#EBEBEB"
+    note: "Avoid Jet Black (#000000) and cool tones. Use Charcoal Gray (#333333) for text."
+
+  typography:
+    heading:
+      font_family: "Playfair Display, Times New Roman, serif"
+      font_description: "Elegant serif font. Important words emphasized in italics."
+      size_philosophy: "Extreme contrast - oversized headings vs delicate details"
+      font_weight: 400
+      font_size: "56pt"
+      line_height: 1.1
+      letter_spacing: "-0.01em"
+      style: "italic-emphasis"
+    body:
+      font_family: "Futura, Inter, sans-serif"
+      font_description: "Easy-to-read geometric sans serif font."
+      readability_notes: "Clean, modern geometric forms to contrast with organic headings"
+      font_weight: 300
+      font_size: "14pt"
+      line_height: 1.8
+      letter_spacing: "0.02em"
+    numbers:
+      style: "Old-style numerals or serif numerals"
+
+  common_layout_rules:
+    grid_system: "Asymmetric grid with generous margins"
+    spacing_philosophy: "Extreme white space - use empty space to separate elements, avoid boxes"
+    alignment_principle: "Centered for philosophy, Asymmetric for content"
+    visual_balance: "Organic balance rather than strict symmetry"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "shape"
+        description: "Arched window-like shape (semicircular top) or Rounded Rectangle"
+        usage: "Framing images, masked photos, creating soft focal points"
+        color: "#E07A5F"
+      - type: "line"
+        description: "Very thin horizontal lines or dotted connecting lines"
+        usage: "Subtle separation, connecting process steps"
+        color: "#333333"
+        stroke_width: "0.5px"
+    image_style:
+      characteristics: "Natural light, film grain texture, soft shadows"
+      cropping: "Arched top or circular cutouts"
+    color_temperature: "Warm, earth tones. Avoid cool/pale blue hues."
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Magazine cover style"
+    design: |
+      Layout: Photo bleed-to-edge (borderless) on right half (50%), title on left half (50%).
+      Title: Oversized serif font (64pt+). Positioned across multiple lines for poetic rhythm.
+      Title Color: Charcoal Gray (#333333).
+      Subtitle: Small, geometric sans-serif, widely spaced.
+      Decoration: One very thin horizontal line (0.5px) between title and subtitle.
+      Background: Left side Sand Beige (#F3F0EB), Right side Image.
+      Image: High-quality lifestyle photo with natural light, potentially with Arched mask if not full bleed.
+      Overall atmosphere: Calm, sophisticated, like a high-end independent magazine cover.
+      Visual weight: 50/50 balance between typography and imagery.
+    component: "title_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "0px"
+
+  - type: "Philosophy Slide"
+    description: "Centered Quote / Mission Statement"
+    design: |
+      Layout: Centered layout focused on a single powerful message.
+      Background: Solid Sand Beige (#F3F0EB).
+      Text: Short, powerful message in italicized Serif/Mincho font.
+      Text Size: Large (32-40pt), centered.
+      Decoration: Huge quotation marks (“”) placed behind or around text in light accent color (Terracotta #E07A5F or Wam Gray #EBEBEB at 30% opacity).
+      No other distractions. Pure focus on the message and typography.
+      Overall atmosphere: Emotional, quiet, impactful.
+    component: "quote_slide"
+    safe_area:
+      top: "100px"
+      bottom: "100px"
+      left: "150px"
+      right: "150px"
+
+  - type: "Process Slide"
+    description: "Service Flow / Step Narrative"
+    design: |
+      Layout: Vertical flow from top to bottom (or left to right if space permits).
+      Step Indicators: Numbers (1, 2, 3) inside small circles (outlined or solid Accent color).
+      Connecting Lines: Very thin dotted lines connecting the steps/circles.
+      Images: Small circular cutouts of photos placed beside each step.
+      Typography: Serif headings for step titles, Sans-serif for descriptions.
+      Background: Sand Beige (#F3F0EB) or Warm Gray (#EBEBEB).
+      Overall atmosphere: Organized but organic, clear narrative flow.
+    component: "process_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Data Slide"
+    description: "Clean Line Graph"
+    design: |
+      Layout: Clean, minimalist data visualization.
+      Graph Style: Ultra-thin line graph.
+      Grid: No grid lines (scales) - keep it extremely clean.
+      Color Scheme: Earth tones (Olive Green #708D81, Terracotta #E07A5F, Brown).
+      Caption: A narrative paragraph placed next to the graph (not just a legend). Tells the "story" of the data.
+      Typography: Serif for key data points (Big Numbers), Sans-serif for explanatory text.
+      Background: Sand Beige (#F3F0EB).
+      Overall atmosphere: Intellectual, clear, non-corporate.
+    component: "data_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Content Slide"
+    description: "Standard text and image layout"
+    design: |
+      Layout: Asymmetric two-column (e.g., 40% text, 60% image) or single column with wide margins.
+      Headings: Elegant serif, charcoal gray.
+      Body: Legible geometric sans-serif, good line-height (1.8).
+      Images: Arched top cropping or rounded rectangles. No heavy borders.
+      Pull Quotes: Italicized serif, accent color.
+      Background: Sand Beige (#F3F0EB).
+      Overall atmosphere: Breathable, easy to read, sophisticated.
+    component: "content_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"

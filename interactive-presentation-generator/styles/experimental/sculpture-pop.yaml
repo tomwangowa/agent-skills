@@ -1,0 +1,176 @@
+# Sculpture Pop Template
+# Style: Sculpture Pop / Vaporwave / Neon Surrealism
+# Concept: Remixing Classical Art with Modern Pop Items
+
+template_metadata:
+  id: "sculpture-pop"
+  version: "1.0.0"
+  category: "experimental"
+  name:
+    en: "Sculpture Pop"
+    zh_tw: "雕像波普"
+    ja: "スカルプチャー・ポップ"
+  description:
+    en: "A bold, humorous, and surreal aesthetic mixing classical marble statues with neon colors and modern gadgets."
+    zh_tw: "大膽、幽默且超現實的美學，將古典大理石雕像與霓虹色彩及現代科技產品進行混搭。"
+    ja: "古典的な大理石の彫像とネオンカラーや現代のガジェットを大胆にミックスした、ユーモラスでシュルレアリスムな美学。"
+  tags:
+    en: ["vaporwave", "surreal", "pop-art", "collage", "neon", "humor"]
+    zh_tw: ["蒸氣波", "超現實", "波普藝術", "拼貼", "霓虹", "幽默"]
+    ja: ["ヴェイパーウェイヴ", "シュルレアリスム", "ポップアート", "コラージュ", "ネオン", "ユーモア"]
+  recommended_for:
+    en: ["Music festivals", "Fashion sales", "Gen Z marketing", "Creative portfolios", "Viral content"]
+    zh_tw: ["音樂節", "時尚特賣", "Z世代行銷", "創意作品集", "病毒式內容"]
+    ja: ["音楽フェス", "ファッションセール", "Z世代マーケティング", "クリエイティブポートフォリオ", "バイラルコンテンツ"]
+
+overall_design_settings:
+  tone: "Bold, Humorous, High Saturation, Fashionable, Surreal"
+  design_philosophy: "Flexible Remix - Variable statues and backgrounds per slide"
+
+  color_palette:
+    base: "#FFFF00" # Variable dynamic background
+    primary: "#000000"
+    text: "#000000" # Depends on background contrast
+    background: "variable" # Cyan, Magenta, Yellow, Lime, Purple
+    accent_1: "#FF00FF" # Magenta
+    accent_2: "#00FFFF" # Cyan
+    accent_3: "#CCFF00" # Lime
+    note: "Background changes per slide. Item colors should be complementary/high contrast to the background."
+
+  typography:
+    heading:
+      font_family: "Helvetica Now Display, Arial Black, sans-serif"
+      font_description: "Extra Bold Sans-serif."
+      size_philosophy: "Massive, filling the space."
+      font_weight: 900
+      font_size: "72pt"
+      line_height: 0.9
+      style: "uppercase"
+    body:
+      font_family: "Roboto, Helvetica, sans-serif"
+      font_description: "Clean Bold Sans-serif."
+      readability_notes: "High contrast against vivid backgrounds."
+      font_weight: 700
+      font_size: "18pt"
+      line_height: 1.4
+    numbers:
+      font_family: "Impact, sans-serif"
+      style: "Pop art numbering."
+
+  common_layout_rules:
+    grid_system: "Free Collage"
+    spacing_philosophy: "Crowded & overlapping"
+    alignment_principle: "Centered or Chaotic"
+    visual_balance: "Surreal Juxtaposition (Old vs New)"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "collage"
+        description: "Classical Statues"
+        usage: "Greek/Roman busts (David, Venus, Zeus) as main character"
+        style: "White marble, cutout"
+      - type: "collage"
+        description: "Modern Gadgets"
+        usage: "Sunglasses, Headphones, VR headsets, Smartphones, Hoodies"
+        style: "Colorful, realistic"
+      - type: "shape"
+        description: "Memphis Shapes"
+        usage: "Squiggles, triangles, dots floating around"
+        color: "high_contrast"
+    image_style:
+      characteristics: "Sharp cutouts, no background on objects, bright shadows"
+      blending: "Hard edge collage"
+    color_temperature: "Variable High Saturation"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Drink Vibes"
+    design: |
+      Layout: Central Impact.
+      Background: Vivid Solid Color (e.g., Cyan).
+      Subject: Classical Bust wearing colorful sunglasses sipping a soda/juice through a straw.
+      Title: Huge Bold Text overlapping the statue.
+      Overall atmosphere: Cool, indifferent, trendy.
+    component: "title_slide"
+    safe_area:
+      top: "50px"
+      bottom: "50px"
+      left: "50px"
+      right: "50px"
+
+  - type: "Concept Slide"
+    description: "Bubblegum Shock"
+    design: |
+      Layout: Center Focus.
+      Background: Vivid Pink.
+      Subject: Statue (e.g., Angel/Child) blowing a huge contrasting bubblegum bubble (e.g., Blue).
+      Decoration: Geometric shapes scattering.
+      Text: Popping out from the bubble.
+      Overall atmosphere: Playful, explosive.
+    component: "concept_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Immersion Slide"
+    description: "Music Head / VR Dive"
+    design: |
+      Layout: Immersion.
+      Background: Dark Blue or Purple.
+      Subject: Statue wearing neon wireless headphones or VR Goggles.
+      Effect: Floating 3D objects or musical notes around the head.
+      Text: "SOUND ON" or "VIRTUAL" in neon style.
+      Overall atmosphere: Deep dive, tech-focused.
+    component: "immersion_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Comparison Slide"
+    description: "Split Duality"
+    design: |
+      Layout: Split Screen (Two Colors).
+      Subject: Statue placed on the dividing line.
+      Props: Left hand holds a Book (Classic), Right hand holds a Tablet (Modern).
+      Text: "THEN" vs "NOW".
+      Overall atmosphere: Evolution, contrast.
+    component: "comparison_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Data Slide"
+    description: "Donut Chart"
+    design: |
+      Layout: Surreal Food.
+      Chart: A photo of a real colorful donut or pizza used as the pie chart.
+      Subject: Statue "eating" or holding the data.
+      Data Labels: Toothpicks or flags sticking out of the food.
+      Overall atmosphere: Humorous, digestible data.
+    component: "data_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Contact Slide"
+    description: "Selfie King / QR Contact"
+    design: |
+      Layout: Selfie Angle.
+      Subject: Statue holding a smartphone high for a selfie view.
+      Content: Screen shows "Like/Subscribe" UI or a QR code sticker on the statue's forehead.
+      Background: Patterned or Gradient.
+      Overall atmosphere: Call to action, funny ending.
+    component: "contact_slide"
+    safe_area:
+      top: "50px"
+      bottom: "50px"
+      left: "50px"
+      right: "50px"
