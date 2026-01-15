@@ -49,7 +49,7 @@ style: |
 - Key point 2
 - Key point 3
 
-![bg right:40% 80%](https://source.unsplash.com/random/800x600?technology)
+![bg right:40% 80%](https://picsum.photos/800/600)
 
 ---
 

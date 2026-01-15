@@ -22,8 +22,10 @@ Trigger phrases:
 
 ### Style System
 
-The skill integrates with a rich collection of 19 professional styles from:
-`/Users/tom_wang/Development/tools/notebooklm-design/src/templates/yaml-templates/`
+The skill integrates with a rich collection of 19 professional styles. The style directory is configurable:
+- Set `$STYLE_YAML_DIR` environment variable to point to your style directory
+- Or place styles in `./styles/` within the skill directory
+- Or provide path when prompted
 
 **Categories:**
 - Editorial (3): fashion-layout, red-editorial, kinfolk-editorial

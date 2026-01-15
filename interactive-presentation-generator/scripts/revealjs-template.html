@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Security: Content Security Policy (optional but recommended) -->
+    <!-- Uncomment to enable CSP:
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' https: data:;">
+    -->
+
     <title>{{TITLE}}</title>
 
     <!-- reveal.js CSS -->
@@ -132,9 +138,9 @@
             text-align: center;
         }
 
-        /* Safe areas from YAML */
+        /* Safe areas from YAML (defaults to 60px if not specified) */
         .reveal .slides section {
-            padding: {{SAFE_AREA_TOP}} {{SAFE_AREA_RIGHT}} {{SAFE_AREA_BOTTOM}} {{SAFE_AREA_LEFT}};
+            padding: {{SAFE_AREA_TOP:60px}} {{SAFE_AREA_RIGHT:60px}} {{SAFE_AREA_BOTTOM:60px}} {{SAFE_AREA_LEFT:60px}};
         }
 
         /* Background overlay for images */
@@ -183,6 +189,8 @@
 
         <div class="slides">
             <!-- Title Slide -->
+            <!-- SECURITY: All {{VARIABLES}} must be HTML-escaped before injection -->
+            <!-- Escape: < > & " ' to prevent XSS attacks -->
             <section class="no-footer center"
                      data-background-image="{{COVER_IMAGE}}"
                      data-background-size="cover"
@@ -193,6 +201,7 @@
             </section>
 
             <!-- Content Slides - Replace with actual content -->
+            <!-- SECURITY: Ensure {{SLIDES_CONTENT}} is properly escaped -->
             {{SLIDES_CONTENT}}
 
             <!-- Q&A/Ending Slide -->
@@ -209,7 +218,6 @@
     <!-- reveal.js JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/dist/reveal.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/plugin/notes/notes.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/plugin/markdown/markdown.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/plugin/highlight/highlight.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/plugin/zoom/zoom.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.0.4/plugin/search/search.js"></script>
@@ -224,7 +232,6 @@
             transition: 'slide', // none/fade/slide/convex/concave/zoom
 
             plugins: [
-                RevealMarkdown,
                 RevealHighlight,
                 RevealNotes,
                 RevealZoom,

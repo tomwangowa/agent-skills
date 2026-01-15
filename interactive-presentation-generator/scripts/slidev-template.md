@@ -1,6 +1,6 @@
 ---
 theme: default
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: https://picsum.photos/1920/1080
 class: text-center
 highlighter: shiki
 lineNumbers: false
@@ -126,7 +126,7 @@ This demonstrates line-by-line code highlighting
 
 ---
 layout: image-right
-image: https://source.unsplash.com/collection/94734566/1920x1080
+image: https://picsum.photos/1920/1080
 ---
 
 # Image Background

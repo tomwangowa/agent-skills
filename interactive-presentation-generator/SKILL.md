@@ -13,13 +13,26 @@ Generate professional interactive presentations with customizable styles, suppor
 - **reveal.js HTML**: Standalone, full-featured HTML presentation with custom styling, themes, transitions, and interactive elements. Works in any browser, no build required.
 
 **Alternative Formats:**
-- **Marp**: Simple markdown with YAML frontmatter, PDF export capability
-- **Slidev**: Vue-powered presentations with interactive components and live coding
+- **Marp**: Lightweight markdown with YAML frontmatter, PDF export capability (best for text-heavy slides)
+- **Slidev**: Vue-powered presentations with interactive components and live coding (best for technical talks)
 
 ## Available Styles
 
-This skill integrates with a rich collection of professionally designed styles from:
-`/Users/tom_wang/Development/tools/notebooklm-design/src/templates/yaml-templates/`
+This skill integrates with a rich collection of professionally designed styles. The style directory can be configured via:
+- Environment variable: `$STYLE_YAML_DIR`
+- Default location: `./styles/` (within skill directory)
+- External path: Specified by user at runtime
+
+**Default style directory structure:**
+```
+styles/
+├── editorial/
+├── minimalist/
+├── technical/
+├── traditional/
+├── creative/
+└── ...
+```
 
 ### Style Categories:
 - **Editorial** (3 styles): fashion-layout, red-editorial, kinfolk-editorial
@@ -74,8 +87,8 @@ Ask the user (using AskUserQuestion if needed):
 **Recommend reveal.js HTML** for best results with style customization.
 
 Alternative formats available:
-- **Marp**: For simple presentations with PDF export needs
-- **Slidev**: For technical presentations with live coding
+- **Marp**: For straightforward presentations (5-15 slides) with PDF export needs
+- **Slidev**: For technical presentations with code examples and live coding demos
 
 If user chooses reveal.js HTML (recommended), the style YAML will be fully applied with:
 - Custom CSS for colors, fonts, and layouts
@@ -145,7 +158,7 @@ Subtitle
 ```markdown
 ---
 theme: default
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: https://picsum.photos/collection/94734566/1920x1080
 class: text-center
 highlighter: shiki
 ---
@@ -206,8 +219,16 @@ Create a complete standalone HTML file with custom styling from YAML:
 - `{{TITLE}}`, `{{SUBTITLE}}`, `{{AUTHOR}}`, `{{DATE}}`
 - `{{COMPANY_NAME}}`, `{{CONTACT_INFO}}`
 - `{{COVER_IMAGE}}`, `{{ENDING_IMAGE}}`
-- Color variables from YAML
-- Font variables from YAML
+- Color variables from YAML (with fallbacks)
+- Font variables from YAML (with fallbacks)
+- Safe area variables (default to `60px` if not specified)
+
+**Critical: Provide Default Values**
+- All CSS variables must have fallback values to prevent invalid CSS
+- If YAML is missing a color key (e.g., `accent_2`), use sensible default (e.g., `#999999`)
+- If safe area values are missing, default to `60px` for all sides
+- If font family is missing, fallback to web-safe fonts (e.g., `Arial, sans-serif`)
+- Example: `{{COLOR_PRIMARY}}` → if missing, use `#000000`
 
 ### Step 6: Add Enhancements
 
@@ -269,17 +290,17 @@ Include a brief guide at the end of generation:
 - **High contrast**: Dark text on light background or vice versa
 
 ### Writing Guidelines
-- Use short, punchy sentences
-- Avoid paragraphs (use bullets)
+- Use short, punchy sentences (max 15 words per bullet)
+- Avoid paragraphs (use 3-6 bullets per slide)
 - Action-oriented titles (verbs, not nouns)
 - Include transitions between major sections
-- Add speaker notes for complex points
+- Add speaker notes for points that require >30 seconds to explain
 
 ### Technical Content
-- Show code in small, focused snippets
+- Show code in focused snippets (max 15 lines per slide)
 - Explain each code block's purpose
-- Use syntax highlighting
-- Consider live coding for demos (Slidev)
+- Use syntax highlighting with language tags
+- Consider live coding for demos (Slidev only)
 
 ## Example Prompts
 
@@ -292,10 +313,14 @@ Include a brief guide at the end of generation:
 
 ### Loading Style YAML
 
-1. **List available styles** by using Glob tool on `/Users/tom_wang/Development/tools/notebooklm-design/src/templates/yaml-templates/**/*.yaml`
-2. **Present options** grouped by category directory (editorial, minimalist, technical, etc.)
-3. **Read selected YAML** using Read tool
-4. **Parse YAML** and extract:
+1. **Locate style directory**:
+   - Check environment variable `$STYLE_YAML_DIR`
+   - If not set, use `./styles/` within skill directory
+   - If not found, ask user for style directory path
+2. **List available styles** by using Glob tool on `${STYLE_DIR}/**/*.yaml`
+3. **Present options** grouped by category directory (editorial, minimalist, technical, etc.)
+4. **Read selected YAML** using Read tool
+5. **Parse YAML** and extract:
    - `template_metadata`: id, name, description, tags
    - `overall_design_settings.color_palette`: All color variables
    - `overall_design_settings.typography`: Fonts, sizes, weights, line heights
@@ -304,18 +329,33 @@ Include a brief guide at the end of generation:
 
 ### Applying Style to HTML
 
-**CSS Variables:**
+**CSS Variables with Fallbacks:**
 ```css
 :root {
-  --color-base: /* from color_palette.base */;
-  --color-primary: /* from color_palette.primary */;
-  /* ... all other colors */
+  --color-base: /* from color_palette.base, fallback: #FAFAFA */;
+  --color-primary: /* from color_palette.primary, fallback: #000000 */;
+  --color-text: /* from color_palette.text, fallback: #1A1A1A */;
+  --color-background: /* from color_palette.background, fallback: #FFFFFF */;
+  --color-accent-1: /* from color_palette.accent_1, fallback: #E63946 */;
+  --color-accent-2: /* from color_palette.accent_2, fallback: #999999 */;
+  --color-highlight: /* from color_palette.highlight, fallback: #F1F1F1 */;
 
-  --font-heading: /* from typography.heading.font_family */;
-  --font-body: /* from typography.body.font_family */;
-  /* ... other typography settings */
+  --font-heading: /* from typography.heading.font_family, fallback: Arial, sans-serif */;
+  --font-body: /* from typography.body.font_family, fallback: Arial, sans-serif */;
+  /* ... other typography settings with fallbacks */
 }
 ```
+
+**CRITICAL: Handle Missing YAML Keys**
+When extracting values from YAML:
+1. **Check for key existence** before accessing
+2. **Provide sensible defaults** for all missing values:
+   - Colors: Use neutral grays or high-contrast defaults
+   - Fonts: Use web-safe font stacks
+   - Sizes: Use standard values (16pt body, 40-48pt heading, 12pt footer)
+   - Spacing: Use 60px as standard safe area
+3. **Log warnings** (mentally note) when using fallbacks
+4. **Never generate empty CSS values** (e.g., `color: ;`)
 
 **Visual Motifs Implementation:**
 - If `grid` type: Add CSS background grid pattern
@@ -328,7 +368,7 @@ Include a brief guide at the end of generation:
 **Default Image Sources:**
 - Unsplash collections for placeholder images
 - Use relevant keywords based on style category
-- Example: Technical styles → `https://source.unsplash.com/1920x1080/?technology,blueprint`
+- Example: Technical styles → `https://picsum.photos/1920x1080/?technology,blueprint`
 
 **User-Provided Images:**
 - Accept file paths (relative or absolute)
@@ -368,12 +408,115 @@ When presenting style options, include:
 
 This helps users make informed decisions without needing full previews.
 
+## Error Handling
+
+### File Operations
+1. **Style YAML Loading**:
+   - Check if style directory exists before globbing
+   - Handle file read errors gracefully
+   - Provide clear error message: "Style directory not found at [path]. Please set $STYLE_YAML_DIR or use default location."
+   - If YAML parsing fails, inform user which file has syntax errors
+
+2. **Image Assets**:
+   - Validate image URLs/paths before using
+   - Check file extensions: `.jpg`, `.jpeg`, `.png`, `.svg`, `.gif`, `.webp`
+   - For URLs: Verify protocol is `http` or `https`
+   - For file paths: Check file exists and is readable
+   - **Fallback**: Use placeholder service if validation fails
+   - **Error message**: "Image at [path] is invalid or inaccessible. Using placeholder instead."
+
+3. **Template Variable Replacement**:
+   - Never leave unreplaced variables (e.g., `{{UNDEFINED_VAR}}`)
+   - If a required variable is missing, use sensible default or empty string
+   - Log (mentally note) which variables were not provided
+
+### User Input Validation
+1. **Content Input**:
+   - Check that outline/content is not empty
+   - Minimum requirement: 1 slide title
+   - If too vague, ask clarifying questions before generating
+
+2. **File Paths**:
+   - Validate absolute vs relative paths
+   - Check for directory traversal attempts (`../`, `..\\`)
+   - Normalize paths before use
+
+3. **URLs**:
+   - Validate URL format before using
+   - Allow only `http`, `https`, `file` protocols
+   - Reject `javascript:`, `data:`, or other potentially malicious schemes
+
+### Generation Errors
+1. **CSS Generation**:
+   - Validate color hex codes (must start with `#` and be 3, 4, 6, or 8 characters)
+   - Validate font family names (no special characters except hyphens, spaces, commas)
+   - Ensure all CSS values have proper units (px, pt, em, rem, %)
+
+2. **HTML Generation**:
+   - Escape special HTML characters in user content (`<`, `>`, `&`, `"`, `'`)
+   - Validate that generated HTML is well-formed (matching tags)
+   - Check for unclosed tags or malformed attributes
+
+## Security Considerations
+
+### Input Sanitization
+1. **XSS Prevention**:
+   - **Critical**: Escape all user-provided content before injecting into HTML
+   - Use HTML entity encoding for: `<` → `&lt;`, `>` → `&gt;`, `&` → `&amp;`, `"` → `&quot;`, `'` → `&#39;`
+   - Never allow raw `<script>` tags from user input
+   - Sanitize slide titles, bullet points, speaker notes, footer text, company name, author name
+
+2. **URL Safety**:
+   - Validate all user-provided URLs
+   - Reject dangerous protocols: `javascript:`, `data:`, `vbscript:`
+   - Allow only: `http:`, `https:`, `file:` (for local images)
+   - Example check: URL must match pattern `^(https?|file):\/\/.+`
+
+3. **File Path Safety**:
+   - Prevent directory traversal attacks
+   - Reject paths containing `../` or `..\`
+   - For local files, ensure paths are within expected directories
+   - Never execute or eval file contents
+
+### Content Safety
+1. **Style YAML**:
+   - YAML files are trusted (assumed to be from legitimate source)
+   - However, validate extracted values before using:
+     - Colors must be valid hex codes or CSS color names
+     - Fonts must not contain executable code
+     - URLs in visual motifs must be validated
+
+2. **Generated HTML**:
+   - The generated HTML is a local file, not served publicly
+   - Risk of XSS is low (user would be attacking themselves)
+   - However, still apply sanitization as best practice
+   - Consider adding CSP (Content Security Policy) meta tag:
+     ```html
+     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' https: data:;">
+     ```
+
+3. **Speaker Notes**:
+   - Speaker notes may contain sensitive information
+   - Remind user that speaker notes are visible in HTML source
+   - Suggest not including passwords, API keys, or confidential data
+
+### Dependencies
+1. **CDN Integrity**:
+   - Consider adding Subresource Integrity (SRI) hashes for CDN resources
+   - Example: `<script src="..." integrity="sha384-..." crossorigin="anonymous"></script>`
+   - This prevents tampering if CDN is compromised
+
+2. **Google Fonts**:
+   - Loading fonts from Google is generally safe
+   - However, privacy-conscious users may prefer self-hosted fonts
+   - Provide option to use system fonts only
+
 ## Notes
 
 - Always ask for clarification if the outline is too vague
-- Expand sparse outlines into complete slides with reasonable content
-- Suggest visual elements and diagrams where appropriate
-- Include speaker notes for complex topics
+- Expand minimal outlines (< 3 bullet points per topic) into complete slides with 5-7 bullet points
+- Suggest visual elements (charts, diagrams, images) for data-heavy or conceptual slides
+- Include speaker notes for topics requiring >30 seconds to explain
 - Provide both the presentation file and usage instructions
 - For HTML presentations, ensure they're self-contained and work offline
 - When applying YAML styles, respect the design philosophy and tone specified
