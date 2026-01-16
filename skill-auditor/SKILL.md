@@ -7,6 +7,45 @@ description: Audit Claude Code skills for quality, security, and best practices.
 
 Comprehensive quality audit for Claude Code skills to ensure they meet security, portability, and documentation standards.
 
+## Background & Context
+
+### The Problem
+As teams create more Claude Code skills, quality inconsistencies emerge:
+- Skills with hardcoded paths that don't work on other machines
+- Missing security considerations leading to vulnerabilities
+- Inadequate error handling causing poor user experience
+- Ambiguous documentation making skills hard to use
+- Inconsistent quality standards across team members
+
+### The Solution
+Skill Auditor provides automated and AI-powered quality checks to ensure every skill meets production standards before sharing with the team.
+
+### Scope
+- **Target**: SKILL.md files and associated scripts
+- **Coverage**: Security, portability, quality, documentation
+- **Output**: Scored audit report with actionable recommendations
+- **Integration**: Works with existing review workflows (spec-review, code-review)
+
+## Requirements
+
+### Functional Requirements
+1. **Automated Pattern-Based Checks**: Detect hardcoded paths, missing sections, security keywords
+2. **Scoring System**: 100-point scale with weighted categories (Security 30%, Error Handling 20%, etc.)
+3. **Report Generation**: Structured markdown with severity levels and line numbers
+4. **Actionable Recommendations**: Specific fixes, not just problem identification
+5. **Batch Auditing**: Support auditing multiple skills
+
+### Non-Functional Requirements
+1. **Performance**: Complete audit in < 5 seconds for typical skill
+2. **Portability**: Work on macOS and Linux without modification
+3. **Reliability**: < 5% false positive rate on well-formed skills
+4. **Usability**: Reports readable without technical knowledge
+
+### Dependencies
+- **Required**: bash 4.0+, grep, sed, find, mktemp
+- **Optional**: Gemini CLI (for AI-powered semantic analysis)
+- **Environment**: Unix-like system (macOS, Linux, WSL)
+
 ## Purpose
 
 A meta-skill that audits other skills to ensure they are:
@@ -93,9 +132,9 @@ A meta-skill that audits other skills to ensure they are:
 ### 4. Portability & Environment (Critical)
 
 #### Path Handling
-- [ ] **No hardcoded absolute paths** (e.g., `/Users/username/...`)
+- [ ] **No hardcoded absolute paths** (e.g., full paths to specific user directories)
 - [ ] Uses environment variables for configurable paths
-- [ ] Relative paths used where appropriate
+- [ ] Relative paths used where needed
 - [ ] Path configuration documented
 
 #### Cross-platform Compatibility
@@ -113,9 +152,9 @@ A meta-skill that audits other skills to ensure they are:
 ### 5. Quality & Clarity (Important)
 
 #### Clear Language
-- [ ] No ambiguous terms ("simple", "complex", "appropriate", "reasonable")
-- [ ] Specific metrics provided (e.g., "max 15 lines" not "small")
-- [ ] Quantifiable criteria (e.g., ">30 seconds" not "complex")
+- [ ] No ambiguous terms (avoid: vague adjectives without metrics)
+- [ ] Specific metrics provided (e.g., "max 15 lines" instead of "small")
+- [ ] Quantifiable criteria (e.g., ">30 seconds" instead of vague terms)
 - [ ] Technical terms defined
 
 #### Workflow Clarity
@@ -137,7 +176,7 @@ A meta-skill that audits other skills to ensure they are:
 - [ ] Installation/setup instructions
 - [ ] Quick start guide
 - [ ] Troubleshooting section
-- [ ] Examples directory (if complex skill)
+- [ ] Examples directory (if skill has multiple use cases or scripts)
 
 #### Technical Documentation
 - [ ] Tool dependencies listed with versions
@@ -190,6 +229,10 @@ A meta-skill that audits other skills to ensure they are:
 - [ ] Helpful error messages
 
 ---
+
+## Instructions
+
+Follow this workflow to audit a skill for production readiness.
 
 ## Workflow
 
@@ -257,7 +300,7 @@ For each issue:
 
 ### Step 6: Offer Auto-fix (Optional)
 
-For simple issues (e.g., missing sections, ambiguous terms):
+For straightforward issues (e.g., missing sections, ambiguous terms):
 - Offer to automatically add missing sections
 - Suggest specific replacements for ambiguous terms
 - Generate security/error handling templates
@@ -313,7 +356,7 @@ For simple issues (e.g., missing sections, ambiguous terms):
    - Fix: Add "## Security Considerations" with XSS, input validation, URL safety
 
 2. **Hardcoded Absolute Path** (Line: 45)
-   - Found: `/Users/tom_wang/Development/...`
+   - Found: Absolute path in skill definition (example placeholder)
    - Risk: Skill won't work on other machines
    - Fix: Use `$STYLE_YAML_DIR` environment variable or relative paths
 
@@ -341,13 +384,13 @@ For simple issues (e.g., missing sections, ambiguous terms):
 ## 5. Quality & Clarity
 
 ### ⚠️ Important Issues
-1. **Ambiguous Term: "simple"** (Line: 16)
-   - Found: "Simple markdown with YAML frontmatter"
+1. **Ambiguous Term: vague adjective** (Line: 16)
+   - Found: Vague descriptor without specific metrics
    - Fix: Replace with "Lightweight markdown" or "Straightforward (5-15 slides)"
 
-2. **Ambiguous Term: "complex"** (Line: 276)
-   - Found: "Add speaker notes for complex points"
-   - Fix: Replace with "requiring >30 seconds to explain"
+2. **Ambiguous Term: vague descriptor** (Line: 276)
+   - Found: Vague term without measurable criteria
+   - Fix: Replace with "requiring >30 seconds to explain" or specific threshold
 
 ---
 
@@ -417,6 +460,120 @@ For simple issues (e.g., missing sections, ambiguous terms):
 
 ---
 
+## Technical Design
+
+### Architecture
+
+```
+User Request → Claude (Main Agent)
+                  ↓
+          Skill Auditor Triggered
+                  ↓
+          ┌───────────────────┐
+          │  Audit Pipeline   │
+          ├───────────────────┤
+          │ 1. Parse SKILL.md │
+          │ 2. Run Checks     │
+          │ 3. Score/Classify │
+          │ 4. Generate Report│
+          └───────────────────┘
+                  ↓
+          Structured Report → User
+```
+
+### Components
+
+1. **audit_skill.sh** (Shell Script)
+   - Automated pattern-based checks
+   - File system validation
+   - Report generation engine
+   - Scoring calculator
+
+2. **SKILL.md** (This File)
+   - Audit workflow definition
+   - Checklist documentation
+   - Integration guidelines
+
+3. **Templates** (examples/templates/)
+   - Security section template
+   - Error handling template
+   - Quick-fix references
+
+### Check Categories & Weights
+
+| Category | Weight | Max Points | Check Type |
+|----------|--------|------------|------------|
+| Structure Integrity | 15% | 15 | Automated |
+| Security | 30% | 30 | Automated + AI |
+| Error Handling | 20% | 20 | Automated + AI |
+| Portability | 15% | 15 | Automated |
+| Quality & Clarity | 10% | 10 | Automated + AI |
+| Documentation | 10% | 10 | Automated |
+
+**Total**: 100 points
+
+### Data Flow
+
+```
+SKILL.md → audit_skill.sh → Checks → BODY_FILE (temp)
+                                            ↓
+                            REPORT_FILE ← generate_report() ← Scoring
+```
+
+**Key Design Decision**: Use temporary file buffering to ensure correct report structure and avoid sed portability issues.
+
+## Testing Strategy
+
+### Unit Tests (Automated Checks)
+
+Test each check function independently:
+
+**Test Cases:**
+1. **YAML Frontmatter**
+   - Valid YAML → Pass
+   - Missing name field → Fail (Critical)
+   - Missing description → Fail (Critical)
+   - No frontmatter → Fail (Critical)
+
+2. **Hardcoded Paths**
+   - Absolute user-specific paths → Fail (Critical)
+   - `$HOME/...` or `~/...` → Pass (resolves at runtime)
+   - `./relative/path` → Pass
+   - Environment variables → Pass
+
+3. **Security Keywords**
+   - 0-1 keywords → Fail (Critical)
+   - 2-3 keywords → Warning (Important)
+   - 4+ keywords → Pass
+
+4. **Ambiguous Terms**
+   - Contains "simple" → Warning with line number
+   - Contains "fast" → Warning with line number
+   - No ambiguous terms → Pass
+
+### Integration Tests
+
+1. **Test on High-Quality Skill**
+   - Input: interactive-presentation-generator (expected score: 75+)
+   - Expected: 0 critical issues, production-ready status
+
+2. **Test on Problematic Skill**
+   - Input: Skill with hardcoded paths, missing security section
+   - Expected: 2+ critical issues, not production-ready status
+
+3. **Self-Audit**
+   - Input: skill-auditor itself
+   - Expected: Score 85+, pass own standards
+
+### Acceptance Criteria
+
+- [ ] Audit completes in < 5 seconds
+- [ ] Reports are well-structured (sections in correct order)
+- [ ] Score calculation is accurate
+- [ ] All critical issues are detected
+- [ ] False positive rate < 5%
+- [ ] Works on both macOS and Linux
+
 ## Integration with Existing Skills
 
 ### Relationship with spec-review-assistant
@@ -447,7 +604,7 @@ Expected behavior:
 3. Run automated checks
 4. Generate audit report
 5. Present findings with severity levels
-6. Offer to auto-fix simple issues
+6. Offer to auto-fix straightforward issues (missing sections, ambiguous terms)
 ```
 
 ### Example 2: Audit before sharing
@@ -478,7 +635,7 @@ Expected behavior:
 ## Notes
 
 - This skill uses Gemini CLI for semantic analysis (similar to spec-review-assistant)
-- Automated checks are fast, AI review is thorough
+- Automated checks complete in < 5 seconds, AI review provides thorough semantic analysis
 - Reports are saved to `~/.claude/audits/` for reference
 - Can be integrated into CI/CD or pre-commit hooks
 - Follows same reporting format as spec-review-assistant for consistency

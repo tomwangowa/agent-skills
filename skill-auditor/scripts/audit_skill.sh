@@ -16,8 +16,17 @@ CRITICAL_ISSUES=0
 IMPORTANT_ISSUES=0
 SUGGESTIONS=0
 
-# Output file
+# Output files
 REPORT_FILE=""
+BODY_FILE=""
+
+# Cleanup temp files on exit
+cleanup() {
+    if [[ -n "$BODY_FILE" ]] && [[ -f "$BODY_FILE" ]]; then
+        rm -f "$BODY_FILE"
+    fi
+}
+trap cleanup EXIT
 
 # Usage
 usage() {
@@ -89,7 +98,10 @@ if [[ -z "$REPORT_FILE" ]]; then
     REPORT_FILE="$SKILL_NAME-audit-report.md"
 fi
 
-# Logging function
+# Create temp file for body
+BODY_FILE=$(mktemp)
+
+# Logging functions
 log_verbose() {
     if [[ "$VERBOSE" == true ]]; then
         echo -e "${BLUE}[INFO]${NC} $1"
@@ -100,36 +112,24 @@ log_check() {
     echo -e "${BLUE}ℹ️  $1${NC}"
 }
 
-# Initialize report
-init_report() {
-    cat > "$REPORT_FILE" << EOF
-# Skill Audit Report: $SKILL_NAME
-
-**Audit Date**: $(date +%Y-%m-%d)
-**Skill Directory**: $SKILL_DIR
-**Auditor**: Skill Auditor (Claude Code Meta-Skill)
-
----
-
-## Executive Summary
-
-EOF
-}
-
 # Check functions
 check_yaml_frontmatter() {
     log_check "Checking YAML frontmatter..."
+    echo "" >> "$BODY_FILE"
+    echo "## 1. Structure Integrity" >> "$BODY_FILE"
+    echo "" >> "$BODY_FILE"
+
     local skill_md="$SKILL_DIR/SKILL.md"
 
     if [[ ! -f "$skill_md" ]]; then
-        echo "❌ SKILL.md not found" >> "$REPORT_FILE"
+        echo "❌ **CRITICAL**: SKILL.md not found" >> "$BODY_FILE"
         ((CRITICAL_ISSUES++))
         return 1
     fi
 
     # Check if YAML frontmatter exists
     if ! grep -q "^---$" "$skill_md"; then
-        echo "❌ No YAML frontmatter found" >> "$REPORT_FILE"
+        echo "❌ **CRITICAL**: No YAML frontmatter found" >> "$BODY_FILE"
         ((CRITICAL_ISSUES++))
         return 1
     fi
@@ -139,143 +139,197 @@ check_yaml_frontmatter() {
 
     # Check required fields
     if ! echo "$yaml_content" | grep -q "^name:"; then
-        echo "❌ Missing 'name' field in frontmatter" >> "$REPORT_FILE"
+        echo "❌ **CRITICAL**: Missing 'name' field in frontmatter" >> "$BODY_FILE"
         ((CRITICAL_ISSUES++))
     else
+        echo "✅ 'name' field present" >> "$BODY_FILE"
         ((SCORE+=5))
     fi
 
     if ! echo "$yaml_content" | grep -q "^description:"; then
-        echo "❌ Missing 'description' field in frontmatter" >> "$REPORT_FILE"
+        echo "❌ **CRITICAL**: Missing 'description' field in frontmatter" >> "$BODY_FILE"
         ((CRITICAL_ISSUES++))
     else
+        echo "✅ 'description' field present" >> "$BODY_FILE"
         ((SCORE+=5))
     fi
 
+    echo "" >> "$BODY_FILE"
     log_verbose "YAML frontmatter check complete"
 }
 
 check_required_sections() {
     log_check "Checking required sections..."
+    echo "## 2. Required Sections" >> "$BODY_FILE"
+    echo "" >> "$BODY_FILE"
+
     local skill_md="$SKILL_DIR/SKILL.md"
 
-    # Required sections
-    local sections=("Workflow" "Instructions" "Example" "Error Handling" "Security")
-
-    for section in "${sections[@]}"; do
+    # Critical sections
+    local critical_sections=("Error Handling" "Security")
+    for section in "${critical_sections[@]}"; do
         if grep -qi "##.*$section" "$skill_md"; then
-            echo "✅ Found: $section section" >> "$REPORT_FILE"
-            ((SCORE+=3))
+            echo "✅ Found: **$section** section" >> "$BODY_FILE"
+            ((SCORE+=10))
         else
-            if [[ "$section" == "Error Handling" ]] || [[ "$section" == "Security" ]]; then
-                echo "❌ Missing critical section: $section" >> "$REPORT_FILE"
-                ((CRITICAL_ISSUES++))
-            else
-                echo "⚠️  Missing recommended section: $section" >> "$REPORT_FILE"
-                ((IMPORTANT_ISSUES++))
-            fi
+            echo "❌ **CRITICAL**: Missing **$section** section" >> "$BODY_FILE"
+            ((CRITICAL_ISSUES++))
         fi
     done
 
+    # Important sections
+    local important_sections=("Workflow" "Instructions" "Example")
+    for section in "${important_sections[@]}"; do
+        if grep -qi "##.*$section" "$skill_md"; then
+            echo "✅ Found: $section section" >> "$BODY_FILE"
+            ((SCORE+=5))
+        else
+            echo "⚠️  **IMPORTANT**: Missing $section section" >> "$BODY_FILE"
+            ((IMPORTANT_ISSUES++))
+        fi
+    done
+
+    echo "" >> "$BODY_FILE"
     log_verbose "Required sections check complete"
 }
 
 check_hardcoded_paths() {
     log_check "Checking for hardcoded absolute paths..."
+    echo "## 3. Portability" >> "$BODY_FILE"
+    echo "" >> "$BODY_FILE"
+
     local skill_md="$SKILL_DIR/SKILL.md"
 
     # Look for /Users/, /home/, C:\, etc.
     local hardcoded=$(grep -n "/Users/\|/home/\|C:\\\\" "$skill_md" 2>/dev/null || true)
 
     if [[ -n "$hardcoded" ]]; then
-        echo "❌ Hardcoded absolute paths found:" >> "$REPORT_FILE"
-        echo '```' >> "$REPORT_FILE"
-        echo "$hardcoded" >> "$REPORT_FILE"
-        echo '```' >> "$REPORT_FILE"
-        echo "**Fix**: Use environment variables or relative paths" >> "$REPORT_FILE"
+        echo "❌ **CRITICAL**: Hardcoded absolute paths found:" >> "$BODY_FILE"
+        echo '```' >> "$BODY_FILE"
+        echo "$hardcoded" >> "$BODY_FILE"
+        echo '```' >> "$BODY_FILE"
+        echo "" >> "$BODY_FILE"
+        echo "**Fix**: Use environment variables or relative paths" >> "$BODY_FILE"
+        echo "**Example**: \`Style directory: \$STYLE_DIR (default: ./styles/)\`" >> "$BODY_FILE"
         ((CRITICAL_ISSUES++))
     else
-        echo "✅ No hardcoded paths detected" >> "$REPORT_FILE"
-        ((SCORE+=10))
+        echo "✅ No hardcoded absolute paths detected" >> "$BODY_FILE"
+        ((SCORE+=15))
     fi
 
+    echo "" >> "$BODY_FILE"
     log_verbose "Hardcoded paths check complete"
 }
 
 check_security_keywords() {
     log_check "Checking security documentation..."
+    echo "## 4. Security" >> "$BODY_FILE"
+    echo "" >> "$BODY_FILE"
+
     local skill_md="$SKILL_DIR/SKILL.md"
 
     local security_keywords=("XSS" "sanitize" "validate" "escape" "security" "CSP")
     local found_keywords=0
+    local found_list=""
 
     for keyword in "${security_keywords[@]}"; do
         if grep -qi "$keyword" "$skill_md"; then
             ((found_keywords++))
+            found_list="$found_list $keyword"
         fi
     done
 
-    if [[ $found_keywords -ge 3 ]]; then
-        echo "✅ Security considerations documented (found $found_keywords keywords)" >> "$REPORT_FILE"
-        ((SCORE+=15))
-    elif [[ $found_keywords -gt 0 ]]; then
-        echo "⚠️  Limited security documentation (found $found_keywords keywords)" >> "$REPORT_FILE"
+    if [[ $found_keywords -ge 4 ]]; then
+        echo "✅ Strong security documentation (found keywords:$found_list)" >> "$BODY_FILE"
+        ((SCORE+=20))
+    elif [[ $found_keywords -ge 2 ]]; then
+        echo "⚠️  **IMPORTANT**: Limited security documentation (found $found_keywords keywords:$found_list)" >> "$BODY_FILE"
+        echo "**Recommendation**: Expand security section to cover XSS, input validation, URL/path safety" >> "$BODY_FILE"
         ((IMPORTANT_ISSUES++))
-        ((SCORE+=5))
+        ((SCORE+=10))
     else
-        echo "❌ No security documentation found" >> "$REPORT_FILE"
+        echo "❌ **CRITICAL**: Insufficient security documentation" >> "$BODY_FILE"
+        echo "**Required**: Add Security Considerations section covering:" >> "$BODY_FILE"
+        echo "- Input sanitization (HTML escaping, URL validation)" >> "$BODY_FILE"
+        echo "- File path safety (directory traversal prevention)" >> "$BODY_FILE"
+        echo "- External dependency risks" >> "$BODY_FILE"
         ((CRITICAL_ISSUES++))
     fi
 
+    echo "" >> "$BODY_FILE"
     log_verbose "Security keywords check complete"
 }
 
 check_ambiguous_terms() {
     log_check "Checking for ambiguous terminology..."
+    echo "## 5. Quality & Clarity" >> "$BODY_FILE"
+    echo "" >> "$BODY_FILE"
+
     local skill_md="$SKILL_DIR/SKILL.md"
 
-    local ambiguous_terms=("simple" "complex" "appropriate" "reasonable" "good" "bad" "fast" "slow")
-    local found_terms=()
+    local ambiguous_terms=("simple" "complex" "appropriate" "reasonable" "good" "bad" "fast" "slow" "quick")
+    local found_any=false
 
     for term in "${ambiguous_terms[@]}"; do
-        if grep -qi "\b$term\b" "$skill_md"; then
-            local lines=$(grep -ni "\b$term\b" "$skill_md" | head -3)
-            found_terms+=("$term")
+        local matches=$(grep -ni "\b$term\b" "$skill_md" 2>/dev/null | head -5 || true)
+        if [[ -n "$matches" ]]; then
+            if [[ "$found_any" == false ]]; then
+                echo "⚠️  **IMPORTANT**: Ambiguous terms detected:" >> "$BODY_FILE"
+                echo "" >> "$BODY_FILE"
+                found_any=true
+                ((IMPORTANT_ISSUES++))
+            fi
+            echo "**Term: \"$term\"**" >> "$BODY_FILE"
+            echo '```' >> "$BODY_FILE"
+            echo "$matches" | head -3 >> "$BODY_FILE"
+            echo '```' >> "$BODY_FILE"
+            echo "" >> "$BODY_FILE"
         fi
     done
 
-    if [[ ${#found_terms[@]} -eq 0 ]]; then
-        echo "✅ No ambiguous terms detected" >> "$REPORT_FILE"
-        ((SCORE+=10))
-    else
-        echo "⚠️  Ambiguous terms found: ${found_terms[*]}" >> "$REPORT_FILE"
-        echo "**Recommendation**: Replace with specific metrics" >> "$REPORT_FILE"
-        ((IMPORTANT_ISSUES++))
+    if [[ "$found_any" == true ]]; then
+        echo "**Recommendation**: Replace with specific metrics:" >> "$BODY_FILE"
+        echo "- \"simple\" → \"lightweight\" or \"straightforward (5-15 slides)\"" >> "$BODY_FILE"
+        echo "- \"complex\" → \"requiring >30 seconds to explain\"" >> "$BODY_FILE"
+        echo "- \"fast\" → \"< 1 second\"" >> "$BODY_FILE"
+        echo "- \"quick\" → \"5-minute guide\"" >> "$BODY_FILE"
         ((SCORE+=3))
+    else
+        echo "✅ No ambiguous terms detected" >> "$BODY_FILE"
+        ((SCORE+=10))
     fi
 
+    echo "" >> "$BODY_FILE"
     log_verbose "Ambiguous terms check complete"
 }
 
 check_examples() {
     log_check "Checking for usage examples..."
+    echo "## 6. Examples & Documentation" >> "$BODY_FILE"
+    echo "" >> "$BODY_FILE"
+
     local skill_md="$SKILL_DIR/SKILL.md"
 
     local example_count=$(grep -ci "^###.*example\|^##.*example\|^#.*example" "$skill_md" 2>/dev/null || echo "0")
     example_count=$(echo "$example_count" | tr -d '\n' | tr -d ' ')
 
-    if [[ $example_count -ge 2 ]]; then
-        echo "✅ Sufficient examples ($example_count found)" >> "$REPORT_FILE"
+    if [[ $example_count -ge 3 ]]; then
+        echo "✅ Excellent examples ($example_count found)" >> "$BODY_FILE"
         ((SCORE+=10))
+    elif [[ $example_count -ge 2 ]]; then
+        echo "✅ Sufficient examples ($example_count found)" >> "$BODY_FILE"
+        ((SCORE+=8))
     elif [[ $example_count -eq 1 ]]; then
-        echo "⚠️  Only 1 example found, recommend at least 2" >> "$REPORT_FILE"
+        echo "⚠️  **IMPORTANT**: Only 1 example found, recommend at least 2" >> "$BODY_FILE"
         ((IMPORTANT_ISSUES++))
-        ((SCORE+=5))
+        ((SCORE+=3))
     else
-        echo "❌ No examples found" >> "$REPORT_FILE"
+        echo "⚠️  **IMPORTANT**: No examples found" >> "$BODY_FILE"
+        echo "**Recommendation**: Add at least 2-3 usage examples showing typical use cases" >> "$BODY_FILE"
         ((IMPORTANT_ISSUES++))
     fi
 
+    echo "" >> "$BODY_FILE"
     log_verbose "Examples check complete"
 }
 
@@ -283,62 +337,97 @@ check_documentation() {
     log_check "Checking documentation files..."
 
     if [[ -f "$SKILL_DIR/README.md" ]]; then
-        echo "✅ README.md exists" >> "$REPORT_FILE"
+        echo "✅ README.md exists" >> "$BODY_FILE"
         ((SCORE+=5))
     else
-        echo "⚠️  No README.md found" >> "$REPORT_FILE"
+        echo "⚠️  **SUGGESTION**: No README.md found" >> "$BODY_FILE"
+        echo "**Recommendation**: Create README.md with quick start, features, and troubleshooting" >> "$BODY_FILE"
         ((SUGGESTIONS++))
     fi
 
-    if [[ -f "$SKILL_DIR/QUICKSTART.md" ]] || grep -qi "quick.*start\|getting.*started" "$SKILL_DIR/SKILL.md"; then
-        echo "✅ Quick start documentation found" >> "$REPORT_FILE"
+    if [[ -f "$SKILL_DIR/QUICKSTART.md" ]] || grep -qi "quick.*start\|getting.*started" "$SKILL_DIR/SKILL.md" 2>/dev/null; then
+        echo "✅ Quick start documentation found" >> "$BODY_FILE"
         ((SCORE+=5))
     else
-        echo "⚠️  No quick start guide" >> "$REPORT_FILE"
+        echo "⚠️  **SUGGESTION**: No quick start guide" >> "$BODY_FILE"
         ((SUGGESTIONS++))
     fi
 
+    echo "" >> "$BODY_FILE"
     log_verbose "Documentation check complete"
 }
 
 check_scripts() {
     log_check "Checking scripts quality..."
+    echo "## 7. Script Quality" >> "$BODY_FILE"
+    echo "" >> "$BODY_FILE"
 
     if [[ ! -d "$SKILL_DIR/scripts" ]]; then
-        echo "ℹ️  No scripts directory (not required)" >> "$REPORT_FILE"
+        echo "ℹ️  No scripts directory (not required)" >> "$BODY_FILE"
+        echo "" >> "$BODY_FILE"
         return 0
     fi
 
-    local script_count=$(find "$SKILL_DIR/scripts" -type f -name "*.sh" | wc -l | tr -d ' ')
+    local script_count=$(find "$SKILL_DIR/scripts" -type f -name "*.sh" 2>/dev/null | wc -l | tr -d ' ')
 
     if [[ $script_count -eq 0 ]]; then
+        echo "ℹ️  No shell scripts found in scripts/" >> "$BODY_FILE"
+        echo "" >> "$BODY_FILE"
         return 0
     fi
 
-    echo "Found $script_count shell scripts" >> "$REPORT_FILE"
+    echo "Found $script_count shell script(s)" >> "$BODY_FILE"
+    echo "" >> "$BODY_FILE"
+
+    local scripts_score=0
+    local max_scripts_score=$((script_count * 3))  # 3 points per script for perfect quality
 
     # Check each script
     find "$SKILL_DIR/scripts" -type f -name "*.sh" | while read -r script; do
         local script_name=$(basename "$script")
+        echo "**Script: $script_name**" >> "$BODY_FILE"
 
         # Check shebang
-        if ! head -1 "$script" | grep -q "^#!"; then
-            echo "⚠️  $script_name: Missing shebang" >> "$REPORT_FILE"
+        if head -1 "$script" | grep -q "^#!"; then
+            echo "- ✅ Has shebang" >> "$BODY_FILE"
+            ((scripts_score++))
+        else
+            echo "- ⚠️  Missing shebang" >> "$BODY_FILE"
             ((IMPORTANT_ISSUES++))
         fi
 
         # Check error handling
-        if ! grep -q "set -e" "$script"; then
-            echo "⚠️  $script_name: Missing 'set -e' error handling" >> "$REPORT_FILE"
+        if grep -q "set -e" "$script"; then
+            echo "- ✅ Has error handling (set -e)" >> "$BODY_FILE"
+            ((scripts_score++))
+        else
+            echo "- ⚠️  Missing 'set -e' error handling" >> "$BODY_FILE"
             ((IMPORTANT_ISSUES++))
         fi
 
         # Check executable permission
-        if [[ ! -x "$script" ]]; then
-            echo "⚠️  $script_name: Not executable (needs chmod +x)" >> "$REPORT_FILE"
+        if [[ -x "$script" ]]; then
+            echo "- ✅ Executable permission set" >> "$BODY_FILE"
+            ((scripts_score++))
+        else
+            echo "- ⚠️  Not executable (run: chmod +x $script_name)" >> "$BODY_FILE"
             ((IMPORTANT_ISSUES++))
         fi
+
+        echo "" >> "$BODY_FILE"
     done
+
+    # Add scripts score to total
+    if [[ $max_scripts_score -gt 0 ]]; then
+        local scripts_percentage=$((scripts_score * 100 / max_scripts_score))
+        if [[ $scripts_percentage -ge 80 ]]; then
+            ((SCORE+=10))
+        elif [[ $scripts_percentage -ge 60 ]]; then
+            ((SCORE+=7))
+        elif [[ $scripts_percentage -ge 40 ]]; then
+            ((SCORE+=4))
+        fi
+    fi
 
     log_verbose "Scripts check complete"
 }
@@ -347,7 +436,7 @@ check_scripts() {
 generate_report() {
     log_check "Generating final report..."
 
-    # Calculate percentage
+    # Calculate percentage and status
     local percentage=$((SCORE * 100 / MAX_SCORE))
     local status="❌ Critical Issues"
 
@@ -359,107 +448,86 @@ generate_report() {
         status="⚠️  Needs Improvement"
     fi
 
-    # Update executive summary
-    sed -i '' '/^## Executive Summary/,/^---/c\
-## Executive Summary\
-\
-**Overall Score**: '"$SCORE"'/'"$MAX_SCORE"' ('"$percentage"'%) '"$status"'\
-\
-| Severity | Count |\
-|----------|-------|\
-| 🔴 Critical | '"$CRITICAL_ISSUES"' |\
-| 🟡 Important | '"$IMPORTANT_ISSUES"' |\
-| 🟢 Suggestions | '"$SUGGESTIONS"' |\
-\
-**Production Ready**: '"$([ $CRITICAL_ISSUES -eq 0 ] && echo "✅ Yes" || echo "❌ No - Fix critical issues first")"'\
-\
----\
-' "$REPORT_FILE" 2>/dev/null || {
-        # If sed -i '' doesn't work (Linux), try without ''
-        sed -i '/^## Executive Summary/,/^---/c\
-## Executive Summary\
-\
-**Overall Score**: '"$SCORE"'/'"$MAX_SCORE"' ('"$percentage"'%) '"$status"'\
-\
-| Severity | Count |\
-|----------|-------|\
-| 🔴 Critical | '"$CRITICAL_ISSUES"' |\
-| 🟡 Important | '"$IMPORTANT_ISSUES"' |\
-| 🟢 Suggestions | '"$SUGGESTIONS"' |\
-\
-**Production Ready**: '"$([ $CRITICAL_ISSUES -eq 0 ] && echo "✅ Yes" || echo "❌ No - Fix critical issues first")"'\
-\
----\
-' "$REPORT_FILE"
-    }
+    # Production ready?
+    local prod_ready="❌ No - Fix critical issues first"
+    if [[ $CRITICAL_ISSUES -eq 0 ]]; then
+        prod_ready="✅ Yes"
+    fi
 
-    # Add detailed sections
-    {
-        echo ""
-        echo "## 1. Structure Integrity"
-        echo ""
-    } >> "$REPORT_FILE"
+    # Write complete report
+    cat > "$REPORT_FILE" << EOF
+# Skill Audit Report: $SKILL_NAME
 
-    {
-        echo ""
-        echo "## 2. Security Considerations"
-        echo ""
-    } >> "$REPORT_FILE"
+**Audit Date**: $(date +%Y-%m-%d)
+**Skill Directory**: $SKILL_DIR
+**Auditor**: Skill Auditor (Claude Code Meta-Skill)
 
-    {
-        echo ""
-        echo "## 3. Error Handling"
-        echo ""
-    } >> "$REPORT_FILE"
+---
 
-    {
-        echo ""
-        echo "## 4. Portability"
-        echo ""
-    } >> "$REPORT_FILE"
+## Executive Summary
 
-    {
-        echo ""
-        echo "## 5. Quality & Clarity"
-        echo ""
-    } >> "$REPORT_FILE"
+**Overall Score**: $SCORE/$MAX_SCORE ($percentage%) $status
 
-    {
-        echo ""
-        echo "## 6. Documentation"
-        echo ""
-    } >> "$REPORT_FILE"
+| Severity | Count |
+|----------|-------|
+| 🔴 Critical | $CRITICAL_ISSUES |
+| 🟡 Important | $IMPORTANT_ISSUES |
+| 🟢 Suggestions | $SUGGESTIONS |
 
-    {
-        echo ""
-        echo "## Summary"
-        echo ""
-        echo "**Score Breakdown:**"
-        echo "- Structure: Checked"
-        echo "- Security: Checked"
-        echo "- Error Handling: Checked"
-        echo "- Portability: Checked"
-        echo "- Quality: Checked"
-        echo "- Documentation: Checked"
-        echo ""
-        echo "**Next Steps:**"
-        if [[ $CRITICAL_ISSUES -gt 0 ]]; then
-            echo "1. 🔴 Fix all $CRITICAL_ISSUES critical issues"
-            echo "2. Review important issues"
-            echo "3. Re-run audit"
-        elif [[ $IMPORTANT_ISSUES -gt 0 ]]; then
-            echo "1. 🟡 Consider fixing $IMPORTANT_ISSUES important issues"
-            echo "2. Ready for production with minor improvements"
-        else
-            echo "1. ✅ Skill is production-ready!"
-            echo "2. Consider suggestions for further improvement"
-        fi
-        echo ""
-        echo "---"
-        echo ""
-        echo "**Generated by**: Skill Auditor"
-        echo "**Report saved to**: $REPORT_FILE"
-    } >> "$REPORT_FILE"
+**Production Ready**: $prod_ready
+
+---
+
+EOF
+
+    # Append body content
+    cat "$BODY_FILE" >> "$REPORT_FILE"
+
+    # Append summary
+    cat >> "$REPORT_FILE" << EOF
+
+## Summary
+
+**Score Breakdown:**
+- Structure Integrity: Checked
+- Required Sections: Checked
+- Portability: Checked
+- Security: Checked
+- Quality & Clarity: Checked
+- Documentation: Checked
+- Script Quality: Checked
+
+**Next Steps:**
+EOF
+
+    if [[ $CRITICAL_ISSUES -gt 0 ]]; then
+        cat >> "$REPORT_FILE" << EOF
+1. 🔴 Fix all $CRITICAL_ISSUES critical issue(s)
+2. Review $IMPORTANT_ISSUES important issue(s)
+3. Re-run audit to verify fixes
+4. Target score: 85+ for production quality
+EOF
+    elif [[ $IMPORTANT_ISSUES -gt 0 ]]; then
+        cat >> "$REPORT_FILE" << EOF
+1. 🟡 Consider fixing $IMPORTANT_ISSUES important issue(s)
+2. Current score: $percentage% - Good for production
+3. Optional: Address suggestions for excellence
+EOF
+    else
+        cat >> "$REPORT_FILE" << EOF
+1. ✅ Skill is production-ready!
+2. Score: $percentage% - Excellent quality
+3. Optional: Consider suggestions for further polish
+EOF
+    fi
+
+    cat >> "$REPORT_FILE" << EOF
+
+---
+
+**Generated by**: Skill Auditor v1.0.0
+**Report saved to**: $REPORT_FILE
+EOF
 }
 
 # Main execution
@@ -471,8 +539,7 @@ main() {
     echo "Directory: $SKILL_DIR"
     echo ""
 
-    init_report
-
+    # Run all checks (they write to BODY_FILE)
     check_yaml_frontmatter
     check_required_sections
     check_hardcoded_paths
@@ -482,6 +549,7 @@ main() {
     check_documentation
     check_scripts
 
+    # Generate complete report
     generate_report
 
     echo ""
