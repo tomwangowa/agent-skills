@@ -12,6 +12,10 @@ pr_review_result.txt
 *.tmp
 *.log
 
+# Migration backups and logs
+backup_*/
+migration_*.log
+
 # Claude Code local settings
 .claude/settings.local.json
 
