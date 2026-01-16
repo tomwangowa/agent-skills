@@ -1,6 +1,12 @@
 ---
 name: Activity Logger
 description: Records work activities from the current session for cross-session aggregation and work log generation
+id: tm-activity-logger
+namespace: tm
+domain: activity
+action: logger
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 # Activity Logger Skill

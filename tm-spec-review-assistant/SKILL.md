@@ -1,6 +1,13 @@
 ---
 name: spec-review-assistant
 description: Review specification documents before implementation to identify gaps, ambiguities, and potential issues. Use when the user provides a spec document or asks to review requirements, design, or tasks.
+id: tm-spec-review-assistant
+namespace: tm
+domain: spec
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 # Spec Review Assistant
@@ -94,6 +101,13 @@ When `--with-codebase` is used:
 - Identify architectural misalignment
 - Suggest integration points
 
+id: tm-spec-review-assistant
+namespace: tm
+domain: spec
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Output Format
@@ -118,6 +132,13 @@ The script generates a structured Markdown report:
 
 **Recommendation**: Address critical and important issues before implementation.
 
+id: tm-spec-review-assistant
+namespace: tm
+domain: spec
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## 1. Completeness Check
@@ -160,6 +181,13 @@ The script generates a structured Markdown report:
    - Risk: 1% downtime = user-facing failures
    - Recommendation: Implement circuit breaker and fallback mechanism
 
+id: tm-spec-review-assistant
+namespace: tm
+domain: spec
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## 3. Clarity Check
@@ -217,6 +245,13 @@ The script generates a structured Markdown report:
 - Performance testing
 - Security audit
 
+id: tm-spec-review-assistant
+namespace: tm
+domain: spec
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## 5. Codebase Integration Analysis
@@ -258,6 +293,13 @@ The script generates a structured Markdown report:
 2. Include rollback procedures
 3. Document monitoring strategy
 
+id: tm-spec-review-assistant
+namespace: tm
+domain: spec
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Next Steps
@@ -273,6 +315,13 @@ The script generates a structured Markdown report:
 **Powered by**: Gemini AI for semantic analysis
 ```
 
+id: tm-spec-review-assistant
+namespace: tm
+domain: spec
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Constraints
@@ -294,6 +343,13 @@ Users can invoke this Skill by saying:
 - "Find gaps in this spec"
 - "Is this spec ready for implementation?"
 
+id: tm-spec-review-assistant
+namespace: tm
+domain: spec
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Examples
@@ -323,6 +379,13 @@ Users can invoke this Skill by saying:
 4. Report both spec issues and architectural alignment
 5. Suggest integration points
 
+id: tm-spec-review-assistant
+namespace: tm
+domain: spec
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ### Example 3: Targeted Review
@@ -351,6 +414,13 @@ Users can invoke this Skill by saying:
 - Use the report as discussion guide
 - Re-run after making changes
 
+id: tm-spec-review-assistant
+namespace: tm
+domain: spec
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Integration with Workflow
@@ -382,6 +452,13 @@ fi
 - Integration with project management tools
 - Historical analysis (compare spec vs actual implementation)
 
+id: tm-spec-review-assistant
+namespace: tm
+domain: spec
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Related Skills

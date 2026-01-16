@@ -1,6 +1,13 @@
 ---
 name: interactive-presentation-generator
 description: Generate interactive presentation from an outline or brief. Creates markdown-based presentations (Marp/Slidev/reveal.js) or standalone HTML presentations. Use when user asks to create slides, make a presentation, or generate a deck from an outline.
+id: tm-interactive-presentation-generator
+namespace: tm
+domain: interactive
+action: presentation
+qualifier: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 # Interactive Presentation Generator
@@ -151,6 +158,13 @@ Based on the chosen format, create:
 marp: true
 theme: default
 paginate: true
+id: tm-interactive-presentation-generator
+namespace: tm
+domain: interactive
+action: presentation
+qualifier: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 # Title
@@ -165,6 +179,13 @@ Subtitle
 
 #### For Slidev:
 ```markdown
+id: tm-interactive-presentation-generator
+namespace: tm
+domain: interactive
+action: presentation
+qualifier: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 theme: default
 background: https://picsum.photos/collection/94734566/1920x1080
@@ -175,6 +196,13 @@ highlighter: shiki
 # Title
 Subtitle
 
+id: tm-interactive-presentation-generator
+namespace: tm
+domain: interactive
+action: presentation
+qualifier: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Slide Title
@@ -192,6 +220,13 @@ Subtitle
 - Point 1
 - Point 2
 
+id: tm-interactive-presentation-generator
+namespace: tm
+domain: interactive
+action: presentation
+qualifier: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 ```
 

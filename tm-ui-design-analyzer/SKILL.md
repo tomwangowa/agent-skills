@@ -1,6 +1,13 @@
 ---
 name: ui-design-analyzer
 description: Analyze UI/UX design from screenshots. Use this Skill when the user asks to analyze UI design, review interface screenshots, check design quality, evaluate user experience, or get design improvement suggestions.
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 # UI Design Analyzer
@@ -90,6 +97,13 @@ Create a comprehensive but concise report with:
 **Analysis Date**: [date]
 **Analyzer**: UI Design Analyzer (Claude Code Skill)
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Overall Assessment
@@ -115,6 +129,13 @@ Create a comprehensive but concise report with:
 ### 💡 Suggestions
 - [Actionable improvement suggestions]
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## 2. Visual Design
@@ -151,6 +172,13 @@ Create a comprehensive but concise report with:
 
 **Overall Accessibility**: [Pass/Fail] WCAG 2.1 AA
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## 4. Design System Compliance
@@ -178,6 +206,13 @@ Create a comprehensive but concise report with:
 ### 🟢 Low Priority (Nice to Have)
 [Similar format]
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## 6. Color Palette Analysis
@@ -209,6 +244,13 @@ Create a comprehensive but concise report with:
 ### Long-term Enhancements
 1. [Recommendation]
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## 8. Before & After Suggestion
@@ -229,6 +271,13 @@ Example:
 4. Test on actual devices (if mobile UI)
 5. Run accessibility audit tools for verification
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 **Analysis powered by**: Claude Code (Multimodal AI)
@@ -282,6 +331,13 @@ Your analysis must be:
 - Consider cultural context if visible
 - Consider brand identity if known
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Analysis Frameworks to Apply
@@ -352,6 +408,13 @@ Full report saved to: ui-analysis-reports/login-page-analysis.md
 Would you like me to suggest specific color codes or spacing values to fix these issues?
 ```
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ### Example 2: Mobile UI vs Figma Design
@@ -443,6 +506,13 @@ All suggestions meet WCAG AAA standards (7:1 contrast).
 Would you like me to generate Tailwind/CSS code for these color schemes?
 ```
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Constraints
@@ -486,6 +556,13 @@ Would you like me to generate Tailwind/CSS code for these color schemes?
 **Your Action:**
 - Ask: "Please provide a screenshot of the UI you'd like me to analyze. You can either provide a file path or attach an image."
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Best Practices
@@ -581,6 +658,13 @@ You: Provide:
 - Spacing adjustments
 ```
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Output Format Options
@@ -621,6 +705,13 @@ Side-by-side analysis of design vs implementation or before vs after.
 4. Ensure both visual and code quality
 ```
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Advanced Features
@@ -674,6 +765,13 @@ Recommendations for responsive design:
 3. Visual check → **ui-design-analyzer** again
 4. Ship with confidence
 
+id: tm-ui-design-analyzer
+namespace: tm
+domain: ui
+action: design
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Important Notes

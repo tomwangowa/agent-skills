@@ -1,6 +1,13 @@
 ---
 name: Code Review with Gemini
 description: Perform a code review on staged changes. Use this Skill when the user asks to review staged files, check code quality before committing, or analyze changes about to be committed.
+id: tm-code-review-gemini
+namespace: tm
+domain: code
+action: review
+qualifier: gemini
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 # Code Review with Gemini
@@ -58,6 +65,13 @@ Your final response should be structured and concise, and must include:
 Do not repeat the full raw Gemini output verbatim unless explicitly asked.  
 Your role is to act as a senior reviewer who filters, validates, and prioritizes the findings.
 
+id: tm-code-review-gemini
+namespace: tm
+domain: code
+action: review
+qualifier: gemini
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Constraints
@@ -80,6 +94,13 @@ Your role is to act as a senior reviewer who filters, validates, and prioritizes
 - Validate that review findings match the staged files
 - Respond with a prioritized, scoped code review summary
 
+id: tm-code-review-gemini
+namespace: tm
+domain: code
+action: review
+qualifier: gemini
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 **User:**
@@ -125,6 +146,13 @@ Your role is to act as a senior reviewer who filters, validates, and prioritizes
 3. Low priority suggestions (style, naming)
 4. Actionable next steps
 
+id: tm-code-review-gemini
+namespace: tm
+domain: code
+action: review
+qualifier: gemini
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Security Considerations
@@ -238,6 +266,13 @@ When Gemini CLI is unavailable:
 - Suggest alternatives: manual review, code-review-assistant (if exists)
 - Do not fail the commit workflow (review is advisory, not blocking)
 
+id: tm-code-review-gemini
+namespace: tm
+domain: code
+action: review
+qualifier: gemini
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Additional Examples

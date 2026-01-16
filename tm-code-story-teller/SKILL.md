@@ -1,6 +1,13 @@
 ---
 name: Code Story Teller
 description: Analyze git history to tell the story of how code evolved. Use this Skill when the user asks to understand code history, explain evolution, show file timeline, or understand design decisions behind code.
+id: tm-code-story-teller
+namespace: tm
+domain: code
+action: story
+qualifier: teller
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 # Code Story Teller
@@ -68,6 +75,13 @@ Your response should include:
 - **Actionable Insights**
   What can we learn from this history
 
+id: tm-code-story-teller
+namespace: tm
+domain: code
+action: story
+qualifier: teller
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Constraints
@@ -92,6 +106,13 @@ Your response should include:
 - Highlight key design decisions
 - Offer to analyze related files
 
+id: tm-code-story-teller
+namespace: tm
+domain: code
+action: story
+qualifier: teller
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 **User:**
@@ -113,6 +134,13 @@ Your response should include:
 - Ask which specific migration file to analyze
 - Or suggest analyzing multiple files sequentially
 
+id: tm-code-story-teller
+namespace: tm
+domain: code
+action: story
+qualifier: teller
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 **User:**
@@ -158,6 +186,13 @@ Identify patterns:
 - Gradual complexity increase
 - Signs of technical debt accumulation
 
+id: tm-code-story-teller
+namespace: tm
+domain: code
+action: story
+qualifier: teller
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Output Format

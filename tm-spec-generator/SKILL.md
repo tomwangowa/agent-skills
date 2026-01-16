@@ -1,6 +1,12 @@
 ---
 name: spec-generator
 description: Generate complete specification documents from simple ideas. Use this Skill when the user wants to create a spec, needs a project specification, wants to document requirements, or asks to generate a specification document.
+id: tm-spec-generator
+namespace: tm
+domain: spec
+action: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 # Spec Generator
@@ -154,6 +160,12 @@ Your response should include:
    - Make refinements based on feedback
    - Commit the spec to git
 
+id: tm-spec-generator
+namespace: tm
+domain: spec
+action: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Quality Standards
@@ -233,6 +245,12 @@ conflict resolution, offline support, and phased rollout plan.
 Would you like me to review this spec with spec-review-assistant to validate completeness?
 ```
 
+id: tm-spec-generator
+namespace: tm
+domain: spec
+action: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Constraints
@@ -274,6 +292,12 @@ Would you like me to review this spec with spec-review-assistant to validate com
 - Generate generic best-practices spec (not project-specific)
 - Note: "Generic implementation - adapt to your tech stack"
 
+id: tm-spec-generator
+namespace: tm
+domain: spec
+action: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Integration with spec-review-assistant
@@ -307,6 +331,12 @@ If user agrees:
 - Suggest reviewing with team before implementation
 - Recommend iterating on the spec based on feedback
 
+id: tm-spec-generator
+namespace: tm
+domain: spec
+action: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Related Skills
@@ -398,6 +428,12 @@ When you generate a spec, it should look like this:
 [V2 features, nice-to-haves]
 ```
 
+id: tm-spec-generator
+namespace: tm
+domain: spec
+action: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Important Notes
@@ -422,6 +458,12 @@ Before using Write tool to save the spec, verify:
 
 If any check fails, regenerate that section before saving.
 
+id: tm-spec-generator
+namespace: tm
+domain: spec
+action: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## After Saving

@@ -1,6 +1,13 @@
 ---
 name: PR Review Assistant
 description: Assist in reviewing pull requests by analyzing diffs and providing structured feedback. Use this Skill when the user asks to review a PR, analyze pull request changes, check code quality in PRs, or help with code review.
+id: tm-pr-review-assistant
+namespace: tm
+domain: pr
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 # PR Review Assistant
@@ -68,6 +75,13 @@ Your response should include:
 - **Next Steps**
   How to post the review or take action
 
+id: tm-pr-review-assistant
+namespace: tm
+domain: pr
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Constraints
@@ -91,6 +105,13 @@ Your response should include:
 - Present structured review with priorities
 - Suggest posting the review as a comment
 
+id: tm-pr-review-assistant
+namespace: tm
+domain: pr
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 **User:**
@@ -113,6 +134,13 @@ Your response should include:
 - Suggest improvements
 - Note any positive patterns
 
+id: tm-pr-review-assistant
+namespace: tm
+domain: pr
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 **User:**
@@ -157,6 +185,13 @@ When PRs are too big to review easily:
 - Break down review into manageable parts
 - Ensure nothing is missed
 
+id: tm-pr-review-assistant
+namespace: tm
+domain: pr
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Review Output Structure
@@ -230,6 +265,13 @@ Things done well:
 4. **Suggest solutions**: Don't just point out problems
 5. **Acknowledge good work**: Note positive aspects
 
+id: tm-pr-review-assistant
+namespace: tm
+domain: pr
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Integration with GitHub
@@ -286,6 +328,13 @@ gh pr comment <PR-number> --body "Comment text" --file path/to/file.js --line 42
 - Cannot access linked issues/docs
 - No access to CI/CD results
 
+id: tm-pr-review-assistant
+namespace: tm
+domain: pr
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Troubleshooting
@@ -344,6 +393,13 @@ gh pr list
 - **code-story-teller** - Understand code evolution
 - **pr-description-generator** - Create PR descriptions (coming soon)
 
+id: tm-pr-review-assistant
+namespace: tm
+domain: pr
+action: review
+qualifier: assistant
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Security Note

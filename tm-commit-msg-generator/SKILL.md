@@ -1,6 +1,13 @@
 ---
 name: Commit Message Generator
 description: Generate high-quality commit messages following Conventional Commits specification. Use this Skill when the user asks to generate commit message, write commit message, or create commit description.
+id: tm-commit-msg-generator
+namespace: tm
+domain: commit
+action: msg
+qualifier: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 # Commit Message Generator
@@ -57,6 +64,13 @@ Your response should include:
 - **Alternative options**
   Offer to modify or regenerate if needed
 
+id: tm-commit-msg-generator
+namespace: tm
+domain: commit
+action: msg
+qualifier: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Constraints
@@ -80,6 +94,13 @@ Your response should include:
 - Explain the commit type and reasoning
 - Provide command to use the message
 
+id: tm-commit-msg-generator
+namespace: tm
+domain: commit
+action: msg
+qualifier: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 **User:**
@@ -99,6 +120,13 @@ Your response should include:
 - Explain what makes this a good commit message
 - Offer to regenerate if user wants different emphasis
 
+id: tm-commit-msg-generator
+namespace: tm
+domain: commit
+action: msg
+qualifier: generator
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Commit Message Format

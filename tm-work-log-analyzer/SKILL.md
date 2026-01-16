@@ -1,6 +1,13 @@
 ---
 name: Work Log Analyzer
 description: Analyze work logs and journals to answer questions about project history, decisions, TODOs, and timeline evolution. Use this Skill when the user wants to query their work journal, track task progress, or understand how decisions evolved over time.
+id: tm-work-log-analyzer
+namespace: tm
+domain: work
+action: log
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 # Work Log Analyzer
@@ -102,6 +109,13 @@ Your response should be:
 - **Context-rich**: Include surrounding information to aid understanding
 - **Referenced**: Cite dates or log sections for traceability
 
+id: tm-work-log-analyzer
+namespace: tm
+domain: work
+action: log
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Supported Log Formats
@@ -170,6 +184,13 @@ For best results, maintain consistent formatting throughout your logs.
 - **Context**: Cannot access files or code references mentioned in logs (only the log content itself)
 - **No write operations**: This Skill only reads and analyzes, does not modify logs
 
+id: tm-work-log-analyzer
+namespace: tm
+domain: work
+action: log
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Examples
@@ -218,6 +239,13 @@ For best results, maintain consistent formatting throughout your logs.
 2. Filter activities by type "bug_fixed"
 3. Present chronologically with context
 
+id: tm-work-log-analyzer
+namespace: tm
+domain: work
+action: log
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 **User:**
@@ -264,6 +292,13 @@ For best results, maintain consistent formatting throughout your logs.
 - 下一步：實作 API endpoints
 ```
 
+id: tm-work-log-analyzer
+namespace: tm
+domain: work
+action: log
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ### Example 2: TODO Management Query
@@ -341,6 +376,13 @@ For best results, maintain consistent formatting throughout your logs.
 **答案**: L10n 翻譯在 **2026-01-11** 確定完成並送出。
 ```
 
+id: tm-work-log-analyzer
+namespace: tm
+domain: work
+action: log
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ### Example 4: General Search Query
@@ -383,6 +425,13 @@ For best results, maintain consistent formatting throughout your logs.
 - Query: "這個月我完成了哪些任務？"
 - Track personal accomplishments
 
+id: tm-work-log-analyzer
+namespace: tm
+domain: work
+action: log
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Best Practices for Log Writing
@@ -443,6 +492,13 @@ See 2026-01-10 entry for initial discussion
 - "Generate a weekly summary"
 - "What's the current status of Project X?"
 
+id: tm-work-log-analyzer
+namespace: tm
+domain: work
+action: log
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Tips for Users
@@ -465,6 +521,13 @@ See 2026-01-10 entry for initial discussion
 - **spec-generator**: Reference log decisions when generating specs
 - **spec-review-assistant**: Check if implementation matches log decisions
 
+id: tm-work-log-analyzer
+namespace: tm
+domain: work
+action: log
+qualifier: analyzer
+version: "1.0.0"
+updated: "2026-01-17"
 ---
 
 ## Limitations

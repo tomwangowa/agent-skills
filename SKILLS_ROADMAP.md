@@ -20,28 +20,28 @@ This document tracks all skill ideas, their current status, and implementation p
 
 | Category | Count | Skills |
 |----------|-------|--------|
-| 🔍 Code Quality & Review | 3 | code-review-gemini, pr-review-assistant, skill-auditor |
-| 📝 Documentation & Specification | 2 | spec-generator, spec-review-assistant |
-| 🔀 Git & Version Control | 2 | commit-msg-generator, code-story-teller |
-| 🎨 Design & UI/UX | 1 | ui-design-analyzer |
-| 🚀 Productivity & Content Creation | 3 | interactive-presentation-generator, work-log-analyzer, activity-logger |
+| 🔍 Code Quality & Review | 3 | tm-code-review-gemini, tm-pr-review-assistant, tm-skill-auditor |
+| 📝 Documentation & Specification | 2 | tm-spec-generator, tm-spec-review-assistant |
+| 🔀 Git & Version Control | 2 | tm-commit-msg-generator, tm-code-story-teller |
+| 🎨 Design & UI/UX | 1 | tm-ui-design-analyzer |
+| 🚀 Productivity & Content Creation | 3 | tm-interactive-presentation-generator, tm-work-log-analyzer, tm-activity-logger |
 
-### Quality Scores (by skill-auditor)
+### Quality Scores (by tm-skill-auditor)
 
-- **103/100** - skill-auditor (meta-validated ✅)
-- **88/100** - code-review-gemini (production-ready ✅)
-- **75/100** - interactive-presentation-generator (production-ready ✅)
+- **103/100** - tm-skill-auditor (meta-validated ✅)
+- **88/100** - tm-code-review-gemini (production-ready ✅)
+- **75/100** - tm-interactive-presentation-generator (production-ready ✅)
 
 ### Recent Additions (2026-01-15)
 
-- ⭐ **interactive-presentation-generator** - Generate presentations with 20 professional styles
-- ⭐ **skill-auditor** - Meta-skill for quality assurance and production readiness
+- ⭐ **tm-interactive-presentation-generator** - Generate presentations with 20 professional styles
+- ⭐ **tm-skill-auditor** - Meta-skill for quality assurance and production readiness
 
 ---
 
 ## Implemented Skills
 
-### 🟢 code-review-gemini
+### 🟢 tm-code-review-gemini
 **Status:** Implemented
 **Category:** Code Quality
 **Trigger:** "review the staged files", "check code quality"
@@ -58,7 +58,7 @@ Performs automated code reviews on staged changes using Gemini CLI.
 
 ---
 
-### 🟢 commit-msg-generator
+### 🟢 tm-commit-msg-generator
 **Status:** Implemented
 **Category:** Development Workflow
 **Trigger:** "generate commit message", "help me write commit message"
@@ -77,7 +77,7 @@ Generates high-quality commit messages following Conventional Commits specificat
 
 ## Implemented Skills (Continued)
 
-### 🟢 code-story-teller
+### 🟢 tm-code-story-teller
 **Status:** Implemented
 **Category:** Documentation & Understanding
 **Trigger:** "tell me the story of this file", "explain code evolution", "show file history"
@@ -98,7 +98,7 @@ Analyzes git history to explain how code evolved and why design decisions were m
 
 ---
 
-### 🟢 pr-review-assistant
+### 🟢 tm-pr-review-assistant
 **Status:** Implemented
 **Category:** Code Review & Quality
 **Trigger:** "review this PR", "help review pull request", "analyze PR changes"
@@ -120,7 +120,7 @@ AI-powered pull request reviewer that provides comprehensive, structured feedbac
 
 ---
 
-### 🟢 spec-review-assistant
+### 🟢 tm-spec-review-assistant
 **Status:** Implemented
 **Category:** Documentation & Quality Assurance
 **Trigger:** "review this spec", "check specification", "validate requirements doc"
@@ -142,7 +142,7 @@ Reviews specification documents before implementation to identify gaps, ambiguit
 
 ---
 
-### 🟢 spec-generator
+### 🟢 tm-spec-generator
 **Status:** Implemented
 **Category:** Documentation & Planning
 **Trigger:** "generate a spec", "create specification", "I need a spec document"
@@ -154,7 +154,7 @@ Generates complete specification documents from simple ideas using Claude's AI c
 - Generates all 8 essential sections automatically
 - Uses Claude Code directly (no external dependencies!)
 - Context-aware (adapts to project tech stack)
-- Produces review-ready specs that pass spec-review-assistant validation
+- Produces review-ready specs that pass tm-spec-review-assistant validation
 - Automatic filename suggestion and directory detection
 - Integrated validation (checks for placeholders, vague terms)
 - Conversational refinement (iterate on sections as needed)
@@ -163,11 +163,11 @@ Generates complete specification documents from simple ideas using Claude's AI c
 
 **Complexity:** Medium
 
-**Integration:** Works seamlessly with spec-review-assistant for validation
+**Integration:** Works seamlessly with tm-spec-review-assistant for validation
 
 ---
 
-### 🟢 ui-design-analyzer
+### 🟢 tm-ui-design-analyzer
 **Status:** Implemented
 **Category:** UI/UX & Design Quality
 **Trigger:** "analyze this UI", "review this screenshot", "is this design good", "check interface quality"
@@ -198,16 +198,16 @@ Analyzes UI/UX design from screenshots using Claude's native multimodal capabili
 
 ---
 
-### 🟢 work-log-analyzer
+### 🟢 tm-work-log-analyzer
 **Status:** Implemented (Enhanced with Activity Aggregation)
 **Category:** Documentation & Productivity
 **Trigger:** "analyze my work log", "check TODOs in journal", "track project evolution", "aggregate my activities", "show me this week's work"
 
-Analyzes work logs, journals, and development notes to track project evolution, manage TODOs, extract insights, and aggregate structured activity records from activity-logger.
+Analyzes work logs, journals, and development notes to track project evolution, manage TODOs, extract insights, and aggregate structured activity records from tm-activity-logger.
 
 **Features:**
 - **5 query types:**
-  - **Activity Aggregation** (NEW): Aggregate and filter structured activity records from activity-logger
+  - **Activity Aggregation** (NEW): Aggregate and filter structured activity records from tm-activity-logger
   - Timeline: Evolution tracking across log entries
   - TODO: Task management with overdue detection
   - Decision: Rationale and context tracking
@@ -245,13 +245,13 @@ Analyzes work logs, journals, and development notes to track project evolution, 
 - Project continuity and knowledge preservation
 
 **Integration Points:**
-- Seamlessly integrates with activity-logger for structured activity records
+- Seamlessly integrates with tm-activity-logger for structured activity records
 - Can process both traditional work logs and JSON activity records
 - Unified query interface for mixed log sources
 
 ---
 
-### 🟢 activity-logger
+### 🟢 tm-activity-logger
 **Status:** Implemented
 **Category:** Productivity & Session Management
 **Trigger:** "log this activity", "record what I just did", "save session activity"
@@ -284,16 +284,16 @@ Records work activities from the current Claude Code session to enable cross-ses
 - Project time tracking and productivity analysis
 - Context preservation for interrupted work sessions
 - Team activity reporting and standup preparation
-- Integration with work-log-analyzer for comprehensive logging
+- Integration with tm-work-log-analyzer for comprehensive logging
 
 **Integration Points:**
-- Designed to work with work-log-analyzer skill for activity aggregation
+- Designed to work with tm-work-log-analyzer skill for activity aggregation
 - Activity records stored in `~/.claude/activities/` as JSON
 - Processed activities archived to `~/.claude/activities/processed/`
 
 ---
 
-### 🟢 interactive-presentation-generator
+### 🟢 tm-interactive-presentation-generator
 **Status:** Implemented
 **Category:** Productivity & Content Creation
 **Trigger:** "create a presentation", "generate slides", "make a deck from outline"
@@ -322,7 +322,7 @@ Generate professional interactive presentations from outlines or briefs with cus
 - Team training sessions
 - Quick status updates (5-minute lightning talks)
 
-**Quality Score:** 75/100 (audited by skill-auditor, production-ready ✅)
+**Quality Score:** 75/100 (audited by tm-skill-auditor, production-ready ✅)
 
 **Integration Points:**
 - Standalone skill, no dependencies on other skills
@@ -331,7 +331,7 @@ Generate professional interactive presentations from outlines or briefs with cus
 
 ---
 
-### 🟢 skill-auditor
+### 🟢 tm-skill-auditor
 **Status:** Implemented
 **Category:** Code Quality & Meta-Tools
 **Trigger:** "audit this skill", "check skill quality", "is this skill production-ready", "validate skill standards"
@@ -366,8 +366,8 @@ Meta-skill that audits other skills for quality, security, and production readin
 **Quality Score:** 103/100 (self-audit passed ✅, meta-validation success)
 
 **Integration Points:**
-- Complements spec-review-assistant (reviews specs vs reviews skills)
-- Can trigger code-review-gemini for script quality checks
+- Complements tm-spec-review-assistant (reviews specs vs reviews skills)
+- Can trigger tm-code-review-gemini for script quality checks
 - Provides templates that align with spec-review standards
 - Git hook ready for pre-commit validation
 
@@ -722,12 +722,12 @@ Checks for outdated dependencies and security vulnerabilities.
 
 ## Document Template Extensions
 
-### ⚪ spec-generator: Multi-Template Support
+### ⚪ tm-spec-generator: Multi-Template Support
 **Category:** Documentation & Planning
 **Priority:** Medium
 **Trigger:** "generate ADR", "create post-mortem", "write API docs"
 
-Extend spec-generator to support multiple document templates beyond technical specifications.
+Extend tm-spec-generator to support multiple document templates beyond technical specifications.
 
 **Proposed Templates** (in priority order):
 
@@ -735,7 +735,7 @@ Extend spec-generator to support multiple document templates beyond technical sp
 **Use Cases:**
 - Document technical decisions (database choice, framework selection, API design)
 - Capture context, rationale, and trade-offs
-- Link with work-log-analyzer for decision tracking
+- Link with tm-work-log-analyzer for decision tracking
 
 **Template Sections:**
 - Title and Status (Proposed/Accepted/Deprecated/Superseded)
@@ -889,8 +889,8 @@ Generate a performance report based on my load test results
 
 ### Implementation Approach
 
-**Option A: Extend spec-generator (Recommended)**
-- Add template detection to spec-generator
+**Option A: Extend tm-spec-generator (Recommended)**
+- Add template detection to tm-spec-generator
 - Automatically select template based on user's request
 - Use Claude's understanding to choose the right format
 
@@ -908,7 +908,7 @@ Generate a performance report based on my load test results
 - Per template: 1-2 hours (define structure and examples)
 - Total for 3 templates: 10-12 hours
 
-**Dependencies**: None - extends existing spec-generator (Claude-powered)
+**Dependencies**: None - extends existing tm-spec-generator (Claude-powered)
 
 ---
 
@@ -926,8 +926,8 @@ When implementing a new skill:
    ```
 
 2. **Use existing skills during development**
-   - Use `code-review-gemini` to review changes
-   - Use `commit-msg-generator` for commit messages
+   - Use `tm-code-review-gemini` to review changes
+   - Use `tm-commit-msg-generator` for commit messages
 
 3. **Update this roadmap**
    - Move skill from "Planned" to "In Progress"

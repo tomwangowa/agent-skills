@@ -32,7 +32,9 @@ Followed by markdown content containing:
 
 ## Available Skills
 
-### code-review-gemini
+**Note:** All skills use the `tm-` namespace prefix as of 2025-01-17. Legacy names (without `tm-` prefix) are supported via symlinks for backward compatibility.
+
+### tm-code-review-gemini
 
 Performs code review using the Gemini CLI.
 
@@ -51,8 +53,33 @@ Performs code review using the Gemini CLI.
 - `MAX_DIFF_LINES` - Maximum lines to send to Gemini (default: 5000)
 - `GEMINI_MODEL` - Model to use (default: gemini-3-pro)
 
+**Related Documentation:**
+- See [NAMING_CONVENTIONS.md](./NAMING_CONVENTIONS.md) for naming standards
+- See [MIGRATION.md](./MIGRATION.md) for migration details
+
 ## Creating New Skills
 
-1. Create a new directory under the skills folder
-2. Add a `SKILL.md` with frontmatter and instructions
+**Important:** All new skills must follow the naming conventions defined in [NAMING_CONVENTIONS.md](./NAMING_CONVENTIONS.md).
+
+1. Create a new directory following the naming pattern: `tm-<domain>-<action>[-<qualifier>]`
+   - Example: `tm-api-tester`, `tm-db-migrator`, `tm-doc-generator`
+
+2. Add a `SKILL.md` with proper YAML frontmatter:
+   ```yaml
+   ---
+   name: "Skill Display Name"
+   id: tm-skill-id
+   description: "Brief description..."
+   version: "1.0.0"
+   namespace: tm
+   domain: <domain>
+   action: <action>
+   qualifier: <qualifier>  # optional
+   ---
+   ```
+
 3. Add any supporting scripts in a `scripts/` subdirectory
+
+4. Follow the file structure defined in NAMING_CONVENTIONS.md
+
+5. Run `tm-skill-auditor` to validate the new skill before committing
