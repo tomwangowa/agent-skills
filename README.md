@@ -33,17 +33,54 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 
 ## Available Skills
 
-| Skill | Description |
-|-------|-------------|
-| [code-review-gemini](./code-review-gemini/) | Perform code reviews on staged changes using the Gemini CLI |
-| [commit-msg-generator](./commit-msg-generator/) | Generate high-quality commit messages following Conventional Commits specification |
-| [code-story-teller](./code-story-teller/) | Analyze git history to tell the evolutionary story of code files |
-| [pr-review-assistant](./pr-review-assistant/) | AI-powered pull request reviewer with structured, prioritized feedback |
-| [spec-review-assistant](./spec-review-assistant/) | Review specification documents before implementation to identify gaps, ambiguities, and potential issues |
-| [spec-generator](./spec-generator/) | Generate complete specification documents from simple ideas using Claude's AI capabilities |
-| [ui-design-analyzer](./ui-design-analyzer/) | Analyze UI/UX design from screenshots - evaluate usability, accessibility, visual design, and provide improvement suggestions |
-| [work-log-analyzer](./work-log-analyzer/) | Analyze work logs and journals to track project evolution, manage TODOs, extract insights, and aggregate activity records from activity-logger |
-| [activity-logger](./activity-logger/) | Records work activities from the current session for cross-session aggregation and work log generation |
+### 📊 Skills by Category
+
+#### 🔍 Code Quality & Review (3 skills)
+
+| Skill | Description | Score |
+|-------|-------------|-------|
+| [code-review-gemini](./code-review-gemini/) | Automated code review on staged changes using Gemini AI - detects security issues, bugs, and quality problems | 88/100 ✅ |
+| [pr-review-assistant](./pr-review-assistant/) | Comprehensive pull request reviewer with structured feedback and risk assessment | ⭐ |
+| [skill-auditor](./skill-auditor/) ⭐ NEW | Meta-skill that audits other skills for quality, security, and production readiness | 103/100 ✅ |
+
+#### 📝 Documentation & Specification (2 skills)
+
+| Skill | Description | Score |
+|-------|-------------|-------|
+| [spec-generator](./spec-generator/) | Generate complete specification documents (150+ lines, 8 sections) from simple ideas | ⭐ |
+| [spec-review-assistant](./spec-review-assistant/) | Review specs before implementation - 5-dimensional analysis for completeness, feasibility, clarity | ⭐ |
+
+#### 🔀 Git & Version Control (2 skills)
+
+| Skill | Description | Score |
+|-------|-------------|-------|
+| [commit-msg-generator](./commit-msg-generator/) | Generate high-quality commit messages following Conventional Commits specification | ⭐ |
+| [code-story-teller](./code-story-teller/) | Analyze git history to tell the evolutionary story and design decisions of code files | ⭐ |
+
+#### 🎨 Design & UI/UX (1 skill)
+
+| Skill | Description | Score |
+|-------|-------------|-------|
+| [ui-design-analyzer](./ui-design-analyzer/) | Analyze UI/UX from screenshots - 6-dimensional analysis covering usability, accessibility, visual design | ⭐ |
+
+#### 🚀 Productivity & Content Creation (3 skills)
+
+| Skill | Description | Score |
+|-------|-------------|-------|
+| [interactive-presentation-generator](./interactive-presentation-generator/) ⭐ NEW | Generate interactive presentations (reveal.js/Marp/Slidev) with 20 professional styles | 75/100 ✅ |
+| [work-log-analyzer](./work-log-analyzer/) | Analyze work logs to track evolution, manage TODOs, aggregate activities - 5 query types | ⭐ |
+| [activity-logger](./activity-logger/) | Record work activities from current session for cross-session tracking and reporting | ⭐ |
+
+---
+
+### 📈 Quality Scores
+
+Skills audited by [skill-auditor](./skill-auditor/):
+- **103/100** - skill-auditor (meta-validated ✅)
+- **88/100** - code-review-gemini (production-ready ✅)
+- **75/100** - interactive-presentation-generator (production-ready ✅)
+
+**Total:** 11 skills across 5 categories
 
 ## Quick Start
 
@@ -325,6 +362,21 @@ Each skill may have its own dependencies. Check the individual skill directories
   - `jq` - JSON processor: `brew install jq` (macOS) or `apt-get install jq` (Ubuntu)
   - `git` - Version control system
 - **Optional:** `openssl` (falls back to `/dev/urandom` or `$RANDOM`)
+
+### interactive-presentation-generator
+
+- **No external dependencies required!** Works out of the box
+- Generates reveal.js HTML, Marp markdown, or Slidev presentations
+- Includes 20 professional style templates (324KB)
+- All styles bundled - zero configuration needed
+
+### skill-auditor
+
+- **Required dependencies:**
+  - `bash` 4.0+ (standard on macOS/Linux)
+  - `grep`, `sed`, `find`, `mktemp` (standard Unix tools)
+- **Optional:** Gemini CLI (for AI-powered semantic analysis)
+- Performs automated quality audits on skills in < 5 seconds
 
 ## Documentation
 
