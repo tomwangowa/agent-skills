@@ -6,8 +6,8 @@ namespace: tm
 domain: work
 action: log
 qualifier: analyzer
-version: "1.0.0"
-updated: "2026-01-17"
+version: "1.1.0"
+updated: "2026-01-18"
 ---
 
 # Work Log Analyzer
@@ -17,15 +17,18 @@ updated: "2026-01-17"
 This Skill analyzes work logs, journals, and development notes to help developers:
 1. **Track project evolution** - Understand how implementations, features, or decisions evolved over time
 2. **Manage TODOs** - Find pending, in-progress, and overdue tasks from logs
-3. **Extract insights** - Discover patterns, decisions, and rationale behind implementations
-4. **Answer questions** - Query logs with natural language to find specific information
+3. **Extract Action Items** (NEW) - Automatically identify and track action items from discussions, decisions, and implicit mentions
+4. **Extract insights** - Discover patterns, decisions, and rationale behind implementations
+5. **Answer questions** - Query logs with natural language to find specific information
 
 The Skill helps developers:
 - Quickly find information in lengthy work logs
 - Track decision evolution and rationale
-- Manage TODOs without external tools
+- Manage TODOs and Action Items without external tools
 - Generate status reports from logs
 - Maintain project continuity
+- Identify implicit action items from team discussions
+- Track who's responsible for what across time
 
 ---
 
@@ -75,6 +78,25 @@ When the user provides a log file and asks a question (for example: "關於 Sell
      - Check due dates against current date and resolve relative dates (e.g., "yesterday", "last week")
      - Prioritize overdue items
 
+   - **Action Items queries** (NEW): "萃取 action items", "整理待辦事項", "extract action items"
+     - Use AI semantic understanding to identify action items from:
+       - Discussions: "Tom 會處理 API 設計", "需要 Mary 協助測試"
+       - Decisions: "決定使用 PostgreSQL" → infer "需要設計 schema", "評估效能"
+       - Explicit TODOs: Integrate with existing TODO detection
+       - Implicit actions: "下一步", "待辦", "需要", "計劃"
+     - Track action item status by analyzing:
+       - Completion markers: [x], "completed", "done", "finished"
+       - Progress indicators: [~], "in progress", "working on"
+       - Blocking issues: "blocked by", "waiting for"
+     - Extract metadata:
+       - Owner/assignee: Person names or teams mentioned
+       - Due dates: Explicit dates or inferred urgency
+       - Source: Date and context where action item originated
+       - Status: Not started, In progress, Completed, Blocked
+       - Priority: Inferred from urgency indicators
+     - Present as table format:
+       | 負責人 | 行動項目 | 期限 | 狀態 | 來源 |
+
    - **Decision queries**: "為什麼選擇 X", "X 的決策過程", "when was X decided"
      - Find relevant discussions and decisions
      - Extract rationale and context
@@ -106,6 +128,10 @@ Your response should be:
 - **Clear and structured**: Use headings, bullet points, and quotes
 - **Chronological when appropriate**: Timeline queries should show progression
 - **Action-oriented for TODOs**: Show status, due dates, and priorities. Always state the reference date used for calculating overdue tasks (e.g., "分析日期: 2026-01-13")
+- **Structured tables for Action Items** (NEW): Use Markdown tables with columns: 負責人 | 行動項目 | 期限 | 狀態 | 來源
+  - Group by priority/status (🔴 High priority & Overdue, 🟡 In Progress, 🟢 Pending, ✅ Completed)
+  - Include summary statistics and actionable recommendations
+  - Use clear status icons: ⏰ (overdue), 🔄 (in progress), 📝 (not started), ✅ (completed), 🚫 (blocked)
 - **Context-rich**: Include surrounding information to aid understanding
 - **Referenced**: Cite dates or log sections for traceability
 
@@ -114,8 +140,8 @@ namespace: tm
 domain: work
 action: log
 qualifier: analyzer
-version: "1.0.0"
-updated: "2026-01-17"
+version: "1.1.0"
+updated: "2026-01-18"
 ---
 
 ## Supported Log Formats
@@ -189,8 +215,8 @@ namespace: tm
 domain: work
 action: log
 qualifier: analyzer
-version: "1.0.0"
-updated: "2026-01-17"
+version: "1.1.0"
+updated: "2026-01-18"
 ---
 
 ## Examples
@@ -244,8 +270,8 @@ namespace: tm
 domain: work
 action: log
 qualifier: analyzer
-version: "1.0.0"
-updated: "2026-01-17"
+version: "1.1.0"
+updated: "2026-01-18"
 ---
 
 **User:**
@@ -258,7 +284,94 @@ updated: "2026-01-17"
 
 ---
 
-### Example 2: Timeline Evolution Query
+### Example 2: Action Items Extraction (NEW)
+
+**User:**
+> 從我的 worklog.md 萃取所有 action items
+
+**Expected behavior:**
+1. Read `worklog.md`
+2. Use AI semantic understanding to identify:
+   - Explicit TODOs and tasks
+   - Implicit action items from discussions
+   - Follow-up actions from decisions
+3. Extract metadata (owner, due date, status, priority)
+4. Track completion status across time
+5. Present as structured table
+
+**Example output:**
+```markdown
+## Action Items 摘要
+
+### 🔴 高優先級 & 過期
+
+| 負責人 | 行動項目 | 期限 | 狀態 | 來源 |
+|--------|----------|------|------|------|
+| Tom | 實作 SellerCheck API endpoints | 2026-01-10 | ⏰ 已逾期 | 2026-01-05 決策 |
+| Mary | 完成 L10n 翻譯審查 | 2026-01-12 | ⏰ 已逾期 | 2026-01-08 討論 |
+
+### 🟡 進行中
+
+| 負責人 | 行動項目 | 期限 | 狀態 | 來源 |
+|--------|----------|------|------|------|
+| Tom | 設計 PostgreSQL schema | 2026-01-15 | 🔄 進行中 | 2026-01-08 決策後續 |
+| Alex | 評估 Redis 快取策略 | 2026-01-18 | 🔄 進行中 | 2026-01-10 討論 |
+| Team | 準備 Sprint Demo | 2026-01-20 | 📝 待開始 | 2026-01-13 會議 |
+
+### 🟢 待處理
+
+| 負責人 | 行動項目 | 期限 | 狀態 | 來源 |
+|--------|----------|------|------|------|
+| Mary | 撰寫 API 文件 | 2026-01-25 | 📝 待開始 | 2026-01-11 需求 |
+| Tom | Code review PR #456 | - | 📝 待開始 | 2026-01-09 提及 |
+| Team | 規劃 Q2 Roadmap | 2026-02-01 | 📝 待開始 | 2026-01-12 會議 |
+
+### ✅ 近期完成 (last 7 days)
+
+| 負責人 | 行動項目 | 完成日期 | 來源 |
+|--------|----------|----------|------|
+| Tom | 修復 security vulnerability | 2026-01-12 | 2026-01-10 TODO |
+| Mary | Setup CI/CD pipeline | 2026-01-11 | 2026-01-08 討論 |
+| Alex | Performance benchmarking | 2026-01-13 | 2026-01-09 決策後續 |
+
+**統計:**
+- 總計 Action Items: 11 項
+- 已完成: 3 項 (27%)
+- 進行中: 3 項 (27%)
+- 待處理: 3 項 (27%)
+- 已逾期: 2 項 (18%) ⚠️
+
+**建議:**
+- ⚠️ Tom 的 SellerCheck API 已逾期 3 天，建議優先處理
+- ⚠️ Mary 的 L10n 審查已逾期，可能影響發布時程
+- 📅 本週有 3 個 action items 到期，請留意時程
+```
+
+**AI 語意理解範例:**
+
+從以下 log 條目：
+```markdown
+# 2026-01-08
+## Architecture Discussion
+
+討論了 SellerCheck 的資料庫選擇。Tom 提到需要 ACID 保證，
+最後決定使用 PostgreSQL。接下來 Tom 會設計 schema，
+Mary 協助評估效能影響。Alex 建議加入 Redis 做快取層。
+
+## L10n Status
+
+Mary 回報 L10n 翻譯已送出，預計下週完成審查。
+```
+
+AI 會自動識別：
+1. **Tom: 設計 PostgreSQL schema** (從 "Tom 會設計 schema" 推斷)
+2. **Mary: 評估效能影響** (從 "Mary 協助評估" 推斷)
+3. **Alex: 規劃 Redis 快取** (從 "Alex 建議" 推斷)
+4. **Mary: 完成 L10n 翻譯審查** (從 "預計下週完成審查" 推斷)
+
+---
+
+### Example 3: Timeline Evolution Query
 
 **User:**
 > 我有一個 work.md 檔案，幫我分析「關於 SellerCheck 實作方案的演進」
@@ -297,8 +410,8 @@ namespace: tm
 domain: work
 action: log
 qualifier: analyzer
-version: "1.0.0"
-updated: "2026-01-17"
+version: "1.1.0"
+updated: "2026-01-18"
 ---
 
 ### Example 2: TODO Management Query
@@ -381,8 +494,8 @@ namespace: tm
 domain: work
 action: log
 qualifier: analyzer
-version: "1.0.0"
-updated: "2026-01-17"
+version: "1.1.0"
+updated: "2026-01-18"
 ---
 
 ### Example 4: General Search Query
@@ -405,9 +518,29 @@ updated: "2026-01-17"
 - Query: "昨天完成了什麼？" or "yesterday's completed tasks"
 - Get a quick summary of recent work
 
+### Action Items Management (NEW)
+- Query: "萃取所有 action items" or "誰需要做什麼？"
+- Get a comprehensive view of all pending actions
+- Track who's responsible for what
+- Identify overdue items requiring attention
+- Generate team accountability reports
+
+### Sprint Planning & Tracking (NEW)
+- Query: "本週的 action items" or "show this sprint's action items"
+- See what's in progress and what's blocked
+- Identify capacity and bottlenecks
+- Track sprint progress across team members
+
 ### Sprint Retrospective
 - Query: "過去兩週的重要決策" or "decisions made in the last 2 weeks"
 - Review and discuss team decisions
+- Extract action items from retro discussions
+
+### Meeting Follow-ups (NEW)
+- Query: "從會議記錄萃取 action items"
+- Automatically convert meeting discussions into trackable action items
+- Assign ownership from meeting notes
+- Ensure nothing falls through the cracks
 
 ### Technical Debt Tracking
 - Query: "所有 HACK 和 FIXME 項目"
@@ -425,13 +558,19 @@ updated: "2026-01-17"
 - Query: "這個月我完成了哪些任務？"
 - Track personal accomplishments
 
+### Team Accountability (NEW)
+- Query: "Mary 負責哪些 action items？"
+- Track individual responsibilities
+- Review workload distribution
+- Identify blockers for specific team members
+
 id: tm-work-log-analyzer
 namespace: tm
 domain: work
 action: log
 qualifier: analyzer
-version: "1.0.0"
-updated: "2026-01-17"
+version: "1.1.0"
+updated: "2026-01-18"
 ---
 
 ## Best Practices for Log Writing
@@ -497,8 +636,8 @@ namespace: tm
 domain: work
 action: log
 qualifier: analyzer
-version: "1.0.0"
-updated: "2026-01-17"
+version: "1.1.0"
+updated: "2026-01-18"
 ---
 
 ## Tips for Users
@@ -526,8 +665,8 @@ namespace: tm
 domain: work
 action: log
 qualifier: analyzer
-version: "1.0.0"
-updated: "2026-01-17"
+version: "1.1.0"
+updated: "2026-01-18"
 ---
 
 ## Limitations
