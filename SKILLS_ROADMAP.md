@@ -206,8 +206,9 @@ Analyzes UI/UX design from screenshots using Claude's native multimodal capabili
 Analyzes work logs, journals, and development notes to track project evolution, manage TODOs, extract insights, and aggregate structured activity records from tm-activity-logger.
 
 **Features:**
-- **5 query types:**
-  - **Activity Aggregation** (NEW): Aggregate and filter structured activity records from tm-activity-logger
+- **6 query types:**
+  - **Action Items Extraction** (NEW): AI-powered extraction from discussions, decisions, and TODOs with status tracking
+  - **Activity Aggregation**: Aggregate and filter structured activity records from tm-activity-logger
   - Timeline: Evolution tracking across log entries
   - TODO: Task management with overdue detection
   - Decision: Rationale and context tracking

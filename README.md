@@ -68,7 +68,7 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 | Skill | Description | Score |
 |-------|-------------|-------|
 | [tm-interactive-presentation-generator](./tm-interactive-presentation-generator/) ⭐ NEW | Generate interactive presentations (reveal.js/Marp/Slidev) with 20 professional styles | 75/100 ✅ |
-| [tm-work-log-analyzer](./tm-work-log-analyzer/) | Analyze work logs to track evolution, manage TODOs, aggregate activities - 5 query types | ⭐ |
+| [tm-work-log-analyzer](./tm-work-log-analyzer/) | Analyze work logs to track evolution, manage TODOs, extract action items, aggregate activities - 6 query types | ⭐ |
 | [tm-activity-logger](./tm-activity-logger/) | Record work activities from current session for cross-session tracking and reporting | ⭐ |
 
 ---

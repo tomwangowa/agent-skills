@@ -1,6 +1,6 @@
 # Work Log Analyzer
 
-A Claude Code Skill that helps you analyze work logs, journals, and development notes to track project evolution, manage TODOs, and extract insights.
+A Claude Code Skill that helps you analyze work logs, journals, and development notes to track project evolution, manage TODOs, extract action items, and extract insights.
 
 ## Quick Start
 
@@ -20,7 +20,7 @@ Simply mention the file and ask a question:
 從 devlog.md 找出「何時決定使用 PostgreSQL」
 ```
 
-**Try it now with the included example:**
+**Try it now with the included examples:**
 
 ```
 分析 example_worklog.md 中「SellerCheck 實作方案的演進」
@@ -28,6 +28,10 @@ Simply mention the file and ask a question:
 
 ```
 從 example_worklog.md 找出所有過期的 TODO
+```
+
+```
+從 example_action_items.md 萃取所有 action items
 ```
 
 ## Supported Query Types
@@ -105,7 +109,82 @@ aggregate_activities.sh -r this-month -m json > report.json
 
 ---
 
-### 1. Timeline Queries (演進分析)
+### 1. Action Items Extraction (NEW - Action Items 萃取)
+
+Extract and track action items from work logs using AI semantic understanding:
+
+```
+「萃取所有 action items」
+「誰需要做什麼？」
+「本週的 action items」
+「從會議記錄萃取 action items」
+「Mary 負責哪些 action items？」
+```
+
+**Features:**
+- AI-powered identification from discussions, decisions, and TODOs
+- Automatically infer action items from:
+  - Discussions: "Tom 會處理 API 設計"
+  - Decisions: "決定使用 PostgreSQL" → "需要設計 schema"
+  - Explicit TODOs and implicit actions
+- Track status, owner, due dates, and priorities
+- Structured table output grouped by priority/status
+- Includes statistics and actionable recommendations
+
+**Example:**
+```
+User: 從 example_action_items.md 萃取所有 action items
+
+Response:
+## Action Items 摘要
+
+### 🔴 高優先級 & 過期
+
+| 負責人 | 行動項目 | 期限 | 狀態 | 來源 |
+|--------|----------|------|------|------|
+| Tom | 實作 SellerCheck API endpoints | 2026-01-20 | ⏰ 已逾期 | 2026-01-15 Sprint Planning |
+| Tom | 修正 token expiry 驗證 | 2026-01-16 | ⏰ 已逾期 | 2026-01-16 Code Review |
+
+### 🟡 進行中
+
+| 負責人 | 行動項目 | 期限 | 狀態 | 來源 |
+|--------|----------|------|------|------|
+| Mary | 撰寫 API 文件 | 2026-01-25 | 🔄 進行中 | 2026-01-15 Sprint Planning |
+| Alex | 整合 L10n 到系統 | 2026-01-25 | 🔄 進行中 | 2026-01-15 Sprint Planning |
+
+### 🟢 待處理
+
+| 負責人 | 行動項目 | 期限 | 狀態 | 來源 |
+|--------|----------|------|------|------|
+| QA team | 驗證 bug 修正 | 2026-01-19 | 📝 待開始 | 2026-01-17 Bug Fixes |
+| Tom | 加入 regression test | 2026-01-20 | 📝 待開始 | 2026-01-17 Bug Fixes |
+
+**統計:**
+- 總計 Action Items: 18 項
+- 已完成: 5 項 (28%)
+- 進行中: 6 項 (33%)
+- 待處理: 5 項 (28%)
+- 已逾期: 2 項 (11%) ⚠️
+
+**建議:**
+- ⚠️ Tom 的 SellerCheck API 已逾期，建議優先處理
+- 📅 本週有 4 個 action items 到期，請留意時程
+```
+
+**Use Cases:**
+- Action Items Management: Get comprehensive view of all pending actions
+- Sprint Planning & Tracking: Track progress across team members
+- Meeting Follow-ups: Convert discussions into trackable action items
+- Team Accountability: Track who's responsible for what
+
+**Try it:**
+```
+從 example_action_items.md 萃取所有 action items
+```
+
+---
+
+### 2. Timeline Queries (演進分析)
 
 Track how implementations, features, or decisions evolved:
 
@@ -138,7 +217,7 @@ Response:
 - Refresh token: 7天，存於 Redis
 ```
 
-### 2. TODO Management (任務管理)
+### 3. TODO Management (任務管理)
 
 Find pending, overdue, and completed tasks:
 
@@ -170,7 +249,7 @@ Response:
 建議：這些任務已經過期，請評估是否仍需完成或調整優先級。
 ```
 
-### 3. Decision Queries (決策追蹤)
+### 4. Decision Queries (決策追蹤)
 
 Understand when and why decisions were made:
 
@@ -215,7 +294,7 @@ Response:
 **結論**: 長期收益大於短期成本，決定使用 TypeScript。
 ```
 
-### 4. General Search (關鍵字搜尋)
+### 5. General Search (關鍵字搜尋)
 
 Find all mentions of a topic:
 
