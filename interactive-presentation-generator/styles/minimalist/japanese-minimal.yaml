@@ -1,0 +1,222 @@
+# Japanese Minimal Template
+# Asymmetric balance with natural materials aesthetic (Ma - 間)
+# Category: Minimalist Series
+
+template_metadata:
+  id: "japanese-minimal"
+  version: "1.0.0"
+  category: "minimalist"
+  name:
+    en: "Japanese Minimal (Ma)"
+    zh_tw: "日式極簡（間）"
+    ja: "日本ミニマル（間）"
+  description:
+    en: "Asymmetric balance with emphasis on negative space (Ma - 間), inspired by Japanese aesthetics"
+    zh_tw: "非對稱平衡，強調負空間（間），受日本美學啟發"
+    ja: "非対称なバランスとネガティブスペース（間）を重視、日本の美学にインスパイア"
+  tags:
+    en: ["minimalist", "japanese", "asymmetric", "natural", "zen"]
+    zh_tw: ["極簡", "日式", "非對稱", "自然", "禪意"]
+    ja: ["ミニマル", "日本的", "非対称", "自然", "禅"]
+  recommended_for:
+    en: ["Design presentations", "Architecture portfolios", "Art exhibitions", "Cultural content"]
+    zh_tw: ["設計簡報", "建築作品集", "藝術展覽", "文化內容"]
+    ja: ["デザインプレゼン", "建築ポートフォリオ", "アート展示", "文化コンテンツ"]
+
+overall_design_settings:
+  tone: "Serene, Balanced, Contemplative"
+  design_philosophy: "Ma (間) - The Art of Negative Space and Asymmetric Harmony"
+
+  color_palette:
+    base: "#F5F5F0"
+    primary: "#2D3436"
+    text: "#1A1A1A"
+    background: "#FAFAF8"
+    accent_1: "#D4A574"
+    accent_2: "#8B7355"
+    highlight: "#FFF9F0"
+
+  typography:
+    heading:
+      font_family: "Noto Sans JP, Hiragino Sans, sans-serif"
+      font_description: "Japanese-optimized sans-serif with balanced proportions and subtle warmth"
+      size_philosophy: "Natural hierarchy - sizes feel organic rather than mathematically precise"
+      font_weight: 500
+      font_size: "40pt"
+      line_height: 1.4
+      letter_spacing: "0.03em"
+    body:
+      font_family: "Noto Sans JP, Hiragino Sans, sans-serif"
+      font_description: "Same family for harmony, regular weight with generous line spacing"
+      readability_notes: "16pt with 2.0 line-height for vertical reading comfort, subtle warmth in character forms"
+      font_weight: 400
+      font_size: "16pt"
+      line_height: 2.0
+
+  common_layout_rules:
+    grid_system: "Asymmetric grid - following natural proportions (not strict mathematical divisions)"
+    spacing_philosophy: "Ma (間) principle - intentional emptiness creates meaning and focus"
+    alignment_principle: "Optical balance over mathematical centering - asymmetric yet harmonious"
+    whitespace_approach: "Negative space as active element - emptiness speaks as loudly as content"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "line"
+        description: "Delicate vertical or horizontal lines (0.5-1px) suggesting natural materials like bamboo or wood grain"
+        usage: "Subtle boundaries, suggesting separation without harsh division"
+        color: "#8B7355"
+      - type: "texture"
+        description: "Very subtle paper-like texture (2-3% opacity) evoking washi (Japanese paper)"
+        usage: "Background warmth, tactile quality without distraction"
+        color: "#F5F5F0"
+    material_metaphor: "Washi paper and natural wood - organic warmth with refined simplicity"
+    visual_rhythm: "Asymmetric yet balanced - like carefully placed stones in a Zen garden"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Opening slide with asymmetric title placement"
+    design: |
+      Asymmetric vertical composition following Ma (間) principle - strategic emptiness.
+      Main title positioned off-center: 35% from left edge, 30% from top (not centered - intentional asymmetry).
+      Title uses heading typography: 44pt, primary color (#2D3436), font-weight 500, letter-spacing 0.03em.
+      Title may be vertically oriented (optional) for dramatic Japanese aesthetic.
+      Subtitle (if present): positioned with generous spacing (48px below or 80px to right of title).
+      Subtitle: 18pt, text color (#1A1A1A) at 65% opacity, creating subtle hierarchy.
+      Delicate accent element: thin vertical line (0.5px, accent_1 #D4A574) or small square (8px × 8px).
+      Accent positioned asymmetrically to balance title weight - typically opposite side, 1/3 down from top.
+      Brand element: very subtle, small wordmark or chop-style logo in corner, accent_2 color (#8B7355).
+      Background: Off-white (#FAFAF8) with optional subtle texture (washi paper feel at 2% opacity).
+      Negative space: 65-70% of canvas intentionally empty - Ma principle of meaningful emptiness.
+      Overall atmosphere: Serene, contemplative, refined, quietly confident.
+      Visual weight: Asymmetrically balanced - 60% on title/left, 40% in strategic emptiness.
+    component: "title_slide"
+    safe_area:
+      top: "80px"
+      bottom: "100px"
+      left: "100px"
+      right: "140px"
+    content_zones:
+      - zone: "main_title"
+        position: "asymmetric-35-left-30-top"
+        priority: "high"
+      - zone: "subtitle"
+        position: "below-or-beside-title-48-80"
+        priority: "medium"
+      - zone: "accent_element"
+        position: "asymmetric-opposite-balance"
+        priority: "low"
+      - zone: "brand_mark"
+        position: "corner-subtle"
+        priority: "low"
+
+  - type: "Content Slide"
+    description: "Content with asymmetric text and image balance"
+    design: |
+      Asymmetric two-zone layout: text-heavy left, visual breathing room right.
+      Section heading: 28pt, primary color (#2D3436), positioned 70px from top, 100px from left.
+      Main content zone: Left 55%, starting 120px below heading.
+      Text blocks: Body typography 18pt, text color (#1A1A1A), line-height 2.0 for vertical comfort.
+      Paragraphs: Natural breaks with 32px spacing - rhythm follows content, not rigid grid.
+      Right zone (45%): Intentional emptiness or single supporting visual element.
+      If visual present: positioned with asymmetric offset (not centered) - 60% from top, occupying 80% of zone width.
+      Visual surrounded by generous breathing room - Ma principle applied.
+      Vertical accent line (1px, accent_1 #D4A574) may separate zones, but at 20% opacity for subtlety.
+      Alternative: Use negative space alone as separator (no physical line) - pure Ma.
+      Page number: Bottom-left corner (not center), 12pt, text color 40% opacity, 60px from edges.
+      Background: Off-white (#FAFAF8) with optional subtle gradient (1-2% variation) mimicking natural lighting.
+      Overall atmosphere: Calm, focused, naturally balanced, inviting contemplation.
+      Visual weight: 60% on text content (left), 40% on visual/whitespace (right) - asymmetric harmony.
+      Ma philosophy: Emptiness is not void but potential - negative space has presence and purpose.
+    component: "content_slide"
+    safe_area:
+      top: "70px"
+      bottom: "80px"
+      left: "100px"
+      right: "140px"
+    content_zones:
+      - zone: "section_heading"
+        position: "top-left-70-100"
+        priority: "high"
+      - zone: "main_text"
+        position: "left-55-percent"
+        priority: "high"
+      - zone: "visual_element"
+        position: "right-45-asymmetric"
+        priority: "medium"
+      - zone: "page_number"
+        position: "bottom-left-60"
+        priority: "low"
+
+  - type: "Data Slide"
+    description: "Data visualization with natural spacing"
+    design: |
+      Data-focused layout with asymmetric chart positioning and generous breathing room.
+      Chart title: 22pt, primary color (#2D3436), positioned asymmetrically - 25% from left, 60px from top.
+      Main chart: Not centered - positioned 40% from left, 35% from top for natural balance.
+      Chart size: 50% canvas height, 65% canvas width - leaving intentional emptiness.
+      Chart style: Minimal lines (1px), using accent colors (#D4A574, #8B7355) for data series.
+      Background of chart: Subtle off-white (#FFF9F0) or transparent - blending with canvas.
+      Data labels: 14pt, monospace, text color (#1A1A1A), positioned with natural spacing (not rigid grid).
+      Grid lines: Optional, if used - ultra-thin (0.3px), neutral warm gray at 15% opacity.
+      Chart caption: Below and slightly offset from chart (not directly centered), 14pt, 70% opacity.
+      Negative space: 50-55% of canvas left empty - surrounding chart with contemplative breathing room.
+      Subtle accent: Small geometric marker (square or circle, 6px, accent_1) as visual anchor point.
+      Background: Off-white (#FAFAF8) with very subtle texture gradient (top to bottom, 1% variation).
+      Overall atmosphere: Calm data presentation, non-aggressive, contemplative analysis.
+      Visual weight: 70% on chart and data, 30% in strategic negative space creating focus.
+      Ma principle applied: Emptiness directs attention to data without visual noise.
+    component: "data_slide"
+    safe_area:
+      top: "60px"
+      bottom: "80px"
+      left: "100px"
+      right: "120px"
+    content_zones:
+      - zone: "chart_title"
+        position: "asymmetric-25-left-60-top"
+        priority: "high"
+      - zone: "main_chart"
+        position: "asymmetric-40-left-35-top"
+        priority: "high"
+      - zone: "chart_caption"
+        position: "below-offset-from-chart"
+        priority: "medium"
+
+  - type: "Summary Slide"
+    description: "Summary with natural list flow"
+    design: |
+      Summary composition with natural vertical flow and asymmetric balance.
+      Section heading: 28pt, primary color (#2D3436), positioned asymmetrically - 90px from top, 100px from left.
+      Key points: Vertical list with natural spacing (not rigidly equal) - range 36-44px between items.
+      List style: Minimal markers - small filled circles (5px, accent_1 #D4A574) or no markers (pure text list).
+      Point text: 20pt, text color (#1A1A1A), font-weight 500 for emphasis without boldness.
+      Each point may have optional sub-text: 14pt, 60% opacity, 12px below main text.
+      Maximum 4-5 points - Japanese aesthetic of restraint and essential information only.
+      Vertical accent element: Delicate line (1px, accent_2 #8B7355) or calligraphic stroke (SVG) on left.
+      Accent line: Starts at first item, extends 60-70% down (not full height - asymmetric).
+      Right side: Significant negative space (45-50% of canvas width) - Ma creating focus and calm.
+      Optional closing element: Small abstract shape or traditional mon (family crest style) in lower right.
+      Closing shape: 40px max size, accent_1 color (#D4A574), very subtle at 30% opacity.
+      Background: Off-white (#FAFAF8) with gradient suggestion (vertical, 1% variation, warmer at bottom).
+      Overall atmosphere: Contemplative conclusion, serene closure, invitation to reflection.
+      Visual weight: 65% on left (point list), 35% in right negative space - asymmetric harmony.
+      Ma philosophy: Silence after the list is as important as the content itself.
+    component: "summary_slide"
+    safe_area:
+      top: "90px"
+      bottom: "100px"
+      left: "100px"
+      right: "160px"
+    content_zones:
+      - zone: "section_heading"
+        position: "asymmetric-top-left-90-100"
+        priority: "high"
+      - zone: "key_points_list"
+        position: "vertical-natural-spacing"
+        priority: "high"
+      - zone: "accent_line"
+        position: "left-partial-height"
+        priority: "low"
+      - zone: "closing_element"
+        position: "lower-right-subtle"
+        priority: "low"

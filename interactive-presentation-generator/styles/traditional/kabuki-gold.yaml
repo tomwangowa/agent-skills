@@ -1,0 +1,137 @@
+# Kabuki Gold Template
+# Japanese theatrical aesthetic with gold metallic accents
+# Category: Traditional Series
+
+template_metadata:
+  id: "kabuki-gold"
+  version: "1.0.0"
+  category: "traditional"
+  name:
+    en: "Kabuki Gold"
+    zh_tw: "歌舞伎金"
+    ja: "歌舞伎ゴールド"
+  description:
+    en: "Japanese theatrical aesthetic inspired by Kabuki with gold metallic accents and bold compositions"
+    zh_tw: "受歌舞伎啟發的日本戲劇美學，搭配金色金屬強調和大膽構圖"
+    ja: "歌舞伎にインスパイアされた日本の演劇美学、ゴールドのメタリックアクセント"
+  tags:
+    en: ["traditional", "japanese", "theatrical", "gold", "dramatic"]
+    zh_tw: ["傳統", "日式", "戲劇", "金色", "戲劇性"]
+    ja: ["伝統的", "日本的", "演劇的", "ゴールド", "ドラマチック"]
+
+overall_design_settings:
+  tone: "Dramatic, Traditional, Theatrical"
+  design_philosophy: "Kabuki Aesthetic - Drama and Tradition Through Bold Composition"
+
+  color_palette:
+    base: "#1A0F0A"
+    primary: "#D4AF37"
+    text: "#F5F5DC"
+    background: "#0D0806"
+    accent_1: "#8B0000"
+    accent_2: "#2F1810"
+    highlight: "#FFE5B4"
+
+  typography:
+    heading:
+      font_family: "Noto Serif JP, serif"
+      font_description: "Traditional Japanese serif with dramatic presence"
+      size_philosophy: "Large and commanding - theatrical impact"
+      font_weight: 900
+      font_size: "56pt"
+      line_height: 1.1
+    body:
+      font_family: "Noto Sans JP, sans-serif"
+      font_description: "Clean sans-serif for readability with traditional touch"
+      readability_notes: "18pt with generous spacing for traditional Japanese aesthetic"
+      font_weight: 400
+      font_size: "18pt"
+      line_height: 1.8
+
+  common_layout_rules:
+    grid_system: "Traditional Japanese composition - asymmetric with dramatic focal points"
+    spacing_philosophy: "Theatrical spacing - dramatic gaps and intentional clustering"
+    alignment_principle: "Traditional Japanese balance - asymmetry with purpose"
+    whitespace_approach: "Dramatic contrast - dense focal areas with empty stage space"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "pattern"
+        description: "Traditional Japanese patterns (seigaiha waves, asanoha hemp leaf) in gold"
+        usage: "Background decoration, cultural identity"
+        color: "#D4AF37"
+      - type: "shape"
+        description: "Bold geometric frames and theatrical stage elements in deep red"
+        usage: "Framing content, creating dramatic focus"
+        color: "#8B0000"
+    material_metaphor: "Lacquered wood with gold leaf - traditional Japanese craftsmanship"
+    visual_rhythm: "Theatrical and dramatic - building tension and release like Kabuki performance"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Dramatic Kabuki-style opening with gold accent"
+    design: |
+      Theatrical composition with dramatic asymmetry.
+      Dark background (#0D0806) with traditional pattern overlay (seigaiha, 5% opacity gold).
+      Title: Massive 64pt serif, gold (#D4AF37), positioned dramatically off-center.
+      Title may use vertical text orientation (traditional Japanese style).
+      Large red accent shape: Bold rectangle or traditional mon (crest) shape, deep red (#8B0000).
+      Gold decorative elements: Traditional pattern borders or calligraphic strokes.
+      Subtitle: Smaller 20pt, beige text (#F5F5DC), positioned with theatrical spacing.
+      Overall atmosphere: Dramatic, traditional, theatrical Kabuki entrance.
+      Visual weight: 80% title and red accent (dramatic impact), 20% traditional patterns.
+    component: "title_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Content Slide"
+    description: "Traditional layout with gold accents"
+    design: |
+      Asymmetric layout with traditional Japanese balance.
+      Section header: 32pt serif gold (#D4AF37) with red underline.
+      Content with traditional spacing and vertical rhythm.
+      Gold decorative borders: Thin lines (2px) creating traditional frames.
+      Background: Dark with subtle traditional pattern.
+      Overall atmosphere: Traditional elegance with modern clarity.
+      Visual weight: Content 70%, decorative gold elements 30%.
+    component: "content_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Data Slide"
+    description: "Traditional data presentation"
+    design: |
+      Data with traditional Japanese aesthetic.
+      Chart colors: Gold (#D4AF37) primary, red (#8B0000) accents.
+      Traditional border frames around chart area.
+      Dark background with pattern overlay.
+      Overall atmosphere: Traditional yet data-focused.
+      Visual weight: Chart 80%, traditional decorative 20%.
+    component: "data_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Summary Slide"
+    description: "Theatrical summary conclusion"
+    design: |
+      Dramatic summary with gold numbered points.
+      Large gold numbers and red accent frames.
+      Traditional closing with theatrical impact.
+      Dark background with gold pattern accents.
+      Overall atmosphere: Dramatic conclusion, traditional ceremony.
+      Visual weight: Points 75%, theatrical elements 25%.
+    component: "summary_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"

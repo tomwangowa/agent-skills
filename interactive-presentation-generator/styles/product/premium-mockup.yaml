@@ -1,0 +1,192 @@
+# Premium Mockup Template
+# Style: Premium Mockup / Modern UI / Tech Clean
+# Concept: Studio Quality Presentation
+
+template_metadata:
+  id: "premium-mockup"
+  version: "1.0.0"
+  category: "product"
+  name:
+    en: "Premium Mockup"
+    zh_tw: "高質感模型"
+    ja: "プレミアム・モックアップ"
+  description:
+    en: "A professional aesthetic featuring high-quality 3D device mockups, modern UI elements, and studio lighting."
+    zh_tw: "專業的高質感美學，特色為高品質 3D 裝置模型、現代 UI 元素以及攝影棚等級的佈光。"
+    ja: "高品質な3Dデバイスモックアップ、モダンなUI要素、スタジオライティングを特徴とする、プロフェッショナルな美学。"
+  tags:
+    en: ["product", "mockup", "ui-design", "clean", "tech", "apple-style"]
+    zh_tw: ["產品", "模型", "UI設計", "乾淨", "科技", "Apple風格"]
+    ja: ["プロダクト", "モックアップ", "UIデザイン", "クリーン", "テック", "Appleスタイル"]
+  recommended_for:
+    en: ["App demos", "SaaS pitches", "Website portfolios", "Digital product launches", "UX case studies"]
+    zh_tw: ["App 演示", "SaaS 提案", "網站作品集", "數位產品發表", "UX 案例研究"]
+    ja: ["アプリデモ", "SaaSピッチ", "Webポートフォリオ", "デジタル製品発表", "UXケーススタディ"]
+
+overall_design_settings:
+  tone: "High Quality, Advanced, Clean, Refined, Professional"
+  design_philosophy: "Studio Quality - The device screen is the hero"
+
+  color_palette:
+    base: "#FFFFFF" # Pure White or Studio Gray (#F5F5F7) or Pitch Black (#000000)
+    primary: "#2D2D2D" # Charcoal
+    text: "#2D2D2D" # Charcoal (or White on Black bg)
+    background: "variable" # Swaps between White/Studio Gray/Black
+    accent_1: "#8D59E9" # Electric Purple
+    accent_2: "#EBE021" # Acid Yellow
+    accent_3: "#D8E2EC" # Pale Blue Gray
+    gradient: "Purple to Yellow/Orange gradients on screens"
+    note: "High contrast. Use Acid Yellow sparingly for badges/focus points."
+
+  typography:
+    heading:
+      font_family: "Helvetica Now Display, Inter, sans-serif"
+      font_description: "Blocky, Bold Sans-serif."
+      size_philosophy: "High contrast (Jump rate). Large English titles, small localized subtitles."
+      font_weight: 800
+      font_size: "64pt"
+      line_height: 1.1
+    body:
+      font_family: "Inter, Roboto, sans-serif"
+      font_description: "Slim, neutral Sans-serif."
+      readability_notes: "Gray color, understated to let the screen shine."
+      font_weight: 400
+      font_size: "14pt"
+      line_height: 1.6
+    numbers:
+      font_family: "Helvetica Now Display, sans-serif"
+      style: "Massive, bold numbers for stats."
+
+  common_layout_rules:
+    grid_system: "UI Grid / Card Layout"
+    spacing_philosophy: "Minimalist Margins - Screen takes 70-80% space"
+    alignment_principle: "Center Hero or Split Screen"
+    visual_balance: "Realistic Studio Lighting (Soft shadows, Reflections)"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "mockup"
+        description: "3D Device Mockups"
+        usage: "Studio Display, MacBook Pro, iPad, iPhone 16 Pro"
+        style: "High resolution, realistic reflection, cropped for scale"
+      - type: "shape"
+        description: "UI Cards"
+        usage: "Rounded rectangles displaying interface elements"
+        color: "#D8E2EC"
+        style: "Clean UI style"
+      - type: "effect"
+        description: "Blur Glow"
+        usage: "Blurred accent color spots behind floating devices"
+        color: "accent_1"
+    image_style:
+      characteristics: "Screen content should be high contrast UI designs (Dark mode or Colorful)"
+      shadows: "Soft realistic contact shadows"
+    color_temperature: "Cool Studio Light"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Hero Display"
+    design: |
+      Layout: Center Hero.
+      Device: Apple Studio Display (Front view).
+      Screen Content: Black background, Massive Bold White Title ("PROJECT NAME"), acid yellow subtitle.
+      Background: Pure White or Studio Gray.
+      Overall atmosphere: Premium product reveal.
+    component: "title_slide"
+    safe_area:
+      top: "40px"
+      bottom: "40px"
+      left: "40px"
+      right: "40px"
+
+  - type: "Mobile Slide"
+    description: "Floating Mobile"
+    design: |
+      Layout: Levitation.
+      Device: iPhone 16 Pro floating in mid-air (slightly angled).
+      Screen Content: App UI with vivid gradients.
+      Background: Blurred glow spot (Electric Purple) behind the phone.
+      Text: Minimal specs on the side.
+      Overall atmosphere: Magical tech.
+    component: "mobile_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Feature Slide"
+    description: "Grid Interface"
+    design: |
+      Layout: Device Context.
+      Device: MacBook Pro screen filling most of the slide.
+      Screen Content: A grid of colorful UI cards (Purple, Cyan, Yellow) showing features.
+      Background: Dark or White studio.
+      Overall atmosphere: Organized complexity.
+    component: "feature_slide"
+    safe_area:
+      top: "50px"
+      bottom: "50px"
+      left: "50px"
+      right: "50px"
+
+  - type: "Stats Slide"
+    description: "Dark Mode Presentation / Split UI"
+    design: |
+      Layout: Split UI.
+      Left: Huge Number (e.g., "16") in White on Black card.
+      Right: Description text.
+      Style: Dark Mode aesthetic. Acid Yellow highlights for key data.
+      Overall atmosphere: Data-driven, sleek.
+    component: "stats_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Detail Slide"
+    description: "Angle Shot"
+    design: |
+      Layout: Side Profile.
+      Device: Side view of MacBook or iPad to show thinness.
+      Content: Specs listed in the white space.
+      Lighting: Emphasis on the metallic edge reflection.
+      Overall atmosphere: Hardware appreciation.
+    component: "detail_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Text Slide"
+    description: "Big Typography"
+    design: |
+      Layout: Typography Focus.
+      Background: Pitch Black (#000000).
+      Text: Massive White Helvetica Bold.
+      Decoration: Delicate white horizontal separator lines.
+      Subtitle: Tiny Japanese translation below the English title.
+      Overall atmosphere: Editorial tech.
+    component: "text_slide"
+    safe_area:
+      top: "100px"
+      bottom: "100px"
+      left: "100px"
+      right: "100px"
+
+  - type: "List Slide"
+    description: "Feature List Card"
+    design: |
+      Layout: List Group.
+      Container: Rounded Gray (#F5F5F7) bands on White background.
+      Content: Bold English Topic + Small Japanese Description inside each band.
+      Icon: Tech icon on the left of the band.
+      Overall atmosphere: Clean interaction design.
+    component: "list_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"

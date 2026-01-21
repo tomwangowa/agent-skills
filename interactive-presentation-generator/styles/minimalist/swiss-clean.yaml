@@ -1,0 +1,226 @@
+# Swiss Clean Template
+# Grid-based precision with Helvetica-inspired typography
+# Category: Minimalist Series
+
+template_metadata:
+  id: "swiss-clean"
+  version: "1.0.0"
+  category: "minimalist"
+  name:
+    en: "Swiss Clean"
+    zh_tw: "瑞士簡約"
+    ja: "スイスクリーン"
+  description:
+    en: "Grid-based precision inspired by Swiss design, emphasizing perfect alignment and systematic spacing"
+    zh_tw: "受瑞士設計啟發的網格精確性，強調完美對齊和系統化間距"
+    ja: "スイスデザインに触発されたグリッドベースの精密性、完璧な整列と体系的な間隔を強調"
+  tags:
+    en: ["minimalist", "swiss", "grid", "systematic", "precise"]
+    zh_tw: ["極簡", "瑞士", "網格", "系統化", "精確"]
+    ja: ["ミニマル", "スイス", "グリッド", "体系的", "精密"]
+  recommended_for:
+    en: ["Corporate identity", "Annual reports", "Data presentations", "Architecture portfolios"]
+    zh_tw: ["企業識別", "年度報告", "數據簡報", "建築作品集"]
+    ja: ["企業アイデンティティ", "年次報告", "データプレゼン", "建築ポートフォリオ"]
+
+overall_design_settings:
+  tone: "Systematic, Precise, Rational"
+  design_philosophy: "Form Follows Function - Swiss Modernism Principles"
+
+  color_palette:
+    base: "#FAFAFA"
+    primary: "#000000"
+    text: "#1A1A1A"
+    background: "#FFFFFF"
+    accent_1: "#E63946"
+    accent_2: "#CCCCCC"
+    highlight: "#F1F1F1"
+
+  typography:
+    heading:
+      font_family: "Helvetica Neue, Arial, sans-serif"
+      font_description: "Classic Swiss sans-serif, neutral and highly legible at all sizes"
+      size_philosophy: "Modular scale based on 8pt grid - all sizes are multiples of 8"
+      font_weight: 700
+      font_size: "48pt"
+      line_height: 1.1
+      letter_spacing: "-0.02em"
+    body:
+      font_family: "Helvetica Neue, Arial, sans-serif"
+      font_description: "Same typeface for absolute consistency, regular weight for body"
+      readability_notes: "16pt on 24pt leading (1.5 ratio), max 66 characters per line for optimal readability"
+      font_weight: 400
+      font_size: "16pt"
+      line_height: 1.5
+
+  common_layout_rules:
+    grid_system: "Strict 8pt grid - all elements snap to 8px increments"
+    spacing_philosophy: "Systematic - all spacing values are multiples of 8 (8, 16, 24, 32, 48, 64px)"
+    alignment_principle: "Mathematical precision - left-aligned text, grid-aligned all elements"
+    whitespace_approach: "Functional breathing room - whitespace serves purpose, not decoration"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "line"
+        description: "Precise 1px horizontal rules in black (#000000) for section separation"
+        usage: "Structural dividers, grid emphasis, creating visual order"
+        color: "#000000"
+      - type: "grid"
+        description: "Visible 8pt baseline grid (optional, very faint gray at 5% opacity)"
+        usage: "Alignment guide, systematic spacing reference"
+        color: "#CCCCCC"
+    material_metaphor: "Crisp printed paper - sharp edges, high contrast, no texture or gradient"
+    visual_rhythm: "Absolutely systematic - every element follows 8pt grid, creating perfect rhythm"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Opening slide with left-aligned title, Swiss modernist style"
+    design: |
+      Left-aligned asymmetric composition following strict 8pt grid system.
+      Main title positioned at 96px from top (12 × 8pt grid), 96px from left.
+      Title uses heading typography: 56pt (7 × 8pt), black (#000000), font-weight 700, letter-spacing -0.02em.
+      Title flush-left aligned, no centering - Swiss principle of clarity over decoration.
+      Optional subtitle 40px below title (5 × 8pt spacing), 20pt (2.5 × 8pt), text color (#1A1A1A).
+      Horizontal rule below subtitle: 1px height, 200px width, accent_1 (#E63946), positioned 32px below subtitle.
+      Rule left-aligned with title for grid consistency.
+      Year or date in bottom-left corner: 14pt, text color 60% opacity, 64px from edges.
+      Logo or brand mark in bottom-right: small (40px max height), 64px from edges, monochrome.
+      Background: Pure white (#FFFFFF) for maximum contrast.
+      Grid: Optional faint 8pt baseline grid visible at 3% opacity for systematic feel.
+      Overall atmosphere: Rational, systematic, authoritative, timeless.
+      Visual weight: 90% in title and rule (strong left alignment), 10% in subtle branding.
+      Whitespace: Functional and purposeful, every pixel serves the grid.
+    component: "title_slide"
+    safe_area:
+      top: "96px"
+      bottom: "64px"
+      left: "96px"
+      right: "96px"
+    content_zones:
+      - zone: "main_title"
+        position: "left-96-96"
+        priority: "high"
+      - zone: "subtitle"
+        position: "left-below-title-40px"
+        priority: "medium"
+      - zone: "accent_rule"
+        position: "left-below-subtitle-32px"
+        priority: "low"
+      - zone: "date_year"
+        position: "bottom-left-64px"
+        priority: "low"
+      - zone: "brand_mark"
+        position: "bottom-right-64px"
+        priority: "low"
+
+  - type: "Content Slide"
+    description: "Content slide with strict grid alignment"
+    design: |
+      Two-column layout with mathematical precision: 60-40 width split.
+      Section heading at top-left, 32pt (4 × 8pt), black (#000000), positioned 64px from top/left.
+      Left column (60%): Body text in systematic blocks following 8pt grid.
+      Text: 16pt on 24pt leading, text color (#1A1A1A), max 66 characters per line.
+      All paragraphs start at 8pt grid increments, paragraph spacing: 24px (3 × 8pt).
+      Right column (40%): Visual content area or intentional whitespace, starts at same baseline as left.
+      Column gutter: 48px (6 × 8pt) for clear separation.
+      Vertical separator: Optional 1px line at column boundary, black at 15% opacity.
+      Bullet points: Simple filled circles (4px diameter), black, positioned 16px left of text (2 × 8pt).
+      Bullet vertical spacing: 16px between items (2 × 8pt).
+      Grid adherence: All text baselines snap to 8pt grid for perfect rhythm.
+      Page number bottom-right: 12pt, text color 40% opacity, 32px from edges (4 × 8pt).
+      Background: Pure white with optional subtle gray (#FAFAFA) in alternate content zones.
+      Overall atmosphere: Systematic, organized, highly legible, timeless Swiss precision.
+      Visual weight: 75% on left column (primary reading), 25% on right (support/whitespace).
+      Whitespace: Every margin and spacing follows 8pt grid - no arbitrary values.
+    component: "content_slide"
+    safe_area:
+      top: "64px"
+      bottom: "64px"
+      left: "96px"
+      right: "96px"
+    content_zones:
+      - zone: "section_heading"
+        position: "top-left-64-96"
+        priority: "high"
+      - zone: "left_column"
+        position: "left-60-percent-grid-aligned"
+        priority: "high"
+      - zone: "right_column"
+        position: "right-40-percent-grid-aligned"
+        priority: "medium"
+      - zone: "column_separator"
+        position: "vertical-at-60-percent"
+        priority: "low"
+
+  - type: "Data Slide"
+    description: "Data visualization with grid precision"
+    design: |
+      Grid-based data visualization with systematic alignment.
+      Chart title: 24pt (3 × 8pt), black (#000000), positioned 56px from top, centered or left-aligned.
+      Main chart centered on canvas, occupying 65% height, 80% width maximum.
+      Chart uses accent_1 (#E63946) for primary data, black (#000000) for reference lines.
+      Background: White (#FFFFFF) or subtle gray (#F1F1F1) for chart area.
+      Grid lines: 0.5px, gray (#CCCCCC) at 30% opacity, following data grid not baseline grid.
+      Data labels: 12pt, Helvetica Neue regular, black, positioned with 4px padding from data points.
+      Y-axis labels: Right-aligned, 12pt, 8px from axis line.
+      X-axis labels: Centered below bars/points, 8px below axis.
+      Chart legend: Bottom-left or top-right, 12pt, with colored squares (8px × 8px).
+      Legend spacing: 16px between items (2 × 8pt grid).
+      Caption below chart: 14pt, text color (#1A1A1A) 70% opacity, centered, 24px below chart.
+      All spacing adheres to 8pt grid for systematic consistency.
+      Overall atmosphere: Precise, data-focused, highly legible, trustworthy.
+      Visual weight: 90% on chart and data, 10% on supporting labels.
+    component: "data_slide"
+    safe_area:
+      top: "56px"
+      bottom: "56px"
+      left: "96px"
+      right: "96px"
+    content_zones:
+      - zone: "chart_title"
+        position: "top-center-56px"
+        priority: "high"
+      - zone: "main_chart"
+        position: "center-65h-80w"
+        priority: "high"
+      - zone: "chart_legend"
+        position: "bottom-left-or-top-right"
+        priority: "medium"
+
+  - type: "Summary Slide"
+    description: "Summary with systematic list formatting"
+    design: |
+      Left-aligned summary with numbered list following Swiss systematic principles.
+      Section heading "Summary" or "Conclusions": 32pt, black (#000000), positioned 64px from top/left.
+      Key points as numbered list (1., 2., 3.) with systematic spacing.
+      Numbers: 20pt, accent_1 (#E63946), positioned in left margin (16px left of text).
+      Point headings: 18pt, black (#000000), font-weight 700, positioned at 112px from left (96 + 16).
+      Point text: 14pt, text color (#1A1A1A), positioned 8px below heading, same left alignment.
+      Vertical spacing between points: 48px (6 × 8pt) for clear separation.
+      Maximum 5 points for focus and clarity.
+      Vertical accent line: 2px width, accent_1 (#E63946), left edge at 88px, full height of list area.
+      Call-to-action box (optional): Bottom-right, 16pt text, black on subtle background (#F1F1F1).
+      CTA box: 16px vertical padding, 32px horizontal (all × 8pt), sharp 0px border-radius (Swiss principle).
+      Closing element: Page number or date at bottom-center, 12pt, 40% opacity.
+      All elements snap to 8pt grid - absolute systematic consistency.
+      Overall atmosphere: Clear, conclusive, systematic, professional.
+      Visual weight: 85% on numbered list, 15% on CTA and closing.
+    component: "summary_slide"
+    safe_area:
+      top: "64px"
+      bottom: "64px"
+      left: "96px"
+      right: "96px"
+    content_zones:
+      - zone: "section_heading"
+        position: "top-left-64-96"
+        priority: "high"
+      - zone: "numbered_list"
+        position: "left-aligned-below-heading"
+        priority: "high"
+      - zone: "accent_line"
+        position: "left-88px-full-height"
+        priority: "low"
+      - zone: "cta_box"
+        position: "bottom-right-optional"
+        priority: "medium"

@@ -1,0 +1,26 @@
+# Fashion Layout Template
+# High contrast black/white with dramatic spacing
+template_metadata:
+  id: "fashion-layout"
+  version: "1.0.0"
+  category: "editorial"
+  name: {en: "Fashion Layout", zh_tw: "時尚版面", ja: "ファッションレイアウト"}
+  description: {en: "High contrast editorial with dramatic spacing", zh_tw: "高對比編輯風格，戲劇性留白", ja: "ハイコントラスト、ドラマチックな間隔"}
+
+overall_design_settings:
+  tone: "Dramatic, Sophisticated, Fashion-Forward"
+  design_philosophy: "High Fashion Editorial - Contrast and Drama"
+  color_palette: {base: "#FFFFFF", primary: "#000000", text: "#1A1A1A", background: "#FFFFFF", accent_1: "#E5E5E5", accent_2: "#CCCCCC", highlight: "#F8F8F8"}
+  typography:
+    heading: {font_family: "Didot, serif", font_description: "High-contrast fashion serif", size_philosophy: "Dramatic large sizes", font_weight: 300, font_size: "72pt", line_height: 0.95, letter_spacing: "0.05em"}
+    body: {font_family: "Helvetica Neue, sans-serif", font_description: "Minimal sans-serif for elegance", readability_notes: "14pt tight spacing for fashion editorial", font_weight: 300, font_size: "14pt", line_height: 1.5}
+  common_layout_rules: {grid_system: "Asymmetric fashion grid", spacing_philosophy: "Extreme spacing - maximum drama", alignment_principle: "Optical balance, fashion aesthetic", whitespace_approach: "Luxury emptiness - 60% negative space"}
+  visual_motifs:
+    decorative_elements: [{type: "line", description: "Ultra-thin lines (0.5px) black", usage: "Minimal separation", color: "#000000"}]
+    material_metaphor: "High-end magazine paper - crisp and pristine"
+    visual_rhythm: "Dramatic and sparse - fashion editorial rhythm"
+layout_variations:
+  - {type: "Title Slide", description: "Fashion editorial opening", design: "Extreme asymmetry. Oversized title (72pt Didot), positioned dramatically (20% from top, flush left or right). Maximum whitespace (70%). Black on white high contrast. Ultra-thin decorative line (0.5px). Fashion minimalism.", component: "title_slide", safe_area: {top: "40px", bottom: "40px", left: "60px", right: "60px"}}
+  - {type: "Content Slide", description: "Fashion editorial content", design: "Asymmetric single column (40% width), positioned left or right with 60% negative space. Thin elegant typography (14pt, light weight). Dramatic line spacing. High contrast black/white. Fashion photography placement area.", component: "content_slide", safe_area: {top: "40px", bottom: "40px", left: "60px", right: "60px"}}
+  - {type: "Data Slide", description: "Minimal data presentation", design: "Clean minimal chart. Black bars/lines on white. Thin elegant labels. Maximum simplicity. Fashion editorial restraint.", component: "data_slide", safe_area: {top: "40px", bottom: "40px", left: "60px", right: "60px"}}
+  - {type: "Summary Slide", description: "Fashion editorial closing", design: "Minimal numbered list. Large numbers (48pt thin weight) in black. Short elegant points. Maximum whitespace. Dramatic conclusion.", component: "summary_slide", safe_area: {top: "40px", bottom: "40px", left: "60px", right: "60px"}}

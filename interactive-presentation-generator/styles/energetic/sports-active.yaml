@@ -1,0 +1,157 @@
+# Sports Active Template
+# Style: Sports / Athletic / High Energy
+# Concept: Speed, Heartbeat, Competition
+
+template_metadata:
+  id: "sports-active"
+  version: "1.0.0"
+  category: "energetic"
+  name:
+    en: "Sports Active"
+    zh_tw: "極限運動"
+    ja: "スポーツ・アクティブ"
+  description:
+    en: "An energetic, high-impact aesthetic featuring dark backgrounds, neon accents, and skewed layouts to convey speed."
+    zh_tw: "充滿能量與衝擊力的美學，搭配深色背景、霓虹點綴與傾斜排版，展現極致的速度感。"
+    ja: "暗い背景、ネオンのアクセント、斜めのレイアウトを特徴とし、スピードとエネルギーを表現する高インパクトな美学。"
+  tags:
+    en: ["sports", "energy", "dark", "neon", "italic", "bold"]
+    zh_tw: ["運動", "能量", "暗黑", "霓虹", "斜體", "大膽"]
+    ja: ["スポーツ", "エナジー", "ダーク", "ネオン", "イタリック", "ボールド"]
+  recommended_for:
+    en: ["Sports stats", "Product launches (sneakers/gear)", "Fitness apps", "Competition results", "Motivation"]
+    zh_tw: ["運動數據", "產品發表 (球鞋/裝備)", "健身 App", "競賽結果", "激勵演講"]
+    ja: ["スポーツ統計", "製品発表（スニーカー/ギア）", "フィットネスアプリ", "競技結果", "モチベーション"]
+
+overall_design_settings:
+  tone: "Passionate, Speedy, Powerful, Competitive"
+  design_philosophy: "Motion & Impact - Everything leans forward (Skew/Italic)"
+
+  color_palette:
+    base: "#111111" # Asphalt Black
+    primary: "#FFFFFF" # White text
+    text: "#FFFFFF"
+    background: "#111111"
+    accent_1: "#CCFF00" # Bolt Lime
+    accent_2: "#FF4500" # Neon Orange
+    accent_3: "#444444" # Dark Gray for subtle elements
+    gradient: "Linear gradient (black to transparent) overlay for photos"
+    note: "High contrast dark mode. Use neon accents sparingly for maximum punch."
+
+  typography:
+    heading:
+      font_family: "Impact, DIN Condensed, sans-serif"
+      font_description: "Condensed, Thick, Italicized Gothic/Sans-serif."
+      size_philosophy: "Massive, slanted, tight letter spacing."
+      font_weight: 900
+      font_size: "64pt"
+      line_height: 0.9
+      style: "italic"
+      text_transform: "uppercase"
+    body:
+      font_family: "Roboto Condensed, Open Sans, sans-serif"
+      font_description: "Italicized Sans-serif for sustained momentum."
+      readability_notes: "Keep it punchy. Short sentences."
+      font_weight: 400
+      font_size: "16pt"
+      line_height: 1.4
+      style: "italic"
+    numbers:
+      font_family: "Black Ops One, Stencil, sans-serif"
+      style: "Stencil or Jersey number style. Huge."
+
+  common_layout_rules:
+    grid_system: "Diagonal/Skewed Grid"
+    spacing_philosophy: "Tight and aggressive"
+    alignment_principle: "Flush Left or Skewed Center"
+    visual_balance: "Asymmetric tension"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "shape"
+        description: "Parallelogram / Skewed Rectangle"
+        usage: "Text containers, image masks, navigation elements"
+        color: "accent_1"
+        transform: "skewX(-15deg)"
+      - type: "line"
+        description: "Slash / Lightning Bolt"
+        usage: "Separators, energy lines"
+        color: "accent_2"
+      - type: "texture"
+        description: "Motion Blur"
+        usage: "Background images should have directional blur"
+    image_style:
+      characteristics: "High contrast, gritty, motion blur, black & white with neon overlay"
+      cropping: "Slanted edges (Angled clip-path)"
+    color_temperature: "Dark & Electric"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Action Cut"
+    design: |
+      Layout: Full bleed dynamic photo.
+      Background: Photo of athlete in motion with motion blur + Dark Gradient Overlay (#111111 to transparent).
+      Title: Massive Italic Font (Impact). White. Skewed using CSS transform.
+      Overlap: Title partially overlapped by the subject (depth effect).
+      Accent: Neon Lime (#CCFF00) slash line or parallelogram behind subtitle.
+      Overall atmosphere: Explosive start, cinematic sports intro.
+    component: "title_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Comparison Slide"
+    description: "VS (Versus) Layout"
+    design: |
+      Layout: Split screen, divided diagonally (Top-Right vs Bottom-Left).
+      Divider: Jagged "Lightning" line (Neon Orange).
+      Left-Bottom: "Us" (Strengths). Dark background.
+      Top-Right: "Them" (Challenges/Competitors). Grayscale/Tinted background.
+      Typography: Huge "VS" text in the center, overlapping the divider.
+      Overall atmosphere: Competitive, aggressive, clear contrast.
+    component: "comparison_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Data Slide"
+    description: "Speed Meter / Scoreboard"
+    design: |
+      Layout: Dashboard or Stadium Screen.
+      Chart: Gauge chart (Half-circle) resembling a speedometer.
+      Needle: Neon color, pointing to the value.
+      Value: Digital/Segment display font for the number.
+      Alternative: Scoreboard layout (Home vs Guest) for comparison data.
+      Overall atmosphere: High performance, tracking results.
+    component: "data_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Content Slide"
+    description: "Highlight Stripe"
+    design: |
+      Layout: Bold list or key statements.
+      Highlight: Background of keywords is a "fast" brush stroke or skewed rectangle (Neon Lime).
+      Text: White italic condensed font on dark background.
+      Layout: Staggered list (Step 1, Step 2) with diagonal motion.
+      Overall atmosphere: Fast-paced, important takeaways.
+    component: "content_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Navigation"
+    description: "Skewed Tab"
+    design: |
+      Design: Page number placed inside a slanted parallelogram container at the edge of the slide.
+      Color: Accent color background, Black text.
+      Position: Top-right or Bottom-right, bleeding off the edge.

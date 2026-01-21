@@ -1,0 +1,233 @@
+# Blue Mono Minimalist Template
+# Monochromatic blue with extreme whitespace
+# Category: Minimalist Series
+
+template_metadata:
+  id: "blue-mono"
+  version: "1.0.0"
+  category: "minimalist"
+  name:
+    en: "Blue Mono Minimalist"
+    zh_tw: "藍色極簡主義"
+    ja: "ブルーミニマル"
+  description:
+    en: "Monochromatic blue with extreme whitespace for maximum clarity and professionalism"
+    zh_tw: "單色藍調配以極致留白，展現最高的清晰度和專業感"
+    ja: "モノクロブルーと極端な余白で最大限の明快さとプロフェッショナリズムを実現"
+  tags:
+    en: ["minimalist", "professional", "clean", "monochromatic", "tech"]
+    zh_tw: ["極簡", "專業", "清爽", "單色", "科技"]
+    ja: ["ミニマル", "プロフェッショナル", "クリーン", "モノクロ", "テック"]
+  recommended_for:
+    en: ["Tech presentations", "Corporate reports", "Product launches", "Professional portfolios"]
+    zh_tw: ["科技簡報", "企業報告", "產品發表", "專業作品集"]
+    ja: ["テクノロジープレゼン", "企業レポート", "製品発表", "プロフェッショナルポートフォリオ"]
+
+overall_design_settings:
+  tone: "Clean, Serene, Professional"
+  design_philosophy: "Less is More - Precision through Simplicity"
+
+  color_palette:
+    base: "#F8F9FA"
+    primary: "#2C5282"
+    text: "#1A365D"
+    background: "#FFFFFF"
+    accent_1: "#4299E1"
+    accent_2: "#90CDF4"
+    highlight: "#EBF8FF"
+
+  typography:
+    heading:
+      font_family: "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+      font_description: "Geometric sans-serif with excellent legibility at display sizes"
+      size_philosophy: "Geometric scale (1.618 ratio) for harmonious hierarchy"
+      font_weight: 600
+      font_size: "42pt"
+      line_height: 1.2
+    body:
+      font_family: "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+      font_description: "Same family for cohesion, lighter weight for body text"
+      readability_notes: "16pt base size, 1.6 line height for comfortable reading, max 60 characters per line"
+      font_weight: 400
+      font_size: "16pt"
+      line_height: 1.6
+
+  common_layout_rules:
+    grid_system: "12-column grid with wide gutters (24px)"
+    spacing_philosophy: "Generous whitespace - minimum 80px margins, 48px element spacing"
+    alignment_principle: "Left-aligned for text, optical center for headings"
+    whitespace_approach: "Luxury breathing room - 50% of canvas should be empty space"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "line"
+        description: "Ultra-thin horizontal lines (1px, primary color) as subtle section separators"
+        usage: "Section dividers, visual rhythm markers, anchor elements below headings"
+        color: "#2C5282"
+      - type: "shape"
+        description: "Minimal geometric accents - small circles (6px diameter) for bullet points"
+        usage: "List markers, data point highlights, visual anchors"
+        color: "#4299E1"
+    material_metaphor: "Clean digital paper with subtle shadow - pristine document aesthetic"
+    visual_rhythm: "Repetitive and predictable - consistent spacing creates calm and professionalism"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Opening slide with centered title and optional subtitle"
+    design: |
+      Centered vertical composition with generous top margin (100px).
+      Main title positioned at optical center (40% from top, not 50% mathematical center).
+      Title uses heading typography at 48pt, primary color (#2C5282), font-weight 600.
+      Letter-spacing: 0.02em for refined appearance.
+      Optional subtitle 32px below title, 20pt, text color (#1A365D) at 70% opacity.
+      Single ultra-thin horizontal line (1px, accent_1 #4299E1) 48px below subtitle as visual anchor.
+      Line width: 120px, centered below text.
+      Brand element (small logo or wordmark) in bottom-right corner, 40px from edges, subtle and non-competing.
+      Background: Pure white (#FFFFFF) for maximum contrast and clarity.
+      Overall atmosphere: Calm, confident, professional, serene.
+      Visual weight: 75% concentrated in center (title/subtitle), 25% in subtle branding.
+      Whitespace: 60% of canvas left intentionally empty.
+    component: "title_slide"
+    safe_area:
+      top: "100px"
+      bottom: "80px"
+      left: "120px"
+      right: "120px"
+    content_zones:
+      - zone: "main_title"
+        position: "center-40-percent-from-top"
+        priority: "high"
+      - zone: "subtitle"
+        position: "center-below-title-32px"
+        priority: "medium"
+      - zone: "anchor_line"
+        position: "center-below-subtitle-48px"
+        priority: "low"
+      - zone: "brand_element"
+        position: "bottom-right-40px"
+        priority: "low"
+
+  - type: "Content Slide"
+    description: "Main content slide with heading and structured content"
+    design: |
+      Clean asymmetric layout with 65-35 width split for optimal reading.
+      Section heading at top-left, 32pt, primary color (#2C5282), font-weight 600.
+      Heading positioned 80px from top, 120px from left.
+      Left column (65% width): Body text in comfortable blocks, maximum 65 characters per line.
+      Text uses body typography: 18pt, text color (#1A365D), line-height 1.6.
+      Paragraph spacing: 24px between paragraphs for readability.
+      Right column (35% width): Reserved for supporting visuals, diagrams, or intentional whitespace.
+      If visual present: maintain 24px padding from column edge.
+      Thin vertical separator line (1px, accent_1 #4299E1, 30% opacity) between columns.
+      Bullet points: Small circle markers (6px, accent_1), 8px left of text, 20px vertical spacing.
+      Bottom margin: 80px, reserved for optional page number (12pt, text color 40% opacity).
+      Background: Pure white with subtle base color (#F8F9FA) for visual zones.
+      Overall atmosphere: Organized, spacious, easy to scan, professional.
+      Visual weight: 70% on left column (reading priority), 30% on right (visual interest/breathing room).
+      Whitespace philosophy: Generous line spacing and margins create calm reading experience.
+    component: "content_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "120px"
+      right: "120px"
+    content_zones:
+      - zone: "section_heading"
+        position: "top-left-80-120"
+        priority: "high"
+      - zone: "left_column_text"
+        position: "left-65-percent"
+        priority: "high"
+      - zone: "right_column_visual"
+        position: "right-35-percent"
+        priority: "medium"
+      - zone: "column_separator"
+        position: "vertical-at-65-percent"
+        priority: "low"
+      - zone: "page_number"
+        position: "bottom-right"
+        priority: "low"
+
+  - type: "Data Slide"
+    description: "Data visualization slide with charts and metrics"
+    design: |
+      Data-centric composition with chart prominently centered.
+      Chart title at top, 24pt, primary color (#2C5282), centered or left-aligned based on chart type.
+      Title positioned 60px from top for breathing room.
+      Main chart occupies 55% of canvas height, maximum 75% width for balance.
+      Chart uses brand color palette: primary (#2C5282) for main data, accent_1 (#4299E1) for highlights.
+      Accent_2 (#90CDF4) for secondary data series, creating clear visual hierarchy.
+      Chart background: base color (#F8F9FA) or transparent for clean appearance.
+      Data labels: 14pt, monospace font (SF Mono, Consolas), text color (#1A365D) for precision.
+      Chart caption below main chart, 16pt, text color at 70% opacity, centered.
+      Caption positioned 24px below chart for clear separation.
+      Grid lines: Ultra-thin (0.5px), neutral gray (#CBD5E1), 20% opacity to avoid interference.
+      Axes: 1px, text color (#1A365D) at 40% opacity, minimal and functional.
+      Legend: Top-right or bottom-left, 14pt, with color swatches (12px squares).
+      Background: Pure white (#FFFFFF) to maintain focus on data.
+      Overall atmosphere: Clear, precise, data-focused, professional.
+      Visual weight: 85% on chart and data, 15% on labels and annotations.
+      Whitespace: Ample margins prevent visual clutter and aid data interpretation.
+    component: "data_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "100px"
+      right: "100px"
+    content_zones:
+      - zone: "chart_title"
+        position: "top-center-60px"
+        priority: "high"
+      - zone: "main_chart"
+        position: "center-55-height-75-width"
+        priority: "high"
+      - zone: "chart_caption"
+        position: "below-chart-24px"
+        priority: "medium"
+      - zone: "chart_legend"
+        position: "top-right-or-bottom-left"
+        priority: "medium"
+
+  - type: "Summary Slide"
+    description: "Closing slide with key takeaways"
+    design: |
+      Summary-focused composition with left-aligned key points in clean list format.
+      Section heading "Key Takeaways" or "Summary" at top-left, 32pt, primary color (#2C5282).
+      Heading positioned 80px from top, 120px from left, font-weight 600.
+      Key points presented as numbered list (1, 2, 3...) with generous vertical spacing (40px between items).
+      Each point uses two-tier hierarchy:
+        - Point title: 22pt, primary color (#2C5282), font-weight 600
+        - Point explanation: 16pt, text color (#1A365D), positioned 8px below title
+      Maximum 5-6 points to maintain focus and prevent information overload.
+      Vertical accent line (4px width, accent_1 #4299E1) on left side as visual anchor.
+      Accent line: 100% height of list area, positioned 100px from left edge.
+      Optional Call-to-Action in bottom-right: 18pt, primary color, with subtle background (highlight #EBF8FF).
+      CTA padding: 16px vertical, 32px horizontal, border-radius 4px.
+      Optional closing text at bottom center: "Thank You" or "Questions?", 16pt, text color 50% opacity.
+      Closing text positioned 60px from bottom.
+      Background: Pure white with optional subtle tint (base #F8F9FA) in CTA area.
+      Overall atmosphere: Clear, conclusive, action-oriented, professional.
+      Visual weight: 80% on key points list (left-aligned for scanning), 20% on CTA and closing elements.
+      Whitespace: Left margin provides breathing room, right side stays open for visual balance.
+    component: "summary_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "120px"
+      right: "120px"
+    content_zones:
+      - zone: "section_heading"
+        position: "top-left-80-120"
+        priority: "high"
+      - zone: "key_points_list"
+        position: "left-aligned-below-heading-40px"
+        priority: "high"
+      - zone: "accent_line"
+        position: "left-100px-full-height"
+        priority: "low"
+      - zone: "call_to_action"
+        position: "bottom-right-optional"
+        priority: "medium"
+      - zone: "closing_text"
+        position: "bottom-center-60px"
+        priority: "low"

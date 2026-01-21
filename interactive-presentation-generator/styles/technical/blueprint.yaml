@@ -1,0 +1,145 @@
+# Blueprint Template
+# Technical drawing aesthetic with grid overlays
+# Category: Technical Series
+
+template_metadata:
+  id: "blueprint"
+  version: "1.0.0"
+  category: "technical"
+  name:
+    en: "Blueprint"
+    zh_tw: "藍圖"
+    ja: "ブループリント"
+  description:
+    en: "Technical drawing aesthetic with precise grid systems and blueprint blue tones"
+    zh_tw: "技術繪圖美學，精確網格系統和藍圖藍色調"
+    ja: "技術図面の美学、精密なグリッドシステムと青写真のブルートーン"
+  tags:
+    en: ["technical", "blueprint", "grid", "engineering", "precision"]
+    zh_tw: ["技術", "藍圖", "網格", "工程", "精確"]
+    ja: ["テクニカル", "ブループリント", "グリッド", "エンジニアリング", "精密"]
+
+overall_design_settings:
+  tone: "Technical, Precise, Engineering-Focused"
+  design_philosophy: "Engineering Aesthetic - Precision Through Technical Documentation"
+
+  color_palette:
+    base: "#0A1628"
+    primary: "#3D9FE3"
+    text: "#E8F4F8"
+    background: "#0D1B2A"
+    accent_1: "#00D9FF"
+    accent_2: "#1B4965"
+    highlight: "#0D3B66"
+
+  typography:
+    heading:
+      font_family: "Roboto Mono, monospace"
+      font_description: "Technical monospace for engineering precision"
+      size_philosophy: "Systematic scaling following technical documentation standards"
+      font_weight: 700
+      font_size: "40pt"
+      line_height: 1.2
+      text_transform: "uppercase"
+      letter_spacing: "0.05em"
+    body:
+      font_family: "Roboto, sans-serif"
+      font_description: "Clean sans-serif for technical readability"
+      readability_notes: "16pt for technical documentation clarity"
+      font_weight: 400
+      font_size: "16pt"
+      line_height: 1.6
+
+  common_layout_rules:
+    grid_system: "Technical grid with visible guides (blueprint aesthetic)"
+    spacing_philosophy: "Precise measurements - engineering documentation standards"
+    alignment_principle: "Grid-aligned technical precision"
+    whitespace_approach: "Functional spacing - clear zones for technical data"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "grid"
+        description: "Visible blueprint grid (10px, cyan #00D9FF, 10% opacity)"
+        usage: "Technical aesthetic, alignment guides"
+        color: "#00D9FF"
+      - type: "line"
+        description: "Technical dimension lines with arrows and measurements"
+        usage: "Blueprint aesthetic, data emphasis"
+        color: "#3D9FE3"
+    material_metaphor: "Blueprint paper - technical drawing on dark blue background"
+    visual_rhythm: "Grid-based precision - engineering documentation aesthetic"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Technical blueprint title with grid background"
+    design: |
+      Blueprint-style title layout with visible technical grid.
+      Background: Dark blue (#0D1B2A) with subtle grid overlay (10px squares, cyan at 8% opacity).
+      Title: Large 48pt monospace uppercase, cyan (#3D9FE3), positioned at 100px from top-left.
+      Subtitle: 18pt sans-serif, light text (#E8F4F8), 32px below title.
+      Technical details box: Top-right corner, containing version/date/spec, 12pt monospace.
+      Blueprint frame: 2px border around canvas edges, cyan (#00D9FF) at 30% opacity.
+      Grid coordinates: Small labels in corners (A1, B8 style), 10pt, 40% opacity.
+      Overall atmosphere: Technical precision, engineering documentation.
+      Visual weight: 75% title/left, 25% technical details/right.
+    component: "title_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Content Slide"
+    description: "Technical content with blueprint grid"
+    design: |
+      Two-column technical layout with blueprint aesthetics.
+      Grid background: Visible 10px grid, cyan at 8% opacity throughout.
+      Section heading: 28pt monospace, cyan (#3D9FE3), with dimension line below (2px, 100px wide).
+      Left column (60%): Technical text, 16pt sans-serif, light color (#E8F4F8).
+      Right column (40%): Diagrams or technical specs on darker blue background (#1B4965).
+      Technical callouts: Labels with arrow lines pointing to content, 12pt monospace.
+      Grid numbers: Corner labels (like engineering drawings), 10pt, 30% opacity.
+      Overall atmosphere: Technical documentation, engineering precision.
+      Visual weight: 70% content, 30% technical grid aesthetic.
+    component: "content_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Data Slide"
+    description: "Technical data with blueprint styling"
+    design: |
+      Blueprint-style data visualization with technical grid.
+      Chart: Line graphs or bar charts with blueprint aesthetics.
+      Chart colors: Cyan (#00D9FF), light blue (#3D9FE3) on dark blue background.
+      Grid overlay: Technical grid visible behind chart, 10px squares.
+      Data labels: Monospace 12pt with dimension lines pointing to data points.
+      Technical precision indicators: Measurement lines, tolerances displayed.
+      Overall atmosphere: Engineering data presentation, technical analysis.
+      Visual weight: 85% data/chart, 15% grid aesthetic.
+    component: "data_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Summary Slide"
+    description: "Technical summary with spec sheet aesthetic"
+    design: |
+      Technical specification summary with blueprint styling.
+      Heading: "Specifications" or "Summary" in monospace uppercase, 32pt cyan.
+      Points: Listed as numbered specs (SPEC-001, SPEC-002), 18pt monospace.
+      Each point in technical box with subtle border (#1B4965), 16px padding.
+      Grid background: Blueprint grid throughout, creating technical aesthetic.
+      Approval box: Bottom-right, technical stamp style, "APPROVED" or "FINAL".
+      Overall atmosphere: Engineering documentation, technical completion.
+      Visual weight: 80% specifications, 20% technical grid/frames.
+    component: "summary_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"

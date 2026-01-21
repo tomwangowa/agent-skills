@@ -1,0 +1,164 @@
+# Stone & Glass Template
+# Style: Material / Architectural Modern / Heavy
+# Concept: Silence and Materiality (Texture & Light)
+
+template_metadata:
+  id: "stone-glass"
+  version: "1.0.0"
+  category: "material"
+  name:
+    en: "Stone & Glass"
+    zh_tw: "石材與玻璃"
+    ja: "ストーン＆グラス"
+  description:
+    en: "A calm, robust, and futuristic aesthetic featuring concrete textures, frosted glass effects, and realistic lighting."
+    zh_tw: "靜謐、堅固且充滿未來感的美學，特色為清水模質感、毛玻璃效果與寫實的光影渲染。"
+    ja: "静謐、堅牢、未来的、そして高級感のある美学。コンクリートの質感、すりガラスの効果、自然なライティングを特徴とする。"
+  tags:
+    en: ["material", "architectural", "modern", "glassmorphism", "concrete", "luxury"]
+    zh_tw: ["材質", "建築", "現代", "毛玻璃", "清水模", "奢華"]
+    ja: ["マテリアル", "建築的", "モダン", "グラスモーフィズム", "コンクリート", "高級感"]
+  recommended_for:
+    en: ["Architecture portfolios", "Luxury real estate", "High-end product launches", "Financial reports", "Museum guides"]
+    zh_tw: ["建築作品集", "豪宅地產", "高端產品發表", "財務報告", "博物館指南"]
+    ja: ["建築ポートフォリオ", "高級不動産", "ハイエンド製品発表", "財務報告書", "ミュージアムガイド"]
+
+overall_design_settings:
+  tone: "Quiet, Robust, Futuristic, Luxurious"
+  design_philosophy: "Materiality - Creating depth through texture, light, and shadow"
+
+  color_palette:
+    base: "#E0E0E0" # Cool Gray / Concrete
+    primary: "#1A1A1A" # Stone Black
+    text: "#000000" # Matte Black
+    background: "#E0E0E0"
+    accent_1: "#B87333" # Copper
+    accent_2: "#E1C16E" # Brass
+    accent_3: "#FFFFFF" # Frost White for glass
+    texture: "Concrete, Marble, or Slate textures"
+    note: "Use metallic accents (Copper/Brass) sparingly against matte stone/concrete backgrounds."
+
+  typography:
+    heading:
+      font_family: "Futura, Montserrat, sans-serif"
+      font_description: "Sculptural, Thick Sans-serif."
+      size_philosophy: "Compact, tracked-in (tight letter spacing), heavy weight."
+      font_weight: 700
+      font_size: "56pt"
+      line_height: 1.1
+      letter_spacing: "-0.05em"
+      effect: "deboss" # Engraved look
+    body:
+      font_family: "Helvetica Neue, Roboto, sans-serif"
+      font_description: "Thin, precise Sans-serif."
+      readability_notes: "Small size, generous whitespace to emphasize the scale of the architecture."
+      font_weight: 300
+      font_size: "12pt"
+      line_height: 2.0
+    numbers:
+      font_family: "Bodoni, Didot, serif"
+      style: "High contrast modern serif for elegance."
+
+  common_layout_rules:
+    grid_system: "Architectural Grid"
+    spacing_philosophy: "Joint lines - Using thin lines to divide space like concrete joints"
+    alignment_principle: "Precise & Structural"
+    visual_balance: "Physical stability (heavy elements at bottom or center)"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "texture"
+        description: "Concrete / Marble"
+        usage: "Backgrounds and heavy layout blocks"
+        color: "grayscale_texture"
+      - type: "effect"
+        description: "Frosted Glass (Glassmorphism)"
+        usage: "Overlays, card backgrounds, floating elements"
+        css_effect: "backdrop-filter: blur(20px); background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);"
+      - type: "lighting"
+        description: "Spotlight / God rays"
+        usage: "Highlighting focal points, creating atmosphere"
+    image_style:
+      characteristics: "Cinematic lighting, high resolution textures, architectural framing"
+      shadows: "Realistic soft shadows (diffused light from top-left)"
+    color_temperature: "Cool (Stone) with Warm Accents (Light/Metal)"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Monolith Title"
+    design: |
+      Layout: Central Focus.
+      Element: A massive stone monolith (rectangle) standing in the center.
+      Title: "Engraved" (Debossed) into the stone. Inner shadow effect.
+      Lighting: Light hits from top-left, casting a realistic shadow from the monolith.
+      Background: Blurred environment or textured floor.
+      Overall atmosphere: Monumental, timeless, heavy.
+    component: "title_slide"
+    safe_area:
+      top: "100px"
+      bottom: "100px"
+      left: "150px"
+      right: "150px"
+
+  - type: "Content Slide"
+    description: "Glass Card"
+    design: |
+      Layout: Background Image + Floating Card.
+      Background: Full screen mood image, slightly blurred.
+      Card: Frosted glass panel floating in the foreground.
+      Effect: Backdrop filter blur, subtle white border, soft drop shadow.
+      Text: Sharp, thin black text on the glass.
+      Overall atmosphere: Modern, airy, layered depth.
+    component: "content_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "120px"
+      right: "120px"
+
+  - type: "Gallery Slide"
+    description: "Architecture Grid"
+    design: |
+      Layout: Mondrian-ish but with stone textures.
+      Dividers: Thin "joint" lines (dark gray) separating the grid.
+      Content: Mix of textured blocks (Marble/Concrete) and Images.
+      Text: Small, precise labels in the corners of grid cells.
+      Overall atmosphere: Structured, organized, solid.
+    component: "gallery_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Data Slide"
+    description: "Material Graph"
+    design: |
+      Layout: 3D Visualization.
+      Bars: Represented as 3D pillars (Stone) or Ingots (Copper/Brass).
+      Lighting: Realistic shading to show volume/thickness.
+      Axis: Thin, precise lines.
+      Values: Floating above the pillars.
+      Overall atmosphere: Tangible, valuable data.
+    component: "data_slide"
+    safe_area:
+      top: "100px"
+      bottom: "100px"
+      left: "100px"
+      right: "100px"
+
+  - type: "Focus Slide"
+    description: "Lighting Focus"
+    design: |
+      Layout: Dark Room / Spotlight.
+      Background: Dark Stone / Slate (#1A1A1A).
+      Focus: A single element (Product/Number/Quote) illuminated by a soft spotlight.
+      Shadows: Long, soft shadows extending from the object.
+      Text: Glowing slightly or reflecting the light.
+      Overall atmosphere: Dramatic, exclusive, premium.
+    component: "focus_slide"
+    safe_area:
+      top: "120px"
+      bottom: "120px"
+      left: "120px"
+      right: "120px"
