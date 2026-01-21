@@ -39,46 +39,46 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 
 | Skill | Description | Score |
 |-------|-------------|-------|
-| [tm-code-review-gemini](./tm-code-review-gemini/) | Automated code review on staged changes using Gemini AI - detects security issues, bugs, and quality problems | 88/100 ✅ |
-| [tm-pr-review-assistant](./tm-pr-review-assistant/) | Comprehensive pull request reviewer with structured feedback and risk assessment | ⭐ |
-| [tm-skill-auditor](./tm-skill-auditor/) ⭐ NEW | Meta-skill that audits other skills for quality, security, and production readiness | 103/100 ✅ |
+| [code-review-gemini](./code-review-gemini/) | Automated code review on staged changes using Gemini AI - detects security issues, bugs, and quality problems | 88/100 ✅ |
+| [pr-review-assistant](./pr-review-assistant/) | Comprehensive pull request reviewer with structured feedback and risk assessment | ⭐ |
+| [skill-auditor](./skill-auditor/) ⭐ NEW | Meta-skill that audits other skills for quality, security, and production readiness | 103/100 ✅ |
 
 #### 📝 Documentation & Specification (2 skills)
 
 | Skill | Description | Score |
 |-------|-------------|-------|
-| [tm-spec-generator](./tm-spec-generator/) | Generate complete specification documents (150+ lines, 8 sections) from simple ideas | ⭐ |
-| [tm-spec-review-assistant](./tm-spec-review-assistant/) | Review specs before implementation - 5-dimensional analysis for completeness, feasibility, clarity | ⭐ |
+| [spec-generator](./spec-generator/) | Generate complete specification documents (150+ lines, 8 sections) from simple ideas | ⭐ |
+| [spec-review-assistant](./spec-review-assistant/) | Review specs before implementation - 5-dimensional analysis for completeness, feasibility, clarity | ⭐ |
 
 #### 🔀 Git & Version Control (2 skills)
 
 | Skill | Description | Score |
 |-------|-------------|-------|
-| [tm-commit-msg-generator](./tm-commit-msg-generator/) | Generate high-quality commit messages following Conventional Commits specification | ⭐ |
-| [tm-code-story-teller](./tm-code-story-teller/) | Analyze git history to tell the evolutionary story and design decisions of code files | ⭐ |
+| [commit-msg-generator](./commit-msg-generator/) | Generate high-quality commit messages following Conventional Commits specification | ⭐ |
+| [code-story-teller](./code-story-teller/) | Analyze git history to tell the evolutionary story and design decisions of code files | ⭐ |
 
 #### 🎨 Design & UI/UX (1 skill)
 
 | Skill | Description | Score |
 |-------|-------------|-------|
-| [tm-ui-design-analyzer](./tm-ui-design-analyzer/) | Analyze UI/UX from screenshots - 6-dimensional analysis covering usability, accessibility, visual design | ⭐ |
+| [ui-design-analyzer](./ui-design-analyzer/) | Analyze UI/UX from screenshots - 6-dimensional analysis covering usability, accessibility, visual design | ⭐ |
 
 #### 🚀 Productivity & Content Creation (3 skills)
 
 | Skill | Description | Score |
 |-------|-------------|-------|
-| [tm-interactive-presentation-generator](./tm-interactive-presentation-generator/) ⭐ NEW | Generate interactive presentations (reveal.js/Marp/Slidev) with 20 professional styles | 75/100 ✅ |
-| [tm-work-log-analyzer](./tm-work-log-analyzer/) | Analyze work logs to track evolution, manage TODOs, extract action items, aggregate activities - 6 query types | ⭐ |
-| [tm-activity-logger](./tm-activity-logger/) | Record work activities from current session for cross-session tracking and reporting | ⭐ |
+| [interactive-presentation-generator](./interactive-presentation-generator/) ⭐ NEW | Generate interactive presentations (reveal.js/Marp/Slidev) with 20 professional styles | 75/100 ✅ |
+| [work-log-analyzer](./work-log-analyzer/) | Analyze work logs to track evolution, manage TODOs, extract action items, aggregate activities - 6 query types | ⭐ |
+| [activity-logger](./activity-logger/) | Record work activities from current session for cross-session tracking and reporting | ⭐ |
 
 ---
 
 ### 📈 Quality Scores
 
-Skills audited by [tm-skill-auditor](./tm-skill-auditor/):
-- **103/100** - tm-skill-auditor (meta-validated ✅)
-- **88/100** - tm-code-review-gemini (production-ready ✅)
-- **75/100** - tm-interactive-presentation-generator (production-ready ✅)
+Skills audited by [skill-auditor](./skill-auditor/):
+- **103/100** - skill-auditor (meta-validated ✅)
+- **88/100** - code-review-gemini (production-ready ✅)
+- **75/100** - interactive-presentation-generator (production-ready ✅)
 
 **Total:** 11 skills across 5 categories
 
@@ -138,7 +138,7 @@ gemini "Hello, test"
 
 ## Usage
 
-### Using tm-code-review-gemini
+### Using code-review-gemini
 
 1. Stage your changes:
    ```bash
@@ -157,7 +157,7 @@ gemini "Hello, test"
    - Show you which files are being reviewed
    - Provide a prioritized summary of findings
 
-### Using tm-commit-msg-generator
+### Using commit-msg-generator
 
 1. Stage your changes:
    ```bash
@@ -196,15 +196,15 @@ Claude will analyze your changes and provide feedback on:
 - Readability and maintainability
 - Suggested improvements
 
-### Using tm-activity-logger
+### Using activity-logger
 
-The tm-activity-logger skill helps you track work activities across multiple Claude Code sessions.
+The activity-logger skill helps you track work activities across multiple Claude Code sessions.
 
 **Initial Setup:**
 
 ```bash
 # Initialize the activity logger (creates directory structure)
-~/.claude/skills/tm-activity-logger/scripts/init_activities.sh init
+~/.claude/skills/activity-logger/scripts/init_activities.sh init
 ```
 
 **Logging Activities:**
@@ -213,7 +213,7 @@ You can log activities in two ways:
 
 1. **Direct command:**
    ```bash
-   ~/.claude/skills/tm-activity-logger/scripts/log_activity.sh \
+   ~/.claude/skills/activity-logger/scripts/log_activity.sh \
      -d "Implemented user authentication" \
      -t task_completed \
      -c "Added OAuth2 support" \
@@ -239,16 +239,16 @@ You can log activities in two ways:
 
 ```bash
 # View current session info
-~/.claude/skills/tm-activity-logger/scripts/init_activities.sh info
+~/.claude/skills/activity-logger/scripts/init_activities.sh info
 
 # List all activity records
-~/.claude/skills/tm-activity-logger/scripts/init_activities.sh list
+~/.claude/skills/activity-logger/scripts/init_activities.sh list
 
 # Show statistics by type
-~/.claude/skills/tm-activity-logger/scripts/init_activities.sh stats
+~/.claude/skills/activity-logger/scripts/init_activities.sh stats
 
 # Archive old activities (default: 30 days)
-~/.claude/skills/tm-activity-logger/scripts/init_activities.sh archive 30
+~/.claude/skills/activity-logger/scripts/init_activities.sh archive 30
 ```
 
 **What Gets Recorded:**
@@ -309,68 +309,68 @@ skill-name/
 
 Each skill may have its own dependencies. Check the individual skill directories for specific requirements.
 
-### tm-code-review-gemini
+### code-review-gemini
 
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - Git (must be run inside a git repository)
 
-### tm-commit-msg-generator
+### commit-msg-generator
 
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - Git (must be run inside a git repository with staged changes)
 
-### tm-code-story-teller
+### code-story-teller
 
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - Git (must be run inside a git repository with commit history)
 
-### tm-pr-review-assistant
+### pr-review-assistant
 
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - [GitHub CLI](https://cli.github.com/): Install from https://cli.github.com/
 - Git with access to the PR repository
 
-### tm-spec-review-assistant
+### spec-review-assistant
 
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - jq: `brew install jq` (macOS) or `apt-get install jq` (Ubuntu)
 - Git (optional, for codebase integration)
 
-### tm-spec-generator
+### spec-generator
 
 - **No external dependencies required!** Uses Claude Code's native capabilities
 - Works immediately out of the box
 
-### tm-ui-design-analyzer
+### ui-design-analyzer
 
 - **No external dependencies required!** Uses Claude Code's native multimodal capabilities
 - Works immediately out of the box
 - Can analyze PNG, JPG, and other image formats
 
-### tm-work-log-analyzer
+### work-log-analyzer
 
 - **Core features:** No external dependencies - uses Claude Code's native capabilities
 - **Activity Aggregation feature:** Requires `jq` and `date` (standard on most systems)
   - `jq` - JSON processor: `brew install jq` (macOS) or `apt-get install jq` (Ubuntu)
   - `date` - Date utilities (built-in on macOS/Linux)
 - Analyzes Markdown, plain text, and various log formats
-- Aggregates and filters activity records from tm-activity-logger
+- Aggregates and filters activity records from activity-logger
 
-### tm-activity-logger
+### activity-logger
 
 - **Required dependencies:**
   - `jq` - JSON processor: `brew install jq` (macOS) or `apt-get install jq` (Ubuntu)
   - `git` - Version control system
 - **Optional:** `openssl` (falls back to `/dev/urandom` or `$RANDOM`)
 
-### tm-interactive-presentation-generator
+### interactive-presentation-generator
 
 - **No external dependencies required!** Works out of the box
 - Generates reveal.js HTML, Marp markdown, or Slidev presentations
 - Includes 20 professional style templates (324KB)
 - All styles bundled - zero configuration needed
 
-### tm-skill-auditor
+### skill-auditor
 
 - **Required dependencies:**
   - `bash` 4.0+ (standard on macOS/Linux)
