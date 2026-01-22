@@ -1,5 +1,5 @@
 ---
-name: Code Story Teller
+name: code-story-teller
 description: Analyze git history to tell the story of how code evolved. Use this Skill when the user asks to understand code history, explain evolution, show file timeline, or understand design decisions behind code.
 ---
 

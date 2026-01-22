@@ -1,6 +1,6 @@
 ---
-name: Code Review with Gemini
-description: Perform a code review on staged changes. Use this Skill when the user asks to review staged files, check code quality before committing, or analyze changes about to be committed.
+name: code-review-gemini
+description: Perform deep, thorough code review using Gemini AI. Use this Skill when user explicitly requests 'gemini review', 'thorough review', 'detailed review', or 'deep review'. For general 'review' requests, the code-reviewer meta-skill will route appropriately.
 ---
 
 # Code Review with Gemini

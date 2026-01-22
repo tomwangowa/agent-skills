@@ -1,5 +1,5 @@
 ---
-name: Native Code Review with Claude
+name: code-review-claude
 description: Perform native code review (< 30 seconds) using Claude Code's built-in capabilities without external dependencies. Use for rapid validation checks during development. Triggered by 'quick review', 'native review', or 'fast code check'.
 id: code-review-claude
 version: "1.0.0"

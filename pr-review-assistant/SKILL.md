@@ -1,5 +1,5 @@
 ---
-name: PR Review Assistant
+name: pr-review-assistant
 description: Assist in reviewing pull requests by analyzing diffs and providing structured feedback. Use this Skill when the user asks to review a PR, analyze pull request changes, check code quality in PRs, or help with code review.
 ---
 

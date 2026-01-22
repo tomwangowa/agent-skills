@@ -44,6 +44,26 @@ Comprehensive planning document for UI/UX related skills development.
 
 ---
 
+### 🏗️ Meta-Skills-Pattern.md
+
+**Meta-Skills Design Pattern**
+
+Advanced architectural pattern for managing multiple skills with similar functionality through intelligent routing.
+
+**Contents**:
+- Problem statement: handling multiple similar skills
+- Solution: Meta-Skill + Preferences combination (Option 3 + 2)
+- Design principles and best practices
+- Step-by-step implementation guide
+- Advanced patterns (layered meta-skills, fallback chains)
+- Real-world case study: Code Reviewer meta-skill
+
+**Best for**: Skill architects, developers managing skill conflicts, understanding advanced skill patterns
+
+**Status**: Living document (v1.0)
+
+---
+
 ---
 
 ## 🎯 Recommended Reading Order
@@ -72,9 +92,10 @@ Comprehensive planning document for UI/UX related skills development.
 
 ### For Planners/Architects
 
-1. **UI-UX-Skills-Plan.md** - Understand skill planning process
-2. **SKILLS_ROADMAP.md** - See future plans and priorities
-3. **Individual SKILL.md files** - Understand implementation patterns
+1. **Meta-Skills-Pattern.md** - Advanced patterns for managing skill conflicts
+2. **UI-UX-Skills-Plan.md** - Understand skill planning process
+3. **SKILLS_ROADMAP.md** - See future plans and priorities
+4. **Individual SKILL.md files** - Understand implementation patterns
 
 ---
 
@@ -83,6 +104,7 @@ Comprehensive planning document for UI/UX related skills development.
 | Document | Format | Audience | Purpose | Duration |
 |----------|--------|----------|---------|----------|
 | AI_Developer_Workflow.pdf | Visual slides | Everyone | Quick overview | 5-10 min |
+| Meta-Skills-Pattern.md | Technical guide | Architects | Advanced patterns | 15-20 min |
 | SKILLS_DEMO_SCRIPT_v2.md | Detailed script | Presenters | Demo preparation | 30-35 min |
 | UI-UX-Skills-Plan.md | Planning doc | Architects | Future planning | 20-30 min |
 | Main README.md | Reference | Developers | Setup & usage | Ongoing |

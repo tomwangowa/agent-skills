@@ -1,5 +1,5 @@
 ---
-name: Activity Logger
+name: activity-logger
 description: Records work activities from the current session for cross-session aggregation and work log generation
 ---
 

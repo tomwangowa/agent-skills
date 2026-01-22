@@ -1,5 +1,5 @@
 ---
-name: Commit Message Generator
+name: commit-msg-generator
 description: Generate high-quality commit messages following Conventional Commits specification. Use this Skill when the user asks to generate commit message, write commit message, or create commit description.
 ---
 
