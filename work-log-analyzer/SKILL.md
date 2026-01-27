@@ -1,5 +1,5 @@
 ---
-name: Work Log Analyzer
+name: work-log-analyzer
 description: Analyze work logs and journals to answer questions about project history, decisions, TODOs, and timeline evolution. Use this Skill when the user wants to query their work journal, track task progress, or understand how decisions evolved over time.
 ---
 

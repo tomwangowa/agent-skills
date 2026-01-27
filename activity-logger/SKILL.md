@@ -110,7 +110,7 @@ Activity logger uses the following directory structure:
     └── activity-config.json  # Configuration (optional)
 ```
 
-## Integration with Work Log Analyzer
+## Integration with work-log-analyzer
 
 Activity records saved by this skill can be aggregated using the `work-log-analyzer` skill with the `--aggregate` flag:
 
