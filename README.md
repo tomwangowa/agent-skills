@@ -43,12 +43,13 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 | [pr-review-assistant](./pr-review-assistant/) | Comprehensive pull request reviewer with structured feedback and risk assessment | ⭐ |
 | [skill-auditor](./skill-auditor/) ⭐ NEW | Meta-skill that audits other skills for quality, security, and production readiness | 103/100 ✅ |
 
-#### 📝 Documentation & Specification (4 skills)
+#### 📝 Documentation & Specification (5 skills)
 
 | Skill | Description | Score |
 |-------|-------------|-------|
 | [spec-generator](./spec-generator/) | Generate complete specification documents (150+ lines, 8 sections) from simple ideas | ⭐ |
 | [spec-review-assistant](./spec-review-assistant/) | Review specs before implementation - 5-dimensional analysis for completeness, feasibility, clarity | ⭐ |
+| [text-translator](./text-translator/) ⭐ NEW | Translate text content to any language - preserves code and Markdown structure | 83/100 ✅ |
 | [markdown-structurer](./markdown-structurer/) ⭐ NEW | Transform plain/flat text into structured Markdown - adds headers, tables, code blocks, diagrams based on systematic rules | 93/100 ✅ |
 | [markdown-formatter](./markdown-formatter/) | Optimize Markdown structure and whitespace - improves readability without changing content | ⭐ |
 
@@ -81,9 +82,10 @@ Skills audited by [skill-auditor](./skill-auditor/):
 - **103/100** - skill-auditor (meta-validated ✅)
 - **93/100** - markdown-structurer (production-ready ✅)
 - **88/100** - code-review-gemini (production-ready ✅)
+- **83/100** - text-translator (production-ready ✅)
 - **75/100** - interactive-presentation-generator (production-ready ✅)
 
-**Total:** 13 skills across 5 categories
+**Total:** 14 skills across 5 categories
 
 ## Quick Start
 
@@ -381,10 +383,20 @@ Each skill may have its own dependencies. Check the individual skill directories
 - **Optional:** Gemini CLI (for AI-powered semantic analysis)
 - Performs automated quality audits on skills in < 5 seconds
 
+### text-translator
+
+- **No external dependencies required!** Uses Claude Code's native translation capabilities
+- Translates any text content while preserving code and Markdown structure
+- Supports any language Claude understands (English, Traditional Chinese, Japanese, etc.)
+- Auto-integrates with markdown-structurer for translation + structuring workflows
+- Smart preservation: code blocks, inline code, technical terms completely untouched
+- See [examples/](./text-translator/examples/) for plain text and Markdown examples
+
 ### markdown-structurer
 
 - **No external dependencies required!** Uses Claude Code's native capabilities
 - Transforms plain or flat text into structured Markdown
+- **Auto-detects translation requests** and calls text-translator automatically
 - Systematic decision framework with pattern matching
 - Can integrate with markdown-formatter for complete document processing
 - See [examples/](./markdown-structurer/examples/) for before/after comparisons
