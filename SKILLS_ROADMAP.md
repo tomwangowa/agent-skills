@@ -14,14 +14,14 @@ This document tracks all skill ideas, their current status, and implementation p
 
 ## Overview
 
-**Total Implemented:** 11 skills across 5 categories
+**Total Implemented:** 13 skills across 5 categories
 
 ### By Category
 
 | Category | Count | Skills |
 |----------|-------|--------|
 | 🔍 Code Quality & Review | 3 | code-review-gemini, pr-review-assistant, skill-auditor |
-| 📝 Documentation & Specification | 2 | spec-generator, spec-review-assistant |
+| 📝 Documentation & Specification | 4 | spec-generator, spec-review-assistant, markdown-structurer, markdown-formatter |
 | 🔀 Git & Version Control | 2 | commit-msg-generator, code-story-teller |
 | 🎨 Design & UI/UX | 1 | ui-design-analyzer |
 | 🚀 Productivity & Content Creation | 3 | interactive-presentation-generator, work-log-analyzer, activity-logger |
@@ -29,13 +29,14 @@ This document tracks all skill ideas, their current status, and implementation p
 ### Quality Scores (by skill-auditor)
 
 - **103/100** - skill-auditor (meta-validated ✅)
+- **93/100** - markdown-structurer (production-ready ✅)
 - **88/100** - code-review-gemini (production-ready ✅)
 - **75/100** - interactive-presentation-generator (production-ready ✅)
 
-### Recent Additions (2026-01-15)
+### Recent Additions (2026-01-28)
 
-- ⭐ **interactive-presentation-generator** - Generate presentations with 20 professional styles
-- ⭐ **skill-auditor** - Meta-skill for quality assurance and production readiness
+- ⭐ **markdown-structurer** - Transform plain/flat text into structured Markdown with systematic rules
+- ⭐ **markdown-formatter** - Optimize Markdown structure and whitespace management
 
 ---
 
@@ -376,6 +377,85 @@ Meta-skill that audits other skills for quality, security, and production readin
 - Spec Review: Fixed 7 critical, 21 important issues
 - Code Review (Gemini): Fixed critical report generation flaw (sed portability)
 - Self-Audit: Achieved 103/100 (meta-validation proves correctness)
+
+---
+
+### 🟢 markdown-structurer
+**Status:** Implemented
+**Category:** Documentation & Content Processing
+**Trigger:** "structurize this text", "add structure to markdown", "enrich this document", "make it structured"
+
+Transform plain or flat narrative text into well-structured Markdown by adding headers, tables, code blocks, diagrams, and tags based on systematic decision rules.
+
+**Features:**
+- **Systematic decision framework** - Pattern matching for headers (方法 1/2/3, 首先...然後), tables (❌ vs ✅, comparisons), code blocks (YAML, bash, technical terms)
+- **6 structure types:** Headers (H1/H2/H3), Tables, Code blocks, Mermaid diagrams, Bold emphasis, Tags
+- **Quality rules:** No HTML in tables, stop at H3, ask before adding Mermaid, concise cells (< 100 chars)
+- **User interaction:** Asks permission before adding Mermaid diagrams
+- **Integration:** Works standalone or with markdown-formatter for complete document processing
+- **Before/after examples:** See `examples/` directory for visual comparison
+- **Rationalization table:** Prevents common mistakes and shortcuts
+
+**Dependencies:** None - uses Claude Code's native capabilities
+
+**Complexity:** Medium
+
+**Use Cases:**
+- Convert plain notes to professional documentation
+- Structure meeting minutes and work logs
+- Enrich draft specifications with proper formatting
+- Transform text exports into readable Markdown
+- Prepare documents for technical audiences
+
+**Quality Score:** 93/100 (audited by skill-auditor, production-ready ✅)
+
+**Development Process:**
+- Built using TDD approach (RED-GREEN-REFACTOR)
+- Baseline test identified 6 key issues
+- Systematic rules address agent rationalizations
+- Passed skill-auditor with 93/100 score
+
+**Integration Points:**
+- **markdown-formatter:** Pre-process with formatter for whitespace cleanup
+- **spec-generator:** Post-process generated specs for better structure
+- **work-log-analyzer:** Structure extracted content for better readability
+
+---
+
+### 🟢 markdown-formatter
+**Status:** Implemented
+**Category:** Documentation & Content Processing
+**Trigger:** "format this markdown", "clean up document structure", "fix markdown spacing", "optimize whitespace"
+
+Optimize Markdown file structure and whitespace management without changing any original content - focuses purely on spacing, line breaks, and visual presentation.
+
+**Features:**
+- **Conservative approach:** Never modifies text content, only adjusts whitespace
+- **Standardized spacing:** One blank line after headers, no blank lines between list items
+- **Clean ending:** Ensures exactly one newline at file end
+- **Trailing space removal:** Eliminates all line-end spaces
+- **Consistent structure:** Headers have one blank line above (except at start) and below
+- **List formatting:** Proper spacing around list blocks
+
+**Dependencies:** None - uses Claude Code's Read, Write, Edit tools
+
+**Complexity:** Low-Medium
+
+**Use Cases:**
+- Pre-commit formatting standardization
+- Clean up documents before sharing
+- Standardize team documentation style
+- Prepare files for version control
+- Pre-process before markdown-structurer
+
+**Integration Points:**
+- **markdown-structurer:** Use formatter first, then add structure
+- **spec-generator:** Clean up generated specs
+- **Version control:** Pre-commit hook for consistent formatting
+
+**Development Approach:**
+- Complements markdown-structurer (formatter = spacing, structurer = content)
+- Can work independently or as part of document processing pipeline
 
 ---
 
@@ -978,5 +1058,5 @@ To propose a new skill:
 
 ---
 
-**Last Updated:** 2026-01-13
+**Last Updated:** 2026-01-28
 **Next Review:** End of Q1 2026
