@@ -14,14 +14,14 @@ This document tracks all skill ideas, their current status, and implementation p
 
 ## Overview
 
-**Total Implemented:** 13 skills across 5 categories
+**Total Implemented:** 14 skills across 5 categories
 
 ### By Category
 
 | Category | Count | Skills |
 |----------|-------|--------|
 | 🔍 Code Quality & Review | 3 | code-review-gemini, pr-review-assistant, skill-auditor |
-| 📝 Documentation & Specification | 4 | spec-generator, spec-review-assistant, markdown-structurer, markdown-formatter |
+| 📝 Documentation & Specification | 5 | spec-generator, spec-review-assistant, text-translator, markdown-structurer, markdown-formatter |
 | 🔀 Git & Version Control | 2 | commit-msg-generator, code-story-teller |
 | 🎨 Design & UI/UX | 1 | ui-design-analyzer |
 | 🚀 Productivity & Content Creation | 3 | interactive-presentation-generator, work-log-analyzer, activity-logger |
@@ -31,10 +31,12 @@ This document tracks all skill ideas, their current status, and implementation p
 - **103/100** - skill-auditor (meta-validated ✅)
 - **93/100** - markdown-structurer (production-ready ✅)
 - **88/100** - code-review-gemini (production-ready ✅)
+- **83/100** - text-translator (production-ready ✅)
 - **75/100** - interactive-presentation-generator (production-ready ✅)
 
 ### Recent Additions (2026-01-28)
 
+- ⭐ **text-translator** - Universal text translation with code and structure preservation
 - ⭐ **markdown-structurer** - Transform plain/flat text into structured Markdown with systematic rules
 - ⭐ **markdown-formatter** - Optimize Markdown structure and whitespace management
 
@@ -456,6 +458,52 @@ Optimize Markdown file structure and whitespace management without changing any 
 **Development Approach:**
 - Complements markdown-structurer (formatter = spacing, structurer = content)
 - Can work independently or as part of document processing pipeline
+
+---
+
+### 🟢 text-translator
+**Status:** Implemented
+**Category:** Documentation & Content Processing
+**Trigger:** "translate to", "翻譯成", "convert to", "translate this"
+
+Translate text content to target language while preserving code and Markdown structure.
+
+**Features:**
+- **Universal translation:** Handles plain text, Markdown, and other text files
+- **Smart preservation:** Code blocks, inline code, technical terms completely untouched
+- **Markdown intelligence:** Preserves headers, lists, tables, quotes while translating content
+- **Natural language interface:** Detect target language from keywords (English, 英文, 日本語, etc.)
+- **Format detection:** Automatically detects Markdown and applies preservation rules
+- **Technical term handling:** Preserves API, HTTP, REST, proper nouns, programming keywords
+- **Link preservation:** Translates link text, preserves URLs
+- **Auto-integration:** Called by markdown-structurer when translation detected
+- **Error handling:** Graceful degradation, quality warnings, interactive clarification
+- **No language limits:** Supports any language Claude understands
+
+**Dependencies:** None - uses Claude Code's native translation capabilities
+
+**Complexity:** Low-Medium
+
+**Use Cases:**
+- Translate README files for international audiences
+- Create multilingual technical documentation
+- Convert notes to target language
+- Prepare content for multilingual teams
+- Translation + structuring workflow (via markdown-structurer integration)
+- Localize documentation for different regions
+
+**Quality Score:** 83/100 (audited by skill-auditor, production-ready ✅)
+
+**Integration Points:**
+- **markdown-structurer:** Auto-calls translator when "翻譯" detected - seamless single-command workflow
+- **markdown-formatter:** Can format before/after translation for clean output
+- **spec-generator:** Can translate generated specs for international teams
+
+**Development Approach:**
+- Simpler separation of concerns than integrated i18n
+- Single responsibility: translation only
+- Extensible for other skills to call
+- No external dependencies
 
 ---
 
