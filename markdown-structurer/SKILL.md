@@ -1,6 +1,6 @@
 ---
 name: markdown-structurer
-description: Use when user has plain text or flat narrative content that needs Markdown structure (headers, bold, tables, code blocks, diagrams, tags). Triggers on "add structure", "structurize", "enrich markdown", "plain text to markdown", "add headers", "make it structured". Not for format cleaning only (use markdown-formatter for that).
+description: Use when user has plain text or flat narrative content that needs Markdown structure (headers, bold, tables, code blocks, diagrams, tags). Auto-detects translation requests and calls text-translator. Triggers on "add structure", "structurize", "enrich markdown", "translate and structure". Not for format cleaning only (use markdown-formatter for that).
 ---
 
 # Markdown Structurer
