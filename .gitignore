@@ -8,6 +8,10 @@ code_story_result.txt
 pr_review_result.txt
 **/pr_review_result.txt
 
+# Skill audit reports
+*-audit-report.md
+**/*-audit-report.md
+
 # Temporary files
 *.tmp
 *.log
