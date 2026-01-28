@@ -240,6 +240,92 @@ digraph workflow {
    - Use Edit or Write tool
    - Provide brief summary of changes
 
+## Translation Integration
+
+### Automatic Translation Detection
+
+If user request includes translation keywords, markdown-structurer will automatically call text-translator before applying structure.
+
+**Translation keywords:**
+- "翻譯", "translate", "轉成", "convert to"
+- Plus target language: "英文", "English", "日本語", etc.
+
+**Workflow when translation detected:**
+
+```dot
+digraph translation_workflow {
+    "Parse user request" [shape=box];
+    "Translation keyword?" [shape=diamond];
+    "Extract target language" [shape=box];
+    "Call text-translator" [shape=box];
+    "Receive translated content" [shape=box];
+    "Apply structuring rules" [shape=box];
+    "Direct structuring" [shape=box];
+    "Output" [shape=box];
+
+    "Parse user request" -> "Translation keyword?";
+    "Translation keyword?" -> "Extract target language" [label="yes"];
+    "Translation keyword?" -> "Direct structuring" [label="no"];
+    "Extract target language" -> "Call text-translator";
+    "Call text-translator" -> "Receive translated content";
+    "Receive translated content" -> "Apply structuring rules";
+    "Apply structuring rules" -> "Output";
+    "Direct structuring" -> "Output";
+}
+```
+
+### Examples
+
+**Example 1: Translation + Structuring**
+
+**User request:**
+```
+"翻譯成英文並結構化"
+```
+
+**Process:**
+1. markdown-structurer detects "翻譯" + "英文"
+2. Calls text-translator(target=English)
+3. Receives English Markdown
+4. Applies structuring (headers, tables, etc.)
+5. Outputs structured English document
+
+**Example 2: Structuring Only**
+
+**User request:**
+```
+"請結構化這個文件"
+```
+
+**Process:**
+1. markdown-structurer finds no translation keywords
+2. Skips text-translator
+3. Applies structuring directly to original content
+4. Outputs structured document in original language
+
+**Example 3: Translation with Language Question**
+
+**User request:**
+```
+"翻譯並結構化這個文件"
+```
+
+**Process:**
+1. markdown-structurer detects "翻譯" but no target language
+2. Calls text-translator
+3. text-translator asks: "要翻譯成什麼語言？"
+4. User responds: "英文"
+5. Translates to English
+6. markdown-structurer applies structure
+7. Outputs structured English document
+
+### Benefits
+
+- **Single command:** User gets translation + structure in one request
+- **Separation of concerns:** Translation and structuring are separate skills
+- **Flexible:** Can use each skill independently
+- **Automatic:** No manual chaining needed
+
 ## Quick Reference
 
 | Element | When to Add | Pattern to Match |
