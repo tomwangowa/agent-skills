@@ -422,10 +422,20 @@ For team deployment, see the [Team Setup](./SETUP.md#team-setup) section in SETU
 Quick installation for team members:
 
 ```bash
-# Clone and run installation script
-git clone <repository-url> ~/claude-code-skills
-cd ~/claude-code-skills
-bash install.sh
+# Clone this repository to Claude Code skills directory
+git clone <repository-url> ~/.claude/skills
+
+# Or create a symlink if you've already cloned elsewhere
+ln -s /path/to/cloned/repo ~/.claude/skills
+
+# Install Gemini CLI (for code-review-gemini and pr-review-assistant)
+npm install -g @google/gemini-cli
+
+# Set Gemini API key (get it from https://aistudio.google.com/app/apikey)
+export GEMINI_API_KEY="your-api-key-here"
+
+# Make it permanent by adding to your shell profile
+echo 'export GEMINI_API_KEY="your-api-key-here"' >> ~/.zshrc  # or ~/.bashrc
 ```
 
 ## Contributing
