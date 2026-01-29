@@ -245,10 +245,13 @@ Follow this workflow to audit a skill for production readiness.
 
 ### Step 2: Run Automated Checks
 
-Execute automated audit script:
+Determine the skill base directory from the skill invocation context, then execute the automated audit script:
 ```bash
-bash scripts/audit_skill.sh <skill-directory>
+bash <skill_base_directory>/scripts/audit_skill.sh <skill-directory>
 ```
+
+**Important**: Always use the full absolute path to the script based on the skill base directory,
+not a relative path, since the current working directory may be the user's project directory.
 
 The script will:
 - Parse YAML frontmatter

@@ -29,10 +29,16 @@ When the user requests a spec review (for example: "review this spec", "check my
    - Confirm the document format (should be Markdown)
    - Read the entire document
 
-2. **Run the review script**
+2. **Determine the skill base directory** from the skill invocation context (provided when the skill is loaded).
+
+3. **Run the review script** from the skill directory:
    ```bash
-   bash scripts/review_spec.sh <spec_file_path> [--with-codebase]
+   bash <skill_base_directory>/scripts/review_spec.sh <spec_file_path> [--with-codebase]
    ```
+
+   **Important**: Always use the full absolute path to the script based on the skill base directory,
+   not a relative path, since the current working directory may be the user's project directory.
+
    - Use `--with-codebase` flag if reviewing for an existing project
    - The script will analyze the document across all dimensions
 

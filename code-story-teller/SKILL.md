@@ -32,7 +32,13 @@ When the user expresses intent to understand code history (for example: "tell th
    - If the user says "this file" or "current file", ask for clarification
    - If the user is discussing code in context, try to infer the file
 
-2. **Run the script** `scripts/tell_code_story.sh <file-path>`
+2. **Determine the skill base directory** from the skill invocation context (provided when the skill is loaded).
+
+3. **Run the script** from the skill directory: `<skill_base_directory>/scripts/tell_code_story.sh <file-path>`
+
+   **Important**: Always use the full absolute path to the script based on the skill base directory,
+   not a relative path, since the current working directory may be the user's project directory.
+
    - The script will collect git history
    - It will analyze commits and changes
    - It will generate a comprehensive story using Gemini

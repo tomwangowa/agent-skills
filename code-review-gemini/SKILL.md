@@ -23,7 +23,15 @@ Please note that do not specify the gemini model in the instructions, as it will
 
 ### Execution steps
 
-1. Run the script `scripts/review_with_gemini.sh`.
+1. Determine the skill base directory from the skill invocation context (provided when the skill is loaded).
+
+2. Run the script from the skill directory: `<skill_base_directory>/scripts/review_with_gemini.sh`.
+
+   For example, if the skill base directory is `/Users/tom_wang/.claude/skills/code-review-gemini`,
+   the full path should be `/Users/tom_wang/.claude/skills/code-review-gemini/scripts/review_with_gemini.sh`.
+
+   **Important**: Always use the full absolute path to the script, not a relative path, since the current
+   working directory may be the user's project directory, not the skill directory.
 
 2. Observe the script output carefully.
    The script will first print a **"Review Scope"** section that includes:

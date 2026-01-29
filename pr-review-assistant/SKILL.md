@@ -34,7 +34,13 @@ When the user expresses intent to review a PR (for example: "review PR #123", "h
    - If user provides PR URL: extract the number
    - If unclear, ask for clarification
 
-2. **Run the script** `scripts/review_pr.sh <PR-number|PR-URL>`
+2. **Determine the skill base directory** from the skill invocation context (provided when the skill is loaded).
+
+3. **Run the script** from the skill directory: `<skill_base_directory>/scripts/review_pr.sh <PR-number|PR-URL>`
+
+   **Important**: Always use the full absolute path to the script based on the skill base directory,
+   not a relative path, since the current working directory may be the user's project directory.
+
    - The script will fetch PR details using GitHub CLI
    - It will analyze the diff with Gemini AI
    - It will generate a structured review

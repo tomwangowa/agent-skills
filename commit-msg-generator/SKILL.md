@@ -23,7 +23,12 @@ When the user expresses intent to generate a commit message (for example: "gener
 
 ### Execution steps
 
-1. Run the script `scripts/generate_commit_msg.sh`.
+1. Determine the skill base directory from the skill invocation context (provided when the skill is loaded).
+
+2. Run the script from the skill directory: `<skill_base_directory>/scripts/generate_commit_msg.sh`.
+
+   **Important**: Always use the full absolute path to the script based on the skill base directory,
+   not a relative path, since the current working directory may be the user's project directory.
 
 2. The script will:
    - Check that there are staged changes

@@ -28,19 +28,25 @@ When the user provides a log file and asks a question (for example: "關於 Sell
 
 ### Execution Steps
 
-1. **Identify the log file**
+1. **Determine the skill base directory** from the skill invocation context (provided when the skill is loaded).
+
+   **Important**: When using the aggregation script, always use the full absolute path:
+   `<skill_base_directory>/scripts/aggregate_activities.sh`, not a relative path, since the
+   current working directory may be the user's project directory.
+
+2. **Identify the log file**
    - User provides explicit file path: use it directly
    - User says "my work log" or "my journal": ask for the file path
    - User pastes content directly: analyze the provided text
 
-2. **Read and parse the log**
+3. **Read and parse the log**
    - Read the file content using the available file reading tool
    - Parse the structure (dates, sections, TODOs, etc.)
    - Identify the format (Markdown, plain text, structured, unstructured)
 
-3. **Understand the query**
+4. **Understand the query**
    - **Activity queries** (NEW): "aggregate my activities", "show me today's work", "what did I do this week"
-     - Use the `scripts/aggregate_activities.sh` helper script
+     - Use the `<skill_base_directory>/scripts/aggregate_activities.sh` helper script
      - Aggregates structured activity records from activity-logger
      - Supports filtering by date range, project, type, and tags
      - Formats output as readable work log or structured report
@@ -180,7 +186,7 @@ For best results, maintain consistent formatting throughout your logs.
 > Aggregate my activities from this week
 
 **Expected behavior:**
-1. Run `scripts/aggregate_activities.sh -r this-week`
+1. Run `<skill_base_directory>/scripts/aggregate_activities.sh -r this-week`
 2. Parse the Markdown output
 3. Present a formatted summary of the week's activities
 
@@ -214,7 +220,7 @@ For best results, maintain consistent formatting throughout your logs.
 > Show me all bug fixes from last month
 
 **Expected behavior:**
-1. Run `scripts/aggregate_activities.sh -r this-month -t bug_fixed`
+1. Run `<skill_base_directory>/scripts/aggregate_activities.sh -r this-month -t bug_fixed`
 2. Filter activities by type "bug_fixed"
 3. Present chronologically with context
 
@@ -224,7 +230,7 @@ For best results, maintain consistent formatting throughout your logs.
 > What did I work on in the security-project yesterday?
 
 **Expected behavior:**
-1. Run `scripts/aggregate_activities.sh -r yesterday -p security-project`
+1. Run `<skill_base_directory>/scripts/aggregate_activities.sh -r yesterday -p security-project`
 2. Show project-specific activities
 3. Include file changes and tags
 
