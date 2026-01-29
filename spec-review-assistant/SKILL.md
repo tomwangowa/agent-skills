@@ -27,242 +27,193 @@ When the user requests a spec review (for example: "review this spec", "check my
 1. **Locate the specification document**
    - Ask for the file path if not provided
    - Confirm the document format (should be Markdown)
-   - Read the entire document
+   - Read the entire document using Read tool
 
-2. **Determine the skill base directory** from the skill invocation context (provided when the skill is loaded).
+2. **Perform multi-dimensional analysis** across all review dimensions:
 
-3. **Run the review script** from the skill directory:
-   ```bash
-   bash <skill_base_directory>/scripts/review_spec.sh <spec_file_path> [--with-codebase]
-   ```
+   #### Dimension 1: Completeness Check
+   Verify presence of essential sections:
+   - ✅ **Background/Context**: Why this project exists
+   - ✅ **Requirements**: Functional and non-functional requirements
+   - ✅ **Technical Design**: Architecture, data models, APIs
+   - ✅ **Error Handling**: Edge cases and error scenarios
+   - ✅ **Security Considerations**: Auth, data protection, vulnerabilities
+   - ✅ **Testing Strategy**: Unit, integration, E2E tests
+   - ✅ **Deployment Plan**: How to roll out
+   - ✅ **Success Metrics**: How to measure success
 
-   **Important**: Always use the full absolute path to the script based on the skill base directory,
-   not a relative path, since the current working directory may be the user's project directory.
+   Mark each as:
+   - ✅ Present and complete
+   - ⚠️ Present but incomplete
+   - ❌ Missing (critical issue)
 
-   - Use `--with-codebase` flag if reviewing for an existing project
-   - The script will analyze the document across all dimensions
+   #### Dimension 2: Feasibility Assessment
+   Evaluate technical approach:
+   - Technology choices alignment with stack
+   - Performance implications (identify potential bottlenecks)
+   - Scalability concerns (can it handle growth?)
+   - Third-party dependencies risks (SLA, vendor lock-in)
+   - Timeline realism (is the timeline feasible?)
+   - Resource requirements (team size, skills needed)
 
-3. **Present the structured review report**
-   - Display the complete report with severity levels
-   - Highlight critical issues first
-   - Provide actionable recommendations
+   #### Dimension 3: Clarity Check
+   Identify unclear descriptions:
+   - **Vague terms**: "fast", "simple", "appropriate", "should be good", "user-friendly"
+   - **Undefined acronyms or jargon**: Check for unexplained technical terms
+   - **Contradictory statements**: Find conflicting requirements
+   - **Inconsistent terminology**: Same concept with different names
+   - **Missing acceptance criteria**: How to verify it's done?
 
-4. **Offer next steps**
-   - Ask if the user wants to:
-     - Address specific issues
-     - Generate an improved version of the spec
-     - Add missing sections
-     - Clarify ambiguous parts
+   For each vague term, suggest specific, measurable criteria.
 
-### Review Dimensions
+   #### Dimension 4: Workload Estimation
+   Analyze task breakdown:
+   - **Tasks too large**: Cannot be estimated accurately (> 3 days)
+   - **Missing subtasks**: Testing, documentation, error handling not mentioned
+   - **Underestimated complexity**: Looks simple but has hidden complexity
+   - **Dependencies not accounted for**: Sequential dependencies ignored
+   - **Suggested decomposition**: How to break down large tasks
 
-#### 1. Completeness Check
-Verifies presence of essential sections:
-- **Background/Context**: Why this project exists
-- **Requirements**: Functional and non-functional requirements
-- **Technical Design**: Architecture, data models, APIs
-- **Error Handling**: Edge cases and error scenarios
-- **Security Considerations**: Auth, data protection, vulnerabilities
-- **Testing Strategy**: Unit, integration, E2E tests
-- **Deployment Plan**: How to roll out
-- **Success Metrics**: How to measure success
+   #### Dimension 5: Codebase Integration (Optional)
+   If user requests alignment check with existing code:
+   - Scan codebase structure using Glob
+   - Check naming conventions consistency
+   - Verify API design patterns match
+   - Identify architectural misalignment
+   - Suggest integration points
 
-#### 2. Feasibility Assessment
-Evaluates technical approach:
-- Technology choices alignment with stack
-- Performance implications
-- Scalability concerns
-- Third-party dependencies risks
-- Timeline realism
-- Resource requirements
+3. **Generate structured review report** (see Output Format below)
 
-#### 3. Clarity Check
-Identifies unclear descriptions:
-- Vague terms: "fast", "simple", "appropriate", "should be good"
-- Undefined acronyms or jargon
-- Contradictory statements
-- Inconsistent terminology
-- Missing acceptance criteria
+4. **Present findings** with severity levels:
+   - 🔴 Critical (Must fix before implementation)
+   - 🟡 Important (Address soon)
+   - 🟢 Nice to have (Optional improvements)
 
-#### 4. Workload Estimation
-Analyzes task breakdown:
-- Tasks too large to estimate
-- Missing subtasks (testing, documentation, error handling)
-- Underestimated complexity
-- Dependencies not accounted for
-- Suggested task decomposition
-
-#### 5. Codebase Integration (Optional)
-When `--with-codebase` is used:
-- Scan existing code structure
-- Compare naming conventions
-- Check API design patterns
-- Identify architectural misalignment
-- Suggest integration points
+5. **Offer next steps**:
+   - Address specific issues
+   - Generate improved version of spec
+   - Add missing sections
+   - Clarify ambiguous parts
 
 ---
 
 ## Output Format
 
-The script generates a structured Markdown report:
+Generate a structured Markdown report following this template:
 
 ```markdown
 # Spec Review Report: [Document Name]
 
 **Review Date**: YYYY-MM-DD
-**Document Version**: [if specified]
-**Reviewer**: Spec Review Assistant
+**Document**: [file path]
+**Reviewer**: [Your Model Name]
 
 ---
 
 ## Executive Summary
 
-**Overall Assessment**: ⚠️ Needs Improvement
-**Critical Issues**: 3
-**Important Issues**: 7
-**Suggestions**: 12
+**Overall Assessment**: ⚠️ [Ready / Needs Minor Improvements / Needs Major Improvements]
+**Critical Issues**: N
+**Important Issues**: N
+**Suggestions**: N
 
-**Recommendation**: Address critical and important issues before implementation.
+**Recommendation**: [One-line recommendation]
 
 ---
 
 ## 1. Completeness Check
 
 ### ✅ Present Sections
-- Background
-- Requirements
-- Technical Design
+- [List complete sections]
 
 ### ❌ Missing Sections (Critical)
-1. **Error Handling Strategy**
-   - Impact: High risk of undefined behavior
-   - Recommendation: Add section covering error scenarios, retry logic, fallback behavior
-
-2. **Security Considerations**
-   - Impact: Potential vulnerabilities
-   - Recommendation: Document authentication, authorization, input validation, data encryption
+1. **[Section Name]**
+   - Impact: [Why this matters]
+   - Recommendation: [What to add]
 
 ### ⚠️ Incomplete Sections
-1. **Requirements** (Line 23-45)
-   - Issue: Missing non-functional requirements
-   - Recommendation: Add performance, scalability, availability requirements
+1. **[Section Name]** (Line X-Y)
+   - Issue: [What's missing]
+   - Recommendation: [How to complete]
 
 ---
 
 ## 2. Feasibility Assessment
 
 ### 🟢 Strengths
-- Technology stack is well-established
-- Architecture follows existing patterns
+- [List positive aspects]
 
 ### 🔴 Concerns
-1. **Database Schema Complexity** (Line 89)
-   - Issue: Proposed schema requires 5 joins for main query
-   - Risk: Performance degradation at scale
-   - Recommendation: Consider denormalization or caching layer
-
-2. **Third-Party API Dependency** (Line 112)
-   - Issue: Critical flow depends on external service with 99% SLA
-   - Risk: 1% downtime = user-facing failures
-   - Recommendation: Implement circuit breaker and fallback mechanism
+1. **[Concern Title]** (Line X)
+   - Issue: [What's the problem]
+   - Risk: [What could go wrong]
+   - Recommendation: [How to mitigate]
 
 ---
 
 ## 3. Clarity Check
 
 ### Ambiguous Descriptions
-1. **Line 56**: "The system should respond quickly"
-   - Issue: "Quickly" is subjective
-   - Recommendation: Specify target: "p95 latency < 200ms"
-
-2. **Line 78**: "Handle errors appropriately"
-   - Issue: "Appropriately" is undefined
-   - Recommendation: Specify: log, retry, user notification strategy
+1. **Line X**: "[Vague quote]"
+   - Issue: [Why it's unclear]
+   - Recommendation: [Specific alternative]
 
 ### Contradictions
-1. **Lines 34 vs 67**
-   - Line 34: "Real-time updates required"
-   - Line 67: "Polling every 30 seconds"
-   - Recommendation: Clarify: use WebSocket for real-time or adjust requirement
+1. **Lines X vs Y**
+   - Line X: "[Statement 1]"
+   - Line Y: "[Statement 2]"
+   - Recommendation: [How to resolve]
 
 ### Undefined Terms
-- **MTP** (Line 45): Not defined - clarify if "Minimum Testable Product"
-- **Quantum sync** (Line 92): Unclear technical term
+- **[Term]** (Line X): [Clarification needed]
 
 ---
 
 ## 4. Workload Estimation
 
-### Task Breakdown Analysis
+### ✅ Well-Defined Tasks
+- [List clear tasks]
 
-#### ✅ Well-Defined Tasks
-- "Implement user authentication API" - clear scope
-
-#### ⚠️ Tasks Needing Decomposition
-1. **"Build dashboard"** (Task #3)
+### ⚠️ Tasks Needing Decomposition
+1. **"[Task name]"** (Task #X)
    - Too broad - suggest breakdown:
-     - Design dashboard layout
-     - Implement data fetching layer
-     - Create chart components
-     - Add filtering and sorting
-     - Write unit tests
-     - Add E2E tests
+     - [Subtask 1]
+     - [Subtask 2]
+     - [Include testing, docs, error handling]
 
-2. **"Integrate payment gateway"** (Task #5)
-   - Missing subtasks:
-     - Research gateway options
-     - Handle webhook setup
-     - Implement refund flow
-     - Add fraud detection
-     - Test in sandbox
-
-#### Missing Tasks
-- Database migration scripts
-- API documentation
-- Monitoring and alerting setup
-- Performance testing
-- Security audit
+### Missing Tasks
+- [List tasks not mentioned but necessary]
 
 ---
 
 ## 5. Codebase Integration Analysis
 
-### Alignment with Existing Code
-✅ **Follows existing patterns**:
-- REST API conventions match current endpoints
-- Error response format consistent
+*(Only if --with-codebase requested)*
 
-⚠️ **Deviations detected**:
-1. **Naming Convention** (Line 89)
-   - Spec uses: `getUserData()`
-   - Codebase uses: `fetchUserProfile()`
-   - Recommendation: Align with `fetch*` pattern
+### ✅ Alignment with Existing Code
+- [List matching patterns]
 
-2. **Database Access**
-   - Spec proposes: Direct SQL queries
-   - Current pattern: ORM (Prisma)
-   - Recommendation: Use existing ORM or document rationale for change
+### ⚠️ Deviations Detected
+1. **[Deviation Type]** (Line X)
+   - Spec uses: [Proposed approach]
+   - Codebase uses: [Current pattern]
+   - Recommendation: [How to align]
 
 ---
 
 ## Summary of Recommendations
 
 ### 🔴 Critical (Must Fix Before Implementation)
-1. Add error handling strategy section
-2. Document security considerations
-3. Define ambiguous performance requirements
-4. Clarify contradictions (real-time vs polling)
+1. [Critical issue 1]
+2. [Critical issue 2]
 
 ### 🟡 Important (Address Soon)
-1. Decompose overly broad tasks
-2. Add missing testing and documentation tasks
-3. Specify concrete acceptance criteria
-4. Align naming conventions with codebase
+1. [Important issue 1]
+2. [Important issue 2]
 
 ### 🟢 Nice to Have
-1. Add sequence diagrams for complex flows
-2. Include rollback procedures
-3. Document monitoring strategy
+1. [Suggestion 1]
+2. [Suggestion 2]
 
 ---
 
@@ -275,18 +226,57 @@ The script generates a structured Markdown report:
 
 ---
 
-**Generated by**: Spec Review Assistant (Claude Code Skill)
-**Powered by**: Gemini AI for semantic analysis
+**Generated by**: Spec Review Assistant
+**Powered by**: [Your Model Name] <noreply@example.com>
 ```
+
+---
+
+## Review Dimensions Deep Dive
+
+### Completeness Checklist
+
+Essential sections for a complete spec:
+
+| Section | Purpose | Red Flags if Missing |
+|---------|---------|---------------------|
+| **Background** | Context and motivation | Team doesn't understand "why" |
+| **Requirements** | What to build | Scope creep, missed features |
+| **Technical Design** | How to build it | Architecture misalignment |
+| **Error Handling** | Edge cases | Production crashes |
+| **Security** | Threats and mitigations | Vulnerabilities |
+| **Testing** | How to verify | Poor quality, bugs slip through |
+| **Deployment** | How to ship | Launch delays, downtime |
+| **Metrics** | How to measure success | No way to evaluate impact |
+
+### Vague Terms to Watch For
+
+| Vague Term | Better Alternative |
+|------------|-------------------|
+| "Fast" | "p95 latency < 200ms" |
+| "Simple" | "< 3 user clicks to complete" |
+| "User-friendly" | "WCAG 2.1 AA compliant" |
+| "Scalable" | "Handle 10K concurrent users" |
+| "Secure" | "OAuth 2.0 + JWT tokens" |
+| "Available" | "99.9% uptime SLA" |
+| "Handle errors appropriately" | "Log + retry 3x + user notification" |
+
+### Task Size Guidelines
+
+| Task Size | Characteristics | Action |
+|-----------|----------------|--------|
+| **Right-sized** | 1-3 days, clear acceptance criteria | ✅ Keep as-is |
+| **Too large** | > 3 days, vague scope | ⚠️ Decompose |
+| **Too small** | < 2 hours, trivial | 🟢 Consider grouping |
 
 ---
 
 ## Constraints
 
 - Only works with Markdown (.md) files
-- Requires Gemini CLI for AI-powered semantic analysis
-- Codebase integration requires being run from project root
 - Best results with specs following a standard template
+- Codebase integration requires access to project files
+- Limited to text analysis (no visual design review)
 
 ---
 
@@ -309,53 +299,80 @@ Users can invoke this Skill by saying:
 **User:**
 > Review the spec in `docs/user-auth-spec.md`
 
-**Expected behavior:**
-1. Read the spec document
-2. Run `review_spec.sh docs/user-auth-spec.md`
-3. Display structured review report
-4. Offer to help address identified issues
-
----
+**Your workflow:**
+1. Read `docs/user-auth-spec.md` using Read tool
+2. Analyze across all 5 dimensions
+3. Identify missing sections (e.g., security considerations)
+4. Find vague terms (e.g., "secure password storage")
+5. Check task breakdown
+6. Generate structured report
+7. Present findings with severity levels
 
 ### Example 2: Spec Review with Codebase Integration
 
 **User:**
 > Check if `docs/payment-integration.md` fits our existing architecture
 
-**Expected behavior:**
-1. Read the spec document
-2. Run `review_spec.sh docs/payment-integration.md --with-codebase`
-3. Scan existing codebase for patterns
-4. Report both spec issues and architectural alignment
-5. Suggest integration points
-
----
+**Your workflow:**
+1. Read `docs/payment-integration.md`
+2. Scan existing codebase:
+   ```bash
+   # Find existing payment-related code
+   find . -name "*payment*" -o -name "*billing*"
+   ```
+3. Check naming conventions:
+   ```bash
+   # See existing API patterns
+   grep -r "export.*function" src/api/
+   ```
+4. Compare spec's proposed approach with existing patterns
+5. Report both spec issues AND architectural alignment
+6. Suggest integration points
 
 ### Example 3: Targeted Review
 
 **User:**
 > Does this spec have all the required sections?
 
-**Expected behavior:**
-1. Run completeness check specifically
-2. List missing sections
-3. Suggest templates for missing parts
+**Your workflow:**
+1. Read the spec
+2. Run completeness check specifically
+3. List present sections
+4. List missing sections with impact
+5. Suggest templates for missing parts
 
 ---
 
 ## Best Practices
 
 ### For Spec Authors
-- Use clear, specific language
-- Include acceptance criteria
-- Document assumptions explicitly
-- Add diagrams for complex flows
 
-### For Reviewers
-- Run this check before design review meetings
-- Address critical issues first
-- Use the report as discussion guide
-- Re-run after making changes
+**Before requesting review:**
+- ✅ Use clear, specific language
+- ✅ Include acceptance criteria for each requirement
+- ✅ Document assumptions explicitly
+- ✅ Add diagrams for complex flows
+- ✅ Define all acronyms and jargon
+
+**After receiving review:**
+- Address critical issues immediately
+- Clarify ambiguous sections
+- Add missing sections
+- Re-run review to verify improvements
+
+### For Reviewers (You)
+
+**During review:**
+- Be specific in feedback (include line numbers)
+- Suggest concrete alternatives, not just problems
+- Prioritize issues by severity
+- Focus on preventing implementation issues
+
+**When presenting:**
+- Start with executive summary
+- Highlight critical issues first
+- Provide actionable recommendations
+- Offer to help address issues
 
 ---
 
@@ -364,36 +381,76 @@ Users can invoke this Skill by saying:
 ### Recommended Usage Pattern
 
 ```
-1. Author writes spec → 2. Run Spec Review Skill → 3. Address issues →
-4. Team review meeting → 5. Final approval → 6. Begin implementation
+1. Author writes spec →
+2. Run Spec Review Skill →
+3. Address issues →
+4. Team review meeting →
+5. Final approval →
+6. Begin implementation
 ```
 
-### Git Hook Integration (Optional)
+### When to Re-Review
 
-Add to `.git/hooks/pre-commit`:
-```bash
-# Auto-review specs before committing
-if [[ "$file" == docs/specs/*.md ]]; then
-  claude-skill spec-review-assistant "$file"
-fi
-```
+- After addressing critical issues
+- Before design review meetings
+- When requirements change significantly
+- Before implementation kickoff
 
 ---
 
-## Future Enhancements
+## Common Patterns
 
-- Support for other formats (Google Docs, Notion)
-- Template library for common spec types
-- Automated spec improvement suggestions
-- Integration with project management tools
-- Historical analysis (compare spec vs actual implementation)
+### Missing Error Handling
+
+**Symptom**: Spec describes happy path only
+
+**Check for:**
+- What happens if API call fails?
+- What if user inputs invalid data?
+- What if database is unavailable?
+- What if third-party service times out?
+
+**Recommendation**: Add "Error Scenarios" section
+
+### Underestimated Tasks
+
+**Symptom**: Tasks like "Build dashboard" or "Integrate payments"
+
+**Hidden complexity:**
+- Testing (unit, integration, E2E)
+- Error handling for each feature
+- Documentation
+- Performance optimization
+- Security hardening
+
+**Recommendation**: Decompose into 1-3 day subtasks
+
+### Contradictory Requirements
+
+**Symptom**: Different sections conflict
+
+**Examples:**
+- "Real-time updates" vs "Poll every 30s"
+- "High security" vs "Easy signup (no email verification)"
+- "Fast" vs "Complex validation rules"
+
+**Recommendation**: Clarify priority and resolve conflict
 
 ---
 
 ## Related Skills
 
+- **spec-generator**: Generates initial spec from ideas
 - **pr-review-assistant**: Reviews code changes
-- **commit-msg-generator**: Generates commit messages
 - **code-review-gemini**: Reviews code quality
 
-Use Spec Review Assistant BEFORE implementation, and PR Review Assistant DURING/AFTER implementation.
+**Workflow**: Use Spec Review Assistant BEFORE implementation, and PR Review Assistant DURING/AFTER implementation.
+
+---
+
+## When NOT to Use This Skill
+
+- Reviewing code (use code-review skills instead)
+- Generating specs (use spec-generator instead)
+- Reviewing non-technical documents
+- Reviewing visual designs (need different skill)
