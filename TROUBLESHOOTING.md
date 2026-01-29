@@ -321,7 +321,7 @@ rm -f /tmp/gemini_review_result.txt
 
 ## Still Having Issues?
 
-1. Check the [SETUP.md](./SETUP.md) for detailed installation instructions
+1. Check the [INSTALLATION.md](./INSTALLATION.md) for detailed installation instructions
 2. Review the [README.md](./README.md) for usage examples
 3. Check individual skill directories for skill-specific documentation
 4. Open an issue on the repository with:

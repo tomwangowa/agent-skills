@@ -247,7 +247,7 @@ Common issues and solutions.
 ### Before Submitting
 
 1. **Test thoroughly** using the checklist above
-2. **Update documentation** (README, SETUP.md if needed)
+2. **Update documentation** (README, INSTALLATION.md if needed)
 3. **Follow code style** consistent with existing skills
 4. **Add examples** showing how to use your skill
 5. **Check for secrets** - no API keys or sensitive data
@@ -353,7 +353,7 @@ Any other relevant information.
 
 ## Questions or Need Help?
 
-- Check [SETUP.md](./SETUP.md) for setup instructions
+- Check [INSTALLATION.md](./INSTALLATION.md) for setup instructions
 - See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for common issues
 - Review existing skills for examples
 - Open an issue for questions or discussions

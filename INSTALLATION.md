@@ -193,35 +193,7 @@ Team members clone with:
 git clone --recurse-submodules <your-project-url>
 ```
 
-#### Option 2: Shared Installation Script
-
-Create an installation script for your team:
-
-```bash
-#!/bin/bash
-# install-skills.sh
-
-set -e
-
-echo "Installing Claude Code Skills..."
-
-# Clone skills repository
-if [ ! -d ~/.claude/skills ]; then
-  mkdir -p ~/.claude/skills
-fi
-
-cd ~/.claude/skills
-git clone <repository-url> team-skills
-
-# Install dependencies
-npm install -g @google/gemini-cli
-
-echo "✓ Skills installed successfully!"
-echo "Please set your GEMINI_API_KEY environment variable."
-echo "Visit: https://aistudio.google.com/app/apikey"
-```
-
-#### Option 3: Team Configuration File
+#### Option 2: Team Configuration File
 
 Create a shared configuration file in your project:
 

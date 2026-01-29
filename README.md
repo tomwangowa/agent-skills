@@ -410,14 +410,14 @@ Each skill may have its own dependencies. Check the individual skill directories
 
 ## Documentation
 
-- **[SETUP.md](./SETUP.md)** - Detailed setup and installation guide
+- **[INSTALLATION.md](./INSTALLATION.md)** - Detailed setup and installation guide
 - **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Guide for creating new skills or improving existing ones
 - **[CLAUDE.md](./CLAUDE.md)** - Instructions for Claude Code when working in this repository
 
 ## Team Setup
 
-For team deployment, see the [Team Setup](./SETUP.md#team-setup) section in SETUP.md.
+For team deployment, see the [Team Setup](./INSTALLATION.md#team-setup) section in INSTALLATION.md.
 
 Quick installation for team members:
 

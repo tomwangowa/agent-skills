@@ -116,7 +116,7 @@ Advanced architectural pattern for managing multiple skills with similar functio
 
 - [Back to Main README](../README.md)
 - [Skills Roadmap](../SKILLS_ROADMAP.md)
-- [Setup Guide](../SETUP.md)
+- [Setup Guide](../INSTALLATION.md)
 - [Contributing](../CONTRIBUTING.md)
 
 ---
