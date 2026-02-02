@@ -1,10 +1,7 @@
 ---
 name: markdown-formatter
 description: 專門優化 Markdown 文件的結構與空白字元管理，在不更動原始文字的前提下提升技術文件的專業度與易讀性。
-tools:
-  - Read
-  - Write
-  - Edit
+allowed-tools: Read, Write, Edit
 ---
 
 # 概覽

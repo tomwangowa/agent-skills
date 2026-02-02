@@ -1,13 +1,7 @@
 ---
 name: quality-driven-dev
 description: 以資深架構師思維執行開發，強調測試先行、深度上下文分析與防禦性編程，確保代碼的高質量與可維護性。
-tools:
-  - Read
-  - Write
-  - Edit
-  - Bash
-  - Task
-  - Grep
+allowed-tools: Read, Write, Edit, Bash, Task, Grep
 # Note: Requires MCP tools: context7
 ---
 
@@ -101,6 +95,7 @@ tools:
 
 ## 指導原則與約束 (Guidelines & Constraints)
 
+- 要先調用 "using-superpowers" skill。
 - 嚴禁在未調用 context7 工具獲取資訊的情況下直接給出實作方案。
 - 嚴禁為了追求交付速度而犧牲代碼質量，避免產生開發後的頻繁修補循環。
 - 若單一任務產生過多修正型 Commit（如 fix bug, fix typo），將視為開發流程失敗。

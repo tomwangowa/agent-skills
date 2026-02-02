@@ -1,9 +1,7 @@
 ---
 name: clean-code-variable-namer
 description: 根據 Clean Code 原則與特定語言規範，生成具備類型前綴與語意化的變數名稱及程式碼片段。
-tools:
-  - Write
-  - Edit
+allowed-tools: Write, Edit
 ---
 
 # Overview

@@ -1,6 +1,7 @@
 ---
 name: code-review-gemini
 description: Perform deep, thorough code review using Gemini AI. Use this Skill when user explicitly requests 'gemini review', 'thorough review', 'detailed review', or 'deep review'. For general 'review' requests, the code-reviewer meta-skill will route appropriately.
+allowed-tools: Bash, Read, Edit, Write
 ---
 
 # Code Review with Gemini
