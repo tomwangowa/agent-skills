@@ -15,7 +15,7 @@
 
 ## 🎯 Purpose
 
-A lightweight, fast code review skill that provides immediate feedback during development without external dependencies or API keys. Designed as a complementary tool to `tm-code-review-gemini` for rapid validation checks.
+A lightweight, fast code review skill that provides immediate feedback during development without external dependencies or API keys. Designed as a complementary tool to `code-review-gemini` for rapid validation checks.
 
 ### When to Use This Skill
 
@@ -26,7 +26,7 @@ A lightweight, fast code review skill that provides immediate feedback during de
 - Learning and code quality improvement
 - No-setup code review (zero configuration)
 
-❌ **Use `tm-code-review-gemini` instead for:**
+❌ **Use `code-review-gemini` instead for:**
 - Comprehensive security analysis
 - Production release validation
 - Deep architectural reviews
