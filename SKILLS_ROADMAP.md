@@ -24,7 +24,7 @@ This document tracks all skill ideas, their current status, and implementation p
 | 🔀 Git & Version Control | 1 | code-story-teller |
 | 🎨 Design & UI/UX | 1 | ui-design-analyzer |
 | 🚀 Productivity & Content Creation | 3 | interactive-presentation-generator, work-log-analyzer, activity-logger |
-| 🔬 Research & Analysis | 1 | deep-research |
+| 🔬 Research & Analysis | 1 | critical-research |
 
 ### Quality Scores (by skill-auditor)
 

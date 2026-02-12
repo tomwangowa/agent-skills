@@ -68,7 +68,7 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 
 | Skill | Description | Score |
 |-------|-------------|-------|
-| [deep-research](./deep-research/) | Deep research based on Popperian falsificationism - prioritizes counter-evidence to eliminate cognitive bias | ⭐ |
+| [critical-research](./critical-research/) | Falsification-first research that seeks counter-evidence before supporting evidence to eliminate cognitive bias | ⭐ |
 
 ---
 

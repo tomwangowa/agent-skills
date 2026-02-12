@@ -58,7 +58,7 @@ Followed by markdown content containing:
 - **work-log-analyzer** — Query work logs and project history
 - **code-story-teller** — Analyze git history to tell code evolution stories
 - **pr-review-assistant** — Review pull requests with structured feedback
-- **deep-research** — Deep research with falsification-based methodology
+- **critical-research** — Falsification-first research that seeks counter-evidence before supporting evidence
 
 ### Content Generation
 
