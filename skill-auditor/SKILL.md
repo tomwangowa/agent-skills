@@ -579,9 +579,9 @@ Test each check function independently:
 
 ## Integration with Existing Skills
 
-### Relationship with spec-review-assistant
+### Scope Distinction
 
-**spec-review-assistant:**
+**Specification review** (handled by CLAUDE.md directives):
 - Reviews **specification documents** (design docs, requirements)
 - Checks completeness, feasibility, clarity of **requirements**
 - Focus: Pre-implementation planning
@@ -637,11 +637,10 @@ Expected behavior:
 
 ## Notes
 
-- This skill uses Gemini CLI for semantic analysis (similar to spec-review-assistant)
+- This skill uses Gemini CLI for semantic analysis
 - Automated checks complete in < 5 seconds, AI review provides thorough semantic analysis
 - Reports are saved to `~/.claude/audits/` for reference
 - Can be integrated into CI/CD or pre-commit hooks
-- Follows same reporting format as spec-review-assistant for consistency
 - Critical issues must be fixed before sharing skills with team
 - This skill itself should pass its own audit (meta-validation)
 
@@ -700,9 +699,7 @@ Expected behavior:
 ## Integration Points
 
 ### With Other Skills
-- **spec-review-assistant**: Review skill's specification/design
 - **code-review-gemini**: Review skill's scripts (if any)
-- **commit-msg-generator**: Generate commit message after fixes
 
 ### With Git Workflow
 ```bash

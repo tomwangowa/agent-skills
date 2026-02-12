@@ -308,9 +308,7 @@ Claude: [Compares with previous audit]
 
 ## Related Skills
 
-- **spec-review-assistant**: Reviews specification documents
 - **code-review-gemini**: Reviews code changes
-- **commit-msg-generator**: Generates commit messages
 
 **skill-auditor** reviews the skills themselves, ensuring meta-quality.
 

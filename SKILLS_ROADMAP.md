@@ -14,31 +14,23 @@ This document tracks all skill ideas, their current status, and implementation p
 
 ## Overview
 
-**Total Implemented:** 14 skills across 5 categories
+**Total Implemented:** 10 skills across 5 categories
 
 ### By Category
 
 | Category | Count | Skills |
 |----------|-------|--------|
-| 🔍 Code Quality & Review | 3 | code-review-gemini, pr-review-assistant, skill-auditor |
-| 📝 Documentation & Specification | 5 | spec-generator, spec-review-assistant, text-translator, markdown-structurer, markdown-formatter |
-| 🔀 Git & Version Control | 2 | commit-msg-generator, code-story-teller |
+| 🔍 Code Quality & Review | 4 | code-review-gemini, code-review-claude, pr-review-assistant, skill-auditor |
+| 🔀 Git & Version Control | 1 | code-story-teller |
 | 🎨 Design & UI/UX | 1 | ui-design-analyzer |
 | 🚀 Productivity & Content Creation | 3 | interactive-presentation-generator, work-log-analyzer, activity-logger |
+| 🔬 Research & Analysis | 1 | deep-research |
 
 ### Quality Scores (by skill-auditor)
 
 - **103/100** - skill-auditor (meta-validated ✅)
-- **93/100** - markdown-structurer (production-ready ✅)
 - **88/100** - code-review-gemini (production-ready ✅)
-- **83/100** - text-translator (production-ready ✅)
 - **75/100** - interactive-presentation-generator (production-ready ✅)
-
-### Recent Additions (2026-01-28)
-
-- ⭐ **text-translator** - Universal text translation with code and structure preservation
-- ⭐ **markdown-structurer** - Transform plain/flat text into structured Markdown with systematic rules
-- ⭐ **markdown-formatter** - Optimize Markdown structure and whitespace management
 
 ---
 
@@ -56,23 +48,6 @@ Performs automated code reviews on staged changes using Gemini CLI.
 - Identifies bugs, security issues, and best practices
 - Prioritized findings (high/medium/low)
 - Clear actionable feedback
-
-**Dependencies:** Gemini CLI, Git
-
----
-
-### 🟢 commit-msg-generator
-**Status:** Implemented
-**Category:** Development Workflow
-**Trigger:** "generate commit message", "help me write commit message"
-
-Generates high-quality commit messages following Conventional Commits specification.
-
-**Features:**
-- Analyzes staged changes
-- Follows Conventional Commits format
-- Intelligent type detection (feat/fix/refactor/etc.)
-- Explains what and why, not how
 
 **Dependencies:** Gemini CLI, Git
 
@@ -120,53 +95,6 @@ AI-powered pull request reviewer that provides comprehensive, structured feedbac
 **Dependencies:** Gemini CLI, GitHub CLI, Git
 
 **Complexity:** Medium-High
-
----
-
-### 🟢 spec-review-assistant
-**Status:** Implemented
-**Category:** Documentation & Quality Assurance
-**Trigger:** "review this spec", "check specification", "validate requirements doc"
-
-Reviews specification documents before implementation to identify gaps, ambiguities, and potential issues.
-
-**Features:**
-- 5-dimensional analysis: Completeness, Feasibility, Clarity, Workload, Codebase Integration
-- Checks for all 8 essential sections (Background, Requirements, Design, Error Handling, Security, Testing, Deployment, Metrics)
-- Detects vague terms and suggests specific metrics
-- AI-powered contradiction detection
-- Supports 25+ programming languages
-- Generates structured review report with prioritized issues
-- Optional codebase integration (--with-codebase flag)
-
-**Dependencies:** Gemini CLI, jq, Git (optional)
-
-**Complexity:** Medium-High
-
----
-
-### 🟢 spec-generator
-**Status:** Implemented
-**Category:** Documentation & Planning
-**Trigger:** "generate a spec", "create specification", "I need a spec document"
-
-Generates complete specification documents from simple ideas using Claude's AI capabilities.
-
-**Features:**
-- Transforms brief ideas into comprehensive 150+ line specifications
-- Generates all 8 essential sections automatically
-- Uses Claude Code directly (no external dependencies!)
-- Context-aware (adapts to project tech stack)
-- Produces review-ready specs that pass spec-review-assistant validation
-- Automatic filename suggestion and directory detection
-- Integrated validation (checks for placeholders, vague terms)
-- Conversational refinement (iterate on sections as needed)
-
-**Dependencies:** None - uses Claude Code's native capabilities
-
-**Complexity:** Medium
-
-**Integration:** Works seamlessly with spec-review-assistant for validation
 
 ---
 
@@ -370,140 +298,13 @@ Meta-skill that audits other skills for quality, security, and production readin
 **Quality Score:** 103/100 (self-audit passed ✅, meta-validation success)
 
 **Integration Points:**
-- Complements spec-review-assistant (reviews specs vs reviews skills)
 - Can trigger code-review-gemini for script quality checks
-- Provides templates that align with spec-review standards
 - Git hook ready for pre-commit validation
 
 **Three-Round Review:**
 - Spec Review: Fixed 7 critical, 21 important issues
 - Code Review (Gemini): Fixed critical report generation flaw (sed portability)
 - Self-Audit: Achieved 103/100 (meta-validation proves correctness)
-
----
-
-### 🟢 markdown-structurer
-**Status:** Implemented
-**Category:** Documentation & Content Processing
-**Trigger:** "structurize this text", "add structure to markdown", "enrich this document", "make it structured"
-
-Transform plain or flat narrative text into well-structured Markdown by adding headers, tables, code blocks, diagrams, and tags based on systematic decision rules.
-
-**Features:**
-- **Systematic decision framework** - Pattern matching for headers (方法 1/2/3, 首先...然後), tables (❌ vs ✅, comparisons), code blocks (YAML, bash, technical terms)
-- **6 structure types:** Headers (H1/H2/H3), Tables, Code blocks, Mermaid diagrams, Bold emphasis, Tags
-- **Quality rules:** No HTML in tables, stop at H3, ask before adding Mermaid, concise cells (< 100 chars)
-- **User interaction:** Asks permission before adding Mermaid diagrams
-- **Integration:** Works standalone or with markdown-formatter for complete document processing
-- **Before/after examples:** See `examples/` directory for visual comparison
-- **Rationalization table:** Prevents common mistakes and shortcuts
-
-**Dependencies:** None - uses Claude Code's native capabilities
-
-**Complexity:** Medium
-
-**Use Cases:**
-- Convert plain notes to professional documentation
-- Structure meeting minutes and work logs
-- Enrich draft specifications with proper formatting
-- Transform text exports into readable Markdown
-- Prepare documents for technical audiences
-
-**Quality Score:** 93/100 (audited by skill-auditor, production-ready ✅)
-
-**Development Process:**
-- Built using TDD approach (RED-GREEN-REFACTOR)
-- Baseline test identified 6 key issues
-- Systematic rules address agent rationalizations
-- Passed skill-auditor with 93/100 score
-
-**Integration Points:**
-- **markdown-formatter:** Pre-process with formatter for whitespace cleanup
-- **spec-generator:** Post-process generated specs for better structure
-- **work-log-analyzer:** Structure extracted content for better readability
-
----
-
-### 🟢 markdown-formatter
-**Status:** Implemented
-**Category:** Documentation & Content Processing
-**Trigger:** "format this markdown", "clean up document structure", "fix markdown spacing", "optimize whitespace"
-
-Optimize Markdown file structure and whitespace management without changing any original content - focuses purely on spacing, line breaks, and visual presentation.
-
-**Features:**
-- **Conservative approach:** Never modifies text content, only adjusts whitespace
-- **Standardized spacing:** One blank line after headers, no blank lines between list items
-- **Clean ending:** Ensures exactly one newline at file end
-- **Trailing space removal:** Eliminates all line-end spaces
-- **Consistent structure:** Headers have one blank line above (except at start) and below
-- **List formatting:** Proper spacing around list blocks
-
-**Dependencies:** None - uses Claude Code's Read, Write, Edit tools
-
-**Complexity:** Low-Medium
-
-**Use Cases:**
-- Pre-commit formatting standardization
-- Clean up documents before sharing
-- Standardize team documentation style
-- Prepare files for version control
-- Pre-process before markdown-structurer
-
-**Integration Points:**
-- **markdown-structurer:** Use formatter first, then add structure
-- **spec-generator:** Clean up generated specs
-- **Version control:** Pre-commit hook for consistent formatting
-
-**Development Approach:**
-- Complements markdown-structurer (formatter = spacing, structurer = content)
-- Can work independently or as part of document processing pipeline
-
----
-
-### 🟢 text-translator
-**Status:** Implemented
-**Category:** Documentation & Content Processing
-**Trigger:** "translate to", "翻譯成", "convert to", "translate this"
-
-Translate text content to target language while preserving code and Markdown structure.
-
-**Features:**
-- **Universal translation:** Handles plain text, Markdown, and other text files
-- **Smart preservation:** Code blocks, inline code, technical terms completely untouched
-- **Markdown intelligence:** Preserves headers, lists, tables, quotes while translating content
-- **Natural language interface:** Detect target language from keywords (English, 英文, 日本語, etc.)
-- **Format detection:** Automatically detects Markdown and applies preservation rules
-- **Technical term handling:** Preserves API, HTTP, REST, proper nouns, programming keywords
-- **Link preservation:** Translates link text, preserves URLs
-- **Auto-integration:** Called by markdown-structurer when translation detected
-- **Error handling:** Graceful degradation, quality warnings, interactive clarification
-- **No language limits:** Supports any language Claude understands
-
-**Dependencies:** None - uses Claude Code's native translation capabilities
-
-**Complexity:** Low-Medium
-
-**Use Cases:**
-- Translate README files for international audiences
-- Create multilingual technical documentation
-- Convert notes to target language
-- Prepare content for multilingual teams
-- Translation + structuring workflow (via markdown-structurer integration)
-- Localize documentation for different regions
-
-**Quality Score:** 83/100 (audited by skill-auditor, production-ready ✅)
-
-**Integration Points:**
-- **markdown-structurer:** Auto-calls translator when "翻譯" detected - seamless single-command workflow
-- **markdown-formatter:** Can format before/after translation for clean output
-- **spec-generator:** Can translate generated specs for international teams
-
-**Development Approach:**
-- Simpler separation of concerns than integrated i18n
-- Single responsibility: translation only
-- Extensible for other skills to call
-- No external dependencies
 
 ---
 
@@ -851,12 +652,12 @@ Checks for outdated dependencies and security vulnerabilities.
 
 ## Document Template Extensions
 
-### ⚪ spec-generator: Multi-Template Support
+### ⚪ Document Template Generator: Multi-Template Support
 **Category:** Documentation & Planning
 **Priority:** Medium
 **Trigger:** "generate ADR", "create post-mortem", "write API docs"
 
-Extend spec-generator to support multiple document templates beyond technical specifications.
+Claude-native template generation supporting multiple document templates for technical documentation.
 
 **Proposed Templates** (in priority order):
 
@@ -1018,8 +819,8 @@ Generate a performance report based on my load test results
 
 ### Implementation Approach
 
-**Option A: Extend spec-generator (Recommended)**
-- Add template detection to spec-generator
+**Option A: Claude-native template generation (Recommended)**
+- Use Claude Code's native capabilities for template generation
 - Automatically select template based on user's request
 - Use Claude's understanding to choose the right format
 
@@ -1037,7 +838,7 @@ Generate a performance report based on my load test results
 - Per template: 1-2 hours (define structure and examples)
 - Total for 3 templates: 10-12 hours
 
-**Dependencies**: None - extends existing spec-generator (Claude-powered)
+**Dependencies**: None - uses Claude Code's native capabilities
 
 ---
 
@@ -1056,7 +857,7 @@ When implementing a new skill:
 
 2. **Use existing skills during development**
    - Use `code-review-gemini` to review changes
-   - Use `commit-msg-generator` for commit messages
+   - Follow Conventional Commits format for commit messages
 
 3. **Update this roadmap**
    - Move skill from "Planned" to "In Progress"
@@ -1106,5 +907,5 @@ To propose a new skill:
 
 ---
 
-**Last Updated:** 2026-01-28
+**Last Updated:** 2026-02-12
 **Next Review:** End of Q1 2026

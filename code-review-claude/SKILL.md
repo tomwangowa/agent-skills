@@ -508,9 +508,8 @@ Recommendations:
 
 ## Related Skills
 
-- **tm-code-review-gemini**: Comprehensive external AI code review
-- **tm-commit-msg-generator**: Generate commit messages after review
-- **tm-pr-review-assistant**: Review pull requests before merging
+- **code-review-gemini**: Comprehensive external AI code review
+- **pr-review-assistant**: Review pull requests before merging
 
 ---
 

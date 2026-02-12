@@ -442,7 +442,8 @@ claude "show me the review checklist"
 
 ---
 
-**版本：** 1.0
+**版本：** 1.1
 **創建日期：** 2026-01-22
+**更新日期：** 2026-02-12
 **作者：** Tom Wang
-**狀態：** Living Document（持續更新）
+**狀態：** Archived — `code-reviewer` meta-skill 已於 2026-02-12 退役，路由邏輯已移至 `~/.claude/CLAUDE.md` 中的指令。本文保留作為設計模式參考。

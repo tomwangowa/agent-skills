@@ -1,13 +1,13 @@
 
 這個 repository 計畫收錄我在實務工作中使用的 Claude Code Skills，
-主要目的是將一些重複性高、容易出錯、但又需要一致品質的工程任務（例如 code review、生成 commit message、分析 git history、生成並且審查規格書等）流程化、標準化。
+主要目的是將一些重複性高、容易出錯、但又需要一致品質的工程任務（例如 code review、分析 git history、深度研究等）流程化、標準化。
 
 這些 Skills 都是以「工程可預期、可審計、不依賴魔法」為設計原則，
 可以直接安裝到本機的 Claude Code 環境中使用，也歡迎依照團隊需求自行擴充或修改。
 
 另外，我在 Claude Code 裡加入「Review Code with Gemini」的 Skill，主要目的不是追求多一個 AI，而是降低單一模型的盲點。Claude 負責主要開發與上下文理解，但它在檢視自己產生的程式碼時，容易對既有結構過度合理化；Gemini 則扮演相對保守的 reviewer，特別擅長抓邏輯漏洞、邊界條件與防禦性不足的地方。
 
-目前流程是：每完成一個小任務就自動調用 Gemini review，依回饋修正直到 fully approved，確保風險在早期被攔下；最後再用 Gemini 產生一致且可讀的 commit message。這樣做的價值在於把 code review 前移、系統化，並模擬實際團隊中「作者與 reviewer 分工」的狀態，而不是取代人類判斷。
+目前流程是：每完成一個小任務就自動調用 Gemini review，依回饋修正直到 fully approved，確保風險在早期被攔下。這樣做的價值在於把 code review 前移、系統化，並模擬實際團隊中「作者與 reviewer 分工」的狀態，而不是取代人類判斷。
 
 ---
 
@@ -35,29 +35,19 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 
 ### 📊 Skills by Category
 
-#### 🔍 Code Quality & Review (3 skills)
+#### 🔍 Code Quality & Review (4 skills)
 
 | Skill | Description | Score |
 |-------|-------------|-------|
 | [code-review-gemini](./code-review-gemini/) | Automated code review on staged changes using Gemini AI - detects security issues, bugs, and quality problems | 88/100 ✅ |
+| [code-review-claude](./code-review-claude/) | Fast native code review using Claude Code's built-in capabilities - rapid validation without external dependencies | ⭐ |
 | [pr-review-assistant](./pr-review-assistant/) | Comprehensive pull request reviewer with structured feedback and risk assessment | ⭐ |
 | [skill-auditor](./skill-auditor/) ⭐ NEW | Meta-skill that audits other skills for quality, security, and production readiness | 103/100 ✅ |
 
-#### 📝 Documentation & Specification (5 skills)
+#### 🔀 Git & Version Control (1 skill)
 
 | Skill | Description | Score |
 |-------|-------------|-------|
-| [spec-generator](./spec-generator/) | Generate complete specification documents (150+ lines, 8 sections) from simple ideas | ⭐ |
-| [spec-review-assistant](./spec-review-assistant/) | Review specs before implementation - 5-dimensional analysis for completeness, feasibility, clarity | ⭐ |
-| [text-translator](./text-translator/) ⭐ NEW | Translate text content to any language - preserves code and Markdown structure | 83/100 ✅ |
-| [markdown-structurer](./markdown-structurer/) ⭐ NEW | Transform plain/flat text into structured Markdown - adds headers, tables, code blocks, diagrams based on systematic rules | 93/100 ✅ |
-| [markdown-formatter](./markdown-formatter/) | Optimize Markdown structure and whitespace - improves readability without changing content | ⭐ |
-
-#### 🔀 Git & Version Control (2 skills)
-
-| Skill | Description | Score |
-|-------|-------------|-------|
-| [commit-msg-generator](./commit-msg-generator/) | Generate high-quality commit messages following Conventional Commits specification | ⭐ |
 | [code-story-teller](./code-story-teller/) | Analyze git history to tell the evolutionary story and design decisions of code files | ⭐ |
 
 #### 🎨 Design & UI/UX (1 skill)
@@ -74,18 +64,22 @@ Skills are user-defined prompts that Claude Code can invoke when specific phrase
 | [work-log-analyzer](./work-log-analyzer/) | Analyze work logs to track evolution, manage TODOs, extract action items, aggregate activities - 6 query types | ⭐ |
 | [activity-logger](./activity-logger/) | Record work activities from current session for cross-session tracking and reporting | ⭐ |
 
+#### 🔬 Deep Research (1 skill)
+
+| Skill | Description | Score |
+|-------|-------------|-------|
+| [deep-research](./deep-research/) | Deep research based on Popperian falsificationism - prioritizes counter-evidence to eliminate cognitive bias | ⭐ |
+
 ---
 
 ### 📈 Quality Scores
 
 Skills audited by [skill-auditor](./skill-auditor/):
 - **103/100** - skill-auditor (meta-validated ✅)
-- **93/100** - markdown-structurer (production-ready ✅)
 - **88/100** - code-review-gemini (production-ready ✅)
-- **83/100** - text-translator (production-ready ✅)
 - **75/100** - interactive-presentation-generator (production-ready ✅)
 
-**Total:** 14 skills across 5 categories
+**Total:** 10 skills across 5 categories
 
 ## Quick Start
 
@@ -161,25 +155,6 @@ gemini "Hello, test"
    - Run the review script
    - Show you which files are being reviewed
    - Provide a prioritized summary of findings
-
-### Using commit-msg-generator
-
-1. Stage your changes:
-   ```bash
-   git add <files>
-   ```
-
-2. In Claude Code, request a commit message:
-   ```
-   > generate commit message
-   > help me write a commit message
-   > create commit description
-   ```
-
-3. Claude Code will:
-   - Analyze the staged changes
-   - Generate a commit message following Conventional Commits
-   - Provide a command to use the message
 
 ### Example Workflow
 
@@ -319,11 +294,6 @@ Each skill may have its own dependencies. Check the individual skill directories
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - Git (must be run inside a git repository)
 
-### commit-msg-generator
-
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
-- Git (must be run inside a git repository with staged changes)
-
 ### code-story-teller
 
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
@@ -334,17 +304,6 @@ Each skill may have its own dependencies. Check the individual skill directories
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - [GitHub CLI](https://cli.github.com/): Install from https://cli.github.com/
 - Git with access to the PR repository
-
-### spec-review-assistant
-
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
-- jq: `brew install jq` (macOS) or `apt-get install jq` (Ubuntu)
-- Git (optional, for codebase integration)
-
-### spec-generator
-
-- **No external dependencies required!** Uses Claude Code's native capabilities
-- Works immediately out of the box
 
 ### ui-design-analyzer
 
@@ -382,31 +341,6 @@ Each skill may have its own dependencies. Check the individual skill directories
   - `grep`, `sed`, `find`, `mktemp` (standard Unix tools)
 - **Optional:** Gemini CLI (for AI-powered semantic analysis)
 - Performs automated quality audits on skills in < 5 seconds
-
-### text-translator
-
-- **No external dependencies required!** Uses Claude Code's native translation capabilities
-- Translates any text content while preserving code and Markdown structure
-- Supports any language Claude understands (English, Traditional Chinese, Japanese, etc.)
-- Auto-integrates with markdown-structurer for translation + structuring workflows
-- Smart preservation: code blocks, inline code, technical terms completely untouched
-- See [examples/](./text-translator/examples/) for plain text and Markdown examples
-
-### markdown-structurer
-
-- **No external dependencies required!** Uses Claude Code's native capabilities
-- Transforms plain or flat text into structured Markdown
-- **Auto-detects translation requests** and calls text-translator automatically
-- Systematic decision framework with pattern matching
-- Can integrate with markdown-formatter for complete document processing
-- See [examples/](./markdown-structurer/examples/) for before/after comparisons
-
-### markdown-formatter
-
-- **No external dependencies required!** Uses Claude Code's native capabilities
-- Optimizes Markdown structure and whitespace management
-- Preserves all original content - only adjusts formatting
-- Works standalone or as pre-processor for markdown-structurer
 
 ## Documentation
 

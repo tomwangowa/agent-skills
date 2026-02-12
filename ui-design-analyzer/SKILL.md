@@ -605,9 +605,9 @@ Side-by-side analysis of design vs implementation or before vs after.
 
 ## Integration with Other Skills
 
-### With spec-generator
+### With Specification Workflow
 ```
-1. Generate feature spec (spec-generator)
+1. Write feature spec (see CLAUDE.md spec guidelines)
 2. Designer creates mockup
 3. Analyze mockup (ui-design-analyzer) ← Catch issues before coding
 4. Implement based on spec and feedback
@@ -664,8 +664,6 @@ Recommendations for responsive design:
 
 ## Related Skills
 
-- **spec-generator**: Generate specs for UI features
-- **spec-review-assistant**: Review UI feature specifications
 - **code-review-gemini**: Review UI implementation code
 
 **Recommended Workflow**:

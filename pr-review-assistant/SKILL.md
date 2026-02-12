@@ -346,7 +346,6 @@ gh pr list
 ## Related Skills
 
 - **code-review-gemini** - Review staged changes before committing
-- **commit-msg-generator** - Generate commit messages
 - **code-story-teller** - Understand code evolution
 - **pr-description-generator** - Create PR descriptions (coming soon)
 

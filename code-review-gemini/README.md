@@ -252,17 +252,15 @@ git add <files>  # Stage files first
 ## Integration with Other Skills
 
 ### Works well with:
-- **spec-review-assistant**: Review specs before implementation
-- **commit-msg-generator**: Generate commit message after fixing issues
+- **code-review-claude**: Quick native review for small changes
 - **pr-review-assistant**: Final review before merging
 
 ### Typical Workflow:
 ```
-1. spec-review-assistant → Review requirements
-2. [Write code]
-3. code-review-gemini → Review implementation  ← You are here
-4. commit-msg-generator → Generate commit message
-5. pr-review-assistant → Final PR review
+1. [Write code]
+2. code-review-gemini → Review implementation  ← You are here
+3. [Commit with Conventional Commits format]
+4. pr-review-assistant → Final PR review
 ```
 
 ## File Structure

@@ -535,7 +535,6 @@ A: Not directly, but you can modify the prompt to include team guidelines.
 ## Related Skills
 
 - **code-review-gemini** - Review staged changes before commit
-- **commit-msg-generator** - Generate commit messages
 - **code-story-teller** - Understand code evolution
 - **pr-description-generator** - Create PR descriptions (coming soon)
 - **pr-merge-readiness-checker** - Automated merge checks (coming soon)

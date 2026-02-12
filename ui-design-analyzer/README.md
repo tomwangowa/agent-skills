@@ -480,24 +480,11 @@ Analyze this UI and give me CSS code to fix the color contrast issues
 ```
 1. Designer creates mockup
 2. ui-design-analyzer reviews design ← Catch issues early
-3. spec-generator creates implementation spec
+3. Write implementation spec (see CLAUDE.md spec guidelines)
 4. Developers implement
 5. ui-design-analyzer checks implementation ← Verify match
 6. code-review-gemini reviews code
 7. Ship with confidence!
-```
-
-### With spec-generator
-
-```
-You: Analyze this UI, then generate an implementation spec
-
-Claude:
-1. Analyzes screenshot
-2. Identifies requirements from UI
-3. Generates complete spec including noted issues
-
-Result: Spec that addresses design problems from the start
 ```
 
 ## Common Questions
@@ -646,8 +633,6 @@ Action items to achieve compliance:
 
 ## Related Skills
 
-- **spec-generator**: Generate implementation specs for UI features
-- **spec-review-assistant**: Review UI feature specifications
 - **code-review-gemini**: Review UI implementation code
 
 ## Support

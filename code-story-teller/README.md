@@ -208,7 +208,7 @@ Generated stories are valuable documentation:
 
 Use alongside other skills:
 - **Before refactoring:** Tell story → Make changes → Review with code-review-gemini
-- **After major work:** Tell story → Generate commit with commit-msg-generator
+- **After major work:** Tell story → Commit with Conventional Commits format
 - **For releases:** Tell story → Use for release notes
 
 ### 5. Regular Analysis
@@ -326,9 +326,8 @@ git add src/modules/payment/processor.js
 # > Review the staged files
 # (Use code-review-gemini skill)
 
-# 6. Generate commit message
-# > Generate commit message
-# (Use commit-msg-generator skill)
+# 6. Commit changes
+git commit -m "refactor(payment): improve error handling for edge cases"
 
 # 7. Commit
 git commit -F /tmp/commit_msg_result.txt
@@ -363,7 +362,7 @@ A: Usually 5-15 seconds per file, depending on history complexity and API latenc
 ## Related Skills
 
 - **code-review-gemini** - Review code quality before committing
-- **commit-msg-generator** - Generate commit messages
+- **work-log-analyzer** - Combine code history with work log context
 - **release-notes-generator** - Generate release documentation (coming soon)
 
 ## Contributing

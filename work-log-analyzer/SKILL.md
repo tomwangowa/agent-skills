@@ -466,10 +466,8 @@ See 2026-01-10 entry for initial discussion
 
 ## Integration with Other Skills
 
-- **commit-msg-generator**: Use log insights to write better commit messages
 - **code-story-teller**: Combine code history with work log context
-- **spec-generator**: Reference log decisions when generating specs
-- **spec-review-assistant**: Check if implementation matches log decisions
+- **activity-logger**: Structured activity records for aggregation
 
 ---
 

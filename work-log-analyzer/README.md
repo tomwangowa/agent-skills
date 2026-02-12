@@ -537,19 +537,14 @@ Follows up on 2026-01-05 decision about database choice
 
 ### With Other Skills
 
-1. **commit-msg-generator**
-   ```
-   幫我根據 work.md 今天的工作記錄生成 commit message
-   ```
-
-2. **code-story-teller**
+1. **code-story-teller**
    ```
    結合 work.md 和 src/auth.js 的 git history，說明認證系統的完整演進
    ```
 
-3. **spec-generator**
+2. **activity-logger**
    ```
-   根據 devlog.md 中關於「推薦系統」的討論和決策，生成完整的功能規格
+   根據今天的活動記錄彙總工作進度
    ```
 
 ### With External Tools

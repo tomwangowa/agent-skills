@@ -7,7 +7,7 @@
 ### Superpowers Skills
 - **來源**: `/Users/tom_wang/Development/3rdparty/superpowers/skills`
 - **前綴**: `sp-`
-- **範例**: `sp-brainstorming`, `sp-systematic-debugging`
+- **範例**: `sp-systematic-debugging`, `sp-test-driven-development`
 
 ## 使用方法
 
@@ -35,7 +35,7 @@
 ~/.claude/skills/
 ├── activity-logger/           # 自己的技能
 ├── code-review-gemini/        # 自己的技能
-├── sp-brainstorming/          # symlink -> superpowers
+├── sp-systematic-debugging/   # symlink -> superpowers
 ├── sp-systematic-debugging/   # symlink -> superpowers
 └── ...
 ```

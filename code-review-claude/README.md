@@ -399,10 +399,9 @@ Total files: 3 | High: 1 | Medium: 1 | Low: 1
 
 ## 🔗 Related Skills
 
-- **tm-code-review-gemini**: Comprehensive external AI code review
-- **tm-commit-msg-generator**: Generate commit messages after review
-- **tm-pr-review-assistant**: Review pull requests before merging
-- **tm-code-story-teller**: Understand code history and evolution
+- **code-review-gemini**: Comprehensive external AI code review
+- **pr-review-assistant**: Review pull requests before merging
+- **code-story-teller**: Understand code history and evolution
 
 ---
 
