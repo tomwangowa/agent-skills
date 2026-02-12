@@ -267,4 +267,4 @@ Step 8 → Report with 89% accuracy score
 - **critical-research** — Uses the same falsification-first methodology for web research. Verdict system aligned.
 - **code-review-gemini** — Complements audits with code quality review (includes adversarial pass).
 - **code-review-claude** — Quick code quality checks (includes adversarial quick check).
-- **sp-verification-before-completion** — Applies similar rigor to completion claims (includes adversarial self-verification).
+- **verification-before-completion** — Applies similar rigor to completion claims (includes adversarial self-verification).
