@@ -41,7 +41,6 @@ Followed by markdown content containing:
 
 - **sp-test-driven-development** — TDD workflow: write tests before implementation
 - **sp-systematic-debugging** — Structured debugging before proposing fixes
-- **verification-before-completion** — Evidence-based verification + adversarial self-check before claiming done
 - **sp-writing-plans** — Plan multi-step tasks before touching code
 - **sp-executing-plans** — Execute implementation plans with review checkpoints
 - **sp-dispatching-parallel-agents** — Dispatch independent tasks to parallel agents
@@ -61,6 +60,7 @@ Followed by markdown content containing:
 - **critical-research** — Falsification-first research that seeks counter-evidence before supporting evidence
 - **tech-feasibility** — Evaluate whether a technology can solve a specific problem before committing to implementation
 - **codebase-audit** — Claims-first audit: extract documentation claims and verify against code
+- **verification-before-completion** — Evidence-based verification + adversarial self-check before claiming done
 
 ### Content Generation
 
