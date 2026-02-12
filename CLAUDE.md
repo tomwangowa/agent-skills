@@ -59,6 +59,7 @@ Followed by markdown content containing:
 - **code-story-teller** — Analyze git history to tell code evolution stories
 - **pr-review-assistant** — Review pull requests with structured feedback
 - **critical-research** — Falsification-first research that seeks counter-evidence before supporting evidence
+- **tech-feasibility** — Evaluate whether a technology can solve a specific problem before committing to implementation
 
 ### Content Generation
 
