@@ -61,8 +61,14 @@ Your final response should be structured and concise, and must include:
 - **Low priority or stylistic suggestions**  
   Readability, naming, formatting, or minor best-practice improvements.
 
-- **Actionable next steps**  
+- **Actionable next steps**
   Concrete recommendations that the developer can realistically act on.
+
+- **Adversarial findings** (tagged `[ADVERSARIAL]`)
+  Issues discovered through active probing — edge-case inputs, unvalidated assumptions, tests that don't actually verify what they claim.
+
+- **Assumptions identified**
+  Implicit assumptions the code makes but does not validate (e.g., input shape, ordering, environment state, "this path won't be reached").
 
 Do not repeat the full raw Gemini output verbatim unless explicitly asked.  
 Your role is to act as a senior reviewer who filters, validates, and prioritizes the findings.
@@ -116,6 +122,27 @@ Your role is to act as a senior reviewer who filters, validates, and prioritizes
    - Code quality and maintainability
    - Best practice violations
 
+### Step 2.5: Adversarial Review Pass
+
+After receiving Gemini's analysis, actively probe the diff with these four questions:
+
+1. **"What input breaks this?"**
+   For each function or branch in the diff, construct at least one concrete input that could cause unexpected behavior (nil, empty, overflow, concurrent, malformed). If no such input exists, state why.
+
+2. **"What does this assume that is not validated?"**
+   List every implicit assumption: input types, ordering guarantees, environment variables present, upstream behavior, "this error won't happen". Each is a finding unless explicitly validated in code.
+
+3. **"Does the test actually test the claim?" (Mirror Test)**
+   For every test in the diff, check whether deleting the implementation would still let the test pass. A test that passes regardless of the code under test is a tautology, not verification. Specific checks:
+   - Is the assertion on the **return value / side effect** of the code under test, or on a mock/stub?
+   - Would replacing the function body with `return null` / `return []` / `pass` cause the test to fail?
+   - Does the test assert on behavior, or merely on the absence of errors?
+
+4. **"Is this a fix or a suppression?"**
+   Check whether the change addresses the root cause or merely silences a symptom (e.g., catching and swallowing errors, adding `|| default` to mask nil, `@SuppressWarnings`, `# type: ignore`).
+
+**Tagging rule:** Any issue discovered through this pass is tagged `[ADVERSARIAL]` in the output. These findings stand alongside (not below) the standard priority categories.
+
 ### Step 3: Validate Findings
 1. Read the "Review Scope" section
 2. Verify all findings map to staged files
@@ -132,7 +159,9 @@ Your role is to act as a senior reviewer who filters, validates, and prioritizes
 1. High priority issues first (security, bugs, crashes)
 2. Medium priority concerns (design, performance)
 3. Low priority suggestions (style, naming)
-4. Actionable next steps
+4. Adversarial findings (`[ADVERSARIAL]` tagged, grouped separately)
+5. Assumptions list (implicit assumptions the code does not validate)
+6. Actionable next steps
 
 ---
 
