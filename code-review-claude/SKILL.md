@@ -108,6 +108,17 @@ Review the code for these aspects in priority order:
 - Minor refactoring opportunities
 - Documentation improvements
 
+### Step 3.5: Adversarial Quick Check
+
+After categorizing findings, run this 4-item checklist against every function or change in the diff:
+
+- [ ] **Assumption exposed?** — Does the code assume something about input, environment, or ordering that is not validated? If yes, note the assumption.
+- [ ] **Mirror test?** — Would any test in the diff still pass if the implementation were deleted or replaced with a no-op? If yes, the test is a tautology.
+- [ ] **Suppression, not fix?** — Does the change silence an error rather than address its root cause (e.g., catch-and-swallow, `|| default`, `@SuppressWarnings`)?
+- [ ] **What breaks this?** — Can you name one concrete input or state that would cause unexpected behavior?
+
+If any item triggers, add it as an `[ADVERSARIAL]` finding. If none trigger, state: "Adversarial quick check: no issues found."
+
 ### Step 4: Generate Review Output
 Present findings in this exact format:
 
@@ -281,6 +292,7 @@ function processData(data) {
 | **Security Focus** | Basic | Advanced |
 | **Best For** | Quick iterations | Final validation |
 | **Trigger Words** | "quick", "native", "fast" | "detailed", "comprehensive", "gemini" |
+| **Adversarial** | Quick checklist (4 items) | Full adversarial pass (4 questions + mirror test) |
 
 ---
 
@@ -307,6 +319,9 @@ function processData(data) {
 - High priority issues: Y
 - Medium priority issues: Z
 - Low priority suggestions: W
+
+## [ADVERSARIAL] Findings (if any)
+1. [file:line] - [ADVERSARIAL] Description of finding from adversarial quick check
 
 ## Actionable Next Steps
 1. Fix critical issue at [location]
