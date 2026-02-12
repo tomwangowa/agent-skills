@@ -32,24 +32,43 @@ Followed by markdown content containing:
 
 ## Available Skills
 
-### code-review-gemini
+### Code Review
 
-Performs code review using the Gemini CLI.
+- **code-review-gemini** — Deep code review using Gemini CLI (default reviewer)
+- **code-review-claude** — Fast native code review using Claude (< 50 lines)
 
-**Trigger phrases:** "review the changed files", "analyze the code changes", "give me a code review"
+### Development Process (sp-* superpowers)
 
-**Workflow:**
-1. Runs `scripts/review_with_gemini.sh`
-2. Reads output from `gemini_review_result.txt`
-3. Summarizes findings to the user
+- **sp-test-driven-development** — TDD workflow: write tests before implementation
+- **sp-systematic-debugging** — Structured debugging before proposing fixes
+- **sp-verification-before-completion** — Evidence-based verification before claiming done
+- **sp-writing-plans** — Plan multi-step tasks before touching code
+- **sp-executing-plans** — Execute implementation plans with review checkpoints
+- **sp-dispatching-parallel-agents** — Dispatch independent tasks to parallel agents
+- **sp-subagent-driven-development** — Execute plans with independent subtasks
+- **sp-requesting-code-review** — Request code review after completing features
+- **sp-receiving-code-review** — Process code review feedback with rigor
+- **sp-finishing-a-development-branch** — Guide branch completion (merge, PR, cleanup)
+- **sp-using-git-worktrees** — Isolated feature work with git worktrees
+- **sp-writing-skills** — Create, edit, and verify skills
 
-**Dependencies:**
-- Gemini CLI (`npm install -g @google/gemini-cli`)
-- Git repository with commits
+### Productivity & Analysis
 
-**Environment variables:**
-- `MAX_DIFF_LINES` - Maximum lines to send to Gemini (default: 5000)
-- `GEMINI_MODEL` - Model to use (default: gemini-3-pro)
+- **activity-logger** — Record work activities for cross-session aggregation
+- **work-log-analyzer** — Query work logs and project history
+- **code-story-teller** — Analyze git history to tell code evolution stories
+- **pr-review-assistant** — Review pull requests with structured feedback
+- **deep-research** — Deep research with falsification-based methodology
+
+### Content Generation
+
+- **interactive-presentation-generator** — Generate Marp/Slidev/reveal.js presentations
+- **ui-design-analyzer** — Analyze UI/UX design from screenshots
+
+### Meta
+
+- **skill-auditor** — Audit skills for quality, security, and best practices
+- **skillshare** — Sync skills across AI CLI tools
 
 ## Creating New Skills
 
