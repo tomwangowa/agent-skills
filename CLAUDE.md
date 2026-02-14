@@ -37,8 +37,9 @@ Followed by markdown content containing:
 - **code-review-gemini** — Deep code review using Gemini CLI (default reviewer)
 - **code-review-claude** — Fast native code review using Claude (< 50 lines)
 
-### Development Process (sp-* superpowers)
+### Design & Development Process
 
+- **brainstorming** — Socratic design dialogue before any implementation; produces approved design doc
 - **sp-test-driven-development** — TDD workflow: write tests before implementation
 - **sp-systematic-debugging** — Structured debugging before proposing fixes
 - **sp-writing-plans** — Plan multi-step tasks before touching code

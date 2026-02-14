@@ -6,7 +6,7 @@
 
 ## Behavior
 - Critically examine my inputs; point out problems and unreasonable requests immediately
-- Before implementing new features, explore requirements by asking questions one at a time and proposing 2-3 approaches with trade-offs
+- Before implementing new features, **invoke brainstorming skill**. It explores requirements by asking questions one at a time and proposing 2-3 approaches with trade-offs. Only skip when the user provides a complete spec or explicitly requests it.
 - Always ask my approval before committing changes
 - Use Context7 for up-to-date technical documentation
 - Always check for applicable skills before responding to any task
