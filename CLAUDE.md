@@ -60,6 +60,7 @@ Followed by markdown content containing:
 - **critical-research** — Falsification-first research that seeks counter-evidence before supporting evidence
 - **tech-feasibility** — Evaluate whether a technology can solve a specific problem before committing to implementation
 - **codebase-audit** — Claims-first audit: extract documentation claims and verify against code
+- **narrative-auditor** — Audit external narratives against primary sources, or speak as user's AI proxy
 - **verification-before-completion** — Evidence-based verification + adversarial self-check before claiming done
 
 ### Content Generation
