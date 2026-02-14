@@ -487,3 +487,5 @@ See 2026-01-10 entry for initial discussion
 - **Code snippets and technical terms**: English
 - **Dates and times**: ISO format or as they appear in logs
 - **Quotes from logs**: Original language preserved
+
+> Want to turn this into a formal report? Try `report-generator`.
