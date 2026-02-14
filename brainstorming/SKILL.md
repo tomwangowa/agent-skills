@@ -285,4 +285,6 @@ design is so small that a plan would be longer than the implementation.
 - **sp-writing-plans** — the default downstream skill (design → plan)
 - **tech-feasibility** — REQUIRED in Phase 3 for technical decisions
 - **critical-research** — REQUIRED in Phase 3 for factual claims
+- **research-synthesis** — invoke after Phase 3 when 2+ research skills
+  were used, to reconcile findings before presenting design
 - **sp-test-driven-development** — downstream of sp-writing-plans (plan → tests → code)

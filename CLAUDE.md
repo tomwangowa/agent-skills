@@ -60,6 +60,7 @@ Followed by markdown content containing:
 - **pr-review-assistant** — Review pull requests with structured feedback
 - **critical-research** — Falsification-first research that seeks counter-evidence before supporting evidence
 - **tech-feasibility** — Evaluate whether a technology can solve a specific problem before committing to implementation
+- **research-synthesis** — Synthesize findings from multiple research skills into ADR-style decision documents
 - **codebase-audit** — Claims-first audit: extract documentation claims and verify against code
 - **narrative-auditor** — Audit external narratives against primary sources, or speak as user's AI proxy
 - **report-generator** — Generate status reports, project summaries, and retrospectives from activity logs and git history
