@@ -68,6 +68,7 @@ Followed by markdown content containing:
 
 ### Content Generation
 
+- **presentation-planner** — Narrative strategy and slide planning before presentation generation
 - **interactive-presentation-generator** — Generate Marp/Slidev/reveal.js presentations
 - **ui-design-analyzer** — Analyze UI/UX design from screenshots
 
