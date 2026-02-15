@@ -23,7 +23,7 @@ A collection of custom skills for [Claude Code](https://claude.ai/code) that ext
 
 Complete workflow from idea to deployment | 3 days → 1 day efficiency boost | Dual-AI collaboration value | 7 Skills visualized
 
-**More Resources**: [UI/UX Skills Plan](./docs/UI-UX-Skills-Plan.md) · [Skills Roadmap](./SKILLS_ROADMAP.md) · [Docs Index](./docs/README.md)
+**More Resources**: [Cheatsheet (EN)](./cheatsheet/cheatsheet-en.md) · [速查表 (中文)](./cheatsheet/cheatsheet-zh.md) · [UI/UX Skills Plan](./docs/UI-UX-Skills-Plan.md) · [Skills Roadmap](./SKILLS_ROADMAP.md) · [Docs Index](./docs/README.md)
 
 ---
 
