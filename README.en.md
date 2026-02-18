@@ -265,11 +265,21 @@ skill-name/
 
 ---
 
+## Troubleshooting
+
+| Error | Likely Cause | Quick Fix |
+|-------|--------------|-----------|
+| `command not found: gemini` | Gemini CLI not installed | `npm install -g @google/gemini-cli` |
+| `GEMINI_API_KEY not set` | API key not configured | `export GEMINI_API_KEY="..."` |
+| `No staged changes` | Nothing staged | `git add <files>` |
+| `permission denied` | Script not executable | `chmod +x *.sh` |
+| `429 Resource exhausted` | API quota exceeded | Wait or upgrade plan |
+| `401 Unauthorized` | Invalid API key | Generate new key |
+
+---
+
 ## More Documentation
 
-- **[INSTALLATION.md](./INSTALLATION.md)** — Full installation guide
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** — Contribution guidelines
-- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** — Common issues and solutions
 - **[EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md)** — External skills management (sp-* series)
 - **[SKILLS_ROADMAP.md](./SKILLS_ROADMAP.md)** — Skills development roadmap
 - **[Cheatsheet (EN)](./cheatsheet/cheatsheet-en.md)** · **[速查表 (中文)](./cheatsheet/cheatsheet-zh.md)** — Quick reference

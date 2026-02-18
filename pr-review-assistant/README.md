@@ -539,10 +539,6 @@ A: Not directly, but you can modify the prompt to include team guidelines.
 - **pr-description-generator** - Create PR descriptions (coming soon)
 - **pr-merge-readiness-checker** - Automated merge checks (coming soon)
 
-## Contributing
-
-Found ways to improve PR reviews? See [CONTRIBUTING.md](../CONTRIBUTING.md).
-
 ## License
 
 MIT

@@ -265,11 +265,21 @@ skill-name/
 
 ---
 
+## 疑難排解
+
+| 錯誤訊息 | 可能原因 | 快速修復 |
+|----------|---------|---------|
+| `command not found: gemini` | Gemini CLI 未安裝 | `npm install -g @google/gemini-cli` |
+| `GEMINI_API_KEY not set` | API key 未設定 | `export GEMINI_API_KEY="..."` |
+| `No staged changes` | 沒有 staged 的檔案 | `git add <files>` |
+| `permission denied` | 腳本沒有執行權限 | `chmod +x *.sh` |
+| `429 Resource exhausted` | API 配額用盡 | 等待重置或升級方案 |
+| `401 Unauthorized` | API key 無效 | 重新產生 key |
+
+---
+
 ## 更多文件
 
-- **[INSTALLATION.md](./INSTALLATION.md)** — 完整安裝指南
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** — 貢獻指南
-- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** — 常見問題排解
 - **[EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md)** — 外部 skills 管理（sp-* 系列）
 - **[SKILLS_ROADMAP.md](./SKILLS_ROADMAP.md)** — Skills 發展路線圖
 - **[Cheatsheet (EN)](./cheatsheet/cheatsheet-en.md)** · **[速查表 (中文)](./cheatsheet/cheatsheet-zh.md)** — 快速參考

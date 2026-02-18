@@ -365,10 +365,6 @@ A: Usually 5-15 seconds per file, depending on history complexity and API latenc
 - **work-log-analyzer** - Combine code history with work log context
 - **release-notes-generator** - Generate release documentation (coming soon)
 
-## Contributing
-
-Found a way to improve the code stories? See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
-
 ## License
 
 MIT

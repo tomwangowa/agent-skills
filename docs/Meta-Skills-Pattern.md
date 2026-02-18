@@ -436,7 +436,6 @@ claude "show me the review checklist"
 
 ## 相關文檔
 
-- [Skills 開發指南](../CONTRIBUTING.md)
 - [Skills Roadmap](../SKILLS_ROADMAP.md)
 - [UI/UX Skills 架構方案](./UI-UX-Skills-Plan.md)
 

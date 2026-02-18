@@ -644,10 +644,6 @@ Output:
 - Lessons learned
 ```
 
-## Contributing
-
-Have ideas for improving this skill? See [CONTRIBUTING.md](../CONTRIBUTING.md) for how to contribute.
-
 ## License
 
 This skill is part of the Claude Code Skills repository.
