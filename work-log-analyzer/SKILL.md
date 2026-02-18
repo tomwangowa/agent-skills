@@ -44,54 +44,38 @@ When the user provides a log file and asks a question (for example: "關於 Sell
    - Parse the structure (dates, sections, TODOs, etc.)
    - Identify the format (Markdown, plain text, structured, unstructured)
 
-4. **Understand the query**
-   - **Activity queries** (NEW): "aggregate my activities", "show me today's work", "what did I do this week"
-     - Use the `<skill_base_directory>/scripts/aggregate_activities.sh` helper script
-     - Aggregates structured activity records from activity-logger
-     - Supports filtering by date range, project, type, and tags
-     - Formats output as readable work log or structured report
-     - Query types:
-       - Date range: today, yesterday, this-week, last-week, this-month, all
-       - By project: specific project activities
-       - By type: task_completed, bug_fixed, refactoring, research, documentation, review
-       - By tag: activities with specific tags
-     - Output modes:
-       - by-date: Chronological daily report
-       - by-project: Grouped by project
-       - by-type: Grouped by activity type
-       - json: Raw JSON for further processing
+4. **Understand the query** — classify into one of 5 query types:
 
-   - **Timeline queries**: "X 的演進", "how did X evolve", "X 的變化"
-     - Extract all entries related to the topic
-     - Sort chronologically
+   - **Activity Aggregation** (活動聚合): "aggregate my activities", "show me today's work", "what did I do this week"
+     - Use `<skill_base_directory>/scripts/aggregate_activities.sh` to aggregate structured activity records from activity-logger
+     - Filter by date range (`today`, `yesterday`, `this-week`, `last-week`, `this-month`, `all`), project, type, or tag
+     - Output modes: `by-date` (chronological), `by-project`, `by-type`, `json` (raw)
+
+   - **Timeline** (時間軸): "X 的演進", "how did X evolve", "X 的變化"
+     - Extract all entries related to the topic, sort chronologically
      - Summarize major milestones and decisions
-     - Can now also query activity records for technical evolution
+     - Also query activity records for technical evolution
 
-   - **TODO queries**: "未完成的 TODO", "過期的任務", "pending tasks"
-     - Extract all TODO items
-     - Categorize by status (pending, in-progress, completed)
-     - Identify the current date from system context to accurately calculate overdue tasks (if system date unavailable, use the latest date found in the log file as reference)
-     - Check due dates against current date and resolve relative dates (e.g., "yesterday", "last week")
-     - Prioritize overdue items
+   - **TODO Management** (TODO 管理): "未完成的 TODO", "過期的任務", "pending tasks"
+     - Extract all TODO items, categorize by status (pending, in-progress, completed)
+     - Use current system date (or latest log date as fallback) to calculate overdue tasks
+     - Resolve relative dates (e.g., "yesterday", "last week") and prioritize overdue items
 
-   - **Decision queries**: "為什麼選擇 X", "X 的決策過程", "when was X decided"
-     - Find relevant discussions and decisions
-     - Extract rationale and context
+   - **Decision Tracking** (決策追溯): "為什麼選擇 X", "X 的決策過程", "when was X decided"
+     - Find relevant discussions, extract rationale and context
      - Identify decision makers or influencing factors
-     - Can now also search activity contexts for decision rationale
+     - Also search activity contexts for decision rationale
 
-   - **Search queries**: General keyword search
-     - Find all mentions of the topic
-     - Provide context around each mention
-     - Group related entries
+   - **General Search** (通用搜尋): keyword or topic search
+     - Find all mentions, provide surrounding context, group related entries
 
-4. **Analyze and synthesize**
+5. **Analyze and synthesize**
    - Connect related entries across different dates
    - Identify patterns and trends
    - Highlight important context
    - Note any gaps or missing information
 
-5. **Present findings**
+6. **Present findings**
    - Structure the answer clearly
    - Include dates and references
    - Quote relevant excerpts
@@ -180,7 +164,7 @@ For best results, maintain consistent formatting throughout your logs.
 
 ## Examples
 
-### Example 1: Activity Aggregation Query (NEW)
+### Example 1: Activity Aggregation
 
 **User:**
 > Aggregate my activities from this week
@@ -236,7 +220,7 @@ For best results, maintain consistent formatting throughout your logs.
 
 ---
 
-### Example 2: Timeline Evolution Query
+### Example 2: Timeline
 
 **User:**
 > 我有一個 work.md 檔案，幫我分析「關於 SellerCheck 實作方案的演進」
@@ -272,7 +256,7 @@ For best results, maintain consistent formatting throughout your logs.
 
 ---
 
-### Example 2: TODO Management Query
+### Example 3: TODO Management
 
 **User:**
 > 檢查我的 journal.md，哪些 TODO 還沒完成？哪些已經過期？
@@ -317,7 +301,7 @@ For best results, maintain consistent formatting throughout your logs.
 
 ---
 
-### Example 3: Decision Query
+### Example 4: Decision Tracking
 
 **User:**
 > 從 devlog.txt 找出「Lite Engagement 的 L10n 翻譯何時確定的？」
@@ -349,7 +333,7 @@ For best results, maintain consistent formatting throughout your logs.
 
 ---
 
-### Example 4: General Search Query
+### Example 5: General Search
 
 **User:**
 > 搜尋 notes.md 中關於「authentication」的所有提及
