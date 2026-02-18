@@ -1,384 +1,280 @@
-
-這個 repository 計畫收錄我在實務工作中使用的 Claude Code Skills，
-主要目的是將一些重複性高、容易出錯、但又需要一致品質的工程任務（例如 code review、分析 git history、深度研究等）流程化、標準化。
-
-這些 Skills 都是以「工程可預期、可審計、不依賴魔法」為設計原則，
-可以直接安裝到本機的 Claude Code 環境中使用，也歡迎依照團隊需求自行擴充或修改。
-
-另外，我在 Claude Code 裡加入「Review Code with Gemini」的 Skill，主要目的不是追求多一個 AI，而是降低單一模型的盲點。Claude 負責主要開發與上下文理解，但它在檢視自己產生的程式碼時，容易對既有結構過度合理化；Gemini 則扮演相對保守的 reviewer，特別擅長抓邏輯漏洞、邊界條件與防禦性不足的地方。
-
-目前流程是：每完成一個小任務就自動調用 Gemini review，依回饋修正直到 fully approved，確保風險在早期被攔下。這樣做的價值在於把 code review 前移、系統化，並模擬實際團隊中「作者與 reviewer 分工」的狀態，而不是取代人類判斷。
-
----
-
 # Claude Code Skills
 
-A collection of custom skills for [Claude Code](https://claude.ai/code) that extend its capabilities with specialized workflows.
+**繁體中文** | [English](./README.en.md)
 
-## 🚀 Quick Start - 30 Second Overview
+一套在實務工作中長出來的 Claude Code 技能集。
 
-**First time here?** Check out this visual presentation for a quick understanding of the complete workflow:
+這些 skills 不是為了展示 AI 能做什麼，而是為了解決一個具體問題：**當你把越來越多工作交給 AI，如何確保產出的品質不會隨著信任的增加而下降？**
 
-**[📄 A Developer's Day, Reimagined](./docs/AI_Developer_Workflow.pdf)** ⭐ Recommended Entry Point
+我的做法是把工程紀律嵌入 AI 工作流程本身——用結構化流程對抗 AI 和人類共有的認知盲點。具體來說：
 
-Complete workflow from idea to deployment | 3 days → 1 day efficiency boost | Dual-AI collaboration value | 7 Skills visualized
+- **Dual-AI Review**：Claude 負責開發，Gemini 擔任獨立 reviewer。不是為了多一個 AI，而是因為任何模型在檢視自己的產出時都會過度合理化。
+- **Falsification-first**：研究類 skills 要求先搜尋反面證據，再搜尋支持證據。這不是悲觀，而是對確認偏誤的系統性防禦。
+- **Evidence before assertion**：在宣稱任何工作「完成」之前，必須先執行驗證命令並確認輸出。說「通過測試」的前提是真的跑過測試。
 
-**More Resources**: [Cheatsheet (EN)](./cheatsheet/cheatsheet-en.md) · [速查表 (中文)](./cheatsheet/cheatsheet-zh.md) · [UI/UX Skills Plan](./docs/UI-UX-Skills-Plan.md) · [Skills Roadmap](./SKILLS_ROADMAP.md) · [Docs Index](./docs/README.md)
-
----
-
-## What are Skills?
-
-Skills are user-defined prompts that Claude Code can invoke when specific phrases are detected. They allow you to create reusable, specialized workflows that integrate with external tools and scripts.
-
-## Available Skills
-
-### 📊 Skills by Category
-
-#### 🔍 Code Quality & Review (4 skills)
-
-| Skill | Description | Score |
-|-------|-------------|-------|
-| [code-review-gemini](./code-review-gemini/) | Automated code review on staged changes using Gemini AI - detects security issues, bugs, and quality problems | 88/100 ✅ |
-| [code-review-claude](./code-review-claude/) | Fast native code review using Claude Code's built-in capabilities - rapid validation without external dependencies | ⭐ |
-| [pr-review-assistant](./pr-review-assistant/) | Comprehensive pull request reviewer with structured feedback and risk assessment | ⭐ |
-| [skill-auditor](./skill-auditor/) ⭐ NEW | Meta-skill that audits other skills for quality, security, and production readiness | 103/100 ✅ |
-
-#### 🔀 Git & Version Control (1 skill)
-
-| Skill | Description | Score |
-|-------|-------------|-------|
-| [code-story-teller](./code-story-teller/) | Analyze git history to tell the evolutionary story and design decisions of code files | ⭐ |
-
-#### 🎨 Design & UI/UX (1 skill)
-
-| Skill | Description | Score |
-|-------|-------------|-------|
-| [ui-design-analyzer](./ui-design-analyzer/) | Analyze UI/UX from screenshots - 6-dimensional analysis covering usability, accessibility, visual design | ⭐ |
-
-#### 🚀 Productivity & Content Creation (3 skills)
-
-| Skill | Description | Score |
-|-------|-------------|-------|
-| [interactive-presentation-generator](./interactive-presentation-generator/) ⭐ NEW | Generate interactive presentations (reveal.js/Marp/Slidev) with 20 professional styles | 75/100 ✅ |
-| [work-log-analyzer](./work-log-analyzer/) | Analyze work logs to track evolution, manage TODOs, extract action items, aggregate activities - 6 query types | ⭐ |
-| [activity-logger](./activity-logger/) | Record work activities from current session for cross-session tracking and reporting | ⭐ |
-
-#### 🔬 Deep Research (1 skill)
-
-| Skill | Description | Score |
-|-------|-------------|-------|
-| [critical-research](./critical-research/) | Falsification-first research that seeks counter-evidence before supporting evidence to eliminate cognitive bias | ⭐ |
+這些原則不需要你同意我的做法——它們是可以拆開使用的獨立模組。你可以只用 code review，只用 research，或只用 presentation generator。每個 skill 都是自足的。
 
 ---
 
-### 📈 Quality Scores
+## Skills 總覽
 
-Skills audited by [skill-auditor](./skill-auditor/):
-- **103/100** - skill-auditor (meta-validated ✅)
-- **88/100** - code-review-gemini (production-ready ✅)
-- **75/100** - interactive-presentation-generator (production-ready ✅)
+目前共 **20 個自製 skills**，按用途分為 6 類。
 
-**Total:** 10 skills across 5 categories
+### 品質守門 (5)
+
+把 review 和驗證嵌入開發流程，而不是留到最後。
+
+| Skill | 說明 |
+|-------|------|
+| [code-review-gemini](./code-review-gemini/) | 使用 Gemini CLI 的深度 code review。分析 staged changes，產出結構化報告。**預設 reviewer。** |
+| [code-review-claude](./code-review-claude/) | Claude 原生的快速 code review（< 30 秒）。適合 50 行以下的小改動。 |
+| [pr-review-assistant](./pr-review-assistant/) | Pull request 結構化審查。分析 diff、評估風險、提供改善建議。 |
+| [codebase-audit](./codebase-audit/) | Claims-first 程式碼庫審計：從文件中提取宣稱，逐一對照原始碼驗證。用來確認文件和程式碼是否一致。 |
+| [verification-before-completion](./verification-before-completion/) | 完成前的證據關卡。在宣稱「完成」或「通過」之前，強制執行驗證命令並確認輸出。 |
+
+### 研究與批判思考 (4)
+
+讓 AI 幫你做研究時，不只是蒐集支持你想法的資料。
+
+| Skill | 說明 |
+|-------|------|
+| [critical-research](./critical-research/) | Falsification-first 研究：先搜尋反面證據，再搜尋支持證據。系統性消除確認偏誤。 |
+| [tech-feasibility](./tech-feasibility/) | 技術可行性評估。8 步結構化流程，在投入 POC 之前回答「技術 X 能否解決問題 Y？」 |
+| [narrative-auditor](./narrative-auditor/) | 敘事審計：將文章、行銷文案、技術宣稱與一手資料對照查證。也可以作為你的 AI proxy 代為發言。 |
+| [research-synthesis](./research-synthesis/) | 多源研究綜合。在跑完 2+ 個研究類 skills 後，將發現整合為 ADR 風格的決策文件。 |
+
+### 設計與規劃 (2)
+
+在動手之前先想清楚。
+
+| Skill | 說明 |
+|-------|------|
+| [brainstorming](./brainstorming/) | 蘇格拉底式設計對話。透過一次一個問題探索需求，提出 2-3 個方案及其取捨，產出設計文件。 |
+| [ui-design-analyzer](./ui-design-analyzer/) | UI/UX 截圖分析。從可用性、無障礙、視覺設計等 6 個維度評估介面設計。 |
+
+### 內容生成 (4)
+
+把重複性的文件、簡報、筆記工作標準化。
+
+| Skill | 說明 |
+|-------|------|
+| [presentation-planner](./presentation-planner/) | 簡報敘事策略規劃。在製作投影片之前，先完成受眾分析、故事線設計、逐頁內容規劃。 |
+| [interactive-presentation-generator](./interactive-presentation-generator/) | 互動式簡報生成。支援 reveal.js / Marp / Slidev，內建 20 種專業樣式。 |
+| [qa-to-notes](./qa-to-notes/) | 將 Claude Code 對話存為 Obsidian 筆記。不是逐字記錄，而是重組為結構化的知識文章。 |
+| [report-generator](./report-generator/) | 從活動紀錄和 git 歷史生成結構化報告。支援週報、月報、專案總結、回顧等格式。 |
+
+### 生產力與追蹤 (3)
+
+跨 session 的工作記錄和歷史分析。
+
+| Skill | 說明 |
+|-------|------|
+| [activity-logger](./activity-logger/) | 記錄當次 session 的工作活動，供跨 session 聚合與報告生成使用。 |
+| [work-log-analyzer](./work-log-analyzer/) | 分析工作日誌。追蹤任務進度、查詢專案歷史、理解決策演變。支援活動聚合、時間軸、TODO、決策追溯、通用搜尋等查詢模式。 |
+| [code-story-teller](./code-story-teller/) | 分析 git 歷史，講述程式碼的演化故事。理解設計決策的來龍去脈。 |
+
+### 工具與元技能 (2)
+
+管理 skills 本身的工具。
+
+| Skill | 說明 |
+|-------|------|
+| [skill-auditor](./skill-auditor/) | 審計 skills 的品質、安全性與最佳實踐。建立或修改 skill 後用來驗證。 |
+| [skillshare](./skillshare/) | 跨 AI CLI 工具同步 skills（Claude Code、Cursor、Windsurf 等）。單一來源、多處使用。 |
+
+---
+
+## 關於 Dual-AI Review
+
+這個 repo 裡有一個可能看起來奇怪的設計：code review 預設交給 Gemini 而不是 Claude 自己。
+
+原因很簡單——**任何模型在檢視自己產生的程式碼時，都傾向對既有結構過度合理化**。Claude 負責開發和上下文理解，Gemini 扮演相對保守的 reviewer，特別擅長抓邏輯漏洞、邊界條件與防禦性不足的問題。
+
+這模擬的是實際團隊中「作者與 reviewer 分工」的狀態。目前的做法是每完成一個小任務就自動調用 Gemini review，依回饋修正直到 fully approved。價值不在於多一個 AI，而在於把 review 前移、系統化，在風險累積之前攔下問題。
+
+如果你不使用 Gemini，`code-review-claude` 提供了純 Claude 的快速 review 替代方案。
+
+---
+
+## 關於 Standard Procedures (sp-*)
+
+除了上述 20 個 skills，本 repo 透過 symlink 整合了 13 個 **Standard Procedures**——這些是嵌入開發流程的行為規範（例如 TDD、systematic debugging、plan-then-execute 等），來自 [superpowers](https://github.com/obra/superpowers) 專案。
+
+它們不是獨立工具，而是定義「在什麼情境下應該怎麼做」的流程協議。例如 `sp-systematic-debugging` 會在你遇到 bug 時要求先收集症狀、建立假說、再嘗試修復，而不是直接改 code。
+
+詳見 [EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md)。
+
+---
 
 ## Quick Start
 
-### Prerequisites
+### 前置需求
 
-- [Claude Code CLI](https://claude.ai/code) installed
-- [Node.js](https://nodejs.org/) (for Gemini CLI)
+- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
+- [Node.js](https://nodejs.org/)（for Gemini CLI）
 - Git
 
-### Installation
+### 安裝
 
-**Option 1: Clone to skills directory (Recommended)**
+**選項 1：直接 clone 到 skills 目錄（推薦）**
 
 ```bash
-# Clone this repository to your Claude Code skills directory
-git clone <repository-url> ~/.claude/skills
+git clone https://github.com/tomwangowa/agent-skills.git ~/.claude/skills
 ```
 
-**Option 2: Symlink existing clone**
+**選項 2：Symlink 已有的 clone**
 
 ```bash
-# If you've already cloned this repo elsewhere
 ln -s /path/to/cloned/repo ~/.claude/skills
 ```
 
-### Setup Dependencies
+### 設定 Gemini CLI
 
-Install the Gemini CLI for code review functionality:
+Gemini CLI 用於 code-review-gemini、code-story-teller、pr-review-assistant 等需要外部 review 的 skills。
 
 ```bash
+# 安裝 Gemini CLI
 npm install -g @google/gemini-cli
-```
 
-Configure Gemini CLI with your API key:
-
-```bash
-# Set your Gemini API key
+# 設定 API key（從 https://aistudio.google.com/app/apikey 取得）
 export GEMINI_API_KEY="your-api-key-here"
 
-# Or add to your shell profile (~/.bashrc, ~/.zshrc, etc.)
-echo 'export GEMINI_API_KEY="your-api-key-here"' >> ~/.zshrc
+# 寫入 shell profile 使其永久生效
+echo 'export GEMINI_API_KEY="your-api-key-here"' >> ~/.zshrc  # 或 ~/.bashrc
 ```
 
-Get your API key from: [Google AI Studio](https://aistudio.google.com/app/apikey)
-
-### Verify Installation
+### 驗證安裝
 
 ```bash
-# Check if Claude Code can see your skills
+# 確認 Claude Code 能看到 skills
 ls ~/.claude/skills/
 
-# Test the Gemini CLI
+# 測試 Gemini CLI
 gemini "Hello, test"
 ```
 
-## Usage
+---
 
-### Using code-review-gemini
+## 使用範例
 
-1. Stage your changes:
-   ```bash
-   git add <files>
-   ```
-
-2. In Claude Code, use natural language to trigger the review:
-   ```
-   > review the staged files
-   > check the code quality before I commit
-   > analyze my staged changes
-   ```
-
-3. Claude Code will:
-   - Run the review script
-   - Show you which files are being reviewed
-   - Provide a prioritized summary of findings
-
-### Example Workflow
+### Code Review（Gemini）
 
 ```bash
-# Make some changes to your code
-vim src/app.js
-
-# Stage the changes
+# 1. Stage 你的改動
 git add src/app.js
 
-# Open Claude Code and request a review
-claude
-> Review the staged files before I commit
+# 2. 在 Claude Code 中用自然語言觸發
+> review the staged files
+> 幫我 review 一下
+> check code quality before commit
 ```
 
-Claude will analyze your changes and provide feedback on:
-- Potential bugs or security issues
-- Code quality and best practices
-- Readability and maintainability
-- Suggested improvements
+Claude 會調用 Gemini 分析你的改動，產出包含以下面向的結構化報告：
+- 潛在 bug 或安全問題
+- 程式碼品質與最佳實踐
+- 可讀性與可維護性
+- 改善建議
 
-### Using activity-logger
-
-The activity-logger skill helps you track work activities across multiple Claude Code sessions.
-
-**Initial Setup:**
+### Activity Logger
 
 ```bash
-# Initialize the activity logger (creates directory structure)
+# 初始化（首次使用）
 ~/.claude/skills/activity-logger/scripts/init_activities.sh init
+
+# 透過 Claude Code 記錄
+> log this activity
+> record what I just did
+
+# 或直接使用 CLI
+~/.claude/skills/activity-logger/scripts/log_activity.sh \
+  -d "Implemented user authentication" \
+  -t task_completed \
+  -c "Added OAuth2 support" \
+  --tags "security,auth"
+
+# 管理活動紀錄
+~/.claude/skills/activity-logger/scripts/init_activities.sh info    # 查看 session 資訊
+~/.claude/skills/activity-logger/scripts/init_activities.sh list    # 列出所有紀錄
+~/.claude/skills/activity-logger/scripts/init_activities.sh stats   # 依類型統計
+~/.claude/skills/activity-logger/scripts/init_activities.sh archive 30  # 歸檔 30 天前的紀錄
 ```
 
-**Logging Activities:**
+**活動類型**：`task_completed`、`bug_fixed`、`refactoring`、`research`、`documentation`、`review`
 
-You can log activities in two ways:
+**紀錄位置**：`~/.claude/activities/`（進行中）、`~/.claude/activities/processed/`（已歸檔）
 
-1. **Direct command:**
-   ```bash
-   ~/.claude/skills/activity-logger/scripts/log_activity.sh \
-     -d "Implemented user authentication" \
-     -t task_completed \
-     -c "Added OAuth2 support" \
-     --tags "security,auth"
-   ```
+Activity records 可與 `work-log-analyzer` 搭配使用，跨專案和 session 聚合分析。
 
-2. **Via Claude Code:**
-   ```
-   > log this activity
-   > record what I just did
-   > save session activity
-   ```
+---
 
-**Activity Types:**
-- `task_completed` - Finished a task or feature
-- `bug_fixed` - Resolved a bug
-- `refactoring` - Code refactoring work
-- `research` - Investigation or exploration
-- `documentation` - Documentation updates
-- `review` - Code review activities
+## 各 Skill 依賴
 
-**Managing Activities:**
+| Skill | 依賴 |
+|-------|------|
+| code-review-gemini | [Gemini CLI](https://github.com/google-gemini/gemini-cli)、Git |
+| code-review-claude | 無外部依賴 |
+| code-story-teller | [Gemini CLI](https://github.com/google-gemini/gemini-cli)、Git |
+| pr-review-assistant | [Gemini CLI](https://github.com/google-gemini/gemini-cli)、[GitHub CLI](https://cli.github.com/)、Git |
+| ui-design-analyzer | 無外部依賴（使用 Claude 原生多模態能力） |
+| interactive-presentation-generator | 無外部依賴（內建 20 種樣式模板） |
+| activity-logger | `jq`、Git |
+| work-log-analyzer | `jq`、`date`（核心功能無外部依賴） |
+| skill-auditor | Bash 4.0+（可選：Gemini CLI 用於語義分析） |
+| 其餘 skills | 無外部依賴 |
+
+---
+
+## 建立新 Skill
 
 ```bash
-# View current session info
-~/.claude/skills/activity-logger/scripts/init_activities.sh info
+# 1. 建立目錄
+mkdir my-skill
 
-# List all activity records
-~/.claude/skills/activity-logger/scripts/init_activities.sh list
+# 2. 建立 SKILL.md
+cat > my-skill/SKILL.md << 'EOF'
+---
+name: My Skill Name
+description: Brief description of when to use this skill.
+---
 
-# Show statistics by type
-~/.claude/skills/activity-logger/scripts/init_activities.sh stats
+# My Skill Name
 
-# Archive old activities (default: 30 days)
-~/.claude/skills/activity-logger/scripts/init_activities.sh archive 30
+## Instructions
+Describe when and how Claude should use this skill.
+
+## Examples
+Provide example trigger phrases and expected behavior.
+EOF
+
+# 3.（選用）加入輔助腳本
+mkdir my-skill/scripts
+
+# 4. 用 skill-auditor 驗證品質
+> audit my-skill
 ```
 
-**What Gets Recorded:**
-- Session ID (unique per session)
-- Timestamp
-- Project path and name
-- Git branch and remote (with credentials stripped)
-- Changed files (from git status)
-- Recent commits
-- Activity type and description
-- Context and tags
-
-**Activity Records Location:**
-- Active: `~/.claude/activities/`
-- Archived: `~/.claude/activities/processed/`
-
-**Integration with work-log-analyzer:**
-Activity records can be aggregated and analyzed using the work-log-analyzer skill for comprehensive work logging across multiple projects and sessions.
-
-## Creating a New Skill
-
-1. Create a new directory for your skill:
-   ```bash
-   mkdir my-skill
-   ```
-
-2. Create a `SKILL.md` file with the following structure:
-   ```markdown
-   ---
-   name: My Skill Name
-   description: Brief description of what this skill does and when to use it.
-   ---
-
-   # My Skill Name
-
-   ## Instructions
-
-   Describe when and how Claude should use this skill.
-
-   ## Examples
-
-   Provide example trigger phrases and expected behavior.
-   ```
-
-3. (Optional) Add supporting scripts in a `scripts/` subdirectory.
-
-## Skill Structure
+### Skill 目錄結構
 
 ```
 skill-name/
-├── SKILL.md           # Required: Skill definition and instructions
-├── scripts/           # Optional: Supporting shell scripts
+├── SKILL.md           # 必要：skill 定義與指令
+├── scripts/           # 選用：輔助 shell 腳本
 │   └── my_script.sh
-└── other_files/       # Optional: Any other resources
+└── other_files/       # 選用：其他資源
 ```
 
-## Dependencies
+---
 
-Each skill may have its own dependencies. Check the individual skill directories for specific requirements.
+## 更多文件
 
-### code-review-gemini
+- **[INSTALLATION.md](./INSTALLATION.md)** — 完整安裝指南
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** — 貢獻指南
+- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** — 常見問題排解
+- **[EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md)** — 外部 skills 管理（sp-* 系列）
+- **[SKILLS_ROADMAP.md](./SKILLS_ROADMAP.md)** — Skills 發展路線圖
+- **[Cheatsheet (EN)](./cheatsheet/cheatsheet-en.md)** · **[速查表 (中文)](./cheatsheet/cheatsheet-zh.md)** — 快速參考
 
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
-- Git (must be run inside a git repository)
-
-### code-story-teller
-
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
-- Git (must be run inside a git repository with commit history)
-
-### pr-review-assistant
-
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
-- [GitHub CLI](https://cli.github.com/): Install from https://cli.github.com/
-- Git with access to the PR repository
-
-### ui-design-analyzer
-
-- **No external dependencies required!** Uses Claude Code's native multimodal capabilities
-- Works immediately out of the box
-- Can analyze PNG, JPG, and other image formats
-
-### work-log-analyzer
-
-- **Core features:** No external dependencies - uses Claude Code's native capabilities
-- **Activity Aggregation feature:** Requires `jq` and `date` (standard on most systems)
-  - `jq` - JSON processor: `brew install jq` (macOS) or `apt-get install jq` (Ubuntu)
-  - `date` - Date utilities (built-in on macOS/Linux)
-- Analyzes Markdown, plain text, and various log formats
-- Aggregates and filters activity records from activity-logger
-
-### activity-logger
-
-- **Required dependencies:**
-  - `jq` - JSON processor: `brew install jq` (macOS) or `apt-get install jq` (Ubuntu)
-  - `git` - Version control system
-- **Optional:** `openssl` (falls back to `/dev/urandom` or `$RANDOM`)
-
-### interactive-presentation-generator
-
-- **No external dependencies required!** Works out of the box
-- Generates reveal.js HTML, Marp markdown, or Slidev presentations
-- Includes 20 professional style templates (324KB)
-- All styles bundled - zero configuration needed
-
-### skill-auditor
-
-- **Required dependencies:**
-  - `bash` 4.0+ (standard on macOS/Linux)
-  - `grep`, `sed`, `find`, `mktemp` (standard Unix tools)
-- **Optional:** Gemini CLI (for AI-powered semantic analysis)
-- Performs automated quality audits on skills in < 5 seconds
-
-## Documentation
-
-- **[INSTALLATION.md](./INSTALLATION.md)** - Detailed setup and installation guide
-- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Common issues and solutions
-- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Guide for creating new skills or improving existing ones
-- **[CLAUDE.md](./CLAUDE.md)** - Instructions for Claude Code when working in this repository
-
-## Team Setup
-
-For team deployment, see the [Team Setup](./INSTALLATION.md#team-setup) section in INSTALLATION.md.
-
-Quick installation for team members:
-
-```bash
-# Clone this repository to Claude Code skills directory
-git clone <repository-url> ~/.claude/skills
-
-# Or create a symlink if you've already cloned elsewhere
-ln -s /path/to/cloned/repo ~/.claude/skills
-
-# Install Gemini CLI (for code-review-gemini and pr-review-assistant)
-npm install -g @google/gemini-cli
-
-# Set Gemini API key (get it from https://aistudio.google.com/app/apikey)
-export GEMINI_API_KEY="your-api-key-here"
-
-# Make it permanent by adding to your shell profile
-echo 'export GEMINI_API_KEY="your-api-key-here"' >> ~/.zshrc  # or ~/.bashrc
-```
-
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
-
-## Troubleshooting
-
-Having issues? Check [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for solutions to common problems.
+---
 
 ## License
 

@@ -1,0 +1,281 @@
+# Claude Code Skills
+
+[繁體中文](./README.md) | **English**
+
+A collection of Claude Code skills grown from real-world practice.
+
+These skills aren't about showcasing what AI can do. They address a specific problem: **as you delegate more work to AI, how do you ensure output quality doesn't degrade as trust increases?**
+
+My approach is to embed engineering discipline into the AI workflow itself — using structured processes to counter the cognitive blind spots shared by both AI and humans. Specifically:
+
+- **Dual-AI Review**: Claude develops, Gemini reviews independently. Not for the sake of having two AIs, but because any model tends to over-rationalize its own output when reviewing it.
+- **Falsification-first**: Research skills search for counter-evidence before supporting evidence. This isn't pessimism — it's a systematic defense against confirmation bias.
+- **Evidence before assertion**: Before claiming any work is "done," you must run verification commands and confirm the output. Saying "tests pass" requires actually having run the tests.
+
+You don't need to agree with my approach to use these — they're independent modules you can adopt separately. Use just the code review, just the research, or just the presentation generator. Each skill is self-contained.
+
+---
+
+## Skills Overview
+
+Currently **20 custom skills** organized into 6 categories.
+
+### Quality Gates (5)
+
+Embed review and verification into the development flow, not as an afterthought.
+
+| Skill | Description |
+|-------|-------------|
+| [code-review-gemini](./code-review-gemini/) | Deep code review using Gemini CLI. Analyzes staged changes, produces structured reports. **Default reviewer.** |
+| [code-review-claude](./code-review-claude/) | Fast native code review using Claude (< 30 seconds). Best for changes under 50 lines. |
+| [pr-review-assistant](./pr-review-assistant/) | Structured pull request review. Analyzes diffs, assesses risk, provides improvement suggestions. |
+| [codebase-audit](./codebase-audit/) | Claims-first codebase audit: extracts claims from documentation, verifies each against source code. Confirms whether docs and code actually match. |
+| [verification-before-completion](./verification-before-completion/) | Evidence gate before completion. Forces running verification commands and confirming output before any claim of "done" or "passing." |
+
+### Research & Critical Thinking (4)
+
+When AI does research for you, it shouldn't just collect evidence that supports your hypothesis.
+
+| Skill | Description |
+|-------|-------------|
+| [critical-research](./critical-research/) | Falsification-first research: seeks counter-evidence before supporting evidence. Systematically eliminates confirmation bias. |
+| [tech-feasibility](./tech-feasibility/) | Technology feasibility assessment. 8-step structured process to answer "can technology X solve problem Y?" before committing to a POC. |
+| [narrative-auditor](./narrative-auditor/) | Narrative auditing: cross-references articles, marketing copy, and technical claims against primary sources. Can also serve as your AI proxy for public responses. |
+| [research-synthesis](./research-synthesis/) | Multi-source research synthesis. After running 2+ research skills, integrates findings into an ADR-style decision document. |
+
+### Design & Planning (2)
+
+Think before you build.
+
+| Skill | Description |
+|-------|-------------|
+| [brainstorming](./brainstorming/) | Socratic design dialogue. Explores requirements one question at a time, proposes 2-3 approaches with trade-offs, produces a design document. |
+| [ui-design-analyzer](./ui-design-analyzer/) | UI/UX screenshot analysis. Evaluates interface design across 6 dimensions including usability, accessibility, and visual design. |
+
+### Content Generation (4)
+
+Standardize repetitive documentation, presentations, and note-taking.
+
+| Skill | Description |
+|-------|-------------|
+| [presentation-planner](./presentation-planner/) | Presentation narrative strategy. Before making slides, completes audience analysis, storyline design, and per-slide content planning. |
+| [interactive-presentation-generator](./interactive-presentation-generator/) | Interactive presentation generator. Supports reveal.js / Marp / Slidev with 20 built-in professional styles. |
+| [qa-to-notes](./qa-to-notes/) | Saves Claude Code conversations as Obsidian notes. Not a verbatim transcript — restructures Q&A into a knowledge article. |
+| [report-generator](./report-generator/) | Generates structured reports from activity logs and git history. Supports weekly, monthly, project summary, and retrospective formats. |
+
+### Productivity & Tracking (3)
+
+Cross-session work logging and history analysis.
+
+| Skill | Description |
+|-------|-------------|
+| [activity-logger](./activity-logger/) | Records work activities from the current session for cross-session aggregation and report generation. |
+| [work-log-analyzer](./work-log-analyzer/) | Analyzes work logs. Tracks task progress, queries project history, and traces how decisions evolved. Supports activity aggregation, timeline, TODO, decision tracking, and general search queries. |
+| [code-story-teller](./code-story-teller/) | Analyzes git history to tell the evolutionary story of code. Understands the context behind design decisions. |
+
+### Tooling & Meta-Skills (2)
+
+Tools for managing skills themselves.
+
+| Skill | Description |
+|-------|-------------|
+| [skill-auditor](./skill-auditor/) | Audits skills for quality, security, and best practices. Use after creating or modifying a skill. |
+| [skillshare](./skillshare/) | Syncs skills across AI CLI tools (Claude Code, Cursor, Windsurf, etc.). Single source of truth, used everywhere. |
+
+---
+
+## About Dual-AI Review
+
+This repo has a design choice that might look unusual: code review defaults to Gemini, not Claude itself.
+
+The reason is simple — **any model reviewing its own output tends to over-rationalize existing structure**. Claude handles development and context understanding; Gemini plays the conservative reviewer, particularly good at catching logic gaps, edge cases, and insufficient defensive coding.
+
+This simulates the "author vs. reviewer separation" in real teams. The current workflow automatically invokes Gemini review after each small task, iterating on feedback until fully approved. The value isn't in having another AI — it's in shifting review left, making it systematic, and catching issues before they accumulate.
+
+If you don't use Gemini, `code-review-claude` provides a Claude-native fast review alternative.
+
+---
+
+## About Standard Procedures (sp-*)
+
+Beyond the 20 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), sourced from the [superpowers](https://github.com/obra/superpowers) project.
+
+These aren't standalone tools but process protocols that define "what to do in which situation." For example, `sp-systematic-debugging` requires gathering symptoms and forming hypotheses before attempting fixes, rather than jumping straight to code changes.
+
+See [EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md) for details.
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
+- [Node.js](https://nodejs.org/) (for Gemini CLI)
+- Git
+
+### Installation
+
+**Option 1: Clone directly to skills directory (Recommended)**
+
+```bash
+git clone https://github.com/tomwangowa/agent-skills.git ~/.claude/skills
+```
+
+**Option 2: Symlink an existing clone**
+
+```bash
+ln -s /path/to/cloned/repo ~/.claude/skills
+```
+
+### Set Up Gemini CLI
+
+Gemini CLI is used by code-review-gemini, code-story-teller, pr-review-assistant, and other skills that require external review.
+
+```bash
+# Install Gemini CLI
+npm install -g @google/gemini-cli
+
+# Set your API key (get it from https://aistudio.google.com/app/apikey)
+export GEMINI_API_KEY="your-api-key-here"
+
+# Make it permanent
+echo 'export GEMINI_API_KEY="your-api-key-here"' >> ~/.zshrc  # or ~/.bashrc
+```
+
+### Verify Installation
+
+```bash
+# Check that Claude Code can see your skills
+ls ~/.claude/skills/
+
+# Test Gemini CLI
+gemini "Hello, test"
+```
+
+---
+
+## Usage Examples
+
+### Code Review (Gemini)
+
+```bash
+# 1. Stage your changes
+git add src/app.js
+
+# 2. Trigger the review using natural language in Claude Code
+> review the staged files
+> check code quality before commit
+> do a thorough review
+```
+
+Claude will invoke Gemini to analyze your changes and produce a structured report covering:
+- Potential bugs or security issues
+- Code quality and best practices
+- Readability and maintainability
+- Improvement suggestions
+
+### Activity Logger
+
+```bash
+# Initialize (first time only)
+~/.claude/skills/activity-logger/scripts/init_activities.sh init
+
+# Log via Claude Code
+> log this activity
+> record what I just did
+
+# Or use the CLI directly
+~/.claude/skills/activity-logger/scripts/log_activity.sh \
+  -d "Implemented user authentication" \
+  -t task_completed \
+  -c "Added OAuth2 support" \
+  --tags "security,auth"
+
+# Manage activity records
+~/.claude/skills/activity-logger/scripts/init_activities.sh info    # View session info
+~/.claude/skills/activity-logger/scripts/init_activities.sh list    # List all records
+~/.claude/skills/activity-logger/scripts/init_activities.sh stats   # Stats by type
+~/.claude/skills/activity-logger/scripts/init_activities.sh archive 30  # Archive records older than 30 days
+```
+
+**Activity types**: `task_completed`, `bug_fixed`, `refactoring`, `research`, `documentation`, `review`
+
+**Record locations**: `~/.claude/activities/` (active), `~/.claude/activities/processed/` (archived)
+
+Activity records can be used with `work-log-analyzer` for cross-project and cross-session aggregation and analysis.
+
+---
+
+## Skill Dependencies
+
+| Skill | Dependencies |
+|-------|-------------|
+| code-review-gemini | [Gemini CLI](https://github.com/google-gemini/gemini-cli), Git |
+| code-review-claude | None |
+| code-story-teller | [Gemini CLI](https://github.com/google-gemini/gemini-cli), Git |
+| pr-review-assistant | [Gemini CLI](https://github.com/google-gemini/gemini-cli), [GitHub CLI](https://cli.github.com/), Git |
+| ui-design-analyzer | None (uses Claude's native multimodal capabilities) |
+| interactive-presentation-generator | None (20 style templates bundled) |
+| activity-logger | `jq`, Git |
+| work-log-analyzer | `jq`, `date` (core features have no external dependencies) |
+| skill-auditor | Bash 4.0+ (optional: Gemini CLI for semantic analysis) |
+| All other skills | None |
+
+---
+
+## Creating a New Skill
+
+```bash
+# 1. Create a directory
+mkdir my-skill
+
+# 2. Create SKILL.md
+cat > my-skill/SKILL.md << 'EOF'
+---
+name: My Skill Name
+description: Brief description of when to use this skill.
+---
+
+# My Skill Name
+
+## Instructions
+Describe when and how Claude should use this skill.
+
+## Examples
+Provide example trigger phrases and expected behavior.
+EOF
+
+# 3. (Optional) Add supporting scripts
+mkdir my-skill/scripts
+
+# 4. Validate quality with skill-auditor
+> audit my-skill
+```
+
+### Skill Directory Structure
+
+```
+skill-name/
+├── SKILL.md           # Required: skill definition and instructions
+├── scripts/           # Optional: supporting shell scripts
+│   └── my_script.sh
+└── other_files/       # Optional: other resources
+```
+
+---
+
+## More Documentation
+
+- **[INSTALLATION.md](./INSTALLATION.md)** — Full installation guide
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** — Contribution guidelines
+- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** — Common issues and solutions
+- **[EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md)** — External skills management (sp-* series)
+- **[SKILLS_ROADMAP.md](./SKILLS_ROADMAP.md)** — Skills development roadmap
+- **[Cheatsheet (EN)](./cheatsheet/cheatsheet-en.md)** · **[速查表 (中文)](./cheatsheet/cheatsheet-zh.md)** — Quick reference
+
+---
+
+## License
+
+MIT
