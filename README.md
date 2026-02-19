@@ -73,6 +73,23 @@
 | [work-log-analyzer](./work-log-analyzer/) | 分析工作日誌。追蹤任務進度、查詢專案歷史、理解決策演變。支援活動聚合、時間軸、TODO、決策追溯、通用搜尋等查詢模式。 |
 | [code-story-teller](./code-story-teller/) | 分析 git 歷史，講述程式碼的演化故事。理解設計決策的來龍去脈。 |
 
+### MCP Server
+
+將 skills 的資料查詢能力結構化為 MCP 工具，讓 Claude Code 能直接查詢你的工作歷史。
+
+| Server | 說明 |
+|--------|------|
+| [skills-query-server](./skills-query-server/) | 提供 7 個結構化查詢工具：活動查詢、全文搜尋、活動記錄、時間軸追蹤、TODO 提取、決策追溯、工作儀表板。整合 activity-logger、work-log-analyzer、qa-to-notes 的資料來源（活動紀錄 + QA 知識筆記），透過 MCP 協議讓 Claude 直接存取。 |
+
+**快速設定：**
+
+```bash
+cd ~/.claude/skills/skills-query-server && npm install
+claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-server/src/index.ts
+```
+
+詳見 [skills-query-server/README.md](./skills-query-server/README.md)。
+
 ### 工具與元技能 (2)
 
 管理 skills 本身的工具。
@@ -220,6 +237,7 @@ Activity records 可與 `work-log-analyzer` 搭配使用，跨專案和 session 
 | activity-logger | `jq`、Git |
 | work-log-analyzer | `jq`、`date`（核心功能無外部依賴） |
 | skill-auditor | Bash 4.0+（可選：Gemini CLI 用於語義分析） |
+| skills-query-server | Node.js、`tsx`（透過 `claude mcp add` 註冊） |
 | 其餘 skills | 無外部依賴 |
 
 ---

@@ -73,6 +73,23 @@ Cross-session work logging and history analysis.
 | [work-log-analyzer](./work-log-analyzer/) | Analyzes work logs. Tracks task progress, queries project history, and traces how decisions evolved. Supports activity aggregation, timeline, TODO, decision tracking, and general search queries. |
 | [code-story-teller](./code-story-teller/) | Analyzes git history to tell the evolutionary story of code. Understands the context behind design decisions. |
 
+### MCP Server
+
+Structured data querying capabilities exposed as MCP tools, letting Claude Code directly access your work history.
+
+| Server | Description |
+|--------|-------------|
+| [skills-query-server](./skills-query-server/) | Provides 7 structured query tools: activity queries, full-text search, activity logging, timeline tracking, TODO extraction, decision tracing, and a work dashboard. Integrates data sources from activity-logger, work-log-analyzer, and qa-to-notes (activity records + QA knowledge notes) via the MCP protocol for direct Claude access. |
+
+**Quick setup:**
+
+```bash
+cd ~/.claude/skills/skills-query-server && npm install
+claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-server/src/index.ts
+```
+
+See [skills-query-server/README.md](./skills-query-server/README.md) for details.
+
 ### Tooling & Meta-Skills (2)
 
 Tools for managing skills themselves.
@@ -220,6 +237,7 @@ Activity records can be used with `work-log-analyzer` for cross-project and cros
 | activity-logger | `jq`, Git |
 | work-log-analyzer | `jq`, `date` (core features have no external dependencies) |
 | skill-auditor | Bash 4.0+ (optional: Gemini CLI for semantic analysis) |
+| skills-query-server | Node.js, `tsx` (registered via `claude mcp add`) |
 | All other skills | None |
 
 ---
