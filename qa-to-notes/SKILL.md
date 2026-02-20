@@ -5,7 +5,7 @@ description: Save Claude Code Q&A conversations as structured Obsidian-compatibl
 
 # QA to Notes
 
-Save Claude Code conversations as structured Obsidian-compatible knowledge notes. Reorganizes Q&A into encyclopedia-style articles with tables, Mermaid diagrams, and source links.
+Save Claude Code conversations as structured Obsidian-compatible knowledge notes. Supports two modes: **Standard** (reorganizes Q&A into encyclopedia-style articles with tables, Mermaid diagrams, and source links) and **Direct write** (preserves source content verbatim without restructuring).
 
 ## Trigger
 
@@ -13,6 +13,28 @@ Use when the user says any of:
 - 「幫我存下這段對話」「存成筆記」「save this conversation」
 - 「把這段整理成筆記」「寫成 Obsidian 筆記」
 - Any intent to persist the current Q&A exchange as a markdown note
+
+## Mode
+
+This skill has two writing modes:
+
+| Mode | Behavior | Default? |
+|------|----------|----------|
+| **Standard** | Restructure Q&A into encyclopedia-style knowledge article | Yes |
+| **Direct write** | Save source content verbatim — no restructuring, no rewriting | No |
+
+### Mode detection
+
+**Direct write** triggers:
+- 「直接存」「原文存檔」「原封不動存下來」「不用整理」
+- 「save as-is」「save raw」「verbatim」「把這篇直接存下來」
+- Any explicit intent to preserve the original text without digestion
+
+**Standard** triggers: everything else (default).
+
+If ambiguous, ask:
+
+> 要我**整理成知識筆記**，還是**原文直接存檔**？
 
 ## Workflow
 
@@ -27,7 +49,11 @@ Ask the user to confirm:
 1. **Topic title** (for filename and H1 heading) — propose one based on the conversation
 2. **Tags** — propose relevant tags based on content; user can override
 
-### Step 2: Restructure as Knowledge Note
+### Step 2: Compose Note Body
+
+**If direct write mode**: skip to [Step 2D](#step-2d-direct-write). Otherwise continue below.
+
+#### Step 2S: Restructure (Standard mode)
 
 **Do NOT produce a verbatim conversation transcript.** Instead, reorganize the Q&A into a structured knowledge article:
 
@@ -82,7 +108,34 @@ source: claude-code
 - **Key Insight** uses Obsidian's `> [!tip]` callout syntax for visual prominence
 - **Actionable Follow-up** uses checkbox format (`- [ ]`) so items are trackable in Obsidian
 
+#### Step 2D: Direct Write {#step-2d-direct-write}
+
+Preserve the source content **verbatim**. Do not restructure, reword, summarize, or merge.
+
+1. Identify the target content — the conversation segment, article, fact-check report, or drafted text the user wants to save
+2. Wrap it in the standard note structure (frontmatter + H1 title) but **do not alter the body**
+3. If the source already contains headings, keep them as-is (do not renumber or restyle)
+4. If the source contains `## 引用來源` or equivalent, keep it in place — do not duplicate in a separate section
+
+**Direct write template:**
+
+```markdown
+---
+tags: [tag1, tag2]
+date: YYYY-MM-DD
+source: claude-code
+---
+
+# Topic Title
+
+[source content verbatim — no restructuring]
+```
+
+After composing the body, skip Step 3 and proceed to Step 4.
+
 ### Step 3: Add Visual Elements When They Clarify Structure
+
+**Standard mode only.** Skip this step in direct write mode.
 
 **Tables**: Use standard markdown tables for comparisons, feature lists, timelines, or structured data.
 
@@ -245,7 +298,7 @@ Fortune 和 CrowdStrike 均在 Steinberger 加入 OpenAI 前發文警告 OpenCla
 
 ## Constraints
 
-- **Never transcript**: Always restructure. The output is a knowledge note, not a chat log.
+- **Never transcript (Standard mode)**: Always restructure. The output is a knowledge note, not a chat log. This constraint does not apply in direct write mode, where verbatim preservation is the entire point.
 - **Language**: Match the conversation language. If the Q&A was in Traditional Chinese, the note is in Traditional Chinese. Code comments and technical terms may stay in English.
 - **Mermaid safety**: Only use diagram types listed in Step 3. When in doubt, use a table instead.
 - **No fabrication**: Only include information that was actually discussed in the conversation. Do not add external knowledge that wasn't part of the Q&A.
