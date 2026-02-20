@@ -5,7 +5,7 @@ description: Save Claude Code Q&A conversations as structured Obsidian-compatibl
 
 # QA to Notes
 
-Save Claude Code conversations as structured Obsidian-compatible knowledge notes. Supports three modes: **Standard** (reorganizes Q&A into encyclopedia-style articles with tables, Mermaid diagrams, and source links), **Direct write** (preserves source content verbatim without restructuring), and **Teams publish** (rewrites fact-checks into a corporate-friendly "extended analysis" format for group sharing — output only, no file write).
+Save Claude Code conversations as structured Obsidian-compatible knowledge notes. Supports three modes: **Standard** (reorganizes Q&A into encyclopedia-style articles with tables, Mermaid diagrams, and source links), **Direct write** (preserves source content verbatim without restructuring), and **Teams publish** (rewrites fact-checks into a corporate-friendly "extended analysis" format for group sharing — displayed in conversation and appended to the same note file).
 
 ## Trigger
 
@@ -24,7 +24,7 @@ This skill has three writing modes:
 |------|----------|--------|----------|
 | **Standard** | Restructure Q&A into encyclopedia-style knowledge article | Write to file | Yes |
 | **Direct write** | Save source content verbatim — no restructuring, no rewriting | Write to file | No |
-| **Teams publish** | Rewrite fact-check/analysis into corporate-friendly "extended analysis" format | Display in conversation only (no file write) | No |
+| **Teams publish** | Rewrite fact-check/analysis into corporate-friendly "extended analysis" format | Display in conversation + append to note file | No |
 
 ### Mode detection
 
@@ -145,9 +145,40 @@ After composing the body, skip Step 3 and proceed to Step 4.
 
 #### Step 2T: Teams Publish {#step-2t-teams-publish}
 
-Rewrite the current conversation's fact-check / analysis into a corporate-friendly "extended analysis" format suitable for sharing in a company Teams group. **Output is displayed in conversation only — no file is written.**
+Rewrite the current conversation's fact-check / analysis into a corporate-friendly "extended analysis" format suitable for sharing in a company Teams group. **Output is displayed in conversation AND written to file.**
 
-After composing the body, **skip all remaining steps** (no frontmatter, no file path, no file write). Just display the result and stop.
+##### File Write Behavior
+
+Teams publish mode writes the Teams version to the **same note file** that contains the fact-check and short commentary:
+
+1. **If a note for this topic already exists** (from a prior "存成 notes" operation in the same session or a user-specified file): append the Teams version after a `---` separator and a `## Teams 發佈版` heading.
+2. **If no existing note**: create a new file following the standard naming convention (`Teams-[Topic]_YYYY-MM-DD.md`), containing only the Teams version (no frontmatter needed for Teams-only files).
+
+When appending, the final note structure becomes:
+
+```markdown
+---
+tags: [...]
+date: YYYY-MM-DD
+source: claude-code
+---
+
+# [Topic] — Fact-Check
+
+[Full fact-check report content]
+
+---
+
+[Short commentary content]
+
+---
+
+## Teams 發佈版
+
+[Teams publish output — the full 📌 延伸分析 block]
+```
+
+After composing the Teams version, **display it in conversation first**, then write/append to file. Proceed to Step 5 for file path (skip Steps 3–4).
 
 ##### Input
 
@@ -256,7 +287,6 @@ Every Teams publish output ends with:
 
 ##### What Teams Publish Does NOT Do
 
-- Does not write files (display only — user copies manually to Teams)
 - Does not guess the original sharer's name (always uses `@_____` placeholder)
 - Does not include source URLs (directs to "私訊我" instead)
 - Does not handle images or attachments
