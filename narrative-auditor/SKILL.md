@@ -8,11 +8,11 @@ allowed-tools: WebSearch, WebFetch, Read, Glob, Grep, Bash, Task
 
 ## Overview
 
-Narratives shape perception. Primary sources reveal reality. This skill finds the gap.
+Narratives shape perception. Primary sources reveal reality. This skill finds the gap — and the gaps behind the gaps.
 
 **Core principle:** Every published narrative — article, blog post, tweet thread, marketing page — contains implicit and explicit claims. This skill extracts those claims, compares them against primary sources (GitHub repos, official docs, raw data), and exposes what was distorted, decontextualized, or deliberately omitted.
 
-This is not a code review. This is not a literature review. This is **adversarial reading** — treating every narrative as a set of falsifiable claims, then going to the source to see what survives.
+This is not a code review. This is not a literature review. This is **adversarial reading** — treating every narrative as a set of falsifiable claims, then going to the source to see what survives. And beyond that: researching what the reader should know that the narrative doesn't tell them.
 
 **Dual mode:** This skill also serves as the user's AI proxy — supplementing context, conveying their perspective, and speaking on their behalf when requested.
 
@@ -108,6 +108,20 @@ If mode cannot be determined with confidence, ask:
 
 Do not guess. The two modes serve fundamentally different purposes.
 
+## Proportionality
+
+Match scrutiny depth to source type. Prevents over-investing on tweets and under-investing on reports.
+
+| Source Type | Depth | Contextual Research (Step 5) | Time Budget |
+|-------------|-------|------------------------------|-------------|
+| Single claim or short statement | Verify against 2–3 sources | Skip | ~2 min |
+| Blog post or short article (<2000 words) | Full pipeline, spot-check references | Light (5a only) | ~15 min |
+| Long-form article or report (2000+ words) | Full pipeline, verify all references | Full (5a–5d) | ~30 min |
+| Technical documentation or spec | Full pipeline, code/API verification emphasis | Full (implementation lens) | ~30 min |
+| Research paper or data-heavy report | Full pipeline, statistical claims emphasis | Full (methodology focus) | ~40 min |
+
+Assess proportionality in Step 1 and record it. This governs the depth of Steps 4–5.
+
 ## Fact-Check Mode Workflow
 
 ### Step 1: Identify Narrative and Primary Sources
@@ -130,6 +144,8 @@ Do not guess. The two modes serve fundamentally different purposes.
 - If no primary source is specified, attempt to identify one from the narrative itself (e.g., if an article discusses project X, find project X's repo)
 - If no primary source can be identified, ask the user
 
+**Proportionality assessment:** Determine source type from the Proportionality table. Record it — this governs depth for Steps 4–5.
+
 ### Step 2: Extract Claims
 
 Read the narrative and extract every **testable claim** — explicit or implicit.
@@ -141,6 +157,9 @@ Read the narrative and extract every **testable claim** — explicit or implicit
 | **Implicit** | Claims baked into framing: calling a thin client "on-device AI" |
 | **Comparative** | Benchmark comparisons, "X is better/faster/cheaper than Y" |
 | **Attribution** | Who built what, who inspired what, intellectual lineage |
+| **Statistical** | Numbers, percentages, rankings, growth figures |
+| **Temporal** | "As of 2025", "Since version 3.0", "Recently" |
+| **Causal** | "X causes Y", "Because of Z", "This leads to" |
 | **Omission** | What the primary source says that the narrative conspicuously leaves out |
 
 **Omission analysis is critical.** An article that says everything true but omits one key fact can be more misleading than one with an outright error. Specifically look for:
@@ -161,10 +180,71 @@ For each claim, apply falsification-first verification:
 5. **If supported**: Record as verified
 6. **If neither**: Mark as unverifiable
 
+**Steelman before contradicting:** Before marking any claim inaccurate, write the strongest case for why the author is right. This prevents over-correction — marking correct claims as wrong due to misunderstanding the author's intent.
+
 **For omission claims:** Compare the primary source's key information against what the narrative covers. Anything significant in the source but absent from the narrative is a candidate omission.
 
-### Step 4: Assign Verdicts
+### Step 4: Verify External References
 
+Skip this step if the narrative cites no external references, or if proportionality is "single claim."
+
+For every cited source, study, tool, product, or standard:
+
+1. **Verify existence** — Does the source exist? URL valid? Still published?
+2. **Verify citation accuracy** — Does the source actually say what's attributed to it?
+3. **Check context stripping** — Is the citation used in the same context as the original?
+4. **Check currency** — Has the source been updated, retracted, or superseded?
+
+**Ground truth first:** Verify facts via web search before reasoning about them. **Source independence:** Check original sources, not the document's characterization of them.
+
+### Step 5: Independent Contextual Research
+
+Steps 1–4 ask: "Is what the source says true?" Step 5 asks: "What should the reader know that the source doesn't tell them?"
+
+This is the difference between a fact-checker and a reviewer. A fact-checker can give a source a perfect score while the source is fundamentally misguided — because every stated claim is technically accurate but the framing, omissions, and assumptions are wrong.
+
+**Proportionality governs this step** — check the assessment from Step 1. For single claims, skip entirely. For short articles, do 5a only.
+
+#### Step 5a: Domain Context Scan
+
+*Question:* "What does established knowledge in this domain say about the source's approach?"
+
+- Identify the source's domain(s)
+- Find 2–3 authoritative references (academic frameworks, industry standards, recognized best practices)
+- Compare the source's approach against these references
+- For each reference: state what it says and how the source relates (aligns / deviates / silent)
+
+#### Step 5b: Competitive/Comparative Landscape
+
+*Question:* "How do peers, competitors, or analogous systems handle the same problem?"
+
+- Identify 2–4 relevant peers or competitors
+- Note significant differences in approach, capabilities, or outcomes
+- Identify anything competitors do that the source doesn't mention
+
+#### Step 5c: Gap Analysis
+
+*Question:* "What critical considerations does the source omit?"
+
+- Identify 3–5 topics the source should address but doesn't
+- For each gap: why it matters and what the consequence of the omission is
+- Tag each: `[undermines-thesis]`, `[incomplete-but-not-wrong]`, `[risk-if-acted-on]`
+
+**Steelman omissions:** Before flagging a gap, consider whether the source intentionally scoped it out. Note whether an omission appears intentional (acknowledged limitation) or unintentional (blind spot).
+
+#### Step 5d: Assumption Audit
+
+*Question:* "What unstated assumptions does the source rely on, and are they valid?"
+
+- List 3–5 implicit assumptions
+- For each: is it valid? contested? locale/context-dependent?
+- Flag any assumption that, if wrong, would invalidate significant recommendations
+
+### Step 6: Assign Verdicts
+
+Each finding gets a **verdict**, a **confidence tag**, and a **severity level**.
+
+**Verdicts:**
 | Verdict | Meaning |
 |---------|---------|
 | **ACCURATE** | Claim matches primary source |
@@ -174,9 +254,40 @@ For each claim, apply falsification-first verification:
 | **OMITTED** | Primary source contains significant info the narrative ignores |
 | **UNVERIFIABLE** | Cannot confirm or deny from available sources |
 
-### Step 5: Synthesize Audit
+**Confidence tags** (attach to every verdict):
+| Tag | Meaning |
+|-----|---------|
+| `[verified]` | Cross-referenced against authoritative primary source |
+| `[corroborated]` | Multiple independent sources agree, no primary source found |
+| `[theoretical]` | Reasoning from domain knowledge, not directly verified |
+| `[contested]` | Credible sources disagree on this |
+| `[outdated]` | Was true but no longer current |
+| `[needs-check]` | Could not verify; flagged for attention |
 
-Compile findings. End with a **balanced take** — acknowledge what the narrative gets right, identify the core problem with its framing, and separate the subject (project, product, person) from the narrative about it.
+**Severity levels** (order findings by severity in output):
+| Level | Criteria |
+|-------|----------|
+| **CRITICAL** | Factually wrong — contradicted by primary sources, demonstrably false |
+| **HIGH** | Misleading — technically true but missing crucial context, or significantly outdated |
+| **MEDIUM** | Imprecise — approximately correct but overstated, unsourced, or loosely attributed |
+| **LOW** | Minor — stylistic exaggeration, rounding, or trivial inaccuracy |
+
+### Step 7: Synthesize Audit
+
+Compile findings ordered by severity. The synthesis must include:
+
+1. **Steelman** — The strongest case for why the narrative is trustworthy as-is. Write this before the critical assessment.
+2. **Critical assessment** — What the narrative gets right, where the framing fails, and why it matters.
+3. **Subject ≠ Narrative** — Separate the thing being discussed from the article about it.
+4. **Overall rating:**
+
+| Rating | Criteria |
+|--------|----------|
+| **accurate** | No CRITICAL/HIGH findings. All substantive claims verified or corroborated. |
+| **mostly-accurate** | No CRITICAL. 1–2 HIGH on non-central claims. Core thesis holds. |
+| **mixed** | No CRITICAL but 3+ HIGH. OR 1 CRITICAL on non-central claim. |
+| **mostly-inaccurate** | 1+ CRITICAL on central claims. OR many HIGH undermining core thesis. |
+| **inaccurate** | Multiple CRITICAL on central claims. Main assertions are wrong. |
 
 ## Proxy Mode Workflow
 
@@ -225,23 +336,53 @@ Present the draft to the user for approval before finalizing. The user may:
 
 **來源**: [narrative URL or description]
 **一手資料**: [primary source URL or description]
+**Overall Rating**: accurate | mostly-accurate | mixed | mostly-inaccurate | inaccurate
+
+## 摘要
+[2–3 sentences. Lead with overall rating and most important findings.]
 
 ## 關鍵發現
 
-1. **[Finding title]**: [Verdict]
-[Explanation — what the narrative says vs. what the primary source shows]
+### CRITICAL
+- **[Finding title]**: [Verdict] [confidence tag]
+  [What the narrative says vs. what the primary source shows]
 
-2. **[Finding title]**: [Verdict]
-[Explanation]
+### HIGH
+- **[Finding title]**: [Verdict] [confidence tag]
+  [Explanation]
 
-...
+### MEDIUM / LOW
+[Same format, grouped]
 
 ## 省略分析 (Omissions)
-
 - [What the primary source says that the narrative conspicuously left out]
 
-## 整體評估
+## 外部引用查核
+| Reference | Exists | Citation Accurate | Current | Notes |
+|-----------|--------|-------------------|---------|-------|
+（若無外部引用則省略此區塊）
 
+## 獨立脈絡研究
+
+### 領域脈絡
+[What established knowledge says about the source's approach. For each reference: what it says and how the source relates (aligns / deviates / silent).]
+
+### 競品/同類比較
+[How peers or competitors handle the same problem. Brief comparison.]
+
+### 缺口分析
+[What critical considerations the source omits. Numbered list with tags: [undermines-thesis], [incomplete-but-not-wrong], [risk-if-acted-on].]
+
+### 假設審計
+| Assumption | Validity | Impact if Wrong |
+|------------|----------|-----------------|
+
+（依比例原則，短文可僅含「領域脈絡」；單一聲明可省略整個區塊。）
+
+## Steelman：為作者辯護
+[Strongest case for why the narrative is trustworthy as-is. Write this before any downrating.]
+
+## 整體評估
 [Balanced take: what the narrative gets right, where the framing fails, and why it matters. Separate the subject from the narrative about it.]
 
 ### 🏢 TrendLife 視角
@@ -252,6 +393,8 @@ Present the draft to the user for approval before finalizing. The user may:
 ## 引用來源
 - [Numbered list of primary sources consulted]
 ```
+
+**Artifact output (optional):** For long-form sources (2000+ words), also write the report to `deliverables/fact-checks/fact-check-<slug>.md`. For short sources, output inline only.
 
 ### Proxy Mode
 
@@ -268,15 +411,18 @@ Present the draft to the user for approval before finalizing. The user may:
 ```
 User: "幫我 fact-check 這篇文章 [URL]，對照他們的 GitHub repo"
 
-Step 1 → Fetch article, clone/inspect repo README + source code
+Step 1 → Fetch article, inspect repo. Proportionality: blog post (~1500 words) → light contextual research (5a only).
 Step 2 → Extract claims:
   - "On-device AI" → Check: does code run inference locally or call cloud API?
   - "Boots in 0.3 seconds vs competitor's 500 seconds" → Check: what conditions?
   - "Built from scratch" → Check: any attribution in README?
   - "$10 vs $599" → Check: total cost of ownership including API fees?
-Step 3 → Verify each claim against source code and README
-Step 4 → Verdicts: MISLEADING, DECONTEXTUALIZED, FALSE, DECONTEXTUALIZED
-Step 5 → Balanced take: engineering is solid, framing is marketing
+Step 3 → Verify each claim against source. Steelman before contradicting.
+Step 4 → Check cited benchmarks against original sources.
+Step 5 → Domain context: how do on-device AI solutions typically work?
+Step 6 → Verdicts: MISLEADING [verified], DECONTEXTUALIZED [corroborated], FALSE [verified], DECONTEXTUALIZED [verified]
+       → Severity: 1 CRITICAL (FALSE), 2 HIGH, 1 MEDIUM
+Step 7 → Steelman + balanced take. Rating: mixed.
 ```
 
 ### Example 2: Fact-Check — Product Announcement vs API Docs
@@ -284,12 +430,12 @@ Step 5 → Balanced take: engineering is solid, framing is marketing
 ```
 User: "這個 AI 產品說它支援 100+ 語言，幫我查證"
 
-Step 1 → Fetch product page, find official API documentation
+Step 1 → Fetch product page, find official API docs. Proportionality: single claim → verify against 2–3 sources, skip Steps 4–5.
 Step 2 → Extract claims: language count, accuracy claims, pricing model
-Step 3 → API docs list 47 languages with "beta" labels on 30 of them
-Step 4 → Verdict: MISLEADING (counts beta/experimental as "supported")
-Step 5 → The product has real value for ~17 production-ready languages;
-         the "100+" figure is aspirational marketing
+Step 3 → API docs list 47 languages with "beta" labels on 30 of them. Steelman: maybe counting planned languages?
+Step 6 → Verdict: MISLEADING [verified], Severity: HIGH
+Step 7 → The product has real value for ~17 production-ready languages;
+         the "100+" figure is aspirational marketing. Rating: mostly-accurate.
 ```
 
 ### Example 3: Proxy — Supplementing Context in a Discussion
@@ -315,7 +461,7 @@ Step 4 → Present to user for approval
 ## Instructions
 
 1. Detect mode from user's natural language (fact-check or proxy). If ambiguous, ask.
-2. For fact-check: identify narrative + primary sources, extract claims, verify falsification-first, assign verdicts, synthesize balanced report.
+2. For fact-check: assess proportionality → identify narrative + primary sources → extract claims → verify falsification-first with steelman → verify external references → conduct contextual research (proportional to source type) → assign verdicts with confidence tags and severity → synthesize balanced report with overall rating.
 3. For proxy: understand context, identify missing information, draft response in persona voice, present for user approval.
 4. Always use the configured persona voice. If no persona configured, use neutral form.
 
@@ -332,9 +478,12 @@ Step 4 → Present to user for approval
 ## Constraints
 
 - **Falsification first**: In fact-check mode, search for counter-evidence before supporting evidence. No exceptions.
+- **Steelman before contradicting**: Before marking any claim inaccurate, write the strongest case for why the author is right. Over-correction is intellectually dishonest.
+- **Confidence tags on ALL findings**: Every verdict must have a confidence tag. No exceptions.
 - **Omissions are findings**: A narrative that says everything true but omits critical context is still misleading. Omission analysis is not optional.
 - **Balanced verdicts**: Always acknowledge what the narrative gets right. Pure takedowns without nuance are intellectually lazy.
 - **Subject ≠ narrative**: Separate the thing being discussed from the article about it. A misleading article about a worthwhile project is a different problem than a flawed project.
+- **Proportionality**: Match depth to source type. Don't spend 40 minutes on a tweet or 2 minutes on a research paper.
 - **Proxy integrity**: In proxy mode, represent the user's actual views, not what you think they should think. Ask if unsure.
 - **No fabrication**: If you can't verify a claim, say so. UNVERIFIABLE is always preferable to a guessed verdict.
 
