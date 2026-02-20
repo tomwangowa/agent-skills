@@ -1,29 +1,37 @@
 ---
 name: qa-to-notes
-description: Save Claude Code Q&A conversations as structured Obsidian-compatible knowledge notes. Use when user wants to persist conversation content as a markdown file.
+description: Save Claude Code Q&A conversations as structured Obsidian-compatible knowledge notes, or rewrite fact-checks into corporate-friendly Teams publish format. Use when user wants to persist conversation content as a markdown file, or rewrite analysis for team sharing.
 ---
 
 # QA to Notes
 
-Save Claude Code conversations as structured Obsidian-compatible knowledge notes. Supports two modes: **Standard** (reorganizes Q&A into encyclopedia-style articles with tables, Mermaid diagrams, and source links) and **Direct write** (preserves source content verbatim without restructuring).
+Save Claude Code conversations as structured Obsidian-compatible knowledge notes. Supports three modes: **Standard** (reorganizes Q&A into encyclopedia-style articles with tables, Mermaid diagrams, and source links), **Direct write** (preserves source content verbatim without restructuring), and **Teams publish** (rewrites fact-checks into a corporate-friendly "extended analysis" format for group sharing — output only, no file write).
 
 ## Trigger
 
 Use when the user says any of:
 - 「幫我存下這段對話」「存成筆記」「save this conversation」
 - 「把這段整理成筆記」「寫成 Obsidian 筆記」
+- 「改寫成 Teams 版」「幫我寫發佈版」「publish」「寫成可以發的版本」
 - Any intent to persist the current Q&A exchange as a markdown note
+- Any intent to rewrite analysis for corporate group sharing
 
 ## Mode
 
-This skill has two writing modes:
+This skill has three writing modes:
 
-| Mode | Behavior | Default? |
-|------|----------|----------|
-| **Standard** | Restructure Q&A into encyclopedia-style knowledge article | Yes |
-| **Direct write** | Save source content verbatim — no restructuring, no rewriting | No |
+| Mode | Behavior | Output | Default? |
+|------|----------|--------|----------|
+| **Standard** | Restructure Q&A into encyclopedia-style knowledge article | Write to file | Yes |
+| **Direct write** | Save source content verbatim — no restructuring, no rewriting | Write to file | No |
+| **Teams publish** | Rewrite fact-check/analysis into corporate-friendly "extended analysis" format | Display in conversation only (no file write) | No |
 
 ### Mode detection
+
+**Teams publish** triggers:
+- 「改寫成 Teams 版」「幫我寫發佈版」「publish」「寫成可以發的版本」
+- 「幫我改寫成可以分享的格式」「寫成群組版」
+- Any intent to rewrite analysis for corporate/team group sharing
 
 **Direct write** triggers:
 - 「直接存」「原文存檔」「原封不動存下來」「不用整理」
@@ -34,7 +42,7 @@ This skill has two writing modes:
 
 If ambiguous, ask:
 
-> 要我**整理成知識筆記**，還是**原文直接存檔**？
+> 要我**整理成知識筆記**、**原文直接存檔**、還是**改寫成 Teams 發佈版**？
 
 ## Workflow
 
@@ -51,7 +59,9 @@ Ask the user to confirm:
 
 ### Step 2: Compose Note Body
 
-**If direct write mode**: skip to [Step 2D](#step-2d-direct-write). Otherwise continue below.
+**If Teams publish mode**: skip to [Step 2T](#step-2t-teams-publish).
+**If direct write mode**: skip to [Step 2D](#step-2d-direct-write).
+Otherwise continue below.
 
 #### Step 2S: Restructure (Standard mode)
 
@@ -132,6 +142,124 @@ source: claude-code
 ```
 
 After composing the body, skip Step 3 and proceed to Step 4.
+
+#### Step 2T: Teams Publish {#step-2t-teams-publish}
+
+Rewrite the current conversation's fact-check / analysis into a corporate-friendly "extended analysis" format suitable for sharing in a company Teams group. **Output is displayed in conversation only — no file is written.**
+
+After composing the body, **skip all remaining steps** (no frontmatter, no file path, no file write). Just display the result and stop.
+
+##### Input
+
+Identify the fact-check report and/or short commentary ("短評") from the current conversation. If multiple exist, ask the user which one to convert. If no fact-check or analysis is found in the current conversation, inform the user and suggest running `/narrative-auditor` first.
+
+##### Transformation Rules
+
+Apply these rules **in order**:
+
+**1. Structure Rewrite**
+
+| Original element | Teams version |
+|-----------------|---------------|
+| `🦤 Dodo Fact-Check` or `🦤 Dodo: ... fact-check ...` | `📌 延伸分析：[主題名稱]` |
+| Opening line | `感謝 @_____ 分享...！我做了一些延伸研究，整理了幾個值得注意的脈絡。` |
+| `## 關鍵發現` with CRITICAL/HIGH/MEDIUM/LOW sections | Reorganize into `### [N] 個值得關注的面向` — numbered, no severity labels |
+| `## 省略分析` | Fold into `### 另一面也值得知道` — bulleted list, neutral tone |
+| `## Steelman` | Integrate key points into the body naturally; do not keep as standalone section |
+| `## 整體評估` | Distill into 1 paragraph woven into the narrative or the closing analogy |
+| `## 引用來源` | Remove entirely (replaced by "私訊我" link at bottom) |
+
+**2. Content Filtering**
+
+Remove or transform these elements:
+
+| Filter | Action |
+|--------|--------|
+| Owner's personal name | Remove all occurrences |
+| `TrendLife` brand name | Replace with neutral terms: 「我們」「消費者安全領域」「我們在消費者端的定位」 |
+| `🦤 Dodo` persona markers | Remove all occurrences |
+| Verdict labels (`ACCURATE`, `MISLEADING`, `FALSE`, `OMITTED`, etc.) | Remove — rewrite as prose |
+| Confidence tags (`[verified]`, `[corroborated]`, etc.) | Remove entirely |
+| Severity labels (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) | Remove entirely |
+| Sharp metaphors that could feel confrontational in a corporate setting | Soften or replace with accessible analogies |
+
+**3. Tone Calibration**
+
+- Negative findings → frame as「另一面也值得知道」rather than judgments
+- Replace confrontational phrases (「房間裡的大象」「稻草人」) with accessible analogies
+- Use「值得注意」「有趣的是」instead of「問題在於」「被省略了」
+- When referencing the original sharer's article, frame as「在這個基礎上延伸」not「這篇有問題」
+
+**4. 論點 Section (Always Include)**
+
+Every Teams publish output MUST end with a `### 💡 論點：[論點問句]` section.
+
+Content sources (in priority order):
+1. The `🏢 TrendLife 視角` section from the original fact-check (de-branded)
+2. The `整體評估` section's strategic implications
+3. The `短評`'s concluding insight
+4. **Fallback**: If none of the above exist, write a general open-ended reflection connecting the topic to the team's consumer-facing domain
+
+Writing style for the 論點 section:
+- **Use concrete scenario examples** — e.g., 「想像你半夜三點跟 AI 聊...」 instead of abstract statements
+- **Use contrast pairs** — e.g., 「偵測率高 2%」vs「掃描結果不會被賣」 to make points instantly clear
+- **Conversational tone** — write as if explaining to a smart colleague over coffee, not presenting to a board
+- **Bridge to team relevance** — connect insights to 「我們在消費者端的產品定位和溝通策略」 without naming specific brands or products
+
+**5. Fixed Footer**
+
+Every Teams publish output ends with:
+
+```
+📎 對「完整的分析（包含引用來源）」有興趣的同事可以私訊我。
+
+（本分析使用 AI 工具輔助資料蒐集與初步整理，策略觀點為個人見解）
+```
+
+##### Output Template
+
+```
+📌 延伸分析：[主題名稱]
+
+感謝 @_____ 分享...！我做了一些延伸研究，整理了幾個值得注意的脈絡。
+
+---
+
+### 背景
+[2-3 句交代事件]
+
+### [N] 個值得關注的面向
+**1. [面向標題]**
+[內容 — 事實 + 洞見，無 verdict 標籤]
+
+**2. [面向標題]**
+[內容]
+
+...
+
+### 另一面也值得知道
+- [平衡觀點 1]
+- [平衡觀點 2]
+- [平衡觀點 3]
+
+### [選填：一個類比]
+[如果原始分析中有好的類比框架，保留並潤飾]
+
+### 💡 論點：[論點問句]
+
+[論點內容 — 具體場景舉例、對比句式、口語化、橋接到團隊相關性]
+
+📎 對「完整的分析（包含引用來源）」有興趣的同事可以私訊我。
+
+（本分析使用 AI 工具輔助資料蒐集與初步整理，策略觀點為個人見解）
+```
+
+##### What Teams Publish Does NOT Do
+
+- Does not write files (display only — user copies manually to Teams)
+- Does not guess the original sharer's name (always uses `@_____` placeholder)
+- Does not include source URLs (directs to "私訊我" instead)
+- Does not handle images or attachments
 
 ### Step 3: Add Visual Elements When They Clarify Structure
 
