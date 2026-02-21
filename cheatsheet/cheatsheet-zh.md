@@ -133,6 +133,11 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 | 快速 review（< 50 行變更） | `code-review-claude` | 「快速 review 一下 utils.ts 這個小修改」 |
 | 要 review 一個 PR | `pr-review-assistant` | 「Review PR #42」 |
 
+> **Review 技能選用指引：**
+> - **日常開發中：** 直接用 `/code-review-gemini`（深度）或 `/code-review-claude`（快速）
+> - **重大功能要 merge 前：** 用 `/sp-requesting-code-review` 做雙層審查（自動調度 subagent + gemini，合併結果）
+> - **收到別人 review 意見時：** `/sp-receiving-code-review` 幫你避免盲目同意，要求技術驗證後再改
+
 ---
 
 ## Meta / 技能管理

@@ -133,6 +133,11 @@ presentation-planner → interactive-presentation-generator → Slide Files
 | Quick review (< 50 lines changed) | `code-review-claude` | "Quick review this small fix in utils.ts" |
 | Review a pull request | `pr-review-assistant` | "Review PR #42" |
 
+> **Review skill routing guide:**
+> - **During daily development:** Use `/code-review-gemini` (deep) or `/code-review-claude` (quick) directly
+> - **Before merging major features:** Use `/sp-requesting-code-review` for dual-layer review (auto-dispatches subagent + gemini, merges results)
+> - **When receiving review feedback:** `/sp-receiving-code-review` prevents blind agreement — requires technical verification before implementing changes
+
 ---
 
 ## Meta / Skill Management
