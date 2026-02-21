@@ -54,6 +54,47 @@ critical-research + tech-feasibility → research-synthesis → 決策文件
 | 驗證文件是否與程式碼一致 | `codebase-audit` | 「檢查 README 裡的 API 說明跟實際程式碼是否一致」 |
 | 跑完 2+ 研究技能，要整合結論 | `research-synthesis` | 「把資料庫選型的研究結果整合成決策文件」 |
 
+### Narrative Auditor 完整工作流
+
+```
+narrative-auditor (fact-check + 短評)
+    → qa-to-notes「存成 notes」 (Fact-Check + 短評存檔)
+    → qa-to-notes「改寫成 Teams 版」 (Teams 發佈版，追加到同一份 note)
+```
+
+| 步驟 | 說什麼 | 做什麼 |
+|------|--------|--------|
+| 1. Fact-check | `/narrative-auditor` + 貼文章連結 | 產出 fact-check 報告 |
+| 2. 短評 | 「寫個短評」 | 產出可分享的評論 |
+| 3. 存檔 | 「存成 notes」或 `/qa-to-notes` | Fact-check + 短評存為 Obsidian 筆記 |
+| 4. Teams 版 | 「改寫成 Teams 版」或 `/qa-to-notes publish` | 降火改寫，追加到同一份 note，同時顯示在對話中供複製 |
+
+**Teams 版自動轉換規則：**
+- 去除 verdict 標籤（ACCURATE/MISLEADING/FALSE）、severity 等級、confidence tags
+- 去除個人名字、TrendLife 品牌名、🦤 Dodo 人設標記
+- 負面發現改框架為「另一面也值得知道」
+- 強制包含「💡 論點」段落（含具體場景舉例）
+- 原始分享者留佔位字 `@_____`（自行填入）
+
+---
+
+## 知識管理 (Knowledge Management)
+
+### qa-to-notes 三種模式
+
+| 模式 | 觸發語 | 行為 | 輸出 |
+|------|--------|------|------|
+| **Standard** | 「存成筆記」「整理成筆記」 | 重組為百科式知識文章 | 寫入檔案 |
+| **Direct write** | 「直接存」「原文存檔」 | 原文保存不改寫 | 寫入檔案 |
+| **Teams publish** | 「改寫成 Teams 版」「publish」 | 降火改寫為公司群組可分享的格式 | 顯示在對話 + 追加到 note 檔案 |
+
+| 情境 | 模式 | 範例 |
+|------|------|------|
+| 對話中有值得保存的知識 | Standard | 「把這段 React hooks 的討論存成筆記」 |
+| fact-check 報告要原封不動保存 | Direct write | 「把這篇 fact-check 直接存下來」 |
+| 已存檔的 fact-check 要改成可分享版本 | Teams publish | 「改寫成 Teams 版」 |
+| 追加內容到現有筆記 | Standard / Direct write | 「把這段追加到之前那篇 OpenClaw 筆記」 |
+
 ---
 
 ## 簡報流程 (Presentation)

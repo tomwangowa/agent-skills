@@ -54,6 +54,47 @@ critical-research + tech-feasibility → research-synthesis → Decision Documen
 | Verify documentation matches actual code | `codebase-audit` | "Audit whether the README claims match the actual API" |
 | Ran 2+ research skills, need unified conclusion | `research-synthesis` | "Synthesize the database options research into a decision doc" |
 
+### Narrative Auditor Full Workflow
+
+```
+narrative-auditor (fact-check + commentary)
+    → qa-to-notes "save as notes" (save fact-check + commentary)
+    → qa-to-notes "rewrite for Teams" (Teams version, appended to same note)
+```
+
+| Step | What to Say | What Happens |
+|------|------------|--------------|
+| 1. Fact-check | `/narrative-auditor` + paste article URL | Produces fact-check report |
+| 2. Commentary | "Write a short commentary" | Produces shareable commentary |
+| 3. Save | "Save as notes" or `/qa-to-notes` | Saves fact-check + commentary as Obsidian note |
+| 4. Teams ver. | "Rewrite for Teams" or `/qa-to-notes publish` | Toned-down rewrite, appended to same note, also displayed for copying |
+
+**Teams version auto-transformation:**
+- Strips verdict labels (ACCURATE/MISLEADING/FALSE), severity levels, confidence tags
+- Strips owner name, TrendLife brand, 🦤 Dodo persona markers
+- Reframes negative findings as "also worth knowing"
+- Always includes a "💡 Thesis" section with concrete scenario examples
+- Original sharer placeholder `@_____` (fill in manually)
+
+---
+
+## Knowledge Management
+
+### qa-to-notes Three Modes
+
+| Mode | Trigger | Behavior | Output |
+|------|---------|----------|--------|
+| **Standard** | "save as notes" | Restructure into encyclopedia-style article | Write to file |
+| **Direct write** | "save as-is" "save raw" | Preserve verbatim | Write to file |
+| **Teams publish** | "rewrite for Teams" "publish" | Tone-down rewrite for corporate group sharing | Display + append to note file |
+
+| Scenario | Mode | Example |
+|----------|------|---------|
+| Conversation has knowledge worth keeping | Standard | "Save this React hooks discussion as a note" |
+| Fact-check report to preserve as-is | Direct write | "Save this fact-check as-is" |
+| Saved fact-check needs a shareable version | Teams publish | "Rewrite for Teams" |
+| Append content to existing note | Standard / Direct write | "Append this to the OpenClaw note" |
+
 ---
 
 ## Presentation Workflow

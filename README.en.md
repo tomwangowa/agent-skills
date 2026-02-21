@@ -60,7 +60,7 @@ Standardize repetitive documentation, presentations, and note-taking.
 |-------|-------------|
 | [presentation-planner](./presentation-planner/) | Presentation narrative strategy. Before making slides, completes audience analysis, storyline design, and per-slide content planning. |
 | [interactive-presentation-generator](./interactive-presentation-generator/) | Interactive presentation generator. Supports reveal.js / Marp / Slidev with 20 built-in professional styles. |
-| [qa-to-notes](./qa-to-notes/) | Saves Claude Code conversations as Obsidian notes. Not a verbatim transcript — restructures Q&A into a knowledge article. |
+| [qa-to-notes](./qa-to-notes/) | Saves Claude Code conversations as Obsidian notes (Standard / Direct write), or rewrites fact-checks into a corporate-friendly "extended analysis" format for team sharing (Teams publish). Three modes, one unified note file. |
 | [report-generator](./report-generator/) | Generates structured reports from activity logs and git history. Supports weekly, monthly, project summary, and retrospective formats. |
 
 ### Productivity & Tracking (3)
