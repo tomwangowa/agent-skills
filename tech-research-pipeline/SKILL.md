@@ -45,8 +45,9 @@ each compensating for the others' blind spots.
 - The decision is low-stakes or easily reversible
 - You already have empirical evidence from a working prototype
 
-**Estimated time:** 30-90 minutes for a complete pipeline run, depending
-on the number of assumptions and claims to verify.
+**Estimated time:** 60-120 minutes for a complete pipeline run, depending
+on the number of assumptions and claims to verify. Abbreviated mode:
+30-60 minutes.
 
 ## Required Input
 
@@ -158,6 +159,13 @@ to user. Pipeline can stop here if the evidence is clear.
 **Handoff to Phase 3:** The CRITICAL + UNVERIFIED assumptions (with
 recommended method = "Micro-PoC") become the input for Phase 3.
 
+**Checkpoint:** After Phase 2, present the assumption count to the user:
+> "Found N assumptions (X CRITICAL, Y HIGH). Full pipeline will
+> continue through Phases 3-7. Want to switch to abbreviated mode
+> (skip Phases 5-6) to save time?"
+
+**Auto-save:** Prompt the user to save the Phase 2 output as a note.
+
 ---
 
 ### Phase 3: Empirical Validation (micro-poc-validator)
@@ -190,10 +198,19 @@ more research time.
 |---------|--------|
 | All BLOCKING assumptions PASS | Continue to Phase 4 |
 | Any BLOCKING assumption FAILS | **STOP** — present failure to user, discuss pivot options |
+| Any assumption FALSIFIED (not just FAIL) | **Phase 1 Revision** — update the feasibility report to reflect the falsified assumption before continuing. Do NOT carry known errors forward. |
 | BLOCKING assumption is PARTIAL | User decides: continue with caveats, or pivot |
 | BLOCKING assumption is BLOCKED (can't test) | Flag risk, continue with explicit uncertainty |
 
+**Phase 1 Revision rule:** If Phase 3 falsifies any assumption that
+changes the Phase 1 verdict or a sub-hypothesis verdict, update the
+Phase 1 report inline (mark the original verdict as superseded, add
+the corrected verdict with "[Revised after Phase 3]" tag). This
+prevents later phases from building on known-wrong conclusions.
+
 **User approval required to proceed past Gate A.**
+
+**Auto-save:** Prompt the user to save Phase 3 results as a note.
 
 ---
 
@@ -295,6 +312,30 @@ strategies.
 
 **Final step:** Present decision document to user for approval.
 
+**Auto-save:** Save the decision document to `docs/decisions/` and
+prompt the user to save as a note.
+
+---
+
+### Phase 8: Action Plan (Optional)
+
+**Invoke:** `sp-writing-plans` (if user approves)
+
+**Purpose:** Convert the decision document into a concrete, executable
+implementation plan with runnable scripts and test matrices.
+
+**When to invoke:**
+- Decision is Conditional-Go with defined PoC scope
+- User wants to proceed to implementation immediately
+- Decision requires Gate-based validation (generate gate test scripts)
+
+**Output:**
+- Step-by-step implementation plan
+- Runnable test scripts for each Gate
+- Timeline with checkpoints
+
+**Skip if:** Decision is No-Go, or user wants to pause and revisit.
+
 ---
 
 ## Abbreviated Mode
@@ -342,6 +383,12 @@ The pipeline maintains state across phases. After each phase, record:
 
 Present this state summary to the user between phases so they can
 track progress and make informed decisions about continuing.
+
+**Auto-save rule:** After each phase completion, prompt:
+> "Phase N 完成。要存檔這個 Phase 的結果嗎？"
+If the user has established a note directory for this pipeline run
+(e.g., from Phase 1), save subsequent phases to the same directory
+automatically with the pattern `PhaseN-[中文名稱]_YYYY-MM-DD.md`.
 
 ## Examples
 

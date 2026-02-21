@@ -41,11 +41,14 @@ Break the main question into 4-8 independently testable claims. Each must be spe
 
 **Pattern:** "Technology X can [specific capability] under [specific constraint]"
 
-**Always include these categories:**
+**Always include these categories (all 6 are mandatory):**
 - **Technical fit**: Can it do what you need technically?
 - **Operational fit**: Can you run it reliably at your scale?
 - **Cost fit**: Is it affordable for your use case?
-- **Risk fit**: Legal, compliance, vendor lock-in, sustainability
+- **Legal/compliance fit**: ToS violations, licensing, lawsuits,
+  regulatory risk? Search for "[tech/target] lawsuit", "[target] ToS
+  scraping", "[tech] legal risk" explicitly.
+- **Risk fit**: Vendor lock-in, sustainability, adversarial evolution
 - **Alternative fit**: Is there a simpler way to achieve the same goal?
 
 ### Step 2: Define Kill Criteria
@@ -67,6 +70,20 @@ For EACH sub-hypothesis, search for counter-evidence FIRST:
 - `"moved away from [tech]"`, `"[tech] real world issues"`
 
 Record findings with source and evidence strength (High/Med/Low).
+
+**Mandatory verification rules:**
+- **Cost claims**: MUST be verified against the vendor's official
+  pricing page or API docs. Never estimate costs based on general
+  descriptions ("starts at $49/month") — find the exact per-request
+  credit/cost for YOUR specific use case (e.g., Amazon = 5 credits,
+  not 1).
+- **API capability claims**: MUST scan the vendor's complete API
+  documentation index, not just the landing page. Check for
+  parameters, headers, and features that may exist but aren't
+  prominently advertised (e.g., `keep_headers`, `session_number`).
+- **Legal/ToS claims**: MUST search for recent lawsuits, ToS
+  enforcement actions, and legal analyses specific to the target
+  platform.
 
 ### Step 4: Validation Search (Per Sub-Hypothesis)
 
@@ -225,6 +242,9 @@ CONSTRAINTS: Running on 2GB RAM server, need < 3s per PDF
 | Vague verdict ("it depends") | Force a Go/No-Go/Conditional-Go/Pivot decision |
 | No PoC scope for Conditional-Go | If you can't define what to test, the uncertainty is too high — that's a No-Go |
 | Ignoring alternatives | Always include at least 2 alternatives in the report |
+| Estimating costs without checking primary pricing docs | Verify exact per-request/per-credit cost from official pricing page — estimates can be off by 5-10x |
+| Checking only the API landing page | Scan the full docs index — hidden parameters (e.g., `keep_headers`) can change the entire verdict |
+| Omitting legal/compliance analysis | Always include a Legal/compliance sub-hypothesis — especially when the approach involves scraping, authenticated access, or third-party ToS |
 
 ## Related Skills
 

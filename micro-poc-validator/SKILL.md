@@ -180,7 +180,58 @@ Classify the outcome:
 | **FAIL** | Assumption disproven empirically | Record as FALSIFIED, trigger pivot discussion |
 | **PARTIAL** | Works under some conditions but not all | Record conditions, reassess design scope |
 | **TIMEOUT** | Could not complete within time box | Escalate to full PoC or abandon |
-| **BLOCKED** | Cannot test due to missing credentials/infra | Record blocker, suggest alternative test |
+| **BLOCKED** | Cannot test due to missing credentials/infra | Generate deferred test script (see Step 5b) |
+
+### Step 5b: BLOCKED Mode — Generate Deferred Test Script
+
+When an assumption is BLOCKED due to missing credentials, API keys,
+or infrastructure that the user can provide later:
+
+1. **Still write the complete test script** as if credentials existed
+2. Use environment variable placeholders (`$SCRAPERAPI_KEY`, etc.)
+3. Save the script to a temporary location or present it inline
+4. Include a header comment with:
+   - What assumption this tests
+   - What credentials/setup are needed
+   - How to run it (`export KEY=xxx && python test_assumption.py`)
+   - Expected PASS/FAIL criteria
+
+**Deferred script template:**
+
+```python
+#!/usr/bin/env python3
+"""
+Deferred Micro-PoC: [Assumption ID] — [Assumption statement]
+Status: BLOCKED — requires [missing credential/infra]
+
+Setup:
+  export SCRAPERAPI_API_KEY=your_key_here
+  pip install httpx  # if needed
+
+Run:
+  python test_[assumption_id].py
+
+Expected:
+  PASS: [what success looks like]
+  FAIL: [what failure looks like]
+"""
+import os, sys
+
+def test():
+    api_key = os.environ.get("SCRAPERAPI_API_KEY")
+    if not api_key:
+        print("BLOCKED: SCRAPERAPI_API_KEY not set")
+        return None
+    # ... test code ...
+
+if __name__ == "__main__":
+    result = test()
+    sys.exit(0 if result else 1)
+```
+
+This way, BLOCKED assumptions produce **actionable output** — the user
+gets a script they can run immediately once they have the credentials,
+rather than needing to restart a full session.
 
 ### Step 6: Generate Validation Report
 
