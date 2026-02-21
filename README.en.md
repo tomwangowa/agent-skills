@@ -18,7 +18,7 @@ You don't need to agree with my approach to use these — they're independent mo
 
 ## Skills Overview
 
-Currently **20 custom skills** organized into 6 categories.
+Currently **24 custom skills** organized into 6 categories.
 
 ### Quality Gates (5)
 
@@ -32,15 +32,19 @@ Embed review and verification into the development flow, not as an afterthought.
 | [codebase-audit](./codebase-audit/) | Claims-first codebase audit: extracts claims from documentation, verifies each against source code. Confirms whether docs and code actually match. |
 | [verification-before-completion](./verification-before-completion/) | Evidence gate before completion. Forces running verification commands and confirming output before any claim of "done" or "passing." |
 
-### Research & Critical Thinking (4)
+### Research & Critical Thinking (8)
 
 When AI does research for you, it shouldn't just collect evidence that supports your hypothesis.
 
 | Skill | Description |
 |-------|-------------|
-| [critical-research](./critical-research/) | Falsification-first research: seeks counter-evidence before supporting evidence. Systematically eliminates confirmation bias. |
+| [tech-research-pipeline](./tech-research-pipeline/) | **Full research pipeline orchestrator.** Chains 8 skills with 2 gate checks into a single workflow — from scope definition to decision document. For high-stakes technical decisions. |
 | [tech-feasibility](./tech-feasibility/) | Technology feasibility assessment. 8-step structured process to answer "can technology X solve problem Y?" before committing to a POC. |
+| [assumption-extractor](./assumption-extractor/) | Systematically extracts explicit and implicit assumptions from technical documents. Classifies by risk level (CRITICAL → LOW), produces an Assumption Registry with dependency graphs. |
+| [micro-poc-validator](./micro-poc-validator/) | Empirically validates technical assumptions with minimal code (≤ 30 lines). Time-boxed experiments (5-30 min) producing PASS/FAIL/PARTIAL results. |
+| [critical-research](./critical-research/) | Falsification-first research: seeks counter-evidence before supporting evidence. Systematically eliminates confirmation bias. |
 | [narrative-auditor](./narrative-auditor/) | Narrative auditing: cross-references articles, marketing copy, and technical claims against primary sources. Can also serve as your AI proxy for public responses. |
+| [research-cross-validator](./research-cross-validator/) | Cross-validates technical claims using 2-3 independent strategies (official docs, counter-evidence search, source code inspection, etc.) to prevent single-source bias. |
 | [research-synthesis](./research-synthesis/) | Multi-source research synthesis. After running 2+ research skills, integrates findings into an ADR-style decision document. |
 
 ### Design & Planning (2)
@@ -113,9 +117,32 @@ If you don't use Gemini, `code-review-claude` provides a Claude-native fast revi
 
 ---
 
+## About the Research Pipeline
+
+When AI helps you evaluate technology, the most common failure mode isn't lack of analytical capability — it's **unverified assumptions packaged as conclusions**. A seemingly thorough feasibility report can rest on 3 implicit assumptions that were never tested, only to collapse during implementation.
+
+The research pipeline (`tech-research-pipeline`) solves this by chaining 8 research skills into a complete verification workflow, where each phase's output becomes the next phase's input:
+
+```
+brainstorming → tech-feasibility → assumption-extractor → micro-poc-validator
+    → GATE A → critical-research → narrative-auditor → research-cross-validator
+    → GATE B → research-synthesis → Decision Document
+```
+
+The two gates are the key design decisions:
+
+- **Gate A** (after micro-PoC): If a BLOCKING assumption is empirically disproven, **the entire pipeline stops** — no wasting time researching on top of a failed foundation.
+- **Gate B** (after cross-validation): Checks whether all phases' findings converge. If critical claims are contradicted by different verification strategies, they're flagged as DISPUTED rather than forcing a conclusion.
+
+This pipeline was born from a painful lesson: in a ScraperAPI migration project, an apparently thorough feasibility report missed an implicit assumption (nodriver doesn't support WSS connections), which wasn't discovered until weeks into implementation when the entire architecture proved unviable. Had the pipeline existed, Phase 3's micro-PoC would have caught this in 5 minutes on Day 1.
+
+You don't need to run the full pipeline every time. Each skill works standalone — but when the cost of a wrong decision is high enough, the full pipeline helps you find the "unknown unknowns" before committing to implementation.
+
+---
+
 ## About Standard Procedures (sp-*)
 
-Beyond the 20 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), sourced from the [superpowers](https://github.com/obra/superpowers) project.
+Beyond the 24 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), sourced from the [superpowers](https://github.com/obra/superpowers) project.
 
 These aren't standalone tools but process protocols that define "what to do in which situation." For example, `sp-systematic-debugging` requires gathering symptoms and forming hypotheses before attempting fixes, rather than jumping straight to code changes.
 

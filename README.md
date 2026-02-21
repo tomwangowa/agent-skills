@@ -18,7 +18,7 @@
 
 ## Skills 總覽
 
-目前共 **20 個自製 skills**，按用途分為 6 類。
+目前共 **24 個自製 skills**，按用途分為 6 類。
 
 ### 品質守門 (5)
 
@@ -32,15 +32,19 @@
 | [codebase-audit](./codebase-audit/) | Claims-first 程式碼庫審計：從文件中提取宣稱，逐一對照原始碼驗證。用來確認文件和程式碼是否一致。 |
 | [verification-before-completion](./verification-before-completion/) | 完成前的證據關卡。在宣稱「完成」或「通過」之前，強制執行驗證命令並確認輸出。 |
 
-### 研究與批判思考 (4)
+### 研究與批判思考 (8)
 
 讓 AI 幫你做研究時，不只是蒐集支持你想法的資料。
 
 | Skill | 說明 |
 |-------|------|
-| [critical-research](./critical-research/) | Falsification-first 研究：先搜尋反面證據，再搜尋支持證據。系統性消除確認偏誤。 |
+| [tech-research-pipeline](./tech-research-pipeline/) | **完整研究管線調度器**。串接 8 個 skill、2 個閘門，一鍵觸發從範圍界定到決策文件的全流程。適合重大技術決策。 |
 | [tech-feasibility](./tech-feasibility/) | 技術可行性評估。8 步結構化流程，在投入 POC 之前回答「技術 X 能否解決問題 Y？」 |
+| [assumption-extractor](./assumption-extractor/) | 從技術文件中系統性提取顯性與隱性假設。分類風險等級（CRITICAL → LOW），產出含依賴圖的 Assumption Registry。 |
+| [micro-poc-validator](./micro-poc-validator/) | 用最小量代碼（≤ 30 行）實證驗證技術假設。5-30 分鐘的 time-boxed 實驗，產出 PASS/FAIL/PARTIAL 結果。 |
+| [critical-research](./critical-research/) | Falsification-first 研究：先搜尋反面證據，再搜尋支持證據。系統性消除確認偏誤。 |
 | [narrative-auditor](./narrative-auditor/) | 敘事審計：將文章、行銷文案、技術宣稱與一手資料對照查證。也可以作為你的 AI proxy 代為發言。 |
+| [research-cross-validator](./research-cross-validator/) | 用 2-3 種獨立策略（官方文件、反證搜尋、原始碼檢查等）交叉驗證技術主張，防止單一來源偏見。 |
 | [research-synthesis](./research-synthesis/) | 多源研究綜合。在跑完 2+ 個研究類 skills 後，將發現整合為 ADR 風格的決策文件。 |
 
 ### 設計與規劃 (2)
@@ -113,9 +117,32 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 
 ---
 
+## 關於研究管線
+
+當 AI 幫你做技術評估時，最常見的失敗模式不是分析能力不足，而是**未經驗證的假設被包裝成結論**。一個看起來很完整的可行性報告，可能建立在 3 個從未測試過的隱性假設之上——直到實作時才發現底層根本不通。
+
+研究管線（`tech-research-pipeline`）就是為了解決這個問題。它把 8 個研究 skills 串接成一條完整的驗證流水線，每個階段的產出成為下一階段的輸入：
+
+```
+brainstorming → tech-feasibility → assumption-extractor → micro-poc-validator
+    → GATE A → critical-research → narrative-auditor → research-cross-validator
+    → GATE B → research-synthesis → 決策文件
+```
+
+其中兩個閘門是關鍵設計：
+
+- **Gate A**（micro-poc 之後）：如果 BLOCKING 級假設被實證推翻，**整條管線停止**，不浪費時間在已經失敗的基礎上繼續研究。
+- **Gate B**（cross-validation 之後）：檢查所有階段的發現是否收斂一致。如果關鍵主張在不同驗證策略下互相矛盾，標記為 DISPUTED 而非硬下結論。
+
+這條管線的設計來自一次痛苦的教訓：在一個 ScraperAPI 遷移專案中，一份看似完整的可行性報告漏掉了一個隱性假設（nodriver 不支援 WSS 連線），結果在實作數週後才發現整個架構不可行。如果當時有跑管線，Phase 3 的 micro-PoC 會在 Day 1 的 5 分鐘內就抓到這個問題。
+
+你不需要每次都跑完整管線。每個 skill 都可以單獨使用——只是當決策的代價夠高時，完整管線能幫你在投入實作之前就找到那些「你不知道你不知道」的假設。
+
+---
+
 ## 關於 Standard Procedures (sp-*)
 
-除了上述 20 個 skills，本 repo 透過 symlink 整合了 13 個 **Standard Procedures**——這些是嵌入開發流程的行為規範（例如 TDD、systematic debugging、plan-then-execute 等），來自 [superpowers](https://github.com/obra/superpowers) 專案。
+除了上述 24 個 skills，本 repo 透過 symlink 整合了 13 個 **Standard Procedures**——這些是嵌入開發流程的行為規範（例如 TDD、systematic debugging、plan-then-execute 等），來自 [superpowers](https://github.com/obra/superpowers) 專案。
 
 它們不是獨立工具，而是定義「在什麼情境下應該怎麼做」的流程協議。例如 `sp-systematic-debugging` 會在你遇到 bug 時要求先收集症狀、建立假說、再嘗試修復，而不是直接改 code。
 
