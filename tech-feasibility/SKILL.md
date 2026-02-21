@@ -225,3 +225,20 @@ CONSTRAINTS: Running on 2GB RAM server, need < 3s per PDF
 | Vague verdict ("it depends") | Force a Go/No-Go/Conditional-Go/Pivot decision |
 | No PoC scope for Conditional-Go | If you can't define what to test, the uncertainty is too high — that's a No-Go |
 | Ignoring alternatives | Always include at least 2 alternatives in the report |
+
+## Related Skills
+
+- **assumption-extractor** — downstream: extract hidden assumptions from
+  the feasibility report for structured verification
+- **micro-poc-validator** — downstream: empirically test `?` (uncertain)
+  items from the fit analysis with minimal code experiments
+- **critical-research** — parallel: use for single-claim falsification
+  when the question is about general claims, not a specific fit
+- **research-cross-validator** — downstream: cross-validate key claims
+  from the report through multiple independent strategies
+- **research-synthesis** — downstream: combine this report with other
+  research outputs into a decision document
+- **brainstorming** — upstream: invokes tech-feasibility in Phase 3
+  for technical decisions
+- **tech-research-pipeline** — orchestrator: chains this skill with
+  7 others in a rigorous evaluation workflow

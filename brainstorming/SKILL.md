@@ -285,6 +285,14 @@ design is so small that a plan would be longer than the implementation.
 - **sp-writing-plans** — the default downstream skill (design → plan)
 - **tech-feasibility** — REQUIRED in Phase 3 for technical decisions
 - **critical-research** — REQUIRED in Phase 3 for factual claims
+- **assumption-extractor** — invoke after tech-feasibility to surface
+  hidden assumptions in the proposed approaches
+- **micro-poc-validator** — invoke after assumption-extractor to
+  empirically test CRITICAL assumptions before committing to a design
+- **research-cross-validator** — invoke to cross-validate key technical
+  claims through multiple independent strategies
 - **research-synthesis** — invoke after Phase 3 when 2+ research skills
   were used, to reconcile findings before presenting design
+- **tech-research-pipeline** — alternative: for high-stakes decisions,
+  use the full pipeline instead of manually chaining research skills
 - **sp-test-driven-development** — downstream of sp-writing-plans (plan → tests → code)

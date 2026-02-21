@@ -14,7 +14,7 @@ This document tracks all skill ideas, their current status, and implementation p
 
 ## Overview
 
-**Total Implemented:** 10 skills across 5 categories
+**Total Implemented:** 14 skills across 5 categories
 
 ### By Category
 
@@ -24,12 +24,16 @@ This document tracks all skill ideas, their current status, and implementation p
 | 🔀 Git & Version Control | 1 | code-story-teller |
 | 🎨 Design & UI/UX | 1 | ui-design-analyzer |
 | 🚀 Productivity & Content Creation | 3 | interactive-presentation-generator, work-log-analyzer, activity-logger |
-| 🔬 Research & Analysis | 1 | critical-research |
+| 🔬 Research & Analysis | 5 | critical-research, assumption-extractor, micro-poc-validator, research-cross-validator, tech-research-pipeline |
 
 ### Quality Scores (by skill-auditor)
 
 - **103/100** - skill-auditor (meta-validated ✅)
 - **88/100** - code-review-gemini (production-ready ✅)
+- **85/100** - assumption-extractor (production-ready ✅)
+- **78/100** - micro-poc-validator (production-ready ✅)
+- **78/100** - research-cross-validator (production-ready ✅)
+- **76/100** - tech-research-pipeline (production-ready ✅)
 - **75/100** - interactive-presentation-generator (production-ready ✅)
 
 ---
@@ -305,6 +309,102 @@ Meta-skill that audits other skills for quality, security, and production readin
 - Spec Review: Fixed 7 critical, 21 important issues
 - Code Review (Gemini): Fixed critical report generation flaw (sed portability)
 - Self-Audit: Achieved 103/100 (meta-validation proves correctness)
+
+---
+
+### 🟢 assumption-extractor
+**Status:** Implemented
+**Category:** Research & Analysis
+**Trigger:** "extract assumptions", "what assumptions does this plan make", "audit assumptions"
+
+Systematically extracts explicit and implicit assumptions from technical documents, design plans, or feasibility assessments.
+
+**Features:**
+- 10-category assumption taxonomy (technical capability, compatibility, performance, availability, cost, security, behavioral, environmental, temporal, dependency)
+- Visibility classification (explicit vs implicit)
+- Verification status tracking (verified, unverified, contradicted, partially verified)
+- Risk impact scoring (CRITICAL, HIGH, MEDIUM, LOW)
+- Dependency graph between assumptions
+- Cascading failure analysis
+- Recommended verification order with time estimates
+
+**Dependencies:** None - uses Claude Code's native capabilities
+
+**Complexity:** Medium
+
+**Quality Score:** 85/100 (audited by skill-auditor, production-ready ✅)
+
+---
+
+### 🟢 micro-poc-validator
+**Status:** Implemented
+**Category:** Research & Analysis
+**Trigger:** "validate this assumption", "can X actually do Y?", "prove it with code", "micro-poc"
+
+Empirically validates technical assumptions through minimal code experiments (5-30 min spikes).
+
+**Features:**
+- Time-boxed experiments (default 15 min, max 30 min)
+- Structured experiment template (setup, test, assert)
+- Pre-flight safety check (cost, isolation, dependencies, credentials)
+- Binary outcome classification (PASS, FAIL, PARTIAL, TIMEOUT, BLOCKED)
+- Batch mode for multiple assumptions (sorted by kill impact, stops on BLOCKING FAIL)
+- Raw output preservation for traceability
+- Upstream document update suggestions
+
+**Dependencies:** Language-specific runtimes for the technology being tested
+
+**Complexity:** Medium
+
+**Quality Score:** 78/100 (audited by skill-auditor, production-ready ✅)
+
+---
+
+### 🟢 research-cross-validator
+**Status:** Implemented
+**Category:** Research & Analysis
+**Trigger:** "cross-validate", "verify these claims", "double-check this", "independent verification"
+
+Cross-validates technical claims using multiple independent verification strategies.
+
+**Features:**
+- 5 verification strategies: Official docs, Counter-evidence search, Source code inspection, Community corroboration, Version-specific check
+- Minimum 2 strategies per claim (independence enforced)
+- Per-claim consensus rating (CONFIRMED, DISPUTED, REFUTED, UNCERTAIN)
+- Confidence scoring (HIGH, MEDIUM, LOW)
+- Conflict resolution with evidence hierarchy
+- Max 10 claims per session for quality
+- Parallel execution support via Task agents
+
+**Dependencies:** None - uses Claude Code's native capabilities
+
+**Complexity:** Medium
+
+**Quality Score:** 78/100 (audited by skill-auditor, production-ready ✅)
+
+---
+
+### 🟢 tech-research-pipeline
+**Status:** Implemented
+**Category:** Research & Analysis
+**Trigger:** "full research pipeline", "rigorous tech evaluation", "research pipeline", "evaluate [tech] thoroughly"
+
+Orchestrates full 8-phase technical research workflow with gate checks.
+
+**Features:**
+- 8-phase pipeline: brainstorming → tech-feasibility → assumption-extractor → micro-poc-validator → critical-research → narrative-auditor → research-cross-validator → research-synthesis
+- Gate A (empirical validity): stops on BLOCKING assumption failure
+- Gate B (convergence): flags conflicts between research phases
+- Pipeline state management with progress tracking
+- Abbreviated mode (skip phases 5-6 for medium-stakes decisions)
+- Early termination at any gate
+- User approval required at each gate
+
+**Dependencies:** All 7 upstream research skills
+
+**Complexity:** High (orchestrator)
+
+**Quality Score:** 76/100 (audited by skill-auditor, production-ready ✅)
 
 ---
 
@@ -907,5 +1007,5 @@ To propose a new skill:
 
 ---
 
-**Last Updated:** 2026-02-12
+**Last Updated:** 2026-02-21
 **Next Review:** End of Q1 2026

@@ -40,17 +40,24 @@ brainstorming → sp-writing-plans → sp-test-driven-development → sp-executi
 
 ## 研究流程 (Research)
 
-### 完整研究（多來源綜合決策）
+### 完整研究管線（8 階段嚴格評估）
 
 ```
-critical-research + tech-feasibility → research-synthesis → 決策文件
+tech-research-pipeline（一鍵觸發完整流程）:
+  brainstorming → tech-feasibility → assumption-extractor → micro-poc-validator
+    → GATE A → critical-research → narrative-auditor → research-cross-validator
+    → GATE B → research-synthesis → 決策文件
 ```
 
 | 情境 | 使用技能 | 範例 |
 |------|----------|------|
-| 驗證某個說法是否正確 | `critical-research` | 「React Server Components 真的不能用 hooks 嗎？」 |
+| 重大技術決策，需要嚴格多角度評估 | `tech-research-pipeline` | 「用完整 research pipeline 評估從 nodriver 遷移到 Playwright」 |
 | 評估某技術能否解決問題 | `tech-feasibility` | 「Bun 能取代 Node.js 用在我們的正式環境嗎？」 |
+| 從技術文件中提取隱含假設 | `assumption-extractor` | 「幫我從這份設計文件中提取所有假設」 |
+| 用代碼驗證技術假設（5-30 分鐘） | `micro-poc-validator` | 「驗證 nodriver 能不能連 wss:// URL」 |
+| 驗證某個說法是否正確 | `critical-research` | 「React Server Components 真的不能用 hooks 嗎？」 |
 | 查核外部文章/行銷文案的真實性 | `narrative-auditor` | 「幫我查核這篇 Redis vs Memcached 的文章」 |
+| 用多策略交叉驗證技術主張 | `research-cross-validator` | 「交叉驗證這份可行性報告中的關鍵主張」 |
 | 驗證文件是否與程式碼一致 | `codebase-audit` | 「檢查 README 裡的 API 說明跟實際程式碼是否一致」 |
 | 跑完 2+ 研究技能，要整合結論 | `research-synthesis` | 「把資料庫選型的研究結果整合成決策文件」 |
 
@@ -161,6 +168,9 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 | 建立/修改技能後 | `skill-auditor` |
 | brainstorming Phase 3 遇到技術抉擇 | `tech-feasibility`（必須） |
 | brainstorming Phase 3 遇到事實主張 | `critical-research`（必須） |
+| tech-feasibility 產出報告後 | `assumption-extractor`（建議） |
+| assumption-extractor 找到 CRITICAL 假設 | `micro-poc-validator`（建議） |
 | 跑完 2+ 研究技能後 | `research-synthesis`（建議） |
+| 重大技術決策需嚴格評估 | `tech-research-pipeline`（建議） |
 | 完成分支工作後 | `report-generator`（建議） |
 | 查完工作日誌後 | `report-generator`（建議） |

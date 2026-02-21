@@ -328,7 +328,15 @@ docs.
 - **tech-feasibility** — upstream: provides Go/No-Go technology assessments
 - **narrative-auditor** — upstream: provides per-claim accuracy verdicts
 - **codebase-audit** — upstream: provides documentation accuracy scores
+- **assumption-extractor** — upstream: provides structured assumption
+  inventories with verification status and risk classification
+- **micro-poc-validator** — upstream: provides empirical evidence
+  (PASS/FAIL/PARTIAL) for specific technical assumptions
+- **research-cross-validator** — upstream: provides multi-strategy
+  cross-validation results with per-claim consensus ratings
 - **brainstorming** — caller: invokes research skills in Phase 3, then
   synthesis before returning to design
+- **tech-research-pipeline** — orchestrator: invokes synthesis as the
+  final phase (Phase 7) to produce the decision document
 - **sp-writing-plans** — downstream: once a decision is made, plan the
   implementation

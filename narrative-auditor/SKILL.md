@@ -492,3 +492,6 @@ Step 4 → Present to user for approval
 - **critical-research** — Same falsification-first methodology, applied to open research questions rather than narrative auditing.
 - **codebase-audit** — Same claims-first approach, specialized for documentation-vs-code verification.
 - **verification-before-completion** — Applies evidence-before-assertion rigor to completion claims.
+- **assumption-extractor** — Complementary: extracts assumptions while narrative-auditor verifies factual accuracy. Use both for thorough document review.
+- **research-cross-validator** — Complementary: cross-validates claims through multiple strategies; narrative-auditor focuses on source-vs-claim accuracy.
+- **tech-research-pipeline** — Orchestrator: invokes narrative-auditor at Phase 5 (self-audit) to audit AI-generated feasibility reports.

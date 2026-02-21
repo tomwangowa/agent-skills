@@ -60,6 +60,10 @@ Followed by markdown content containing:
 - **pr-review-assistant** — Review pull requests with structured feedback
 - **critical-research** — Falsification-first research that seeks counter-evidence before supporting evidence
 - **tech-feasibility** — Evaluate whether a technology can solve a specific problem before committing to implementation
+- **assumption-extractor** — Extract explicit and implicit assumptions from technical documents, classify by risk and verification status
+- **micro-poc-validator** — Empirically validate technical assumptions through minimal code experiments (5-30 min spikes)
+- **research-cross-validator** — Cross-validate technical claims using multiple independent strategies (docs, counter-evidence, source code)
+- **tech-research-pipeline** — Orchestrate full 8-phase research workflow chaining all research skills with gate checks
 - **research-synthesis** — Synthesize findings from multiple research skills into ADR-style decision documents
 - **codebase-audit** — Claims-first audit: extract documentation claims and verify against code
 - **narrative-auditor** — Audit external narratives against primary sources, or speak as user's AI proxy

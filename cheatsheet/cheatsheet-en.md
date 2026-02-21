@@ -40,17 +40,24 @@ brainstorming → sp-writing-plans → sp-test-driven-development → sp-executi
 
 ## Research Workflow
 
-### Full Research (Multi-Source Decision Making)
+### Full Research Pipeline (8-Phase Rigorous Evaluation)
 
 ```
-critical-research + tech-feasibility → research-synthesis → Decision Document
+tech-research-pipeline (one-shot trigger for full workflow):
+  brainstorming → tech-feasibility → assumption-extractor → micro-poc-validator
+    → GATE A → critical-research → narrative-auditor → research-cross-validator
+    → GATE B → research-synthesis → Decision Document
 ```
 
 | Scenario | Skill to Use | Example |
 |----------|-------------|---------|
-| Verify whether a claim is true | `critical-research` | "Is it true that React Server Components can't use hooks?" |
+| Major tech decision requiring rigorous multi-angle evaluation | `tech-research-pipeline` | "Run full research pipeline to evaluate migrating from nodriver to Playwright" |
 | Evaluate if a technology can solve a problem | `tech-feasibility` | "Can Bun replace Node.js for our production API?" |
+| Extract hidden assumptions from a technical document | `assumption-extractor` | "Extract all assumptions from this design document" |
+| Empirically validate a technical assumption (5-30 min) | `micro-poc-validator` | "Validate whether nodriver can connect to wss:// URLs" |
+| Verify whether a claim is true | `critical-research` | "Is it true that React Server Components can't use hooks?" |
 | Fact-check external articles or marketing copy | `narrative-auditor` | "Fact-check this blog post about Redis vs Memcached" |
+| Cross-validate technical claims via multiple strategies | `research-cross-validator` | "Cross-validate the key claims in this feasibility report" |
 | Verify documentation matches actual code | `codebase-audit` | "Audit whether the README claims match the actual API" |
 | Ran 2+ research skills, need unified conclusion | `research-synthesis` | "Synthesize the database options research into a decision doc" |
 
@@ -161,6 +168,9 @@ These skills are automatically suggested or required under specific conditions:
 | After creating/modifying a skill | `skill-auditor` |
 | Brainstorming Phase 3: technical decision | `tech-feasibility` (required) |
 | Brainstorming Phase 3: factual claim | `critical-research` (required) |
+| After tech-feasibility produces a report | `assumption-extractor` (suggested) |
+| After assumption-extractor finds CRITICAL assumptions | `micro-poc-validator` (suggested) |
 | After running 2+ research skills | `research-synthesis` (suggested) |
+| Major tech decision requiring rigorous evaluation | `tech-research-pipeline` (suggested) |
 | After completing branch work | `report-generator` (suggested) |
 | After querying work logs | `report-generator` (suggested) |
