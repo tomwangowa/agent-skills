@@ -158,6 +158,34 @@ Micro-PoC Plan:
 Proceed? [Y/n]
 ```
 
+### Step 3b: Credential Collection
+
+When the pre-flight check (Step 3) identifies missing credentials:
+
+1. **Inventory what's needed** — list each missing credential with:
+   - Environment variable name (e.g., `SCRAPERAPI_API_KEY`)
+   - Purpose (e.g., "Authenticate with ScraperAPI Product API")
+   - Where to obtain it (e.g., "ScraperAPI dashboard → API Key")
+
+2. **Ask the user** via `AskUserQuestion` with options:
+   - **"Provide now"** — user pastes the credential value directly
+   - **"Set env var myself"** — user will set it in their terminal; wait
+     and re-check the environment before proceeding
+   - **"Skip (BLOCKED)"** — fall back to BLOCKED behavior (Step 5b)
+
+3. **If provided:**
+   - Set as a process-level environment variable for the current session
+   - Proceed to Step 4 (Execute Experiment)
+   - The credential is available only in-memory — never written to files
+
+4. **If skipped:**
+   - Fall back to current BLOCKED behavior (deferred script in Step 5b)
+   - Record the skip reason for the validation report
+
+**Security:** Credentials collected here are ephemeral — stored only as
+process-level env vars, never written to disk, logs, or reports. See
+[Security Considerations](#security-considerations) for full details.
+
 ### Step 4: Execute Experiment
 
 Run the script and capture all output. Record:
@@ -182,10 +210,23 @@ Classify the outcome:
 | **TIMEOUT** | Could not complete within time box | Escalate to full PoC or abandon |
 | **BLOCKED** | Cannot test due to missing credentials/infra | Generate deferred test script (see Step 5b) |
 
-### Step 5b: BLOCKED Mode — Generate Deferred Test Script
+### Step 5b: BLOCKED Mode — Fallback When Credentials Unavailable
 
-When an assumption is BLOCKED due to missing credentials, API keys,
-or infrastructure that the user can provide later:
+BLOCKED is a **fallback**, not the default for missing credentials.
+The preferred flow is:
+
+```
+Missing credential → Step 3b: Ask user → (provided) → Step 4: Execute
+                                        → (declined) → Step 5b: BLOCKED
+```
+
+BLOCKED should only occur when:
+- The user explicitly chose "Skip" in Step 3b
+- The user cannot provide the credential at this time
+- The credential requires external setup beyond the user's control
+
+When an assumption is BLOCKED after the user declines to provide
+credentials:
 
 1. **Still write the complete test script** as if credentials existed
 2. Use environment variable placeholders (`$SCRAPERAPI_KEY`, etc.)
@@ -284,6 +325,34 @@ changes and let the user decide.
 ## Batch Mode
 
 When validating multiple assumptions from the same document:
+
+#### Batch Pre-Scan: Consolidated Credential Collection
+
+Before executing the batch loop, minimize user interruptions by
+collecting all credentials upfront:
+
+1. **Scan** all planned PoCs for required credentials (env vars, API
+   keys, auth tokens)
+2. **Deduplicate** — if 3 tests all need `SCRAPERAPI_API_KEY`, ask once
+3. **Present a consolidated credential table:**
+
+```
+Credentials needed for this batch:
+
+| Credential          | Needed by          | Purpose                    | Status  |
+|--------------------|--------------------|----------------------------|---------|
+| SCRAPERAPI_API_KEY | PoC #2, #3, #5     | ScraperAPI authentication  | MISSING |
+| ZENROWS_API_KEY    | PoC #4             | Remote browser access      | MISSING |
+| AWS_ACCESS_KEY_ID  | PoC #6             | S3 profile download        | SET ✓   |
+```
+
+4. **Collect all at once** via `AskUserQuestion` — for each missing
+   credential, offer "Provide now" / "Set env var" / "Skip"
+5. **Proceed** with batch execution using all collected credentials
+
+This avoids stopping mid-batch to ask for each credential individually.
+
+#### Batch Execution
 
 1. List all assumptions with their KILL_IMPACT
 2. Sort by KILL_IMPACT (BLOCKING first, then DEGRADING, then MINOR)
@@ -393,7 +462,7 @@ KILL_IMPACT: BLOCKING
 
 | Scenario | Action |
 |----------|--------|
-| Experiment requires credentials not in env | Record as BLOCKED, list what's needed |
+| Experiment requires credentials not in env | Ask user via Step 3b; only BLOCKED if user declines |
 | Package installation fails | Try alternative installation method once; if still fails, record as BLOCKED |
 | Experiment produces ambiguous results | Record as PARTIAL, describe what worked and what didn't |
 | Network timeout during API test | Retry once; if still fails, record as TIMEOUT with network conditions |
@@ -412,6 +481,17 @@ KILL_IMPACT: BLOCKING
 - **Cost awareness** — always estimate and disclose API costs before
   making external calls
 - **No blind execution** — always show the user the script before running
+- **Collected credentials are ephemeral** — credentials obtained via
+  `AskUserQuestion` (Step 3b) are set as process-level environment
+  variables only. They are:
+  - Never written to disk (no files, no `.env`, no config)
+  - Never included in reports or validation logs
+  - Never logged (sanitize any accidental credential echoes from
+    test stdout/stderr before including in reports)
+  - Cleared from the environment after batch completion
+- **Credential sanitization in output** — before including any test
+  output in the validation report, scan for and redact any values
+  matching collected credentials (replace with `[REDACTED]`)
 
 ## Related Skills
 
