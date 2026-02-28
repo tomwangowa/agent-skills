@@ -18,7 +18,7 @@
 
 ## Skills 總覽
 
-目前共 **24 個自製 skills**，按用途分為 6 類。
+目前共 **25 個自製 skills**，按用途分為 6 類。
 
 ### 品質守門 (5)
 
@@ -56,7 +56,7 @@
 | [brainstorming](./brainstorming/) | 蘇格拉底式設計對話。透過一次一個問題探索需求，提出 2-3 個方案及其取捨，產出設計文件。 |
 | [ui-design-analyzer](./ui-design-analyzer/) | UI/UX 截圖分析。從可用性、無障礙、視覺設計等 6 個維度評估介面設計。 |
 
-### 內容生成 (4)
+### 內容生成 (5)
 
 把重複性的文件、簡報、筆記工作標準化。
 
@@ -66,6 +66,7 @@
 | [interactive-presentation-generator](./interactive-presentation-generator/) | 互動式簡報生成。支援 reveal.js / Marp / Slidev，內建 20 種專業樣式。 |
 | [qa-to-notes](./qa-to-notes/) | 將 Claude Code 對話存為 Obsidian 筆記（Standard / Direct write），或改寫 fact-check 為公司群組可分享的「延伸分析」格式（Teams publish）。三種模式，同一份 note 統一管理。 |
 | [report-generator](./report-generator/) | 從活動紀錄和 git 歷史生成結構化報告。支援週報、月報、專案總結、回顧等格式。 |
+| [ai-weekly-insight](./ai-weekly-insight/) | TrendLife AI Taskforce 專用的每週 AI 新聞深度分析。搜尋 Top 5 新聞、三維分析（技術/業務/競爭），輸出至 Obsidian + Confluence。 |
 
 ### 生產力與追蹤 (3)
 
@@ -142,7 +143,7 @@ brainstorming → tech-feasibility → assumption-extractor → micro-poc-valida
 
 ## 關於 Standard Procedures (sp-*)
 
-除了上述 24 個 skills，本 repo 透過 symlink 整合了 13 個 **Standard Procedures**——這些是嵌入開發流程的行為規範（例如 TDD、systematic debugging、plan-then-execute 等），來自 [superpowers](https://github.com/obra/superpowers) 專案。
+除了上述 25 個 skills，本 repo 透過 symlink 整合了 13 個 **Standard Procedures**——這些是嵌入開發流程的行為規範（例如 TDD、systematic debugging、plan-then-execute 等），來自 [superpowers](https://github.com/obra/superpowers) 專案。
 
 它們不是獨立工具，而是定義「在什麼情境下應該怎麼做」的流程協議。例如 `sp-systematic-debugging` 會在你遇到 bug 時要求先收集症狀、建立假說、再嘗試修復，而不是直接改 code。
 

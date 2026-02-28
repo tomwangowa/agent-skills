@@ -18,7 +18,7 @@ These principles don't require you to agree with my approach — they're indepen
 
 ## Skills Overview
 
-Currently **24 custom skills** organized into 6 categories.
+Currently **25 custom skills** organized into 6 categories.
 
 ### Quality Gates (5)
 
@@ -56,7 +56,7 @@ Think before you build.
 | [brainstorming](./brainstorming/) | Socratic design dialogue. Explores requirements one question at a time, proposes 2-3 approaches with trade-offs, produces a design document. |
 | [ui-design-analyzer](./ui-design-analyzer/) | UI/UX screenshot analysis. Evaluates interface design across 6 dimensions including usability, accessibility, and visual design. |
 
-### Content Generation (4)
+### Content Generation (5)
 
 Standardize repetitive documentation, presentation, and note-taking work.
 
@@ -66,6 +66,7 @@ Standardize repetitive documentation, presentation, and note-taking work.
 | [interactive-presentation-generator](./interactive-presentation-generator/) | Interactive presentation generator. Supports reveal.js / Marp / Slidev with 20 built-in professional themes. |
 | [qa-to-notes](./qa-to-notes/) | Save Claude Code conversations as Obsidian notes (Standard / Direct write), or rewrite fact-checks into a shareable "extended analysis" format for Teams (Teams publish). Three modes, unified note management. |
 | [report-generator](./report-generator/) | Generate structured reports from activity logs and git history. Supports weekly, monthly, project summary, retrospective, and more. |
+| [ai-weekly-insight](./ai-weekly-insight/) | Weekly AI news deep-analysis for TrendLife AI Taskforce. Searches top 5 news, applies three-dimension analysis (tech/business/competitive), outputs to Obsidian + Confluence. |
 
 ### Productivity & Tracking (3)
 
@@ -142,7 +143,7 @@ You don't need to run the full pipeline every time. Each skill works independent
 
 ## About Standard Procedures (sp-*)
 
-Beyond the 24 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), from the [superpowers](https://github.com/obra/superpowers) project.
+Beyond the 25 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), from the [superpowers](https://github.com/obra/superpowers) project.
 
 They're not standalone tools but process protocols defining "what to do in which context." For example, `sp-systematic-debugging` requires collecting symptoms, forming hypotheses, then attempting fixes when you encounter a bug — rather than jumping straight to modifying code.
 

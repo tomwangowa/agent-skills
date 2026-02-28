@@ -125,6 +125,7 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 
 | 情境 | 使用技能 | 範例 |
 |------|----------|------|
+| 產出每週 AI 新聞深度分析 | `ai-weekly-insight` | 「AI 週報」或 `/ai-weekly-insight` |
 | 產出週報/月報/專案摘要 | `report-generator` | 「產出這個 sprint 的週報」 |
 | 查詢工作日誌、追蹤 TODO | `work-log-analyzer` | 「上週還有哪些 TODO 沒完成？」 |
 | 記錄當前工作活動（跨 session） | `activity-logger` | 「記錄今天的工作：重構 auth 模組、修了 3 個 bug」 |

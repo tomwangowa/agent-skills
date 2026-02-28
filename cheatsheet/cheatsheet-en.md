@@ -125,6 +125,7 @@ presentation-planner → interactive-presentation-generator → Slide Files
 
 | Scenario | Skill to Use | Example |
 |----------|-------------|---------|
+| Produce weekly AI news deep-analysis | `ai-weekly-insight` | "AI 週報" or `/ai-weekly-insight` |
 | Generate weekly/monthly/project reports | `report-generator` | "Generate a weekly report for this sprint" |
 | Query work logs, track TODOs | `work-log-analyzer` | "What TODOs are still open from last week?" |
 | Record current session activities (cross-session) | `activity-logger` | "Log today's work: refactored auth module, fixed 3 bugs" |
