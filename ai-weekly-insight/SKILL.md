@@ -235,7 +235,7 @@ If user declines: keep Obsidian version only, do not prompt again.
 1. **No fluff**: Reject empty phrases like「AI 發展迅速」「未來可期」. Every insight must contain a specific technical observation or actionable recommendation.
 2. **Engineer audience**: Use professional terminology. Do not over-simplify.
 3. **Citations required**: Every factual claim must have a source link. No fabrication.
-4. **Business impact must be specific**: Never just say「可以應用到 TrendLife」. Name the specific scenario, product direction, or action.
+4. **Business impact must be specific and balanced**: Never just say「可以應用到 TrendLife」. Name the specific scenario, product direction, or action. Always cover both **opportunity** (how TrendLife can benefit) and **risk** (what happens if TrendLife ignores this, or if this technology is used against our users).
 5. **Competitive analysis must take a position**: Don't just list competitor moves — state what Trend Micro should do (compete / collaborate / watch).
 6. **Differentiate from auto-generated summaries**: The existing `AI 新聞摘要` pages provide bullet-point summaries. This skill must deliver visibly deeper analysis and unique angles.
 7. **Time control**: Target 3-5 minutes total execution. No more than 5 WebSearch rounds per news item.
