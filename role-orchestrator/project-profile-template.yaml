@@ -1,0 +1,37 @@
+# Project Profile Template
+# Copy this file to your project's .claude/project-profile.yaml
+# The role-orchestrator reads this to calibrate PM/RD behavior.
+
+project:
+  name: "My App"
+  description: "One-line description of what this project does"
+  domain: "e-commerce"         # e.g., e-commerce, fintech, dev-tools, social, healthcare
+
+size: small                    # small | medium | large
+                               # small:  solo/2-person, < 2 weeks, few moving parts
+                               # medium: 3-5 people, 2-8 weeks, multiple services
+                               # large:  6+ people, 2+ months, complex architecture
+
+formality: low                 # low | medium | high
+                               # low:  bullet points, quick decisions
+                               # medium: structured docs, team review
+                               # high: formal sign-offs, compliance requirements
+
+team:
+  roles: [pm, rd]              # Enabled roles (MVP: pm, rd)
+                               # Future: qa, devops, security
+
+tech-stack:
+  languages: [TypeScript]      # Primary languages
+  frameworks: [Next.js]        # Key frameworks
+  infrastructure: []           # e.g., AWS, GCP, Docker, K8s
+
+priorities:                    # Ordered — first item is most important
+  - speed-to-market            # Options: speed-to-market, code-quality,
+  - code-quality               #   scalability, security, cost-efficiency,
+                               #   user-experience, maintainability
+
+constraints:                   # Optional — known limitations
+  # - "No external API dependencies"
+  # - "Must support offline mode"
+  # - "Budget: < $100/month infrastructure"

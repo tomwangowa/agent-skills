@@ -37,6 +37,12 @@ Followed by markdown content containing:
 - **code-review-gemini** — Deep code review using Gemini CLI (default reviewer)
 - **code-review-claude** — Fast native code review using Claude (< 50 lines)
 
+### Multi-Agent Roles
+
+- **role-orchestrator** — Orchestrate PM → RD pipeline with subagent dispatch, project profile calibration, and user-approval gates
+- **role-pm** — PM role: produce size-calibrated requirements artifacts (bullets → user stories → full PRD)
+- **role-rd** — RD role: produce size-calibrated design artifacts (code plan → design doc → architecture doc)
+
 ### Design & Development Process
 
 - **brainstorming** — Socratic design dialogue before any implementation; produces approved design doc
