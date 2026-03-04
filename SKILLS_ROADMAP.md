@@ -14,7 +14,7 @@ This document tracks all skill ideas, their current status, and implementation p
 
 ## Overview
 
-**Total Implemented:** 14 skills across 5 categories
+**Total Implemented:** 17 skills across 6 categories
 
 ### By Category
 
@@ -23,6 +23,7 @@ This document tracks all skill ideas, their current status, and implementation p
 | 🔍 Code Quality & Review | 4 | code-review-gemini, code-review-claude, pr-review-assistant, skill-auditor |
 | 🔀 Git & Version Control | 1 | code-story-teller |
 | 🎨 Design & UI/UX | 1 | ui-design-analyzer |
+| 🤝 Multi-Agent Roles | 3 | role-orchestrator, role-pm, role-rd |
 | 🚀 Productivity & Content Creation | 3 | interactive-presentation-generator, work-log-analyzer, activity-logger |
 | 🔬 Research & Analysis | 5 | critical-research, assumption-extractor, micro-poc-validator, research-cross-validator, tech-research-pipeline |
 
@@ -405,6 +406,66 @@ Orchestrates full 8-phase technical research workflow with gate checks.
 **Complexity:** High (orchestrator)
 
 **Quality Score:** 76/100 (audited by skill-auditor, production-ready ✅)
+
+---
+
+### 🟢 role-orchestrator
+**Status:** Implemented
+**Category:** Multi-Agent Roles
+**Trigger:** "role orchestrator", "multi-role pipeline", "PM then RD", "start role pipeline"
+
+Orchestrates a multi-role development pipeline (PM → RD) using subagent dispatch with user-approval gates.
+
+**Features:**
+- Sequential PM → RD pipeline with Gate A (requirements) and Gate B (design)
+- Project profile loading from `.claude/project-profile.yaml`
+- Interactive profile creation when no profile exists
+- Size-calibrated output depth (small/medium/large)
+- Convergence check between PM and RD artifacts
+- Prompt injection mitigation for subagent dispatch
+- Pipeline state management with progress tracking
+
+**Dependencies:** role-pm, role-rd (dispatched as subagents)
+
+**Quality Score:** 85/100 (AI-adjusted, production-ready ✅)
+
+---
+
+### 🟢 role-pm
+**Status:** Implemented
+**Category:** Multi-Agent Roles
+**Trigger:** "PM analysis", "requirements gathering", "role-pm"
+
+PM role that produces size-calibrated requirements artifacts.
+
+**Features:**
+- Size-calibrated output: bullets + AC (small), user stories + MoSCoW (medium), full PRD + RACI (large)
+- Structured artifact format with metadata and handoff protocol
+- Product risk identification (not technical risks)
+- Acceptance criteria required for every requirement
+
+**Dependencies:** None
+
+**Quality Score:** 85/100 (AI-adjusted, production-ready ✅)
+
+---
+
+### 🟢 role-rd
+**Status:** Implemented
+**Category:** Multi-Agent Roles
+**Trigger:** "RD analysis", "technical design", "role-rd"
+
+RD role that produces size-calibrated design artifacts from PM requirements.
+
+**Features:**
+- Size-calibrated output: code plan (small), design doc (medium), architecture doc (large)
+- Feasibility checks: intuition (small), tech-feasibility (medium), tech-research-pipeline (large)
+- Implementation roadmap with independently testable tasks
+- T-shirt / story point / hour-based estimation by size
+
+**Dependencies:** tech-feasibility (medium), tech-research-pipeline (large)
+
+**Quality Score:** 85/100 (AI-adjusted, production-ready ✅)
 
 ---
 
@@ -1007,5 +1068,5 @@ To propose a new skill:
 
 ---
 
-**Last Updated:** 2026-02-21
+**Last Updated:** 2026-03-04
 **Next Review:** End of Q1 2026

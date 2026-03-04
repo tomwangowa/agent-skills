@@ -7,12 +7,20 @@
 ### 完整功能開發（從零到完成）
 
 ```
-brainstorming → sp-writing-plans → sp-test-driven-development → sp-executing-plans
-    → sp-requesting-code-review → sp-receiving-code-review → sp-finishing-a-development-branch
+小型專案：
+  brainstorming → sp-writing-plans → sp-test-driven-development → sp-executing-plans
+      → sp-requesting-code-review → sp-receiving-code-review → sp-finishing-a-development-branch
+
+中大型專案：
+  role-orchestrator (PM → RD) → sp-writing-plans → sp-subagent-driven-development
+      → sp-requesting-code-review → sp-receiving-code-review → sp-finishing-a-development-branch
 ```
 
 | 情境 | 使用技能 | 範例 |
 |------|----------|------|
+| 中大型專案，需要結構化的 PM→RD 流水線 | `role-orchestrator` | 「Start role pipeline for 建立電商結帳系統」 |
+| 只需要 PM 需求分析 | `role-pm` | 「PM analysis for 建立通知系統」 |
+| 只需要 RD 技術設計 | `role-rd` | 「RD design for 這組需求」 |
 | 有新想法，還沒想清楚怎麼做 | `brainstorming` | 「我想加通知系統，但還沒想好架構」 |
 | 需求明確，要拆解成實作步驟 | `sp-writing-plans` | 「幫我寫一個加入 JWT 認證的實作計畫」 |
 | 要開始寫 code（先寫測試） | `sp-test-driven-development` | 「用 TDD 方式實作登入 endpoint」 |
@@ -165,6 +173,7 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 | 觸發條件 | 自動觸發的技能 |
 |----------|---------------|
 | 實作新功能前 | `brainstorming`（CLAUDE.md 路由規則） |
+| brainstorming 偵測到中大型範圍 | `role-orchestrator`（建議升級） |
 | 宣稱工作完成前 | `verification-before-completion` |
 | 建立/修改技能後 | `skill-auditor` |
 | brainstorming Phase 3 遇到技術抉擇 | `tech-feasibility`（必須） |

@@ -18,7 +18,7 @@ You don't need to agree with my approach to use these — they're independent mo
 
 ## Skills Overview
 
-Currently **24 custom skills** organized into 6 categories.
+Currently **28 custom skills** organized into 7 categories.
 
 ### Quality Gates (5)
 
@@ -47,13 +47,23 @@ When AI does research for you, it shouldn't just collect evidence that supports 
 | [research-cross-validator](./research-cross-validator/) | Cross-validates technical claims using 2-3 independent strategies (official docs, counter-evidence search, source code inspection, etc.) to prevent single-source bias. |
 | [research-synthesis](./research-synthesis/) | Multi-source research synthesis. After running 2+ research skills, integrates findings into an ADR-style decision document. |
 
+### Multi-Agent Roles (3)
+
+Simulate team-based collaboration with isolated PM and RD roles, each running in its own subagent.
+
+| Skill | Description |
+|-------|-------------|
+| [role-orchestrator](./role-orchestrator/) | **Pipeline coordinator.** Dispatches PM → RD subagents with approval gates between phases. Reads `project-profile.yaml` to calibrate output depth by project size (small/medium/large). For medium and large projects. |
+| [role-pm](./role-pm/) | PM role: translates goals into size-calibrated requirements artifacts (bullet + AC → user stories → full PRD). |
+| [role-rd](./role-rd/) | RD role: translates PM requirements into size-calibrated design artifacts (code plan → design doc → architecture doc). |
+
 ### Design & Planning (2)
 
 Think before you build.
 
 | Skill | Description |
 |-------|-------------|
-| [brainstorming](./brainstorming/) | Socratic design dialogue. Explores requirements one question at a time, proposes 2-3 approaches with trade-offs, produces a design document. |
+| [brainstorming](./brainstorming/) | Socratic design dialogue. Explores requirements one question at a time, proposes 2-3 approaches with trade-offs, produces a design document. Auto-escalates to `role-orchestrator` for medium/large projects. |
 | [ui-design-analyzer](./ui-design-analyzer/) | UI/UX screenshot analysis. Evaluates interface design across 6 dimensions including usability, accessibility, and visual design. |
 
 ### Content Generation (4)
@@ -142,7 +152,7 @@ You don't need to run the full pipeline every time. Each skill works standalone 
 
 ## About Standard Procedures (sp-*)
 
-Beyond the 24 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), sourced from the [superpowers](https://github.com/obra/superpowers) project.
+Beyond the 28 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), sourced from the [superpowers](https://github.com/obra/superpowers) project.
 
 These aren't standalone tools but process protocols that define "what to do in which situation." For example, `sp-systematic-debugging` requires gathering symptoms and forming hypotheses before attempting fixes, rather than jumping straight to code changes.
 
