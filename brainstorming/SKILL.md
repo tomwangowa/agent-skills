@@ -73,6 +73,27 @@ Before asking any questions, silently gather context:
 
 Do NOT dump findings on the user. Use them to ask better questions.
 
+### Phase 1.5: Scope Escalation Check
+
+After gathering context, quickly assess project scale:
+- **Multiple user roles or stakeholders** involved?
+- **3+ services or major components** to coordinate?
+- **Estimated effort > 2 weeks** or team size > 2 people?
+
+If **2 or more** of these are true, the project is likely **medium or large**.
+Suggest switching to `role-orchestrator`:
+
+> "This looks like a medium/large-scale project — multiple components,
+> significant scope. The `role-orchestrator` pipeline (PM → RD with
+> structured artifacts and approval gates) would give you better
+> requirements and design at this scale. Want to switch?"
+
+If the user agrees, invoke `role-orchestrator` and stop brainstorming.
+If the user declines, continue with brainstorming as normal.
+
+**Skip this check if** the user explicitly asked for brainstorming or
+the task is clearly a single-feature addition within an existing project.
+
 ### Phase 2: Socratic Dialogue
 
 Ask questions **one at a time**. After each answer, ask the next
@@ -282,6 +303,8 @@ design is so small that a plan would be longer than the implementation.
 
 ## Related Skills
 
+- **role-orchestrator** — for medium/large projects, escalate to the
+  PM → RD pipeline instead of brainstorming (see Phase 1.5)
 - **sp-writing-plans** — the default downstream skill (design → plan)
 - **tech-feasibility** — REQUIRED in Phase 3 for technical decisions
 - **critical-research** — REQUIRED in Phase 3 for factual claims

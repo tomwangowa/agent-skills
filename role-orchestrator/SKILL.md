@@ -34,6 +34,7 @@ not the thinking.
 - When the user wants a structured approach to go from idea to implementation plan
 
 **When NOT to use:**
+- **Small projects** — use `brainstorming` instead (faster, less token overhead)
 - Single-file bug fixes or changes under 30 minutes (just code directly)
 - Only requirements needed (invoke `role-pm` directly)
 - Only design needed (invoke `role-rd` directly)
