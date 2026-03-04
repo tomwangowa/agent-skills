@@ -7,12 +7,20 @@
 ### Full Feature Development (End-to-End)
 
 ```
-brainstorming → sp-writing-plans → sp-test-driven-development → sp-executing-plans
-    → sp-requesting-code-review → sp-receiving-code-review → sp-finishing-a-development-branch
+Small projects:
+  brainstorming → sp-writing-plans → sp-test-driven-development → sp-executing-plans
+      → sp-requesting-code-review → sp-receiving-code-review → sp-finishing-a-development-branch
+
+Medium/Large projects:
+  role-orchestrator (PM → RD) → sp-writing-plans → sp-subagent-driven-development
+      → sp-requesting-code-review → sp-receiving-code-review → sp-finishing-a-development-branch
 ```
 
 | Scenario | Skill to Use | Example |
 |----------|-------------|---------|
+| Medium/large project needing structured PM→RD pipeline | `role-orchestrator` | "Start role pipeline for building an e-commerce checkout system" |
+| Only need PM requirements analysis | `role-pm` | "PM analysis for building a notification system" |
+| Only need RD technical design | `role-rd` | "RD design for this set of requirements" |
 | New idea, not sure how to approach | `brainstorming` | "I want to add a notification system but not sure about the architecture" |
 | Clear requirements, need implementation steps | `sp-writing-plans` | "Write a plan for adding JWT auth to the API" |
 | Ready to code (tests first) | `sp-test-driven-development` | "Implement the login endpoint using TDD" |
@@ -165,6 +173,7 @@ These skills are automatically suggested or required under specific conditions:
 | Trigger Condition | Auto-Triggered Skill |
 |-------------------|---------------------|
 | Before implementing new features | `brainstorming` (CLAUDE.md routing rule) |
+| brainstorming detects medium/large scope | `role-orchestrator` (suggested escalation) |
 | Before claiming work is complete | `verification-before-completion` |
 | After creating/modifying a skill | `skill-auditor` |
 | Brainstorming Phase 3: technical decision | `tech-feasibility` (required) |

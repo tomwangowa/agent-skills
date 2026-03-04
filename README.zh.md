@@ -18,7 +18,7 @@
 
 ## Skills 總覽
 
-目前共 **25 個自製 skills**，按用途分為 6 類。
+目前共 **28 個自製 skills**，按用途分為 7 類。
 
 ### 品質守門 (5)
 
@@ -47,13 +47,23 @@
 | [research-cross-validator](./research-cross-validator/) | 用 2-3 種獨立策略（官方文件、反證搜尋、原始碼檢查等）交叉驗證技術主張，防止單一來源偏見。 |
 | [research-synthesis](./research-synthesis/) | 多源研究綜合。在跑完 2+ 個研究類 skills 後，將發現整合為 ADR 風格的決策文件。 |
 
+### 多 Agent 角色 (3)
+
+以獨立 subagent 模擬團隊中 PM 和 RD 的分工合作。
+
+| Skill | 說明 |
+|-------|------|
+| [role-orchestrator](./role-orchestrator/) | **管線協調者。** 以 subagent dispatch 串接 PM → RD，每階段都有使用者審核閘門。讀取 `project-profile.yaml` 依專案規模（small/medium/large）校準產出深度。適用中大型專案。 |
+| [role-pm](./role-pm/) | PM 角色：將目標轉化為按規模校準的需求 artifact（Bullet + AC → User stories → 完整 PRD）。 |
+| [role-rd](./role-rd/) | RD 角色：將 PM 需求轉化為按規模校準的設計 artifact（Code plan → Design doc → Architecture doc）。 |
+
 ### 設計與規劃 (2)
 
 在動手之前先想清楚。
 
 | Skill | 說明 |
 |-------|------|
-| [brainstorming](./brainstorming/) | 蘇格拉底式設計對話。透過一次一個問題探索需求，提出 2-3 個方案及其取捨，產出設計文件。 |
+| [brainstorming](./brainstorming/) | 蘇格拉底式設計對話。透過一次一個問題探索需求，提出 2-3 個方案及其取捨，產出設計文件。偵測到中大型專案時自動建議切換至 `role-orchestrator`。 |
 | [ui-design-analyzer](./ui-design-analyzer/) | UI/UX 截圖分析。從可用性、無障礙、視覺設計等 6 個維度評估介面設計。 |
 
 ### 內容生成 (5)
@@ -143,7 +153,7 @@ brainstorming → tech-feasibility → assumption-extractor → micro-poc-valida
 
 ## 關於 Standard Procedures (sp-*)
 
-除了上述 25 個 skills，本 repo 透過 symlink 整合了 13 個 **Standard Procedures**——這些是嵌入開發流程的行為規範（例如 TDD、systematic debugging、plan-then-execute 等），來自 [superpowers](https://github.com/obra/superpowers) 專案。
+除了上述 28 個 skills，本 repo 透過 symlink 整合了 13 個 **Standard Procedures**——這些是嵌入開發流程的行為規範（例如 TDD、systematic debugging、plan-then-execute 等），來自 [superpowers](https://github.com/obra/superpowers) 專案。
 
 它們不是獨立工具，而是定義「在什麼情境下應該怎麼做」的流程協議。例如 `sp-systematic-debugging` 會在你遇到 bug 時要求先收集症狀、建立假說、再嘗試修復，而不是直接改 code。
 
