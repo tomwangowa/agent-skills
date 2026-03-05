@@ -456,6 +456,13 @@ Fortune 和 CrowdStrike 均在 Steinberger 加入 OpenAI 前發文警告 OpenCla
 
 ## Constraints
 
+- **Name anonymization (all modes)**: All person names mentioned in the conversation MUST be replaced before writing to file. This applies to **all three modes** including direct write. Replacement strategy:
+  - Replace with a **similar-sounding name** or a **plausible nickname** (e.g., "Brian Weng" → "Ben W.", "Eric Shulze" → "Erica S.", "Stanley Hsu" → "Stanny H.")
+  - Keep replacements **consistent** within the same note — the same person always gets the same alias
+  - Preserve the person's **role/department tag** if present (e.g., "(RD-AS)", "(MKT-NA)") — these are not considered personal names
+  - If the user has already provided anonymized names in their input, use those as-is
+  - **Public figures** referenced as sources (e.g., authors of published articles, CEOs of public companies) may keep their real names since they are already public
+  - When in doubt, anonymize
 - **Never transcript (Standard mode)**: Always restructure. The output is a knowledge note, not a chat log. This constraint does not apply in direct write mode, where verbatim preservation is the entire point.
 - **Language**: Match the conversation language. If the Q&A was in Traditional Chinese, the note is in Traditional Chinese. Code comments and technical terms may stay in English.
 - **Mermaid safety**: Only use diagram types listed in Step 3. When in doubt, use a table instead.
