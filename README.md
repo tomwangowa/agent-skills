@@ -18,7 +18,7 @@ These principles don't require you to agree with my approach — they're indepen
 
 ## Skills Overview
 
-Currently **28 custom skills** organized into 7 categories.
+Currently **29 custom skills** organized into 7 categories.
 
 ### Quality Gates (5)
 
@@ -32,13 +32,14 @@ Embed review and verification into the development workflow, not as an afterthou
 | [codebase-audit](./codebase-audit/) | Claims-first codebase audit: extracts claims from documentation, verifies each against source code. Confirms whether docs and code are consistent. |
 | [verification-before-completion](./verification-before-completion/) | Evidence gate before completion. Forces running verification commands and confirming output before claiming "done" or "passing". |
 
-### Research & Critical Thinking (8)
+### Research & Critical Thinking (9)
 
 When AI does research for you, don't just collect evidence that supports your ideas.
 
 | Skill | Description |
 |-------|-------------|
 | [tech-research-pipeline](./tech-research-pipeline/) | **Full research pipeline orchestrator**. Chains 8 skills with 2 gates, triggering a complete workflow from scoping to decision document. For major technical decisions. |
+| [deep-reading](./deep-reading/) | Systematic knowledge extraction from document sets. Identifies core mental models, expert disagreements, knowledge gaps, and teachable frameworks. For understanding, not just summarizing. |
 | [tech-feasibility](./tech-feasibility/) | Technical feasibility assessment. 8-step structured process answering "can technology X solve problem Y?" before committing to a POC. |
 | [assumption-extractor](./assumption-extractor/) | Systematically extracts explicit and implicit assumptions from technical documents. Classifies risk levels (CRITICAL → LOW), produces an Assumption Registry with dependency graphs. |
 | [micro-poc-validator](./micro-poc-validator/) | Empirically validates technical assumptions with minimal code (≤ 30 lines). Time-boxed 5-30 minute experiments producing PASS/FAIL/PARTIAL results. |
@@ -153,7 +154,7 @@ You don't need to run the full pipeline every time. Each skill works independent
 
 ## About Standard Procedures (sp-*)
 
-Beyond the 28 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), from the [superpowers](https://github.com/obra/superpowers) project.
+Beyond the 29 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), from the [superpowers](https://github.com/obra/superpowers) project.
 
 They're not standalone tools but process protocols defining "what to do in which context." For example, `sp-systematic-debugging` requires collecting symptoms, forming hypotheses, then attempting fixes when you encounter a bug — rather than jumping straight to modifying code.
 

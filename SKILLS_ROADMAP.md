@@ -14,7 +14,7 @@ This document tracks all skill ideas, their current status, and implementation p
 
 ## Overview
 
-**Total Implemented:** 17 skills across 6 categories
+**Total Implemented:** 18 skills across 6 categories
 
 ### By Category
 
@@ -25,13 +25,15 @@ This document tracks all skill ideas, their current status, and implementation p
 | 🎨 Design & UI/UX | 1 | ui-design-analyzer |
 | 🤝 Multi-Agent Roles | 3 | role-orchestrator, role-pm, role-rd |
 | 🚀 Productivity & Content Creation | 3 | interactive-presentation-generator, work-log-analyzer, activity-logger |
-| 🔬 Research & Analysis | 5 | critical-research, assumption-extractor, micro-poc-validator, research-cross-validator, tech-research-pipeline |
+| 🔬 Research & Analysis | 6 | critical-research, deep-reading, assumption-extractor, micro-poc-validator, research-cross-validator, tech-research-pipeline |
 
 ### Quality Scores (by skill-auditor)
 
 - **103/100** - skill-auditor (meta-validated ✅)
+- **88/100** - brainstorming (production-ready ✅)
 - **88/100** - code-review-gemini (production-ready ✅)
 - **85/100** - assumption-extractor (production-ready ✅)
+- **78/100** - deep-reading (production-ready ✅)
 - **78/100** - micro-poc-validator (production-ready ✅)
 - **78/100** - research-cross-validator (production-ready ✅)
 - **76/100** - tech-research-pipeline (production-ready ✅)
@@ -466,6 +468,42 @@ RD role that produces size-calibrated design artifacts from PM requirements.
 **Dependencies:** tech-feasibility (medium), tech-research-pipeline (large)
 
 **Quality Score:** 85/100 (AI-adjusted, production-ready ✅)
+
+---
+
+### 🟢 deep-reading
+**Status:** Implemented
+**Category:** Research & Analysis
+**Trigger:** "deep read", "help me understand this", "extract insights", "what are the key mental models", or when given 2+ documents for analysis
+
+Systematic knowledge extraction from document sets — not summaries, but the cognitive scaffolding experts use to think about a domain.
+
+**Features:**
+- MIT Three Questions method: core mental models, expert disagreements, knowledge stress test
+- Knowledge gap analysis and blind spot detection
+- Teachable framework construction (repackage insights into reusable mental tools)
+- Multi-audience adaptation (technical peers, decision-makers, learners)
+- Learning path design with prerequisite sequencing
+- Source attribution for all extracted models and disagreements
+
+**Dependencies:** None - uses Claude Code's native capabilities
+
+**Complexity:** Medium
+
+**Quality Score:** 78/100 (audited by skill-auditor, production-ready ✅)
+
+**Use Cases:**
+- Deep domain understanding before designing solutions
+- Preparing for technical presentations or interviews
+- Building knowledge frameworks from research papers
+- Decision preparation with structured multi-source analysis
+- Teaching material creation from expert documents
+
+**Integration Points:**
+- Complementary to narrative-auditor (understand vs. verify)
+- Complementary to critical-research (inward vs. outward)
+- Upstream to brainstorming (domain understanding → design)
+- Downstream to qa-to-notes (save as Obsidian notes)
 
 ---
 
@@ -1068,5 +1106,5 @@ To propose a new skill:
 
 ---
 
-**Last Updated:** 2026-03-04
+**Last Updated:** 2026-03-11
 **Next Review:** End of Q1 2026

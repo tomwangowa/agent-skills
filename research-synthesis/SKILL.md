@@ -338,5 +338,8 @@ docs.
   synthesis before returning to design
 - **tech-research-pipeline** — orchestrator: invokes synthesis as the
   final phase (Phase 7) to produce the decision document
+- **deep-reading** — parallel methodology: synthesis reconciles multiple
+  research outputs; deep-reading reconstructs thinking from multiple
+  documents. Different goals, similar multi-source input.
 - **sp-writing-plans** — downstream: once a decision is made, plan the
   implementation

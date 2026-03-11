@@ -138,6 +138,17 @@ Propose **2-3 approaches** with trade-offs:
 **Lead with your recommendation** and explain why. Don't present options
 as equally valid if they aren't.
 
+**Pre-mortem check:** After drafting approaches, apply failure-first
+thinking to each:
+
+> "Assume this approach ships and fails catastrophically in 12 months.
+> What is the most likely cause of failure?"
+
+Add the top failure scenario to each approach's **Cons**. This is not
+a full risk assessment — it's a 2-minute gut check that surfaces the
+#1 thing that could go wrong. If the failure scenario is serious enough
+to change the recommendation, say so.
+
 **REQUIRED:** When approaches involve technical decisions (choice of
 library, architecture pattern, protocol, data store, or any component
 the team hasn't used before), you MUST invoke `tech-feasibility` to
@@ -318,4 +329,6 @@ design is so small that a plan would be longer than the implementation.
   were used, to reconcile findings before presenting design
 - **tech-research-pipeline** — alternative: for high-stakes decisions,
   use the full pipeline instead of manually chaining research skills
+- **deep-reading** — upstream: build domain understanding from existing
+  documents before brainstorming a solution in that domain
 - **sp-test-driven-development** — downstream of sp-writing-plans (plan → tests → code)

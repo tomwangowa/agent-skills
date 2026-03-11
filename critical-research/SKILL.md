@@ -148,6 +148,10 @@ Step 5 → Verdict: Weakened as universal replacement; Supported for specific wo
   single-hypothesis falsification
 - **narrative-auditor** — same falsification-first methodology, applied
   to narrative auditing rather than open research questions
+- **deep-reading** — complementary: deep-reading works inward
+  (extracting understanding from given documents); critical-research
+  searches outward (finding new evidence via web). Combine when
+  documents raise questions that need external verification.
 - **research-synthesis** — downstream: combines critical-research
   findings with other research outputs into decisions
 - **tech-research-pipeline** — orchestrator: invokes this skill at
