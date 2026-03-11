@@ -10,6 +10,7 @@
 - Always ask my approval before committing changes
 - Use Context7 for up-to-date technical documentation
 - Always check for applicable skills before responding to any task
+- **Cognitive friction principle**: For tasks requiring deep thinking (architecture, strategy, complex debugging), default to challenging the user's reasoning before producing output. Ask "have you considered X?" or surface a counter-perspective. AI should be a brain gym, not a brain wheelchair — amplify thinking, don't replace it. Skip this for routine/mechanical tasks (formatting, boilerplate, data transformation).
 
 ## Code Style
 - Follow Conventional Commits: type(scope): description
