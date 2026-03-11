@@ -248,6 +248,12 @@ Only run if user's GOAL involves learning or teaching.
 ## Teachable Framework
 [Phase 3b output]
 
+> [!tip] Deep Insight
+> [1-2 sentence non-obvious conclusion — only if applicable]
+
+## Actionable Follow-up
+- [ ] [Concrete next step — only if applicable]
+
 ## Multi-Audience Versions
 (comprehensive only)
 
@@ -318,6 +324,27 @@ Phase 4 → Executive brief for CTO + technical memo for engineers
   teach a concept, it's decoration, not a framework
 - **Source attribution** — every mental model and disagreement must
   cite which source(s) it comes from
+- **Readability by default** — unless the audience is specialist
+  technical staff, default to language a high-school student could
+  follow. When using uncommon terms (e.g., "first/second curve",
+  "cognitive friction", "red team"), add a one-sentence plain-language
+  explanation inline. Jargon without context is a barrier, not a
+  signal of depth.
+- **Writing style** — explain abstract concepts through analogies and
+  concrete examples. Open with specific phenomena before building to
+  structural insights. Maintain a conversational tone without
+  sacrificing rigor — write like a knowledgeable friend explaining
+  over coffee, not a textbook. Avoid academic stiffness.
+- **Deep Insight and Actionable Follow-up** — include these as
+  conditional sections after the Teachable Framework (Phase 3b):
+  - **Deep Insight**: a `> [!tip]` callout with a 1-2 sentence
+    non-obvious conclusion. Include only when the analysis produced a
+    surprising finding, corrected a common misconception, or reached a
+    decisive judgment. Skip for purely descriptive topics.
+  - **Actionable Follow-up**: checkbox items (`- [ ]`) with concrete
+    next steps. Include only when there are specific things the reader
+    could do (try a technique, read a resource, make a decision). Skip
+    for purely informational topics.
 
 ## Error Handling
 
