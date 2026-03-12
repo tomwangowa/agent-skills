@@ -77,7 +77,7 @@
 | [interactive-presentation-generator](./interactive-presentation-generator/) | 互動式簡報生成。支援 reveal.js / Marp / Slidev，內建 20 種專業樣式。 |
 | [qa-to-notes](./qa-to-notes/) | 將 Claude Code 對話存為 Obsidian 筆記（Standard / Direct write），或改寫 fact-check 為公司群組可分享的「延伸分析」格式（Teams publish）。三種模式，同一份 note 統一管理。 |
 | [report-generator](./report-generator/) | 從活動紀錄和 git 歷史生成結構化報告。支援週報、月報、專案總結、回顧等格式。 |
-| [ai-weekly-insight](./ai-weekly-insight/) | TrendLife AI Taskforce 專用的每週 AI 新聞深度分析。搜尋 Top 5 新聞、三維分析（技術/業務/競爭），輸出至 Obsidian + Confluence。 |
+| [ai-weekly-insight](./ai-weekly-insight/) | TrendLife AI Taskforce 專用的每週/每日 AI 新聞深度分析。Weekly: Top 5；Daily: Top 3。三維分析（技術/業務/競爭），輸出至 Obsidian + Confluence 或 ai_news repo。支援 `--dest` 和 `daily` 模式。 |
 
 ### 生產力與追蹤 (3)
 
