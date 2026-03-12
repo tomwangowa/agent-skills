@@ -264,8 +264,8 @@ After Obsidian write, display the report and ask:
 If user confirms:
 1. Write the report (without YAML frontmatter) to the ai_news repo at:
    - Path: `$AI_NEWS_REPO` (default: `~/Development/docs/ai_news/`). If the environment variable is not set, check the auto memory file for the configured path, or ask the user.
-   - Filename: `[AI-<Weekly|Daily>-Insight] <主要趨勢摘要> YYYY-MM-DD`
-   - Example: `[AI-Daily-Insight] Claude 4 launches with 1M context 2026-03-12`
+   - Filename: `[AI-<Weekly|Daily>-Insight] <主要趨勢摘要> YYYY-MM-DD.md`
+   - Example: `[AI-Daily-Insight] Claude 4 launches with 1M context 2026-03-12.md`
 2. Stage and commit with message: `Create [AI-<Weekly|Daily>-Insight] <主要趨勢摘要> YYYY-MM-DD`
 3. Do NOT push automatically — report the commit and let user decide whether to push.
 
