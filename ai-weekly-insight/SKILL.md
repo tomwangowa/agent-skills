@@ -178,6 +178,26 @@ For each of the Top N items:
 **Weekly**: Parallel execution encouraged — 5 independent research tasks can run as subagents. (~2 min)
 **Daily**: Sequential is fine for 3 items. (~1.5 min)
 
+### Step 2.5: Selective Claim Verification
+
+After Deep Research, scan each news item for **verifiable claims** — specific numbers, benchmark results, performance comparisons, or quantitative assertions (e.g., "90% on HumanEval", "6x faster NPU", "2x data efficiency").
+
+**Triage**: Only verify claims that meet ALL of:
+1. The claim is quantitative or comparative (not just "X company launched Y")
+2. The source is NOT the official primary source (e.g., a blog citing a benchmark, not the benchmark paper itself)
+3. The claim materially affects the analysis (would change the recommendation if false)
+
+**For each flagged claim** (expect 0-2 per report):
+- Search for the original primary source (paper, official docs, independent benchmark)
+- Search for counter-evidence or corrections
+- If verified: tag as `[✅ Verified]`
+- If unverified (no independent confirmation): tag as `[⚠️ Unverified claim]`
+- If contradicted: tag as `[❌ Disputed]` and note the discrepancy in the analysis
+
+**Time budget**: Max 2 minutes total for this step. Skip if no claims meet the triage criteria.
+
+**Tag placement**: Include the tag inline next to the specific claim in the 💡 技術突破 section.
+
 ### Step 3: Three-Dimension Analysis
 
 For each news item, produce:
@@ -380,7 +400,7 @@ If user declines: keep Obsidian version only, do not prompt again.
 1. Detect mode: **daily** (from trigger keywords or `daily`/`--daily` argument) or **weekly** (default).
 2. Detect destination: explicit `--dest` override, or use mode default (weekly → Confluence, daily → repo).
 3. Detect input mode: Auto or Override based on whether URLs/topics are provided.
-4. Follow Workflow Steps 1-5 in sequence, using the mode's specific parameters (weekly: Top 5, week range; daily: Top 3, yesterday). Both modes use full-depth three-dimension analysis.
+4. Follow Workflow Steps 1-5 in sequence (including Step 2.5 selective verification), using the mode's specific parameters (weekly: Top 5, week range; daily: Top 3, yesterday). Both modes use full-depth three-dimension analysis.
 5. Always write Obsidian file first (Step 5a), then handle destination (Step 5b).
 6. Apply all Constraints during analysis — especially "no fluff" and "specific business impact".
 7. If any step fails, follow Error Handling table and continue with remaining steps.
