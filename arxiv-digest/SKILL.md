@@ -48,6 +48,13 @@ Use when the user says any of:
 - **Tech focus**: RAG, Agent, MoE, Long-context, Quantization, Inference optimization, Agentic coding
 - **Competitive watch**: Google, Meta, OpenAI, Anthropic, CrowdStrike, Norton, Microsoft
 
+### Extended Research Interests
+
+Beyond TrendLife-specific keywords, also prioritize papers in these areas:
+
+- **AI Agent**: multi-agent coordination, agent scaling laws, tool use, planning, agent safety, agent-to-agent protocols, agentic workflows, autonomous systems evaluation
+- **AI Trends & Frontiers**: new architectures (beyond Transformer), world models, test-time compute scaling, synthetic data, alignment/safety research, AI governance frameworks, efficiency breakthroughs, emerging benchmarks and evaluation methodology
+
 ## Workflow
 
 ### Step 1: Paper Acquisition
@@ -58,9 +65,10 @@ Use when the user says any of:
 3. Search Papers With Code (`site:paperswithcode.com [paper title]`) for implementation status and benchmark ranking
 
 **Search mode:**
-1. Run 2 searches:
+1. Run 3 searches:
    - `site:arxiv.org [topic keywords] 2026`
    - `site:paperswithcode.com [topic keywords]`
+   - `site:huggingface.co/papers [topic keywords]` (trending papers with community engagement)
 2. Present 3-5 candidates:
    ```
    1. [Title] — [abstract first sentence] — [relevance to TrendLife: high/medium]
