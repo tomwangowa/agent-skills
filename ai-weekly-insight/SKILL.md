@@ -120,6 +120,8 @@ Guide search strategy breadth:
 2. **Tech** — Implementation (Papers With Code, GitHub Trending, HuggingFace)
 3. **Problem** — Pain points (Stack Overflow, Reddit, Hacker News)
 4. **Application** — Market validation (Product Hunt, HF Spaces)
+5. **Real-time** — Breaking news and researcher reactions (X/Twitter)
+6. **Developer sentiment** — Technical discussion and counter-perspectives (Hacker News)
 
 ## Workflow
 
@@ -128,10 +130,11 @@ Guide search strategy breadth:
 **Weekly Auto mode (~1 min):**
 
 1. Calculate this week's date range (previous Saturday through current Friday)
-2. Run 3 broad searches:
+2. Run 4 broad searches (3 general + 1 social):
    - `"most important AI news this week [date range]"`
    - `"AI breakthrough model release [date range]"`
    - `"AI regulation policy security [date range]"`
+   - `site:x.com AI news [date range]` (capture breaking news and researcher hot takes missed by mainstream outlets)
 3. Extract 10-15 candidate news items from results
 4. Score by: TrendLife keyword relevance + industry impact + source credibility
 5. Select Top 5, ensuring category diversity — at least 2 different categories from:
@@ -153,9 +156,10 @@ Before finalizing Top N, scan recent reports for overlap:
 **Daily Auto mode (~30 sec):**
 
 1. Calculate yesterday's date (or today if before noon)
-2. Run 2 focused searches:
+2. Run 3 focused searches (2 general + 1 social):
    - `"most important AI news [date]"`
    - `"AI breakthrough release announcement [date]"`
+   - `site:x.com AI news [date]` (breaking news and researcher reactions)
 3. Extract 5-8 candidate news items from results
 4. Score by: TrendLife keyword relevance + industry impact + source credibility
 5. Select Top 3, ensuring at least 2 different categories
@@ -173,7 +177,8 @@ For each of the Top N items:
 
 1. **Narrow search**: specific technical details of that news item
 2. **Deep search**: official sources, counter-perspectives, competitor reactions
-3. **WebFetch** the original article if a URL is available
+3. **Community search**: `site:news.ycombinator.com [topic]` — extract developer sentiment, counter-perspectives, and technical critiques from Hacker News discussions
+4. **WebFetch** the original article if a URL is available
 
 **Weekly**: Parallel execution encouraged — 5 independent research tasks can run as subagents. (~2 min)
 **Daily**: Sequential is fine for 3 items. (~1.5 min)
