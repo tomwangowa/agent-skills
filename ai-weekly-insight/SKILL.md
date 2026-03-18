@@ -183,6 +183,8 @@ For each of the Top N items:
 **Weekly**: Parallel execution encouraged — 5 independent research tasks can run as subagents. (~2 min)
 **Daily**: Sequential is fine for 3 items. (~1.5 min)
 
+**arXiv paper tracking**: During deep research, if a news item references an arXiv paper or if a relevant paper is encountered, note its URL for the 📄 推薦深讀 block. Do not spend extra time searching for papers — only capture what naturally appears during research.
+
 ### Step 2.5: Selective Claim Verification
 
 After Deep Research, scan each news item for **verifiable claims** — specific numbers, benchmark results, performance comparisons, or quantitative assertions (e.g., "90% on HumanEval", "6x faster NPU", "2x data efficiency").
@@ -332,6 +334,14 @@ If user declines: keep Obsidian version only, do not prompt again.
 
 ---
 
+### 📄 推薦深讀
+- [論文標題](arXiv URL) — 一句話理由（為什麼值得 TrendLife 深入）
+  → `/arxiv-digest <url>`
+
+(Only include if relevant papers were encountered during research. Max 1-2 papers. Omit this section entirely if none found.)
+
+---
+
 ### 引用來源
 1. [Source Title](URL)
 ...
@@ -364,6 +374,14 @@ If user declines: keep Obsidian version only, do not prompt again.
 ### 🛠️ 今日總結
 - **今日趨勢**: (一句話)
 - **一件可以做的事**: ...
+
+---
+
+### 📄 推薦深讀
+- [論文標題](arXiv URL) — 一句話理由
+  → `/arxiv-digest <url>`
+
+(Only include if relevant papers were encountered during research. Max 1-2. Omit entirely if none.)
 
 ---
 
@@ -495,6 +513,7 @@ User: /ai-weekly-insight daily https://openai.com/blog/gpt-6
 
 ## Related Skills
 
+- **arxiv-digest** — Deep-dive a specific arXiv paper into a shareable digest for Taskforce meetings
 - **narrative-auditor** — Run separately to fact-check individual news items in depth
 - **qa-to-notes** — Run separately to create a Teams-publishable version of the report
 - **critical-research** — Run separately to deep-dive a specific topic from the report
