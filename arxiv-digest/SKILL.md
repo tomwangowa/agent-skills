@@ -134,7 +134,18 @@ If confirmed:
 - Commit message: `Create [arXiv-Digest] <short-title> YYYY-MM-DD`
 - Do NOT push automatically
 
-**Step 5c — Slides (ask):**
+**Step 5c — Deep dive (ask):**
+
+> 「要深入消化嗎？我可以用 deep-reading 方法論做完整分析。」
+
+If confirmed:
+- Run deep-reading methodology on the same paper (no time limit)
+- Extract: complete mental models, expert disagreements, knowledge gaps, teachable frameworks, cross-domain connections
+- **Append** the deep-dive output to the same Obsidian file under a new `## 🔬 Deep Dive` section (below the digest)
+- The digest (top half) stays concise for meeting sharing; the deep dive (bottom half) is for self-study
+- If repo destination was already confirmed, ask whether to update the repo file too
+
+**Step 5d — Slides (ask):**
 
 > 「要轉成投影片嗎？可以用 `/presentation-planner` 產出。」
 
@@ -184,6 +195,36 @@ If confirmed: hand off to presentation-planner with the digest content as input.
 2. [Papers With Code](url)
 3. [社群討論](url)
 ...
+```
+
+### Deep Dive Appendix (appended when user confirms Step 5c)
+
+```markdown
+---
+
+## 🔬 Deep Dive — [同標題]
+
+### 核心心智模型
+（讀完這篇後，你應該用什麼框架思考這個問題？
+不是「這篇說了什麼」，而是「我的思考方式應該怎麼改變」）
+
+### 方法論深探
+（完整的技術流程，包含數學直覺解釋——
+用工程師能理解的語言解釋公式背後的 intuition，
+而非直接貼 LaTeX）
+
+### 實驗設計的隱含假設
+（作者做了哪些設計選擇？如果改變這些選擇，結論會不同嗎？）
+
+### 與相關工作的定位圖
+（這篇在該領域的 landscape 中處於什麼位置？
+誰是前置工作？誰會是後續工作？）
+
+### 知識缺口
+（讀完後你仍然不知道什麼？需要再讀哪些論文才能補齊？）
+
+### 可教框架
+（如果你要在 10 分鐘內教會同事這篇的核心，你會用什麼類比或故事？）
 ```
 
 ### Multi-Paper Comparison
@@ -244,8 +285,9 @@ Then each paper gets its own full single-paper analysis below.
 2. Follow Workflow Steps 1-5 in sequence.
 3. In Search mode, always present candidates and wait for user selection before digesting.
 4. Apply all Constraints — especially "engineer-first perspective" and "一張投影片的版本 is mandatory".
-5. Always write Obsidian file first, then ask about repo and slides.
-6. If any step fails, follow Error Handling table and continue with remaining steps.
+5. Always write Obsidian file first, then ask about repo, deep dive, and slides (in order: 5b → 5c → 5d).
+6. If user confirms deep dive (5c), append 🔬 Deep Dive section to the same Obsidian file — do NOT create a separate file.
+7. If any step fails, follow Error Handling table and continue with remaining steps.
 
 ## Examples
 
