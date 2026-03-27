@@ -1,13 +1,13 @@
 ---
 name: ai-weekly-insight
-description: Produce weekly or daily AI news deep-analysis reports for TrendLife AI Taskforce. Use when asked for "AI 週報", "AI 日報", "weekly insight", "daily insight", or AI news analysis.
+description: Produce weekly, daily, or monthly sharing-prep AI news deep-analysis reports for TrendLife AI Taskforce. Use when asked for "AI 週報", "AI 日報", "weekly insight", "daily insight", "AI sharing prep", "sharing session", or AI news analysis.
 ---
 
 # AI Tech Insight
 
 ## Overview
 
-Produce a deep-analysis report of the most important AI industry news stories, tailored for TrendLife AI Taskforce engineers. Supports **weekly** (Top 5) and **daily** (Top 3) modes. Goes beyond surface-level summaries — every insight connects to TrendLife's strategic direction with actionable recommendations.
+Produce a deep-analysis report of the most important AI industry news stories, tailored for TrendLife AI Taskforce engineers. Supports **weekly** (Top 5), **daily** (Top 3), and **sharing** (Top 5-8, monthly) modes. Goes beyond surface-level summaries — every insight connects to TrendLife's strategic direction with actionable recommendations.
 
 **Role**: Senior AI Strategy & Technical Analyst (資深 AI 技術戰略分析師)
 **Language**: Traditional Chinese (technical terms in English)
@@ -28,32 +28,49 @@ Use when the user says any of:
 - `/ai-weekly-insight daily` or `/ai-weekly-insight --daily`
 - Any intent to produce a daily AI news analysis for TrendLife
 
+**Sharing mode:**
+- 「AI sharing prep」「sharing session」「sharing 素材」「月報」
+- 「準備 sharing session 素材」「AI 簡報素材」
+- `/ai-weekly-insight sharing`
+- Any intent to prepare AI news briefing material for a Sharing Session or monthly review
+
 ## Modes
 
-### Mode: Weekly vs Daily
+### Mode: Weekly vs Daily vs Sharing
 
-| Aspect | Weekly (default) | Daily |
-|--------|-----------------|-------|
-| News count | Top 5 | Top 3 |
-| Date range | Previous Saturday ~ current Friday | Yesterday (24h) |
-| Analysis depth | Full three-dimension analysis | Full three-dimension analysis |
-| Executive Summary | 4-tier recommendations | 1-2 sentence trend + 1 actionable |
-| Execution time | 3-5 minutes | 2-3 minutes |
-| Default destination | Obsidian + ask Confluence | Obsidian + ai_news repo |
+| Aspect | Weekly (default) | Daily | Sharing |
+|--------|-----------------|-------|---------|
+| News count | Top 5 | Top 3 | Top 5-8 |
+| Date range | Previous Saturday ~ current Friday | Yesterday (24h) | Past 30 days (or `--days N`) |
+| Analysis depth | Full three-dimension analysis | Full three-dimension analysis | Risk/Opportunity analysis, anchored to company projects |
+| Executive Summary | 4-tier recommendations | 1-2 sentence trend + 1 actionable | Monthly trend + 3-tier strategic implications |
+| Context source | TrendLife keywords | TrendLife keywords | Confluence pages + fallback |
+| Execution time | 3-5 minutes | 2-3 minutes | 5-8 minutes |
+| Default destination | Obsidian + ask Confluence | Obsidian + ai_news repo | Obsidian + ask Confluence |
 
 **Announce at start:**
 
 - Weekly: > 「正在產出本週 AI Tech Insight — 搜尋新聞中，預計 3-5 分鐘完成。」
 - Daily: > 「正在產出今日 AI Tech Insight — 搜尋新聞中，預計 2-3 分鐘完成。」
+- Sharing: > 「正在準備 AI Sharing Session 素材 — 讀取專案背景並搜尋過去 N 天重大新聞，預計 5-8 分鐘完成。」
+
+### Sharing-specific Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--days N` | 30 | Override the date range for sharing mode (e.g., `--days 14` for past 2 weeks) |
+| `--focus <keyword>` | (none) | Narrow search focus (e.g., `--focus "AI security"`, `--focus "agent"`) |
+| `--input <file>` | (none) | Use a markdown file (e.g., newsletter-digest output) as candidate news source. Works with all modes but most useful with sharing. |
 
 ### Destination: `--dest`
 
-Both modes support explicit destination override via `--dest` parameter:
+All modes support explicit destination override via `--dest` parameter:
 
 ```
 /ai-weekly-insight --dest confluence
 /ai-weekly-insight --dest repo
 /ai-weekly-insight daily --dest confluence
+/ai-weekly-insight sharing --dest repo
 ```
 
 | Destination | Behavior |
@@ -62,8 +79,9 @@ Both modes support explicit destination override via `--dest` parameter:
 | `repo` | Write to Obsidian + commit to `ai_news` git repo (ask confirmation) |
 | (omitted in weekly) | Obsidian + ask Confluence (default) |
 | (omitted in daily) | Obsidian + commit to repo (default) |
+| (omitted in sharing) | Obsidian + ask Confluence (default) |
 
-**Both modes always write to Obsidian first.**
+**All modes always write to Obsidian first.**
 
 ## Input Modes
 
@@ -81,6 +99,52 @@ User provides URLs or topics as arguments:
 - Provided items are prioritized in the Top N slots
 - Shortfall is filled by Auto search
 - User-specified items always appear first in the report
+
+### Digest Input mode (`--input`)
+
+User provides a structured markdown file (typically from `newsletter-digest`) as candidate news source:
+```
+/ai-weekly-insight sharing --input ~/path/to/Newsletter_Digest_2026-03-26.md
+/ai-weekly-insight --input /tmp/digest.md
+```
+
+**Processing pipeline:**
+1. Read the input markdown file
+2. Parse topic groups — extract each `## [主題名稱]` section
+3. From each topic group, extract individual article entries from the `各篇速覽` table (title, source, date, key point)
+4. Each article entry becomes a candidate news item (pre-scored with source credibility from the digest)
+5. Apply the same scoring and selection as Auto mode (TrendLife relevance + industry impact + source credibility)
+6. Selected items proceed to Step 2 (Deep Research) — use article titles to search for original sources, deeper context, and counter-perspectives
+7. Shortfall (if digest items < target Top N) is filled by Auto search
+
+**Key behaviors:**
+- Digest items are **candidates**, not guaranteed slots — they still compete on relevance scoring
+- Deep Research (Step 2) is still required — the digest provides starting points, not final analysis
+- The digest's `重點摘要` section provides context for scoring but is not copied verbatim into the report
+- If `--input` is combined with URLs/topics (Override mode), all sources are merged into the candidate pool
+
+**Typical pipeline:**
+```
+# Step 1: Run newsletter-digest on accumulated emails
+/newsletter-digest ~/newsletters/2026-03/
+
+# Step 2: Use digest output as input for sharing prep
+/ai-weekly-insight sharing --input ~/path/to/Newsletter_Digest.md
+```
+
+## Context Injection (Sharing mode)
+
+Sharing mode loads company project context from a static YAML file to anchor the Risk/Opportunity analysis.
+
+### Step 0: Load Company Context
+
+1. Read `trendlife-context.yaml` from the skill directory (`~/.claude/skills/ai-weekly-insight/trendlife-context.yaml`)
+2. Use `project`, `mvp_features`, `technical_challenges`, `competitive_landscape`, and `relevance_anchors` sections to:
+   - Score candidate news by TrendLife project relevance (Step 1)
+   - Anchor Risk/Opportunity analysis to specific product lines and features (Step 3)
+   - Generate actionable recommendations tied to real project directions (Step 4)
+
+**Maintenance**: Update `trendlife-context.yaml` manually when project direction changes significantly. The file header includes a `Last updated` date for staleness tracking.
 
 ## Domain Context
 
@@ -130,13 +194,15 @@ Guide search strategy breadth:
 **Weekly Auto mode (~1 min):**
 
 1. Calculate this week's date range (previous Saturday through current Friday)
-2. Run 4 broad searches (3 general + 1 social):
+2. Run 5 broad searches (3 general + 2 social):
    - `"most important AI news this week [date range]"`
    - `"AI breakthrough model release [date range]"`
    - `"AI regulation policy security [date range]"`
-   - `site:x.com AI news [date range]` (capture breaking news and researcher hot takes missed by mainstream outlets)
+   - `site:x.com (AI agent OR "AI coding" OR "AI tool" OR "LLM benchmark" OR "AI workflow") [date range]` (viral threads: product launches, benchmark comparisons, deep analysis)
+   - `site:x.com (OpenAI OR Anthropic OR Claude OR GPT OR Gemini) announcement [date range]` (breaking news and researcher hot takes)
 3. Extract 10-15 candidate news items from results
-4. Score by: TrendLife keyword relevance + industry impact + source credibility
+   - Prioritize X posts that contain external article links, long threads, hands-on reviews, or benchmark data
+4. Score by: TrendLife keyword relevance + industry impact + source credibility + social engagement signals (high-engagement X posts get a boost)
 5. Select Top 5, ensuring category diversity — at least 2 different categories from:
    - Model / architecture releases
    - AI Agent / tooling
@@ -144,7 +210,33 @@ Guide search strategy breadth:
    - Security / incidents
    - Industry applications
 
-**Deduplication (both modes):**
+**Sharing Auto mode (~2 min):**
+
+1. Calculate date range: past 30 days (or `--days N`) from today
+2. Run 5 broad searches (can run in parallel):
+   - `"most important AI news [month] [year]"` — general AI headlines
+   - `"AI cybersecurity threat attack [month] [year]"` — AI security incidents
+   - `"AI regulation policy [month] [year]"` — regulatory developments
+   - `"OpenAI Google Microsoft Anthropic AI announcement [month] [year]"` — tech giant moves
+   - `site:x.com (AI agent OR "AI coding" OR "AI tool" OR "AI SaaS" OR "LLM benchmark" OR "AI productivity") [month] [year]` — viral threads: product reviews, benchmark comparisons, industry analysis
+   - `site:x.com (OpenAI OR Anthropic OR Claude OR GPT OR Gemini) announcement [month] [year]` — breaking news and researcher hot takes
+3. If `--focus` is specified, add a 7th search: `"[focus keyword] AI [month] [year]"`
+4. Extract 15-20 candidate news items from results
+   - Prioritize X posts that contain external article links, long threads, hands-on reviews, or benchmark data
+5. Score by weighted criteria:
+   - TrendLife project relevance (anchored to Confluence context): **35%**
+   - Industry disruption potential (game-changing?): **30%**
+   - Source credibility: **20%**
+   - Social engagement signals (high likes/retweets/views on X, trending on HN): **15%**
+6. Select Top 5-8, ensuring category diversity — at least 3 different categories from:
+   - Model / architecture releases
+   - AI Agent / tooling
+   - Regulation / policy
+   - Security / incidents
+   - Industry applications
+   - Major acquisitions / strategic shifts
+
+**Deduplication (all modes):**
 
 Before finalizing Top N, scan recent reports for overlap:
 1. Read filenames in `$AI_NEWS_DIR` matching `AI-*-Tech-Insight_*.md` from the past 7 days
@@ -159,9 +251,10 @@ Before finalizing Top N, scan recent reports for overlap:
 2. Run 3 focused searches (2 general + 1 social):
    - `"most important AI news [date]"`
    - `"AI breakthrough release announcement [date]"`
-   - `site:x.com AI news [date]` (breaking news and researcher reactions)
+   - `site:x.com (AI agent OR "AI coding" OR "AI tool" OR "LLM benchmark" OR OpenAI OR Anthropic) [date]` (viral threads, product launches, researcher hot takes)
 3. Extract 5-8 candidate news items from results
-4. Score by: TrendLife keyword relevance + industry impact + source credibility
+   - Prioritize X posts with external article links, hands-on reviews, or benchmark data
+4. Score by: TrendLife keyword relevance + industry impact + source credibility + social engagement signals
 5. Select Top 3, ensuring at least 2 different categories
 
 **Override mode:**
@@ -182,6 +275,7 @@ For each of the Top N items:
 
 **Weekly**: Parallel execution encouraged — 5 independent research tasks can run as subagents. (~2 min)
 **Daily**: Sequential is fine for 3 items. (~1.5 min)
+**Sharing**: Parallel execution required — 5-8 independent research tasks should run as subagents. (~3 min)
 
 **arXiv paper tracking**: During deep research, if a news item references an arXiv paper or if a relevant paper is encountered, note its URL for the 📄 推薦深讀 block. Do not spend extra time searching for papers — only capture what naturally appears during research.
 
@@ -205,7 +299,9 @@ After Deep Research, scan each news item for **verifiable claims** — specific 
 
 **Tag placement**: Include the tag inline next to the specific claim in the 💡 技術突破 section.
 
-### Step 3: Three-Dimension Analysis
+### Step 3: Analysis
+
+**Weekly / Daily — Three-Dimension Analysis:**
 
 For each news item, produce:
 
@@ -224,6 +320,25 @@ For each news item, produce:
 - What competitive or collaborative posture should Trend Micro adopt?
 - Identify opportunity or threat — take a position, don't just list facts
 
+**Sharing — Risk/Opportunity Analysis:**
+
+For each news item, produce a different analysis anchored to company projects:
+
+**📝 深度摘要 (Deep Summary)**:
+- 2-3 sentences: core content, background, and why this is high-impact
+- Must explain the "so what" — why should the Sharing Session audience care?
+
+**⚡ 風險 (Risk)**:
+- Anchor to specific TrendLife product lines or projects (from Confluence context)
+- What threat does this pose? (competitive pressure, new attack vectors, market shift, regulatory risk)
+
+**💡 機會 (Opportunity)**:
+- Anchor to specific TrendLife product lines or projects (from Confluence context)
+- How can Trend Micro leverage this? (new product features, market positioning, defensive capabilities)
+
+**🔄 建議行動 (Recommended Action)**:
+- One concrete, specific action with time horizon tag: `[立即]` / `[短期 1-3月]` / `[中期 3-6月]`
+
 ### Step 4: Executive Summary
 
 **Weekly:**
@@ -238,6 +353,13 @@ For each news item, produce:
 - **今日趨勢**: One sentence capturing the day's AI direction
 - **一件可以做的事**: One specific, actionable recommendation for today
 
+**Sharing:**
+- **本月核心趨勢**: 2-3 sentences synthesizing the month's AI × cybersecurity trajectory
+- **對 TrendLife 的戰略啟示**: 3 recommendations ordered by time horizon:
+  1. **立即關注**: What requires immediate attention
+  2. **短期佈局（1-3 月）**: A concrete initiative to kick off
+  3. **中期戰略（3-6 月）**: A strategic direction to evaluate
+
 ### Step 5: Output
 
 **Step 5a — Obsidian (always automatic):**
@@ -248,16 +370,17 @@ Write to: `$AI_NEWS_DIR/<filename>.md`
 |------|----------|
 | Weekly | `AI-Weekly-Tech-Insight_YYYY-MM-DD.md` |
 | Daily | `AI-Daily-Tech-Insight_YYYY-MM-DD.md` |
+| Sharing | `AI-Sharing-Session-Prep_YYYY-MM-DD.md` |
 
 Where `$AI_NEWS_DIR` defaults to the `AI News` subdirectory within the user's Obsidian vault. If the environment variable is not set, check the auto memory file for the configured path, or ask the user.
 
 Include frontmatter:
 ```yaml
 ---
-tags: [AI, <weekly-insight|daily-insight>, TrendLife, ...]
+tags: [AI, <weekly-insight|daily-insight|sharing-prep>, TrendLife, ...]
 date: YYYY-MM-DD
 source: claude-code
-mode: <weekly|daily>
+mode: <weekly|daily|sharing>
 ---
 ```
 
@@ -390,13 +513,70 @@ If user declines: keep Obsidian version only, do not prompt again.
 ...
 ```
 
+### Sharing Format
+
+```markdown
+## 📊 AI Sharing Session 素材 — YYYY-MM-DD
+
+> **TrendLife AI Taskforce | Prepared by AI Analyst**
+> 涵蓋期間：YYYY-MM-DD ~ YYYY-MM-DD
+
+---
+
+### 📰 1. [新聞標題] (YYYY-MM-DD)
+
+- **📝 深度摘要**：
+  [專業精煉地總結核心內容、背景及為何具高震撼力。2-3 句。]
+
+- **🎯 對 Trend Micro / TrendLife 的影響**：
+  - **⚡ 風險 (Risk)**：[錨定具體產品線或專案方向，說明威脅]
+  - **💡 機會 (Opportunity)**：[錨定具體產品線或專案方向，說明如何利用]
+  - **🔄 建議行動**：[一句話具體建議 + 時間維度標籤]
+
+- **🔍 來源與查核**：
+  - **查核狀態**：[✅ Verified] / [⚠️ Single source] / [❌ Disputed]
+  - **來源**：[1-2 個權威連結]
+
+---
+
+(重複至第 5-8 則)
+
+---
+
+### 🛠️ 總結：本月 AI × 資安趨勢
+
+- **核心趨勢**：(2-3 句歸納本月 AI 與資安的整體走向)
+- **對 TrendLife 的戰略啟示**：
+  1. **立即關注**：...
+  2. **短期佈局（1-3 月）**：...
+  3. **中期戰略（3-6 月）**：...
+
+---
+
+### 📄 推薦深讀
+- [論文標題](arXiv URL) — 一句話理由
+  → `/arxiv-digest <url>`
+
+(Only include if relevant papers were encountered during research. Max 1-2. Omit entirely if none.)
+
+---
+
+### 引用來源
+1. [Source Title](URL)
+...
+```
+
 **Confluence / Repo version**: Same content, minus the YAML frontmatter.
 
 ## Error Handling
 
 | Scenario | Action |
 |----------|--------|
-| WebSearch returns insufficient results | Extend date range (weekly: 10 days, daily: 2 days); if still insufficient, produce fewer items with note |
+| WebSearch returns insufficient results | Extend date range (weekly: 10 days, daily: 2 days, sharing: 45 days); if still insufficient, produce fewer items with note |
+| `trendlife-context.yaml` not found (sharing mode) | Warn user, fall back to base Domain Context keywords in SKILL.md, continue with reduced specificity |
+| `--input` file not found or unreadable | Report error, fallback to Auto mode, inform user |
+| `--input` file has no parseable topic groups | Warn user, treat all content as a single topic, extract what titles are available; fill remaining slots with Auto search |
+| `--input` digest yields fewer candidates than target Top N | Fill shortfall with Auto search; note in output which items came from digest vs search |
 | User-provided URL inaccessible | Report failure, ask for manual paste or skip and Auto-fill |
 | News items too concentrated in one category | Force-replace 1-2 with different categories (at least 2 categories represented) |
 | Confluence publish fails | Report error; Obsidian version unaffected; suggest manual copy-paste |
@@ -415,18 +595,22 @@ If user declines: keep Obsidian version only, do not prompt again.
 4. **Business impact must be specific and balanced**: Never just say「可以應用到 TrendLife」. Name the specific scenario, product direction, or action. Always cover both **opportunity** (how TrendLife can benefit) and **risk** (what happens if TrendLife ignores this, or if this technology is used against our users).
 5. **Competitive analysis must take a position**: Don't just list competitor moves — state what Trend Micro should do (compete / collaborate / watch).
 6. **Differentiate from auto-generated summaries**: The existing `AI 新聞摘要` pages provide bullet-point summaries. This skill must deliver visibly deeper analysis and unique angles.
-7. **Time control**: Weekly: target 3-5 minutes, no more than 5 WebSearch rounds per item. Daily: target 2-3 minutes, no more than 5 WebSearch rounds per item.
+7. **Time control**: Weekly: target 3-5 minutes, no more than 5 WebSearch rounds per item. Daily: target 2-3 minutes, no more than 5 WebSearch rounds per item. Sharing: target 5-8 minutes, no more than 5 WebSearch rounds per item.
 8. **No duplicate news**: Before finalizing the Top N selection, check recent reports in `$AI_NEWS_DIR` (Obsidian) and `$AI_NEWS_REPO` (ai_news repo) for the past 7 days. If a candidate news item was already covered in a previous report (same event, same announcement — not follow-up developments), skip it and select the next candidate. Follow-up developments or significant new angles on a previously covered story ARE allowed, but must explicitly reference the prior coverage (e.g., 「延續上次報導的 X，本次有新進展…」).
 
 ## Instructions
 
-1. Detect mode: **daily** (from trigger keywords or `daily`/`--daily` argument) or **weekly** (default).
-2. Detect destination: explicit `--dest` override, or use mode default (weekly → Confluence, daily → repo).
-3. Detect input mode: Auto or Override based on whether URLs/topics are provided.
-4. Follow Workflow Steps 1-5 in sequence (including Step 2.5 selective verification), using the mode's specific parameters (weekly: Top 5, week range; daily: Top 3, yesterday). Both modes use full-depth three-dimension analysis.
-5. Always write Obsidian file first (Step 5a), then handle destination (Step 5b).
-6. Apply all Constraints during analysis — especially "no fluff" and "specific business impact".
-7. If any step fails, follow Error Handling table and continue with remaining steps.
+1. Detect mode: **sharing** (from trigger keywords or `sharing` argument), **daily** (from trigger keywords or `daily`/`--daily` argument), or **weekly** (default).
+2. Detect destination: explicit `--dest` override, or use mode default (weekly → Confluence, daily → repo, sharing → Confluence).
+3. Detect input mode: Auto, Override, or Digest Input based on arguments (`--input` file, URLs/topics, or none).
+4. **Sharing mode only**: Execute Step 0 (Context Injection) — read `trendlife-context.yaml` before news collection.
+5. Follow Workflow Steps 1-5 in sequence (including Step 2.5 selective verification), using the mode's specific parameters:
+   - Weekly: Top 5, week range, three-dimension analysis
+   - Daily: Top 3, yesterday, three-dimension analysis
+   - Sharing: Top 5-8, past 30 days (or `--days N`), Risk/Opportunity analysis anchored to company projects
+6. Always write Obsidian file first (Step 5a), then handle destination (Step 5b).
+7. Apply all Constraints during analysis — especially "no fluff" and "specific business impact".
+8. If any step fails, follow Error Handling table and continue with remaining steps.
 
 ## Examples
 
@@ -492,6 +676,54 @@ User: /ai-weekly-insight daily https://openai.com/blog/gpt-6
 → Same analysis and output flow as Example 2
 ```
 
+### Example 7: Sharing mode (typical monthly prep)
+
+```
+User: "AI sharing prep"
+
+→ Mode: sharing, Destination: confluence (default)
+→ Skill announces: 「正在準備 AI Sharing Session 素材 — 讀取專案背景並搜尋過去 30 天重大新聞，預計 5-8 分鐘完成。」
+→ Step 0: Read trendlife-context.yaml → load project context (Kaleidoscope MVP features, cost model, competitive landscape)
+→ Step 1: 5 parallel WebSearches → 18 candidates → Top 7 selected (4 categories)
+→ Step 2: 7 × (narrow + deep search) via parallel subagents
+→ Step 2.5: Verify 1 quantitative claim
+→ Step 3: 7 × Risk/Opportunity analysis anchored to Super App & Kaleidoscope
+→ Step 4: Monthly trend + 3-tier strategic implications
+→ Step 5a: Writes to $AI_NEWS_DIR/AI-Sharing-Session-Prep_2026-03-26.md
+→ Step 5b: 「報告已存入 Obsidian。要發布到 Confluence 嗎？」
+→ User: 「發布」→ Creates Confluence page
+```
+
+### Example 8: Sharing with custom days and focus
+
+```
+User: /ai-weekly-insight sharing --days 14 --focus "AI security"
+
+→ Mode: sharing, Destination: confluence (default)
+→ Step 0: Read trendlife-context.yaml
+→ Step 1: 6 searches (5 standard + 1 focused on "AI security"), date range: 14 days
+→ Scoring weighted toward AI security relevance
+→ Same flow as Example 7
+```
+
+### Example 9: Digest Input pipeline (newsletter → sharing prep)
+
+```
+User: /ai-weekly-insight sharing --input ~/newsletters/Newsletter_Digest_2026-03-26.md
+
+→ Mode: sharing, Destination: confluence (default)
+→ Skill announces: 「正在準備 AI Sharing Session 素材 — 讀取 digest 檔案及專案背景，預計 5-8 分鐘完成。」
+→ Step 0: Read trendlife-context.yaml (company context)
+→ Step 1: Read digest → parse 6 topic groups → extract 22 article entries
+→         Score by TrendLife relevance + impact → select Top 7
+→         3 digest items selected + 4 from Auto search to fill shortfall
+→ Step 2: 7 × deep research (use digest titles to find original sources)
+→ Step 3: 7 × Risk/Opportunity analysis
+→ Step 4: Monthly trend + strategic implications
+→ Step 5a: Writes to $AI_NEWS_DIR/AI-Sharing-Session-Prep_2026-03-26.md
+→ Step 5b: 「報告已存入 Obsidian。要發布到 Confluence 嗎？」
+```
+
 ### Example 6: Declining publish
 
 ```
@@ -513,6 +745,7 @@ User: /ai-weekly-insight daily https://openai.com/blog/gpt-6
 
 ## Related Skills
 
+- **newsletter-digest** — Digest newsletter emails into structured topic groups; output can be piped via `--input` as candidate news source for this skill
 - **arxiv-digest** — Deep-dive a specific arXiv paper into a shareable digest for Taskforce meetings
 - **narrative-auditor** — Run separately to fact-check individual news items in depth
 - **qa-to-notes** — Run separately to create a Teams-publishable version of the report

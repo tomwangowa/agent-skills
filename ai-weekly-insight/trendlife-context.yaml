@@ -1,0 +1,135 @@
+# TrendLife Domain Context for ai-weekly-insight (Sharing mode)
+# Last updated: 2026-03-26
+# Source: Confluence pages under Kaleidoscope space (CN)
+# Maintainer: Update this file when project direction changes significantly.
+
+company:
+  name: Trend Micro / TrendLife
+  segment: Consumer security (B2C)
+  parent_mission: "Securing your connected world"
+  trendlife_mission: >
+    Evolving from device and scam protection toward a trusted AI companion
+    designed to help families navigate an increasingly complex digital world.
+    Family-centric by design.
+
+project:
+  name: Kaleidoscope
+  status: MVP development (as of 2026-03)
+  target_market: Japan (primary)
+  vision: >
+    An AI-powered family companion that integrates security, daily life assistance,
+    and family coordination into a single platform. Not just protection — proactive
+    care and family well-being.
+
+  architecture:
+    framework: LangGraph
+    llm_models:
+      - gemini-3-flash-preview (Brain Agent)
+      - gemini-2.5-flash (Memory extraction, PII preprocessing)
+      - gemini-embedding-001 (Vector embeddings)
+    cloud: GCP (Vertex AI, AlloyDB, Pub/Sub)
+    memory: "Mem0 dual-layer: pgvector (semantic search) + Neo4j (graph memory)"
+    user_interface: LINE (primary), Web app
+    executor: Browser automation + Android automation (sandboxed)
+
+  agents:
+    brain_agent:
+      role: Main conversational AI for family members
+      tools:
+        - list_family_preferences / get_family_preference
+        - notify_parent (WebSocket alert for concerning content)
+        - delegate_to_master (route action tasks to executor)
+    executor_master:
+      role: Execute real-world tasks via browser/Android automation
+      tools:
+        - execute_browser_task
+        - execute_android_task
+        - ask_user (pause for confirmation)
+
+  mvp_features:
+    safety_and_privacy:
+      - "Local PII de-identification before cloud LLM (text supported, image in research)"
+      - "AI Guardian safety check layer (bidirectional input/output filtering)"
+      - "Family constitution (user-defined rules for AI behavior with children)"
+      - "External security event integration (with Trend Micro security products)"
+    family_intelligence:
+      - "Family-shared memory (Mem0: per-session private + long-term shared)"
+      - "Family activity relationship graph (Graph Memory visualization)"
+      - "Family important message push notifications (health, safety, parental alerts)"
+      - "AI collaboration contribution analysis (child thinking vs AI output ratio)"
+    daily_life_automation:
+      - "App-specific executor skills (food delivery, scheduling, healthcare, IoT)"
+      - "Executor task manager (stateless, AlloyDB-backed, pub/sub triggered)"
+      - "Executor fallback mechanism (graceful degradation on failure)"
+      - "Executor token cost optimization"
+    onboarding:
+      - "LINE conversational onboarding (progressive info collection)"
+
+  target_apps_japan:
+    food_delivery: [UberEats, "Demae-can (出前館)"]
+    mobility: ["GO Taxi", Uber, DiDi]
+    healthcare: ["CLINICS (クリニクス)", Yoyakururi, "LINE Doctor", CureApp]
+    scheduling: [TimeTree, "Google Calendar", Jorte]
+    smart_home: ["Panasonic HomeX", "NEC AI System", "Ecovacs"]
+
+  technical_challenges:
+    - "reCAPTCHA blocking automated browser/app operations"
+    - "Android executor token cost extremely high (~1.2M tokens per food order)"
+    - "App ecosystem conflicts: apps may block AI automation (ref: 豆包手機 incident)"
+    - "Mem0 graph memory tends to create new nodes instead of merging to existing ones"
+    - "Some Japan apps only available via Google Play Store (not installable on emulator)"
+
+  competitive_landscape:
+    douban_phone:
+      approach: "Invasive UI automation (GPU buffer reading, INJECT_EVENTS privilege)"
+      outcome: "Blocked by major apps, repositioned as developer preview"
+      lesson: "Invasive approach = ecosystem rejection"
+    samsung_s26:
+      approach: "System-level API (Android 16 AppFunctions), sandboxed execution, HITL"
+      outcome: "Compliant, partner-friendly, transparent to users"
+      lesson: "Sandbox isolation is the only viable path for production"
+    recommendation: >
+      Follow Samsung S26's compliant path: sandbox isolation, official APIs,
+      human-in-the-loop for sensitive operations. Avoid 豆包-style invasive automation.
+
+  cost_model:
+    per_user_daily_tokens: ~297800
+    executor_cost_examples:
+      browser_hospital_booking: "$0.001-0.002 (5K-8K tokens)"
+      android_food_order: "$0.30-0.62 (800K-1.8M tokens)"
+    key_insight: >
+      Browser automation is 100-300x cheaper than Android automation.
+      Token cost optimization and cached skill scripts are critical for viability.
+
+  test_results:
+    health_report_feature:
+      claude_haiku_4_5: "Partial pass (misses some findings in multi-report scenarios)"
+      claude_sonnet_4_6: "Full pass (all test cases)"
+      claude_opus_4_6: "Full pass (all test cases)"
+
+# Keywords for relevance scoring (extends base Domain Context in SKILL.md)
+relevance_anchors:
+  high_relevance:
+    - "Family-centric AI / AI companion"
+    - "On-device PII protection / local inference"
+    - "AI agent safety and governance"
+    - "AI agent executor / app automation"
+    - "Memory systems (vector DB, graph DB, long-term memory)"
+    - "LLM cost optimization / token efficiency"
+    - "Consumer security + AI integration"
+    - "LINE / messaging platform AI integration"
+    - "Japan market / Japan app ecosystem"
+    - "Sandbox / secure execution for AI agents"
+  medium_relevance:
+    - "Multi-agent architecture / agent orchestration"
+    - "Browser automation / Android automation"
+    - "AI for healthcare / telemedicine"
+    - "Smart home / IoT + AI"
+    - "Deepfake / fraud detection / scam prevention"
+    - "AI regulation / compliance"
+  context_for_risk_analysis:
+    - "App ecosystem blocking AI automation"
+    - "AI agent quality degradation (productivity vs quality gap)"
+    - "Enterprise AI deployment outpacing governance"
+    - "AI-powered attacks targeting consumer products"
+    - "LLM cost escalation for agentic workflows"
