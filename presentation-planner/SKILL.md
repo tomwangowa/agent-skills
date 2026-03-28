@@ -310,6 +310,20 @@ with milestones, turning points, and current state.
 >    The rest can go in an appendix slide."
 > 5. Produces focused Slide Plan (not a 1:1 report-to-slides mapping)
 
+## Writing Tone（暖色調語氣指南）
+
+Slide Plan 的敘述段落應帶有溫度，像在跟同事分享觀察。
+
+1. **對話式口吻** — 適度用「你」拉近距離，不說教
+2. **問句引導節奏** — 用問句推進思路，特別適合 speaker notes 的段落開頭
+3. **具體案例錨定** — 每個論點有具體人名、產品、數據支撐，不說空話
+4. **坦誠面對不確定** — 用「值得注意的是...」「目前看來...」保留探索空間，不武斷定調
+5. **段落短、呼吸快** — 一個段落一個觀點，短句收尾
+6. **引用是為了對話** — 引述後接「這點呼應了...」「但換個角度看...」，不堆砌
+7. **開放式收束** — 結尾留下問題或延伸方向
+
+> 適用範圍：Core Message 描述、Speaker Notes、narrative arc 敘述。Slide 標題與 bullet points 維持精簡客觀。
+
 ## Constraints
 
 - **One question per message** during intake — never batch questions

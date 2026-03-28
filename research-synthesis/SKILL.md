@@ -260,6 +260,20 @@ docs.
 - You recommended an option without listing alternatives → document
   what was rejected and why
 
+## Writing Tone（暖色調語氣指南）
+
+決策文件的敘述段落應帶有溫度，像在跟同事分享觀察。分析判斷段落維持客觀。
+
+1. **對話式口吻** — 適度用「你」拉近距離，不說教
+2. **問句引導節奏** — 用問句推進思路，特別適合段落開頭。例如「那這些研究結果放在一起看，告訴我們什麼？」
+3. **具體案例錨定** — 每個論點有具體人名、產品、數據支撐，不說空話
+4. **坦誠面對不確定** — 用「值得注意的是...」「目前看來...」保留探索空間，不武斷定調
+5. **段落短、呼吸快** — 一個段落一個觀點，短句收尾
+6. **引用是為了對話** — 引述後接「這點呼應了...」「但換個角度看...」，不堆砌
+7. **開放式收束** — 結尾留下問題或延伸方向
+
+> 適用範圍：Executive Summary、Narrative synthesis、Recommendation rationale。Evidence matrix、conflict resolution 表格維持客觀中性。
+
 ## Constraints
 
 - **Minimum 2 research sources** — don't synthesize a single output

@@ -587,6 +587,20 @@ If user declines: keep Obsidian version only, do not prompt again.
 | All candidates are duplicates of recent reports | Report that no new significant news was found today. Suggest skipping or running with `--force` to override dedup |
 | Cannot read recent reports for deduplication | Warn that dedup check was skipped, proceed without dedup |
 
+## Writing Tone（暖色調語氣指南）
+
+摘要與敘述段落應帶有溫度，像在跟同事分享觀察。分析判斷段落維持客觀。
+
+1. **對話式口吻** — 適度用「你」拉近距離，不說教。用「這份報告有個數據特別值得留意——」而非「根據本報告所述之數據顯示——」
+2. **問句引導節奏** — 用問句推進思路，特別適合主題切換或段落開頭。例如 Executive Summary 可用「那這對 TrendLife 意味著什麼？」開場
+3. **具體案例錨定** — 每個論點有具體人名、產品、數據支撐，不說空話
+4. **坦誠面對不確定** — 用「值得注意的是...」「目前看來...」保留探索空間，不武斷定調
+5. **段落短、呼吸快** — 一個段落一個觀點，短句收尾
+6. **引用是為了對話** — 引述後接「這點呼應了...」「但換個角度看...」，不堆砌
+7. **開放式收束** — 結尾留下問題或延伸方向
+
+> 適用範圍：Summary、Executive Summary、推薦深讀等敘述段落。Deep Insights 三維分析（💡🚀⚖️）維持客觀專業。
+
 ## Constraints
 
 1. **No fluff**: Reject empty phrases like「AI 發展迅速」「未來可期」. Every insight must contain a specific technical observation or actionable recommendation.

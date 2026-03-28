@@ -309,6 +309,20 @@ After approval:
 | "The git log IS the report" | Git logs are raw data. Reports are curated narratives with context, priorities, and next steps. |
 | "I'll do it later" | Reports degrade with time as context fades. Generate when the data is fresh. |
 
+## Writing Tone（暖色調語氣指南）
+
+報告的敘述段落應帶有溫度，像在跟同事分享觀察。
+
+1. **對話式口吻** — 適度用「你」拉近距離，不說教。用「這週有個進展特別值得留意——」而非「本週主要成果如下——」
+2. **問句引導節奏** — 用問句推進思路，特別適合主題切換或段落開頭
+3. **具體案例錨定** — 每個論點有具體的 commit、PR、數據支撐，不說空話
+4. **坦誠面對不確定** — 用「值得注意的是...」「目前看來...」保留探索空間，不武斷定調
+5. **段落短、呼吸快** — 一個段落一個觀點，短句收尾
+6. **引用是為了對話** — 引述後接「這點呼應了...」「但換個角度看...」，不堆砌
+7. **開放式收束** — 結尾留下問題或延伸方向
+
+> 適用範圍：Executive Summary、Highlights、Retrospective insights 等敘述段落。數據表格、時間線、指標欄位維持客觀中性。
+
 ## Constraints
 
 - **Evidence-based only** — every claim traces to a data source

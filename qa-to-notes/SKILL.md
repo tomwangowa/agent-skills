@@ -454,6 +454,20 @@ Fortune 和 CrowdStrike 均在 Steinberger 加入 OpenAI 前發文警告 OpenCla
 6. **YAML frontmatter conflict (append mode)**: If existing frontmatter has conflicting values, preserve the original and note the conflict in a comment.
 7. **Write failure**: If the Write tool fails (permissions, disk space), report the error and suggest the user check the path.
 
+## Writing Tone（暖色調語氣指南）
+
+Standard 模式與 Teams publish 模式的敘述段落應帶有溫度，像在跟同事分享觀察。
+
+1. **對話式口吻** — 適度用「你」拉近距離，不說教
+2. **問句引導節奏** — 用問句推進思路，特別適合段落開頭
+3. **具體案例錨定** — 每個論點有具體產品、數據支撐，不說空話
+4. **坦誠面對不確定** — 用「值得注意的是...」「目前看來...」保留探索空間，不武斷定調
+5. **段落短、呼吸快** — 一個段落一個觀點，短句收尾
+6. **引用是為了對話** — 引述後接「這點呼應了...」「但換個角度看...」，不堆砌
+7. **開放式收束** — 結尾留下問題或延伸方向
+
+> 適用範圍：Standard 模式的知識文章敘述、Teams publish 的延伸分析。Direct write 模式不套用（原文保留）。表格、引用來源欄位維持客觀中性。
+
 ## Constraints
 
 - **Name anonymization (all modes)**: All person names mentioned in the conversation MUST be replaced before writing to file. This applies to **all three modes** including direct write. Replacement strategy:

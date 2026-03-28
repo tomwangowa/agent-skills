@@ -49,18 +49,23 @@ For each topic group, output:
 
 ### 重點摘要
 
-[2-5 句話總結這個主題下所有文章的核心內容。不是逐篇摘要，
-而是把相關文章的資訊合成一段連貫的敘述。]
+[6-15 句話深度總結這個主題下所有文章的核心內容。不是逐篇摘要，
+而是把相關文章的資訊合成一段連貫、有分析深度的敘述。
+應涵蓋：關鍵事實與數據、各方觀點的異同、潛在影響與趨勢判斷。
+如果文章之間有互相印證或矛盾之處，明確指出。]
 
 ### 各篇速覽
 
-| 標題 | 來源 | 日期 | 一句話重點 |
+| 標題 | 來源 | 日期 | 重點摘述 |
 |------|------|------|----------|
-| [Article title] | [Source] | [Date] | [One sentence] |
+| [Article title] | [Source] | [Date] | [2-3 句話概述文章核心論點與關鍵數據] |
 
 ### 💡 值得深讀
 
-[如果某篇文章特別值得完整閱讀，在這裡標注並說明為什麼。
+[如果某篇文章特別值得完整閱讀，用 3-5 句話說明：
+（1）這篇的核心論點或獨特視角是什麼，
+（2）為什麼值得投入時間完整閱讀而不只看摘要，
+（3）對讀者的工作或決策有什麼具體幫助。
 如果沒有特別突出的，省略這個區塊。]
 ```
 
@@ -84,6 +89,20 @@ At the top of the digest, add:
 - Language: match the majority language of the emails. If mixed, use Traditional Chinese for the framework, preserve original titles in their original language.
 - One markdown file containing all topic groups, ordered by number of articles (most articles first).
 - At the end, add a section listing any emails that didn't fit into any topic group.
+
+## Writing Tone（暖色調語氣指南）
+
+摘要與敘述段落應帶有溫度，像在跟同事分享觀察。分析判斷段落維持客觀。
+
+1. **對話式口吻** — 適度用「你」拉近距離，不說教。用「這份報告有個數據特別值得留意——」而非「根據本報告所述之數據顯示——」
+2. **問句引導節奏** — 用問句推進思路，特別適合主題切換或段落開頭
+3. **具體案例錨定** — 每個論點有具體人名、產品、數據支撐，不說空話
+4. **坦誠面對不確定** — 用「值得注意的是...」「目前看來...」保留探索空間，不武斷定調
+5. **段落短、呼吸快** — 一個段落一個觀點，短句收尾
+6. **引用是為了對話** — 引述後接「這點呼應了...」「但換個角度看...」，不堆砌
+7. **開放式收束** — 結尾留下問題或延伸方向
+
+> 適用範圍：重點摘要、值得深讀推薦、趨勢總結等敘述段落。表格、數據分析欄位維持客觀中性。
 
 ## Rules
 
