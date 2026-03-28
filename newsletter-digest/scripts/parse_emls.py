@@ -107,6 +107,24 @@ _UNSUBSCRIBE_PATTERNS = [
     ),
 ]
 
+# Lines to strip that are not article content (gateway warnings, forwarding notices)
+# Note: these regexes are single-line only. If a gateway warning is line-wrapped
+# by the email client, only the first line will be removed.
+_NOISE_LINE_PATTERNS = [
+    re.compile(
+        r"^This message was sent from outside of .+?\."
+        r"( Please do not click links or open attachments unless .+?\.)?",
+        re.IGNORECASE | re.MULTILINE,
+    ),
+    re.compile(
+        r"^You don't often get email from .+?\. Learn why this is important.*$",
+        re.IGNORECASE | re.MULTILINE,
+    ),
+    re.compile(
+        r"^.*forwarded this email\?.*$", re.IGNORECASE | re.MULTILINE
+    ),
+]
+
 # Footer separator patterns
 _FOOTER_SEPARATORS = re.compile(
     r"^[-=_]{3,}\s*$", re.MULTILINE
@@ -115,6 +133,10 @@ _FOOTER_SEPARATORS = re.compile(
 
 def clean_body(text: str, max_chars: int = 3000) -> str:
     """Remove signatures, footers, unsubscribe notices, and truncate."""
+    # Strip gateway warnings, forwarding notices, and other non-content lines
+    for pattern in _NOISE_LINE_PATTERNS:
+        text = pattern.sub("", text)
+
     # Truncate at first footer separator (e.g. "---", "===", "___")
     parts = _FOOTER_SEPARATORS.split(text, maxsplit=1)
     text = parts[0]
