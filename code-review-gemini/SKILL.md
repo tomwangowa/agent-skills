@@ -8,119 +8,84 @@ allowed-tools: Bash, Read, Edit, Write
 
 ## Purpose
 
-This Skill performs a structured code review on staged changes by:
-1. Collecting the git diff of staged changes (`git diff --cached`)
+This Skill performs a structured code review by:
+1. Determining what to review (auto-detect or user-specified scope)
 2. Running an external review script that invokes the Gemini CLI
 3. Summarizing the findings in a clear, prioritized manner
 
-The Skill is designed to be deterministic, auditable, and suitable for pre-commit workflows.
+The Skill is designed to be deterministic, auditable, and flexible across different review scopes.
+
+---
+
+## Review Modes
+
+The script supports five review modes, with smart auto-detection as default:
+
+| Mode | Flag | Description |
+|------|------|-------------|
+| **Auto** | (default) | Staged → unstaged → error |
+| **Staged** | `--staged` | Only `git diff --cached` |
+| **Unstaged** | `--unstaged` | Only `git diff` (working directory) |
+| **Files** | `--files FILE...` | Specific files — works for **untracked files** too |
+| **Branch** | `--branch BASE` | Diff of `BASE...HEAD` |
+| **Commit** | `--commit SHA` | A single commit's changes |
 
 ---
 
 ## Instructions
 
-When the user expresses intent to review staged changes (for example: reviewing staged files, checking code before commit, or analyzing changes about to be committed), follow the steps below strictly.
-Please note that do not specify the gemini model in the instructions, as it will be handled in the script.
+When the user expresses intent to review code, follow the steps below strictly.
 
-### Execution steps
+### Step 0: Determine Review Scope
 
-1. Determine the skill base directory from the skill invocation context (provided when the skill is loaded).
+Parse the user's request to determine which mode to use:
 
-2. Run the script from the skill directory: `<skill_base_directory>/scripts/review_with_gemini.sh`.
+| User says | Mode to use |
+|-----------|-------------|
+| "review staged changes" / "review before commit" | `--staged` |
+| "review my changes" / "review what I changed" | (auto — no flag) |
+| "review unstaged changes" / "review working directory" | `--unstaged` |
+| "review foo.py and bar.js" / "review this file" | `--files foo.py bar.js` |
+| "review changes vs main" / "review branch diff" | `--branch main` |
+| "review commit abc123" / "review last commit" | `--commit abc123` (resolve "last commit" to HEAD) |
+| Ambiguous or no scope specified | (auto — no flag) |
 
-   For example, if the skill base directory is `/Users/tom_wang/.claude/skills/code-review-gemini`,
-   the full path should be `/Users/tom_wang/.claude/skills/code-review-gemini/scripts/review_with_gemini.sh`.
+### Step 1: Run the Review Script
 
-   **Important**: Always use the full absolute path to the script, not a relative path, since the current
-   working directory may be the user's project directory, not the skill directory.
+1. Determine the skill base directory from the skill invocation context.
 
-2. Observe the script output carefully.
-   The script will first print a **"Review Scope"** section that includes:
+2. Run: `<skill_base_directory>/scripts/review_with_gemini.sh [MODE] [ARGS...]`
+
+   For example (where `$BASE` is the skill base directory):
+   ```bash
+   # Auto-detect
+   $BASE/scripts/review_with_gemini.sh
+
+   # Specific files
+   $BASE/scripts/review_with_gemini.sh --files src/app.py tests/test_app.py
+
+   # Branch diff
+   $BASE/scripts/review_with_gemini.sh --branch main
+
+   # Specific commit
+   $BASE/scripts/review_with_gemini.sh --commit abc1234
+   ```
+
+   **Important**: Always use the full absolute path to the script (resolved from skill base directory),
+   not a relative path, since the current working directory may be the user's project directory.
+
+3. Observe the script output carefully. The script prints a **"Review Scope"** section that includes:
    - Current branch name
-   - Review target (Staged changes)
-   - List of staged files
+   - Review target (mode used)
+   - List of files under review
 
-3. Before summarizing the review, **pay close attention to the "Review Scope" section** and ensure that all findings align strictly with the listed staged files.
+### Step 2: Validate Findings
 
-   - If a finding does not clearly map to a file in the review scope, treat it as **low confidence**.
-   - Do not introduce issues, suggestions, or risks that are unrelated to the displayed diff.
-   - Avoid speculative or generalized advice that cannot be justified by the reviewed changes.
+**Pay close attention to the "Review Scope" section** and ensure all findings align strictly with the listed files.
 
-4. After verifying alignment with the review scope, summarize the Gemini review results for the user.
-
-### Output requirements
-
-Your final response should be structured and concise, and must include:
-
-- **High priority issues**  
-  Issues that may cause bugs, security risks, crashes, or data loss.
-
-- **Medium priority concerns**  
-  Design issues, maintainability problems, or potential performance risks.
-
-- **Low priority or stylistic suggestions**  
-  Readability, naming, formatting, or minor best-practice improvements.
-
-- **Actionable next steps**
-  Concrete recommendations that the developer can realistically act on.
-
-- **Adversarial findings** (tagged `[ADVERSARIAL]`)
-  Issues discovered through active probing — edge-case inputs, unvalidated assumptions, tests that don't actually verify what they claim.
-
-- **Assumptions identified**
-  Implicit assumptions the code makes but does not validate (e.g., input shape, ordering, environment state, "this path won't be reached").
-
-Do not repeat the full raw Gemini output verbatim unless explicitly asked.  
-Your role is to act as a senior reviewer who filters, validates, and prioritizes the findings.
-
----
-
-## Constraints
-
-- Only review code that appears in the provided diff.
-- Do not assume project architecture or conventions beyond what is visible in the changes.
-- Do not suggest large-scale refactors unless a clear, high-risk issue justifies it.
-- Prefer correctness and clarity over exhaustive commentary.
-
----
-
-## Examples
-
-**User:**
-> Review the staged files before I commit.
-
-**Expected behavior:**
-- Run `review_with_gemini.sh`
-- Read the "Review Scope" section
-- Validate that review findings match the staged files
-- Respond with a prioritized, scoped code review summary
-
----
-
-**User:**
-> Check the code quality of my staged changes.
-
-**Expected behavior:**
-- Same workflow as above
-- Emphasize correctness and risk-related issues first
-
----
-
-## Workflow
-
-### Step 1: Collect Staged Changes
-1. Run `scripts/review_with_gemini.sh`
-2. Script executes `git diff --cached` to get staged changes
-3. Script displays "Review Scope" with branch name and staged files
-
-### Step 2: Review Analysis
-1. Script sends diff to Gemini CLI for analysis
-2. Gemini reviews code for:
-   - Security vulnerabilities (XSS, injection, auth issues)
-   - Logic errors and potential bugs
-   - Performance concerns
-   - Code quality and maintainability
-   - Best practice violations
+- If a finding does not clearly map to a file in the review scope, treat it as **low confidence**.
+- Do not introduce issues, suggestions, or risks that are unrelated to the displayed diff/content.
+- Avoid speculative or generalized advice that cannot be justified by the reviewed changes.
 
 ### Step 2.5: Adversarial Review Pass
 
@@ -133,7 +98,7 @@ After receiving Gemini's analysis, actively probe the diff with these four quest
    List every implicit assumption: input types, ordering guarantees, environment variables present, upstream behavior, "this error won't happen". Each is a finding unless explicitly validated in code.
 
 3. **"Does the test actually test the claim?" (Mirror Test)**
-   For every test in the diff, check whether deleting the implementation would still let the test pass. A test that passes regardless of the code under test is a tautology, not verification. Specific checks:
+   For every test in the diff, check whether deleting the implementation would still let the test pass. Specific checks:
    - Is the assertion on the **return value / side effect** of the code under test, or on a mock/stub?
    - Would replacing the function body with `return null` / `return []` / `pass` cause the test to fail?
    - Does the test assert on behavior, or merely on the absence of errors?
@@ -141,174 +106,114 @@ After receiving Gemini's analysis, actively probe the diff with these four quest
 4. **"Is this a fix or a suppression?"**
    Check whether the change addresses the root cause or merely silences a symptom (e.g., catching and swallowing errors, adding `|| default` to mask nil, `@SuppressWarnings`, `# type: ignore`).
 
-**Tagging rule:** Any issue discovered through this pass is tagged `[ADVERSARIAL]` in the output. These findings stand alongside (not below) the standard priority categories.
+**Tagging rule:** Any issue discovered through this pass is tagged `[ADVERSARIAL]` in the output.
+
+### Step 3: Prioritize and Summarize
+
+Categorize by severity, provide specific line numbers and file references, suggest concrete fixes.
+
+### Step 4: Present Results
+
+Your final response must include:
+
+- **High priority issues** — bugs, security risks, crashes, data loss
+- **Medium priority concerns** — design, maintainability, performance
+- **Low priority suggestions** — readability, naming, formatting
+- **Adversarial findings** — tagged `[ADVERSARIAL]`, grouped separately
+- **Assumptions identified** — implicit assumptions the code does not validate
+- **Actionable next steps** — concrete recommendations
+
+Do not repeat the full raw Gemini output verbatim unless explicitly asked.
+Your role is to act as a senior reviewer who filters, validates, and prioritizes the findings.
+
+---
+
+## Constraints
+
+- Only review code that appears in the provided diff or file content.
+- Do not assume project architecture or conventions beyond what is visible in the changes.
+- Do not suggest large-scale refactors unless a clear, high-risk issue justifies it.
+- Prefer correctness and clarity over exhaustive commentary.
+
+---
+
+## Workflow
+
+### Step 1: Determine Scope
+Parse user intent → select mode (see Step 0 table above).
+
+### Step 2: Execute Review
+Run the review script with the appropriate mode and arguments.
 
 ### Step 3: Validate Findings
-1. Read the "Review Scope" section
-2. Verify all findings map to staged files
-3. Filter out speculative or unrelated suggestions
-4. Treat unmapped findings as low confidence
+Cross-check all findings against the "Review Scope" section output.
 
-### Step 4: Prioritize and Summarize
-1. Categorize by severity: High, Medium, Low
-2. Focus on actionable items
-3. Provide specific line numbers and file references
-4. Suggest concrete fixes
+### Step 4: Adversarial Pass
+Apply the four adversarial questions to the diff/content.
 
 ### Step 5: Present Results
-1. High priority issues first (security, bugs, crashes)
-2. Medium priority concerns (design, performance)
-3. Low priority suggestions (style, naming)
-4. Adversarial findings (`[ADVERSARIAL]` tagged, grouped separately)
-5. Assumptions list (implicit assumptions the code does not validate)
-6. Actionable next steps
+Deliver prioritized, scoped summary (High → Medium → Low → Adversarial → Assumptions → Next steps).
+
+---
+
+## Examples
+
+### Example 1: Pre-commit review (staged)
+**User:** "Review the staged files before I commit."
+→ Run with `--staged`
+→ Script shows staged file list, sends diff to Gemini, returns prioritized findings.
+
+### Example 2: Review specific files (including untracked)
+**User:** "Review src/api/handler.py and utils/new_helper.py"
+→ Run with `--files src/api/handler.py utils/new_helper.py`
+→ Works even if files are not git-tracked. Script reads file contents directly.
+
+### Example 3: Branch diff review
+**User:** "Review my changes compared to main"
+→ Run with `--branch main`
+→ Shows all commits since diverging from main.
+
+### Example 4: Single commit review
+**User:** "Review the last commit"
+→ Resolve to HEAD, run with `--commit HEAD`
+
+### Example 5: Auto-detect (no scope given)
+**User:** "Review my code"
+→ Run with no flags. Auto-detects: staged changes first, then unstaged.
 
 ---
 
 ## Security Considerations
 
 ### Input Handling
-1. **Git Diff Content**
-   - The diff is sourced from local git repository (trusted source)
-   - No user input directly injected into commands
-   - Diff size is limited by MAX_DIFF_LINES environment variable (default: 5000)
+- Git diff content is sourced from local repository (trusted source)
+- File content in `--files` mode is read from local filesystem only
+- No user input directly injected into shell commands; file paths are passed as arguments, not interpolated into strings
+- Script uses `set -euo pipefail` to fail fast on undefined variables or pipe errors
 
-2. **Script Execution Safety**
-   - review_with_gemini.sh validates environment before execution
-   - Checks for required tools (git, Gemini CLI)
-   - Uses `set -euo pipefail` for proper error handling
-   - No arbitrary command execution from user input
-
-3. **Gemini API Security**
-   - Requires valid API key (GEMINI_API_KEY environment variable)
-   - API calls are made over HTTPS
-   - No sensitive code should be in diff (user responsibility)
-   - Review results are saved locally only
+### Path Safety
+- `--files` mode validates file existence before reading (`-f` check)
+- No directory traversal risk: paths are resolved by the shell, not constructed from user input
+- Temporary files created via `mktemp` and cleaned up after use
 
 ### Sensitive Information Handling
-1. **Code Content**
-   - Warn users not to commit secrets, API keys, passwords in code
-   - Review process may expose sensitive logic to Gemini API
-   - Users should be aware code is sent to external AI service
-   - Consider using `.gitignore` for sensitive files
-
-2. **Review Results**
-   - Saved to local file: `gemini_review_result.txt`
-   - Contains code snippets from diff
-   - Should not be committed to git (add to .gitignore)
-   - May contain security findings that should be handled carefully
+- **Warning**: Code sent to Gemini API is transmitted to an external service (Google). Do not review files containing secrets, API keys, passwords, or PII
+- Review results saved to `$TMPDIR` only, not persisted
+- No review output is committed to git
 
 ### External Dependencies
-1. **Gemini CLI**
-   - Official Google tool, regularly updated
-   - Requires API key for authentication
-   - Network connectivity required
-   - API quota limits apply
-
-2. **Git**
-   - Standard version control tool
-   - Trusted system dependency
-   - No remote operations performed
+- **Gemini CLI**: Official Google tool, requires valid API key, communicates over HTTPS
+- **Git**: Standard VCS tool, no remote operations performed (read-only local operations)
 
 ---
 
 ## Error Handling
 
-### Pre-execution Validation
-1. **Git Repository Check**
-   - Error if not in a git repository
-   - Message: "Not a git repository. Please run from within a git project."
-   - Action: Change directory to git project root
+The script handles errors for each mode:
+- Missing git repo (for git-dependent modes)
+- No changes detected (staged/unstaged)
+- File not found (--files mode, skips with warning)
+- Invalid branch or commit SHA
+- Gemini CLI not installed
 
-2. **Staged Changes Check**
-   - Error if no staged changes found
-   - Message: "No staged changes found. Use 'git add' to stage files first."
-   - Action: User should stage files with `git add`
-
-3. **Gemini CLI Check**
-   - Error if Gemini CLI not installed
-   - Message: "Gemini CLI not found. Install: npm install -g @google/gemini-cli"
-   - Provide installation link: https://www.npmjs.com/package/@google/gemini-cli
-
-4. **API Key Check**
-   - Error if GEMINI_API_KEY not set
-   - Message: "GEMINI_API_KEY environment variable not set. Please configure your API key."
-   - Action: Guide user to set environment variable
-
-### Execution Errors
-1. **Diff Too Large**
-   - If diff exceeds MAX_DIFF_LINES (default: 5000)
-   - Warning: "Diff is too large (X lines). Only first 5000 lines will be reviewed."
-   - Action: Review proceeds with truncated diff
-   - Recommendation: "Consider reviewing in smaller commits"
-
-2. **Gemini API Failures**
-   - Network timeout or API errors
-   - Error: "Gemini API request failed: [error details]"
-   - Action: Check network connection and API key
-   - Fallback: Suggest manual review or retry
-
-3. **Script Execution Failures**
-   - If review_with_gemini.sh fails
-   - Capture stderr output
-   - Display error to user with context
-   - Provide troubleshooting steps
-
-### Output Handling
-1. **Empty Review Results**
-   - If Gemini returns no findings
-   - Message: "No issues found in the staged changes. Code looks good!"
-   - Clarify: This doesn't guarantee bug-free code, just no obvious issues detected
-
-2. **Malformed Output**
-   - If review result file is corrupted or empty
-   - Error: "Failed to parse review results. Please try again."
-   - Action: Check gemini_review_result.txt for details
-
-3. **File Write Errors**
-   - If cannot write gemini_review_result.txt
-   - Error: "Cannot write to output file. Check disk space and permissions."
-   - Action: Verify write permissions in current directory
-
-### Graceful Degradation
-When Gemini CLI is unavailable:
-- Inform user that external AI review is not available
-- Suggest alternatives: manual review, code-review-assistant (if exists)
-- Do not fail the commit workflow (review is advisory, not blocking)
-
----
-
-## Additional Examples
-
-### Example 3: Security-focused review
-```
-User: "Review my authentication code for security issues"
-
-Expected behavior:
-- Run review_with_gemini.sh
-- Focus on security aspects in the summary
-- Highlight: SQL injection, XSS, auth bypass, token handling
-- Provide security-specific recommendations
-```
-
-### Example 4: Performance review
-```
-User: "Check if my changes have performance issues"
-
-Expected behavior:
-- Run review_with_gemini.sh
-- Emphasize performance concerns in summary
-- Identify: N+1 queries, memory leaks, inefficient algorithms
-- Suggest optimizations with benchmarks
-```
-
-### Example 5: Before major refactoring
-```
-User: "I'm about to refactor the database layer, review the changes"
-
-Expected behavior:
-- Run review_with_gemini.sh on staged refactoring
-- Check for: breaking changes, data migration needs, backward compatibility
-- Validate: test coverage, error handling, rollback strategy
-- Confirm architectural alignment
-```
+When Gemini CLI is unavailable, inform the user and suggest alternatives.
