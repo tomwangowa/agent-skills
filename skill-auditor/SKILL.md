@@ -75,7 +75,7 @@ A meta-skill that audits other skills to ensure they are:
 
 #### YAML Frontmatter
 - [ ] YAML frontmatter exists and is valid
-- [ ] `name` field present and follows naming convention (lowercase, hyphens)
+- [ ] `name` field present, kebab-case (`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`), and matches directory name
 - [ ] `description` field present and clear (describes when to use)
 - [ ] No syntax errors in YAML
 

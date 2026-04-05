@@ -142,8 +142,23 @@ check_yaml_frontmatter() {
         echo "❌ **CRITICAL**: Missing 'name' field in frontmatter" >> "$BODY_FILE"
         ((CRITICAL_ISSUES++))
     else
-        echo "✅ 'name' field present" >> "$BODY_FILE"
-        ((SCORE+=5))
+        # Extract name value (strip quotes and whitespace)
+        local name_value=$(echo "$yaml_content" | grep "^name:" | sed 's/^name:[[:space:]]*//' | sed 's/^["'"'"']//' | sed 's/["'"'"']$//' | tr -d '[:space:]')
+
+        # Validate name is kebab-case (lowercase letters, digits, hyphens only)
+        if ! echo "$name_value" | grep -qE '^[a-z][a-z0-9]*(-[a-z0-9]+)*$'; then
+            echo "❌ **CRITICAL**: 'name' field must be kebab-case (lowercase, hyphens). Found: \"$name_value\"" >> "$BODY_FILE"
+            echo "**Fix**: Use lowercase words separated by hyphens (e.g., \"my-skill-name\")" >> "$BODY_FILE"
+            ((CRITICAL_ISSUES++))
+        # Validate name matches directory name
+        elif [[ "$name_value" != "$SKILL_NAME" ]]; then
+            echo "❌ **CRITICAL**: 'name' field (\"$name_value\") does not match directory name (\"$SKILL_NAME\")" >> "$BODY_FILE"
+            echo "**Fix**: Rename to \"$SKILL_NAME\" to match the directory" >> "$BODY_FILE"
+            ((CRITICAL_ISSUES++))
+        else
+            echo "✅ 'name' field present and valid (\"$name_value\")" >> "$BODY_FILE"
+            ((SCORE+=5))
+        fi
     fi
 
     if ! echo "$yaml_content" | grep -q "^description:"; then

@@ -1,5 +1,5 @@
 ---
-name: "Skill Router"
+name: "skill-router"
 description: "Unified skill discovery and routing. Use when unsure which skill to use, want to browse available skills, or need workflow recommendations. Triggers: '有哪些 skill', 'skill 列表', '我的 skills', '不知道用什麼', 'which skill', 'find skill', 'skill-router list', 'skill-router workflows'"
 ---
 
