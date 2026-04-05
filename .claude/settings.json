@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(jq -r '.tool_input.command // \"\"'); if echo \"$CMD\" | grep -qE '^(git commit|git push|gh pr)'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",additionalContext:\"⚠️ COMPLETION GATE: Before proceeding with this command, you MUST apply the completion-gate skill. Run verification commands, confirm their output, and include VERIFIED / NOT VERIFIED sections. Do NOT skip this step.\"}}'; fi",
+            "timeout": 5,
+            "statusMessage": "Checking completion gate..."
+          }
+        ]
+      }
+    ]
+  }
+}
