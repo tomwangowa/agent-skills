@@ -267,6 +267,6 @@ Step 8 → Report with 89% accuracy score
 - **critical-research** — Uses the same falsification-first methodology for web research. Verdict system aligned.
 - **code-review-gemini** — Complements audits with code quality review (includes adversarial pass).
 - **code-review-claude** — Quick code quality checks (includes adversarial quick check).
-- **verification-before-completion** — Applies similar rigor to completion claims (includes adversarial self-verification).
+- **completion-gate** — Applies similar rigor to completion claims (includes adversarial self-verification).
 - **assumption-extractor** — Complementary: codebase-audit verifies doc claims against code; assumption-extractor surfaces implicit assumptions in design docs that may not match implementation.
 - **research-synthesis** — Downstream: combines codebase-audit findings with other research outputs into decision documents.

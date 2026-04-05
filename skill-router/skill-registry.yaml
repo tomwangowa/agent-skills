@@ -225,7 +225,7 @@ categories:
           - "start implementing"
           - "checkpoint"
 
-      - id: verification-before-completion
+      - id: completion-gate
         triggers:
           - "驗收"
           - "verify"
@@ -503,7 +503,7 @@ workflows:
       - brainstorming
       - sp-writing-plans
       - sp-executing-plans
-      - verification-before-completion
+      - completion-gate
       - code-review-gemini
 
   - id: presentation
@@ -517,7 +517,7 @@ workflows:
     label: 實作完成後驗收
     when: 代碼寫完，準備 review 和合併
     steps:
-      - verification-before-completion
+      - completion-gate
       - code-review-gemini
       - sp-finishing-a-development-branch
 

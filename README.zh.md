@@ -30,7 +30,7 @@
 | [code-review-claude](./code-review-claude/) | Claude 原生的快速 code review（< 30 秒）。適合 50 行以下的小改動。 |
 | [pr-review-assistant](./pr-review-assistant/) | Pull request 結構化審查。分析 diff、評估風險、提供改善建議。 |
 | [codebase-audit](./codebase-audit/) | Claims-first 程式碼庫審計：從文件中提取宣稱，逐一對照原始碼驗證。用來確認文件和程式碼是否一致。 |
-| [verification-before-completion](./verification-before-completion/) | 完成前的證據關卡。在宣稱「完成」或「通過」之前，強制執行驗證命令並確認輸出。 |
+| [completion-gate](./completion-gate/) | 完成前的證據關卡。在宣稱「完成」或「通過」之前，強制執行驗證命令並確認輸出。 |
 
 ### 研究與批判思考 (9)
 

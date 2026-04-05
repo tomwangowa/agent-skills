@@ -21,5 +21,5 @@
 - **Code review (default)**: code-review-gemini
 - **Code review (quick, < 50 lines)**: code-review-claude
 - **Codebase/docs audit**: codebase-audit (NOT skill-auditor)
-- Before any completion claim, apply verification-before-completion
+- Before any completion claim, apply completion-gate
 - Always run `skill-auditor` after creating or modifying a skill

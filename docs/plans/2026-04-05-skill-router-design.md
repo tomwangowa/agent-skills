@@ -73,9 +73,9 @@ workflows:
 ### Preset Workflows (6)
 1. **tech-evaluation** — quick feasibility: tech-feasibility → assumption-extractor → micro-poc-validator
 2. **full-research** — rigorous 8-phase: tech-research-pipeline
-3. **feature-dev** — full cycle: brainstorming → sp-writing-plans → sp-executing-plans → verification-before-completion → code-review-gemini
+3. **feature-dev** — full cycle: brainstorming → sp-writing-plans → sp-executing-plans → completion-gate → code-review-gemini
 4. **presentation** — slides: presentation-planner → interactive-presentation-generator
-5. **post-implementation** — merge prep: verification-before-completion → code-review-gemini → sp-finishing-a-development-branch
+5. **post-implementation** — merge prep: completion-gate → code-review-gemini → sp-finishing-a-development-branch
 6. **role-pipeline** — PM→RD: role-orchestrator (dispatches role-pm + role-rd)
 
 ## Routing Logic

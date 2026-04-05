@@ -28,7 +28,7 @@ Categories and their skills:
 #                 research-synthesis, codebase-audit, narrative-auditor
 #   code-review (3): code-review-gemini, code-review-claude, pr-review-assistant
 #   dev-process (7): brainstorming, sp-test-driven-development, sp-systematic-debugging,
-#                    sp-writing-plans, sp-executing-plans, verification-before-completion,
+#                    sp-writing-plans, sp-executing-plans, completion-gate,
 #                    sp-using-git-worktrees
 #   roles (3): role-orchestrator, role-pm, role-rd
 #   delegation (2): sp-dispatching-parallel-agents, sp-subagent-driven-development
@@ -59,7 +59,7 @@ workflows:
   feature-dev:
     label: "功能開發全流程"
     when: "從需求探索到交付的完整開發週期"
-    steps: [brainstorming, sp-writing-plans, sp-executing-plans, verification-before-completion, code-review-gemini]
+    steps: [brainstorming, sp-writing-plans, sp-executing-plans, completion-gate, code-review-gemini]
   presentation:
     label: "簡報製作"
     when: "準備演講、分享、或任何簡報"
@@ -67,7 +67,7 @@ workflows:
   post-implementation:
     label: "實作完成後驗收"
     when: "代碼寫完，準備 review 和合併"
-    steps: [verification-before-completion, code-review-gemini, sp-finishing-a-development-branch]
+    steps: [completion-gate, code-review-gemini, sp-finishing-a-development-branch]
   role-pipeline:
     label: "PM→RD 角色協作"
     when: "需要完整的需求分析到技術設計流程"

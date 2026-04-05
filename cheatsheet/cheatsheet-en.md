@@ -34,7 +34,7 @@ Medium/Large projects:
 | Scenario | Skill to Use | Example |
 |----------|-------------|---------|
 | Bug or test failure encountered | `sp-systematic-debugging` | "Tests fail with 'undefined is not a function' in auth.ts" |
-| Fix applied, need to verify it's actually fixed | `verification-before-completion` | "I fixed the auth bug, verify it's actually resolved" |
+| Fix applied, need to verify it's actually fixed | `completion-gate` | "I fixed the auth bug, verify it's actually resolved" |
 
 ### Parallel Work
 
@@ -177,7 +177,7 @@ These skills are automatically suggested or required under specific conditions:
 |-------------------|---------------------|
 | Before implementing new features | `brainstorming` (CLAUDE.md routing rule) |
 | brainstorming detects medium/large scope | `role-orchestrator` (suggested escalation) |
-| Before claiming work is complete | `verification-before-completion` |
+| Before claiming work is complete | `completion-gate` |
 | After creating/modifying a skill | `skill-auditor` |
 | Brainstorming Phase 3: technical decision | `tech-feasibility` (required) |
 | Brainstorming Phase 3: factual claim | `critical-research` (required) |

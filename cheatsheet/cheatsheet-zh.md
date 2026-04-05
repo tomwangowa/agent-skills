@@ -34,7 +34,7 @@
 | 情境 | 使用技能 | 範例 |
 |------|----------|------|
 | 遇到 bug 或測試失敗 | `sp-systematic-debugging` | 「auth.ts 跑測試出現 'undefined is not a function'」 |
-| 修完要確認真的修好了 | `verification-before-completion` | 「我修完 auth 的 bug 了，幫我確認真的修好了」 |
+| 修完要確認真的修好了 | `completion-gate` | 「我修完 auth 的 bug 了，幫我確認真的修好了」 |
 
 ### 並行任務
 
@@ -177,7 +177,7 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 |----------|---------------|
 | 實作新功能前 | `brainstorming`（CLAUDE.md 路由規則） |
 | brainstorming 偵測到中大型範圍 | `role-orchestrator`（建議升級） |
-| 宣稱工作完成前 | `verification-before-completion` |
+| 宣稱工作完成前 | `completion-gate` |
 | 建立/修改技能後 | `skill-auditor` |
 | brainstorming Phase 3 遇到技術抉擇 | `tech-feasibility`（必須） |
 | brainstorming Phase 3 遇到事實主張 | `critical-research`（必須） |

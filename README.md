@@ -30,7 +30,7 @@ Embed review and verification into the development workflow, not as an afterthou
 | [code-review-claude](./code-review-claude/) | Fast native code review by Claude (< 30s). Best for changes under 50 lines. |
 | [pr-review-assistant](./pr-review-assistant/) | Structured pull request review. Analyzes diffs, assesses risk, provides improvement suggestions. |
 | [codebase-audit](./codebase-audit/) | Claims-first codebase audit: extracts claims from documentation, verifies each against source code. Confirms whether docs and code are consistent. |
-| [verification-before-completion](./verification-before-completion/) | Evidence gate before completion. Forces running verification commands and confirming output before claiming "done" or "passing". |
+| [completion-gate](./completion-gate/) | Evidence gate before completion. Forces running verification commands and confirming output before claiming "done" or "passing". |
 
 ### Research & Critical Thinking (9)
 

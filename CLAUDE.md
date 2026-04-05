@@ -74,7 +74,7 @@ Followed by markdown content containing:
 - **codebase-audit** — Claims-first audit: extract documentation claims and verify against code
 - **narrative-auditor** — Audit external narratives against primary sources, or speak as user's AI proxy
 - **report-generator** — Generate status reports, project summaries, and retrospectives from activity logs and git history
-- **verification-before-completion** — Evidence-based verification + adversarial self-check before claiming done
+- **completion-gate** — Evidence-based verification + adversarial self-check before claiming done
 
 ### Content Generation
 
