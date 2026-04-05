@@ -86,6 +86,7 @@ Followed by markdown content containing:
 
 - **skill-auditor** — Audit skills for quality, security, and best practices
 - **skillshare** — Sync skills across AI CLI tools
+- **skill-router** — Unified skill discovery and routing: smart match, category browse, workflow browse
 
 ## Creating New Skills
 

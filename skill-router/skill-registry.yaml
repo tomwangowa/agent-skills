@@ -1,0 +1,528 @@
+# ============================================================
+# Skill Registry — single source of truth for skill routing
+# 44 skills · 10 categories · 6 workflows
+# ============================================================
+
+categories:
+
+  # ── 1. 研究與驗證 ──────────────────────────────────────────
+  research:
+    label: 研究與驗證
+    skills:
+      - id: critical-research
+        triggers:
+          - "反證研究"
+          - "falsification"
+          - "counter-evidence"
+          - "求證"
+          - "有沒有反例"
+          - "devil's advocate"
+          - "挑戰這個說法"
+          - "verify claim"
+          - "這是真的嗎"
+          - "fact check"
+
+      - id: tech-feasibility
+        triggers:
+          - "可行性"
+          - "能不能用"
+          - "should I use"
+          - "evaluate tech"
+          - "is X feasible"
+          - "技術評估"
+          - "適不適合"
+          - "can X do Y"
+          - "will X work"
+          - "這技術行不行"
+          - "能不能做到"
+          - "值不值得用"
+          - "tech evaluation"
+
+      - id: tech-research-pipeline
+        triggers:
+          - "完整研究"
+          - "full research"
+          - "8 phase"
+          - "八階段"
+          - "research pipeline"
+          - "嚴謹調研"
+          - "深度研究"
+          - "完整調查"
+          - "thorough research"
+
+      - id: research-cross-validator
+        triggers:
+          - "交叉驗證"
+          - "cross validate"
+          - "多方求證"
+          - "cross-check"
+          - "驗證這個說法"
+          - "double check claim"
+          - "multiple sources"
+          - "確認一下"
+
+      - id: assumption-extractor
+        triggers:
+          - "假設"
+          - "assumption"
+          - "隱含前提"
+          - "implicit assumption"
+          - "extract assumptions"
+          - "前提是什麼"
+          - "我們假設了什麼"
+          - "hidden assumption"
+          - "前提條件"
+
+      - id: micro-poc-validator
+        triggers:
+          - "快速驗證"
+          - "spike"
+          - "poc"
+          - "proof of concept"
+          - "試一下"
+          - "寫個小實驗"
+          - "validate assumption"
+          - "micro poc"
+          - "跑個測試看看"
+          - "能不能跑起來"
+
+      - id: research-synthesis
+        triggers:
+          - "綜合結論"
+          - "synthesize"
+          - "整合研究"
+          - "decision doc"
+          - "ADR"
+          - "做個總結"
+          - "merge findings"
+          - "研究結論"
+          - "彙整"
+
+      - id: codebase-audit
+        triggers:
+          - "audit codebase"
+          - "文件跟程式對不對"
+          - "docs match code"
+          - "verify documentation"
+          - "README 正確嗎"
+          - "codebase audit"
+          - "文件審查"
+          - "程式碼審計"
+          - "doc drift"
+
+      - id: narrative-auditor
+        triggers:
+          - "fact-check"
+          - "查證文章"
+          - "audit article"
+          - "這篇文章可信嗎"
+          - "verify narrative"
+          - "幫我回應"
+          - "speak for me"
+          - "AI proxy"
+          - "代替我回覆"
+          - "幫我發言"
+
+  # ── 2. 程式碼審查 ──────────────────────────────────────────
+  code-review:
+    label: 程式碼審查
+    skills:
+      - id: code-review-gemini
+        triggers:
+          - "code review"
+          - "review 一下"
+          - "幫我看 code"
+          - "deep review"
+          - "thorough review"
+          - "detailed review"
+          - "gemini review"
+          - "完整 review"
+          - "仔細看看"
+
+      - id: code-review-claude
+        triggers:
+          - "quick review"
+          - "快速 review"
+          - "native review"
+          - "fast review"
+          - "簡單看一下"
+          - "掃一眼"
+          - "glance review"
+
+      - id: pr-review-assistant
+        triggers:
+          - "review PR"
+          - "PR review"
+          - "pull request"
+          - "看這個 PR"
+          - "review this PR"
+          - "幫我看 PR"
+          - "check PR"
+          - "PR 審查"
+
+  # ── 3. 開發流程 ────────────────────────────────────────────
+  dev-process:
+    label: 開發流程
+    skills:
+      - id: brainstorming
+        triggers:
+          - "brainstorm"
+          - "腦力激盪"
+          - "先討論"
+          - "design dialogue"
+          - "探索需求"
+          - "我想做一個"
+          - "新功能"
+          - "怎麼設計"
+          - "想法"
+          - "approach"
+
+      - id: sp-test-driven-development
+        triggers:
+          - "TDD"
+          - "test first"
+          - "先寫測試"
+          - "test driven"
+          - "寫測試"
+          - "red green refactor"
+
+      - id: sp-systematic-debugging
+        triggers:
+          - "debug"
+          - "bug"
+          - "壞了"
+          - "不會動"
+          - "error"
+          - "exception"
+          - "stack trace"
+          - "500"
+          - "server error"
+          - "為什麼失敗"
+          - "怎麼壞的"
+          - "出錯了"
+          - "crash"
+          - "報錯"
+
+      - id: sp-writing-plans
+        triggers:
+          - "寫計畫"
+          - "write plan"
+          - "implementation plan"
+          - "規劃一下"
+          - "怎麼拆"
+          - "task breakdown"
+          - "步驟"
+          - "planning"
+          - "拆解任務"
+
+      - id: sp-executing-plans
+        triggers:
+          - "execute plan"
+          - "執行計畫"
+          - "照計畫做"
+          - "follow the plan"
+          - "開始實作"
+          - "start implementing"
+          - "checkpoint"
+
+      - id: verification-before-completion
+        triggers:
+          - "驗收"
+          - "verify"
+          - "確認完成"
+          - "done check"
+          - "完成了嗎"
+          - "is it done"
+          - "double check result"
+          - "確認結果"
+          - "before commit"
+
+      - id: sp-using-git-worktrees
+        triggers:
+          - "worktree"
+          - "git worktree"
+          - "isolated branch"
+          - "開分支做"
+          - "隔離開發"
+          - "parallel branch"
+
+  # ── 4. 角色協作 ────────────────────────────────────────────
+  roles:
+    label: 角色協作
+    skills:
+      - id: role-orchestrator
+        triggers:
+          - "PM RD"
+          - "角色協作"
+          - "role pipeline"
+          - "orchestrate"
+          - "需求到設計"
+          - "完整流程"
+          - "PM 到 RD"
+          - "subagent"
+
+      - id: role-pm
+        triggers:
+          - "PM"
+          - "product manager"
+          - "寫需求"
+          - "user story"
+          - "PRD"
+          - "requirements"
+          - "需求文件"
+          - "功能規格"
+
+      - id: role-rd
+        triggers:
+          - "RD"
+          - "developer role"
+          - "技術設計"
+          - "design doc"
+          - "architecture"
+          - "架構文件"
+          - "code plan"
+          - "設計文件"
+
+  # ── 5. 平行執行 ────────────────────────────────────────────
+  delegation:
+    label: 平行執行
+    skills:
+      - id: sp-dispatching-parallel-agents
+        triggers:
+          - "parallel"
+          - "平行"
+          - "同時做"
+          - "dispatch agents"
+          - "多個任務"
+          - "concurrent"
+          - "fan out"
+          - "一起跑"
+
+      - id: sp-subagent-driven-development
+        triggers:
+          - "subagent"
+          - "子任務"
+          - "subtask"
+          - "delegate"
+          - "分派"
+          - "subagent dev"
+          - "獨立子任務"
+
+  # ── 6. 程式碼歷史 ──────────────────────────────────────────
+  code-history:
+    label: 程式碼歷史
+    skills:
+      - id: code-story-teller
+        triggers:
+          - "code story"
+          - "git history"
+          - "程式演變"
+          - "code evolution"
+          - "這段 code 的歷史"
+          - "怎麼變成這樣"
+          - "file timeline"
+          - "blame"
+          - "誰改的"
+          - "設計決策"
+
+  # ── 7. 簡報與溝通 ──────────────────────────────────────────
+  presentation:
+    label: 簡報與溝通
+    skills:
+      - id: presentation-planner
+        triggers:
+          - "簡報規劃"
+          - "presentation plan"
+          - "slide strategy"
+          - "narrative"
+          - "演講大綱"
+          - "outline slides"
+          - "怎麼講"
+          - "presentation outline"
+
+      - id: interactive-presentation-generator
+        triggers:
+          - "做簡報"
+          - "generate slides"
+          - "Marp"
+          - "Slidev"
+          - "reveal.js"
+          - "make presentation"
+          - "產生投影片"
+          - "slide deck"
+          - "做投影片"
+
+      - id: report-generator
+        triggers:
+          - "報告"
+          - "report"
+          - "status report"
+          - "retrospective"
+          - "retro"
+          - "週報"
+          - "月報"
+          - "產生報告"
+          - "summary report"
+          - "project summary"
+
+  # ── 8. 知識管理 ────────────────────────────────────────────
+  knowledge:
+    label: 知識管理
+    skills:
+      - id: activity-logger
+        triggers:
+          - "記錄工作"
+          - "log activity"
+          - "activity log"
+          - "記一下"
+          - "session log"
+          - "work log"
+          - "紀錄"
+
+      - id: work-log-analyzer
+        triggers:
+          - "查工作紀錄"
+          - "query log"
+          - "work history"
+          - "之前做了什麼"
+          - "project history"
+          - "上次做到哪"
+          - "work journal"
+          - "查日誌"
+
+      - id: qa-to-notes
+        triggers:
+          - "存筆記"
+          - "save note"
+          - "Obsidian"
+          - "knowledge note"
+          - "存到筆記"
+          - "save Q&A"
+          - "寫成筆記"
+          - "Teams 發文"
+          - "rewrite for Teams"
+
+      - id: deep-reading
+        triggers:
+          - "deep read"
+          - "深度閱讀"
+          - "mental model"
+          - "知識萃取"
+          - "extract insights"
+          - "讀懂這份文件"
+          - "understand this doc"
+          - "分析文件"
+          - "讀書筆記"
+
+      - id: newsletter-digest
+        triggers:
+          - "newsletter"
+          - "電子報"
+          - "digest emails"
+          - "eml"
+          - "信件摘要"
+          - "email digest"
+          - "整理信件"
+          - "newsletter 摘要"
+
+  # ── 9. 內容策展 ────────────────────────────────────────────
+  content:
+    label: 內容策展
+    skills:
+      - id: arxiv-digest
+        triggers:
+          - "arXiv"
+          - "論文導讀"
+          - "paper digest"
+          - "arxiv digest"
+          - "讀論文"
+          - "paper summary"
+          - "論文摘要"
+          - "arXiv 導讀"
+
+      - id: ai-weekly-insight
+        triggers:
+          - "AI 週報"
+          - "AI 日報"
+          - "weekly insight"
+          - "daily insight"
+          - "AI news"
+          - "AI sharing"
+          - "AI 新聞"
+          - "AI 分析"
+          - "sharing session"
+          - "ai weekly"
+
+  # ── 10. 工具與維護 ─────────────────────────────────────────
+  meta:
+    label: 工具與維護
+    skills:
+      - id: skill-auditor
+        triggers:
+          - "audit skill"
+          - "檢查 skill"
+          - "skill quality"
+          - "skill 品質"
+          - "validate skill"
+          - "skill audit"
+
+      - id: skillshare
+        triggers:
+          - "sync skills"
+          - "同步 skill"
+          - "skillshare"
+          - "share skills"
+          - "install skill"
+          - "匯出 skill"
+          - "skill sync"
+
+# ============================================================
+# Workflows — pre-defined skill chains for common scenarios
+# ============================================================
+
+workflows:
+
+  - id: tech-evaluation
+    label: 技術評估（快速）
+    when: 評估一個技術方案是否可行，需要驗證假設
+    steps:
+      - tech-feasibility
+      - assumption-extractor
+      - micro-poc-validator
+
+  - id: full-research
+    label: 完整研究流程（8 階段）
+    when: 重大技術決策，需要嚴謹求證與多方交叉驗證
+    steps:
+      - tech-research-pipeline
+
+  - id: feature-dev
+    label: 功能開發全流程
+    when: 從需求探索到交付的完整開發週期
+    steps:
+      - brainstorming
+      - sp-writing-plans
+      - sp-executing-plans
+      - verification-before-completion
+      - code-review-gemini
+
+  - id: presentation
+    label: 簡報製作
+    when: 準備演講、分享、或任何簡報
+    steps:
+      - presentation-planner
+      - interactive-presentation-generator
+
+  - id: post-implementation
+    label: 實作完成後驗收
+    when: 代碼寫完，準備 review 和合併
+    steps:
+      - verification-before-completion
+      - code-review-gemini
+      - sp-finishing-a-development-branch
+
+  - id: role-pipeline
+    label: PM→RD 角色協作
+    when: 需要完整的需求分析到技術設計流程
+    steps:
+      - role-orchestrator
