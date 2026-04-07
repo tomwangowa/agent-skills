@@ -24,7 +24,7 @@ Skill Auditor is a meta-skill that reviews other skills for:
 - ✅ Script quality checks
 
 ### Scoring System
-- **100-point scale** with weighted categories
+- **100-point scale** (normalized from internal 130-point system)
 - **Severity levels**: Critical, Important, Suggestions
 - **Production readiness** assessment
 - **Actionable recommendations** for each issue
@@ -113,13 +113,15 @@ Claude will:
 | 60-74 | Needs Work ⚠️ | Address important issues |
 | <60 | Critical Issues ❌ | Not ready for production |
 
+Checks: Structure, Security, Error Handling, Portability, Quality & Clarity, Documentation, Script Quality, Description Voice, Writing Style.
+
 ## Example Output
 
 ```markdown
 # Skill Audit Report: my-skill
 
 **Audit Date**: 2026-01-15
-**Overall Score**: 82/100 (82%) ⚠️ Good
+**Overall Score**: 82/100 ⚠️ Good
 
 | Severity | Count |
 |----------|-------|
