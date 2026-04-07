@@ -233,6 +233,13 @@ check_writing_style() {
     local body
     body=$(awk 'BEGIN{found=0} /^---$/{found++; if(found==2){skip=1; next}} skip{print}' "$skill_md" 2>/dev/null || true)
 
+    if [[ -z "$body" ]]; then
+        echo "ℹ️  Writing style: skipped (no frontmatter body found)" >> "$BODY_FILE"
+        echo "" >> "$BODY_FILE"
+        log_verbose "Writing style check complete"
+        return 0
+    fi
+
     # Count second-person phrases (case-insensitive)
     # grep exits 1 when no match; || true prevents set -e from aborting
     local count
@@ -637,8 +644,6 @@ main() {
 
     # Run all checks (they write to BODY_FILE)
     check_yaml_frontmatter
-    check_description_voice
-    check_writing_style
     check_required_sections
     check_hardcoded_paths
     check_security_keywords
@@ -646,6 +651,8 @@ main() {
     check_examples
     check_documentation
     check_scripts
+    check_description_voice
+    check_writing_style
 
     # Generate complete report
     generate_report
