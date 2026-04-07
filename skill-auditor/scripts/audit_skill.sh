@@ -173,6 +173,47 @@ check_yaml_frontmatter() {
     log_verbose "YAML frontmatter check complete"
 }
 
+check_description_voice() {
+    log_check "Checking description voice..."
+    echo "" >> "$BODY_FILE"
+    echo "## 1b. Description Voice" >> "$BODY_FILE"
+    echo "" >> "$BODY_FILE"
+
+    local skill_md="$SKILL_DIR/SKILL.md"
+
+    # Extract frontmatter block (lines between the two --- delimiters)
+    local frontmatter
+    frontmatter=$(awk '/^---$/{if(found){exit}else{found=1;next}} found{print}' "$skill_md" 2>/dev/null || true)
+
+    # Try to get first line of description value
+    # Handle multiline (description: |) and single-line (description: text)
+    local desc_first_line=""
+
+    # Single-line: description: some text
+    local single
+    single=$(echo "$frontmatter" | grep "^description:" | sed 's/^description:[[:space:]]*//' | tr -d '"'"'" | head -1)
+    if [[ -n "$single" ]] && [[ "$single" != "|" ]] && [[ "$single" != ">" ]]; then
+        desc_first_line="$single"
+    else
+        # Multi-line: lines indented after description: |
+        desc_first_line=$(echo "$frontmatter" | awk '/^description:/{found=1;next} found && /^[a-z]/{exit} found{print}' | \
+            grep -v "^[[:space:]]*$" | head -1 | sed 's/^[[:space:]]*//')
+    fi
+
+    if echo "$desc_first_line" | grep -qiE "^(Use when|This skill)"; then
+        echo "✅ Description uses correct third-person voice" >> "$BODY_FILE"
+        ((SCORE+=5))
+    else
+        echo "⚠️  **IMPORTANT**: Description should start with \"Use when...\" or \"This skill...\"" >> "$BODY_FILE"
+        echo "**Found**: \"$desc_first_line\"" >> "$BODY_FILE"
+        echo "**Fix**: Rewrite description opening line to \"Use when [trigger conditions]\" or \"This skill [does X] when [conditions]\"" >> "$BODY_FILE"
+        ((IMPORTANT_ISSUES++))
+    fi
+
+    echo "" >> "$BODY_FILE"
+    log_verbose "Description voice check complete"
+}
+
 check_required_sections() {
     log_check "Checking required sections..."
     echo "## 2. Required Sections" >> "$BODY_FILE"
@@ -556,6 +597,7 @@ main() {
 
     # Run all checks (they write to BODY_FILE)
     check_yaml_frontmatter
+    check_description_voice
     check_required_sections
     check_hardcoded_paths
     check_security_keywords
