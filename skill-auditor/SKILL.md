@@ -452,14 +452,16 @@ For straightforward issues (e.g., missing sections, ambiguous terms):
 | Portability | 15% | 15 |
 | Quality & Clarity | 10% | 10 |
 | Documentation | 10% | 10 |
+| Description Voice | — | 5 |
+| Writing Style | — | 5 |
 
-**Total**: 100 points
+**Total**: 130 points
 
 **Scoring:**
-- 90-100: Excellent ✅
-- 75-89: Good ⚠️
-- 60-74: Needs Improvement ⚠️
-- <60: Critical Issues ❌
+- 117-130: Excellent ✅
+- 98-116: Good ⚠️
+- 78-97: Needs Improvement ⚠️
+- <78: Critical Issues ❌
 
 ---
 
@@ -512,8 +514,10 @@ User Request → Claude (Main Agent)
 | Portability | 15% | 15 | Automated |
 | Quality & Clarity | 10% | 10 | Automated + AI |
 | Documentation | 10% | 10 | Automated |
+| Description Voice | — | 5 | Automated |
+| Writing Style | — | 5 | Automated |
 
-**Total**: 100 points
+**Total**: 130 points
 
 ### Data Flow
 

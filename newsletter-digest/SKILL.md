@@ -1,9 +1,9 @@
 ---
 name: newsletter-digest
 description: |
-  Digest and categorize newsletter emails (.eml files) from a folder into a structured, topic-grouped summary.
   Use when user asks to organize newsletters, digest emails, summarize subscriptions,
   or mentions .eml files, newsletter folder, or email digest.
+  Reads all .eml files from a folder, groups by topic, and produces a structured digest.
 ---
 
 # Newsletter Digest
