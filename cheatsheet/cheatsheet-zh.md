@@ -95,6 +95,16 @@ narrative-auditor (fact-check + 短評)
 
 ## 知識管理 (Knowledge Management)
 
+### 電子報消化
+
+| 情境 | 使用技能 | 範例 |
+|------|----------|------|
+| 一次消化整個資料夾的電子報 | `newsletter-digest` | 「幫我消化 ~/Downloads/newsletters 裡的電子報」 |
+| 遞迴處理含子資料夾的信箱 | `newsletter-digest`（遞迴模式） | 「~/Mail/subscriptions 裡有很多子資料夾，一起消化」 |
+| 只消化特定日期範圍的信件 | `newsletter-digest`（日期篩選） | 「只消化這週的電子報」 |
+
+> **設計精神：** 把散落的 `.eml` 檔轉化為結構化知識。自動分群歸類，每個主題有合成摘要（不是逐篇貼上），每篇有獨立速覽讓你不讀原文也能掌握七八成內容。暖色調語氣，像同事在分享觀察而非 AI 在做報告。
+
 ### qa-to-notes 三種模式
 
 | 模式 | 觸發語 | 行為 | 輸出 |
@@ -163,9 +173,14 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 
 | 情境 | 使用技能 | 範例 |
 |------|----------|------|
+| 不確定該用哪個 skill | `skill-router` | 「/skill-router 我想評估用 Redis 做 session store」 |
+| 瀏覽所有可用 skills（按分類） | `skill-router list` | 「/skill-router list」 |
+| 查看預設多 skill 組合工作流 | `skill-router workflows` | 「/skill-router workflows」 |
 | 建立或編輯新技能 | `sp-writing-skills` | 「建立一個資料庫遷移的新技能」 |
 | 審計技能品質（建立/修改後必跑） | `skill-auditor` | 「審計剛建的 db-migrator 技能」 |
 | 跨 AI 工具同步技能 | `skillshare` | 「把技能同步到 Cursor 和 Windsurf」 |
+
+> **skill-router 設計精神：** 當 skills 超過 30 個，記住每個的用途和觸發詞變得不切實際。skill-router 是統一入口——描述你的需求，它從 registry 中語義匹配最適合的 skill 或 workflow，但**不會自動執行**，一定等你確認。三種模式：智慧推薦（預設）、分類瀏覽、工作流瀏覽。
 
 ---
 

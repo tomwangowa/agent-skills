@@ -95,6 +95,16 @@ narrative-auditor (fact-check + commentary)
 
 ## Knowledge Management
 
+### Newsletter Digest
+
+| Scenario | Skill to Use | Example |
+|----------|-------------|---------|
+| Digest an entire folder of newsletters | `newsletter-digest` | "Digest the newsletters in ~/Downloads/newsletters" |
+| Recursively process subfolders | `newsletter-digest` (recursive mode) | "~/Mail/subscriptions has many subfolders, digest them all" |
+| Digest only a specific date range | `newsletter-digest` (date filter) | "Only digest this week's newsletters" |
+
+> **Design philosophy:** Transforms scattered `.eml` files into structured knowledge. Auto-clusters by topic, each topic gets a synthesized summary (not per-article paste), and each article gets a standalone overview so you can grasp ~80% without reading the original. Warm conversational tone — like a colleague sharing observations, not an AI generating a report.
+
 ### qa-to-notes Three Modes
 
 | Mode | Trigger | Behavior | Output |
@@ -163,9 +173,14 @@ presentation-planner → interactive-presentation-generator → Slide Files
 
 | Scenario | Skill to Use | Example |
 |----------|-------------|---------|
+| Not sure which skill to use | `skill-router` | "/skill-router I want to evaluate using Redis for session store" |
+| Browse all available skills by category | `skill-router list` | "/skill-router list" |
+| View predefined multi-skill workflows | `skill-router workflows` | "/skill-router workflows" |
 | Create or edit a skill | `sp-writing-skills` | "Create a new skill for database migration" |
 | Audit skill quality (required after create/modify) | `skill-auditor` | "Audit the new db-migrator skill" |
 | Sync skills across AI tools | `skillshare` | "Sync my skills to Cursor and Windsurf" |
+
+> **skill-router design philosophy:** With 30+ skills, remembering each one's purpose and trigger phrases becomes impractical. skill-router is the unified entry point — describe your need and it semantically matches the best skill or workflow from its registry, but **never auto-executes** — always waits for confirmation. Three modes: smart routing (default), category browse, and workflow browse.
 
 ---
 

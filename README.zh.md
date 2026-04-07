@@ -18,7 +18,7 @@
 
 ## Skills 總覽
 
-目前共 **30 個自製 skills**，按用途分為 7 類。
+目前共 **32 個自製 skills**，按用途分為 7 類。
 
 ### 品質守門 (5)
 
@@ -67,7 +67,7 @@
 | [brainstorming](./brainstorming/) | 蘇格拉底式設計對話。透過一次一個問題探索需求，提出 2-3 個方案及其取捨，產出設計文件。偵測到中大型專案時自動建議切換至 `role-orchestrator`。 |
 | [ui-design-analyzer](./ui-design-analyzer/) | UI/UX 截圖分析。從可用性、無障礙、視覺設計等 6 個維度評估介面設計。 |
 
-### 內容生成 (5)
+### 內容生成 (7)
 
 把重複性的文件、簡報、筆記工作標準化。
 
@@ -79,6 +79,7 @@
 | [report-generator](./report-generator/) | 從活動紀錄和 git 歷史生成結構化報告。支援週報、月報、專案總結、回顧等格式。 |
 | [ai-weekly-insight](./ai-weekly-insight/) | TrendLife AI Taskforce 專用的每週/每日 AI 新聞深度分析。Weekly: Top 5；Daily: Top 3。三維分析（技術/業務/競爭），輸出至 Obsidian + Confluence 或 ai_news repo。支援 `--dest` 和 `daily` 模式。 |
 | [arxiv-digest](./arxiv-digest/) | 將 arXiv AI 論文消化為工程師友善的分享格式，供 Taskforce 會議使用。支援 URL、搜尋、多篇比較三種模式。 |
+| [newsletter-digest](./newsletter-digest/) | 電子報批次消化。讀取整個資料夾的 `.eml` 檔，自動分群歸類，產出含主題摘要、逐篇速覽、深讀推薦的結構化 digest。支援遞迴子資料夾與日期篩選。 |
 
 ### 生產力與追蹤 (3)
 
@@ -107,7 +108,7 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 
 詳見 [skills-query-server/README.md](./skills-query-server/README.md)。
 
-### 工具與元技能 (2)
+### 工具與元技能 (3)
 
 管理 skills 本身的工具。
 
@@ -115,6 +116,7 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 |-------|------|
 | [skill-auditor](./skill-auditor/) | 審計 skills 的品質、安全性與最佳實踐。建立或修改 skill 後用來驗證。 |
 | [skillshare](./skillshare/) | 跨 AI CLI 工具同步 skills（Claude Code、Cursor、Windsurf 等）。單一來源、多處使用。 |
+| [skill-router](./skill-router/) | **技能發現與路由中心。** 三種模式：智慧推薦（描述需求自動匹配 skill）、分類瀏覽（列出所有 skill）、工作流瀏覽（查看預設多 skill 組合流程）。不確定該用什麼 skill 時的第一站。 |
 
 ---
 
@@ -277,6 +279,7 @@ Activity records 可與 `work-log-analyzer` 搭配使用，跨專案和 session 
 | activity-logger | `jq`、Git |
 | work-log-analyzer | `jq`、`date`（核心功能無外部依賴） |
 | skill-auditor | Bash 4.0+（可選：Gemini CLI 用於語義分析） |
+| newsletter-digest | Python 3（內建 `parse_emls.py` 腳本） |
 | skills-query-server | Node.js、`tsx`（透過 `claude mcp add` 註冊） |
 | 其餘 skills | 無外部依賴 |
 

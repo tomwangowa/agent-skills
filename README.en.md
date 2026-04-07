@@ -18,7 +18,7 @@ You don't need to agree with my approach to use these — they're independent mo
 
 ## Skills Overview
 
-Currently **28 custom skills** organized into 7 categories.
+Currently **30 custom skills** organized into 7 categories.
 
 ### Quality Gates (5)
 
@@ -66,7 +66,7 @@ Think before you build.
 | [brainstorming](./brainstorming/) | Socratic design dialogue. Explores requirements one question at a time, proposes 2-3 approaches with trade-offs, produces a design document. Auto-escalates to `role-orchestrator` for medium/large projects. |
 | [ui-design-analyzer](./ui-design-analyzer/) | UI/UX screenshot analysis. Evaluates interface design across 6 dimensions including usability, accessibility, and visual design. |
 
-### Content Generation (4)
+### Content Generation (5)
 
 Standardize repetitive documentation, presentations, and note-taking.
 
@@ -76,6 +76,7 @@ Standardize repetitive documentation, presentations, and note-taking.
 | [interactive-presentation-generator](./interactive-presentation-generator/) | Interactive presentation generator. Supports reveal.js / Marp / Slidev with 20 built-in professional styles. |
 | [qa-to-notes](./qa-to-notes/) | Saves Claude Code conversations as Obsidian notes (Standard / Direct write), or rewrites fact-checks into a corporate-friendly "extended analysis" format for team sharing (Teams publish). Three modes, one unified note file. |
 | [report-generator](./report-generator/) | Generates structured reports from activity logs and git history. Supports weekly, monthly, project summary, and retrospective formats. |
+| [newsletter-digest](./newsletter-digest/) | Batch newsletter digestion. Reads all `.eml` files from a folder, auto-clusters by topic, and produces a structured digest with topic summaries, per-article overviews, and deep-read recommendations. Supports recursive subfolders and date filtering. |
 
 ### Productivity & Tracking (3)
 
@@ -104,7 +105,7 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 
 See [skills-query-server/README.md](./skills-query-server/README.md) for details.
 
-### Tooling & Meta-Skills (2)
+### Tooling & Meta-Skills (3)
 
 Tools for managing skills themselves.
 
@@ -112,6 +113,7 @@ Tools for managing skills themselves.
 |-------|-------------|
 | [skill-auditor](./skill-auditor/) | Audits skills for quality, security, and best practices. Use after creating or modifying a skill. |
 | [skillshare](./skillshare/) | Syncs skills across AI CLI tools (Claude Code, Cursor, Windsurf, etc.). Single source of truth, used everywhere. |
+| [skill-router](./skill-router/) | **Skill discovery and routing hub.** Three modes: smart routing (describe your need, get a skill recommendation), category browse (list all skills), and workflow browse (view predefined multi-skill chains). Your first stop when unsure which skill to use. |
 
 ---
 
@@ -152,7 +154,7 @@ You don't need to run the full pipeline every time. Each skill works standalone 
 
 ## About Standard Procedures (sp-*)
 
-Beyond the 28 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), sourced from the [superpowers](https://github.com/obra/superpowers) project.
+Beyond the 30 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), sourced from the [superpowers](https://github.com/obra/superpowers) project.
 
 These aren't standalone tools but process protocols that define "what to do in which situation." For example, `sp-systematic-debugging` requires gathering symptoms and forming hypotheses before attempting fixes, rather than jumping straight to code changes.
 
@@ -274,6 +276,7 @@ Activity records can be used with `work-log-analyzer` for cross-project and cros
 | activity-logger | `jq`, Git |
 | work-log-analyzer | `jq`, `date` (core features have no external dependencies) |
 | skill-auditor | Bash 4.0+ (optional: Gemini CLI for semantic analysis) |
+| newsletter-digest | Python 3 (bundled `parse_emls.py` script) |
 | skills-query-server | Node.js, `tsx` (registered via `claude mcp add`) |
 | All other skills | None |
 
