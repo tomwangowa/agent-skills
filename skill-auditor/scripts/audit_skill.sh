@@ -457,14 +457,16 @@ check_documentation() {
     fi
 
     # Progressive Disclosure check
-    local skill_md_lines
-    skill_md_lines=$(wc -l < "$SKILL_DIR/SKILL.md" | tr -d ' ')
-    if [[ -d "$SKILL_DIR/references" ]]; then
-        echo "✅ Uses \`references/\` directory (Progressive Disclosure pattern)" >> "$BODY_FILE"
-    elif [[ "$skill_md_lines" -gt 200 ]]; then
-        echo "⚠️  **SUGGESTION**: SKILL.md is $skill_md_lines lines with no \`references/\` directory" >> "$BODY_FILE"
-        echo "**Recommendation**: Move large reference sections to \`references/\` to keep SKILL.md lean and context-efficient" >> "$BODY_FILE"
-        ((SUGGESTIONS++))
+    if [[ -f "$SKILL_DIR/SKILL.md" ]]; then
+        local skill_md_lines
+        skill_md_lines=$(wc -l < "$SKILL_DIR/SKILL.md" | tr -d ' ')
+        if [[ -d "$SKILL_DIR/references" ]]; then
+            echo "✅ Uses \`references/\` directory (Progressive Disclosure pattern)" >> "$BODY_FILE"
+        elif [[ "$skill_md_lines" -gt 200 ]]; then
+            echo "⚠️  **SUGGESTION**: SKILL.md is $skill_md_lines lines with no \`references/\` directory" >> "$BODY_FILE"
+            echo "**Recommendation**: Move large reference sections to \`references/\` to keep SKILL.md lean and context-efficient" >> "$BODY_FILE"
+            ((SUGGESTIONS++))
+        fi
     fi
 
     echo "" >> "$BODY_FILE"
