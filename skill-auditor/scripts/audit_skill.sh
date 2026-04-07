@@ -176,7 +176,7 @@ check_yaml_frontmatter() {
 check_description_voice() {
     log_check "Checking description voice..."
     echo "" >> "$BODY_FILE"
-    echo "## 1b. Description Voice" >> "$BODY_FILE"
+    echo "## 8. Description Voice" >> "$BODY_FILE"
     echo "" >> "$BODY_FILE"
 
     local skill_md="$SKILL_DIR/SKILL.md"
@@ -200,7 +200,14 @@ check_description_voice() {
             grep -v "^[[:space:]]*$" | head -1 | sed 's/^[[:space:]]*//')
     fi
 
-    if echo "$desc_first_line" | grep -qiE "^(Use when|This skill)"; then
+    if [[ -z "$desc_first_line" ]]; then
+        echo "ℹ️  Description field empty or missing (already flagged above)" >> "$BODY_FILE"
+        echo "" >> "$BODY_FILE"
+        log_verbose "Description voice check complete"
+        return 0
+    fi
+
+    if echo "$desc_first_line" | grep -qiE "^(Use when|This skill[[:space:]])"; then
         echo "✅ Description uses correct third-person voice" >> "$BODY_FILE"
         ((SCORE+=5))
     else
