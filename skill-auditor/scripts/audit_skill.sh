@@ -221,6 +221,39 @@ check_description_voice() {
     log_verbose "Description voice check complete"
 }
 
+check_writing_style() {
+    log_check "Checking writing style..."
+    echo "" >> "$BODY_FILE"
+    echo "## 9. Writing Style" >> "$BODY_FILE"
+    echo "" >> "$BODY_FILE"
+
+    local skill_md="$SKILL_DIR/SKILL.md"
+
+    # Extract body: everything after the second --- (closing frontmatter)
+    local body
+    body=$(awk 'BEGIN{found=0} /^---$/{found++; if(found==2){skip=1; next}} skip{print}' "$skill_md" 2>/dev/null || true)
+
+    # Count second-person phrases (case-insensitive)
+    # grep exits 1 when no match; || true prevents set -e from aborting
+    local count
+    count=$(echo "$body" | { grep -oiE "you should|you can|you need to|you must|you will" 2>/dev/null || true; } | wc -l | tr -d '[:space:]')
+
+    if [[ "$count" -le 3 ]]; then
+        echo "✅ Writing style: imperative/third-person (second-person phrases: $count)" >> "$BODY_FILE"
+        ((SCORE+=5))
+    else
+        echo "⚠️  **IMPORTANT**: Excessive second-person language detected ($count occurrences)" >> "$BODY_FILE"
+        echo "**Fix**: Replace second-person with imperative form:" >> "$BODY_FILE"
+        echo "- \"You should run...\" → \"Run...\"" >> "$BODY_FILE"
+        echo "- \"You can use...\" → \"Use... or To use...\"" >> "$BODY_FILE"
+        echo "- \"You need to configure...\" → \"Configure...\"" >> "$BODY_FILE"
+        ((IMPORTANT_ISSUES++))
+    fi
+
+    echo "" >> "$BODY_FILE"
+    log_verbose "Writing style check complete"
+}
+
 check_required_sections() {
     log_check "Checking required sections..."
     echo "## 2. Required Sections" >> "$BODY_FILE"
@@ -605,6 +638,7 @@ main() {
     # Run all checks (they write to BODY_FILE)
     check_yaml_frontmatter
     check_description_voice
+    check_writing_style
     check_required_sections
     check_hardcoded_paths
     check_security_keywords
