@@ -582,7 +582,7 @@ generate_report() {
 
 ## Executive Summary
 
-**Overall Score**: $SCORE/$MAX_SCORE ($percentage%) $status
+**Overall Score**: $percentage/100 $status
 
 | Severity | Count |
 |----------|-------|
@@ -675,7 +675,7 @@ main() {
     echo -e "${BLUE}Report saved to:${NC} $REPORT_FILE"
     echo ""
     echo "Summary:"
-    echo "  Score: $SCORE/$MAX_SCORE ($((SCORE * 100 / MAX_SCORE))%)"
+    echo "  Score: $((SCORE * 100 / MAX_SCORE))/100"
     echo "  Critical: $CRITICAL_ISSUES"
     echo "  Important: $IMPORTANT_ISSUES"
     echo "  Suggestions: $SUGGESTIONS"
