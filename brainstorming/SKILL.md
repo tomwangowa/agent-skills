@@ -107,8 +107,17 @@ question informed by the response.
 4. **Success criteria** — "How will we know this works correctly?"
 5. **Edge cases** — "What happens when X fails / is empty / is huge?"
 
-**Prefer multiple-choice questions** when you can anticipate the likely
-answers. Open-ended questions are fine when you genuinely can't predict.
+**Default to structured select options (2-4 choices)** whenever you can
+anticipate the likely answers. Select options have lower answer cost
+than open-ended prose — the user can tap instead of type. Reserve
+open-ended format only when you genuinely cannot predict the answer
+space (e.g., "what specific problem triggered this?").
+
+**Spoiler preview:** If the user's idea has an obvious issue you'll need
+to address later, hint at it in your first question rather than
+surprising them after 5 rounds of Q&A:
+> "Let me ask a few questions first. (Heads up: the caching approach
+> might have a consistency trade-off we'll need to address.)"
 
 **Stop asking when:** you can describe the solution back to the user and
 they agree you understand it. Don't over-interview — 3-5 questions is
@@ -210,6 +219,35 @@ design is so small that a plan would be longer than the implementation.
 - You're copy-pasting the user's request as the "design" → that's not
   design, that's transcription
 - You skipped context gathering → you're guessing instead of designing
+
+## Anti-patterns
+
+Watch for these common traps and push back when you see them.
+
+**"Just build it, I already know what I want."**
+Maybe. But if you can describe your design in 30 seconds and get
+approval, no time is lost. If you're wrong, disaster averted. Ask:
+"Can you walk me through the happy path in one sentence?" — if
+they can, the design is nearly done. If they can't, they need
+brainstorming more than they think.
+
+**"Can you add X, Y, and Z while you're at it?"**
+Scope creep during clarification. The user's *original* request is the
+real task; extras surfaced during Q&A are usually wishlist. Explicitly
+separate them: "Let's nail down X first. Y and Z can be Phase 2 — or
+they might not be needed at all."
+
+**"Make it configurable / extensible / future-proof."**
+Premature abstraction. Design for the task at hand. Configurability is
+free to add later but expensive to remove. Ask: "What specific future
+change are you anticipating?" If they can't name one, skip it.
+
+**"Let's design the whole system before testing anything."**
+Build the smallest working version first. Validate the core assumption,
+then layer on complexity. Propose a single-path MVP even when the user
+asks for the full system.
+
+---
 
 ## Examples
 
