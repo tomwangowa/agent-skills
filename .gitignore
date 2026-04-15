@@ -27,6 +27,9 @@ migration_*.log
 .DS_Store
 Thumbs.db
 
+# Brainstorming visual companion temp files
+.superpowers/
+
 # External skills (symlinks)
 # Superpowers skills with 'sp-' prefix
 sp-*
