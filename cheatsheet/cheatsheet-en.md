@@ -1,6 +1,6 @@
 # Skills & Workflows Cheatsheet
 
-> **Note:** Skills prefixed with `sp-` are adapted from the open-source [superpowers](https://github.com/claude-did-this/skills) project.
+> **Note:** Skills prefixed with `superpowers:` are provided by the [superpowers](https://github.com/claude-did-this/skills) plugin. The `brainstorming` skill has a personal override that shadows the superpowers version.
 
 ## Development Workflow
 
@@ -8,12 +8,12 @@
 
 ```
 Small projects:
-  brainstorming → sp-writing-plans → sp-test-driven-development → sp-executing-plans
-      → sp-requesting-code-review → sp-receiving-code-review → sp-finishing-a-development-branch
+  brainstorming → superpowers:writing-plans → superpowers:test-driven-development → superpowers:executing-plans
+      → superpowers:requesting-code-review → superpowers:receiving-code-review → superpowers:finishing-a-development-branch
 
 Medium/Large projects:
-  role-orchestrator (PM → RD) → sp-writing-plans → sp-subagent-driven-development
-      → sp-requesting-code-review → sp-receiving-code-review → sp-finishing-a-development-branch
+  role-orchestrator (PM → RD) → superpowers:writing-plans → superpowers:subagent-driven-development
+      → superpowers:requesting-code-review → superpowers:receiving-code-review → superpowers:finishing-a-development-branch
 ```
 
 | Scenario | Skill to Use | Example |
@@ -22,27 +22,28 @@ Medium/Large projects:
 | Only need PM requirements analysis | `role-pm` | "PM analysis for building a notification system" |
 | Only need RD technical design | `role-rd` | "RD design for this set of requirements" |
 | New idea, not sure how to approach | `brainstorming` | "I want to add a notification system but not sure about the architecture" |
-| Clear requirements, need implementation steps | `sp-writing-plans` | "Write a plan for adding JWT auth to the API" |
-| Ready to code (tests first) | `sp-test-driven-development` | "Implement the login endpoint using TDD" |
-| Have a plan, execute with checkpoints | `sp-executing-plans` | "Execute the auth implementation plan from plan.md" |
-| Feature done, request review | `sp-requesting-code-review` | "Review my auth feature before merging" |
-| Received review feedback, need to process | `sp-receiving-code-review` | "Process the review comments on PR #42" |
-| Branch complete, ready to merge / PR | `sp-finishing-a-development-branch` | "Branch is done, help me create a PR" |
+| Have PM spec/wireframe, need to find gaps before coding | `spec-gap-finder` | "Review this spec for gaps before I start implementing" |
+| Clear requirements, need implementation steps | `superpowers:writing-plans` | "Write a plan for adding JWT auth to the API" |
+| Ready to code (tests first) | `superpowers:test-driven-development` | "Implement the login endpoint using TDD" |
+| Have a plan, execute with checkpoints | `superpowers:executing-plans` | "Execute the auth implementation plan from plan.md" |
+| Feature done, request review | `superpowers:requesting-code-review` | "Review my auth feature before merging" |
+| Received review feedback, need to process | `superpowers:receiving-code-review` | "Process the review comments on PR #42" |
+| Branch complete, ready to merge / PR | `superpowers:finishing-a-development-branch` | "Branch is done, help me create a PR" |
 
 ### Debugging
 
 | Scenario | Skill to Use | Example |
 |----------|-------------|---------|
-| Bug or test failure encountered | `sp-systematic-debugging` | "Tests fail with 'undefined is not a function' in auth.ts" |
+| Bug or test failure encountered | `superpowers:systematic-debugging` | "Tests fail with 'undefined is not a function' in auth.ts" |
 | Fix applied, need to verify it's actually fixed | `completion-gate` | "I fixed the auth bug, verify it's actually resolved" |
 
 ### Parallel Work
 
 | Scenario | Skill to Use | Example |
 |----------|-------------|---------|
-| Multiple independent tasks to run concurrently | `sp-dispatching-parallel-agents` | "Run linting, tests, and type-check in parallel" |
-| Plan has independent subtasks to delegate | `sp-subagent-driven-development` | "Execute steps 2, 3, 5 from the plan simultaneously" |
-| Need isolated feature branch environment | `sp-using-git-worktrees` | "Create a worktree for the payment-refactor feature" |
+| Multiple independent tasks to run concurrently | `superpowers:dispatching-parallel-agents` | "Run linting, tests, and type-check in parallel" |
+| Plan has independent subtasks to delegate | `superpowers:subagent-driven-development` | "Execute steps 2, 3, 5 from the plan simultaneously" |
+| Need isolated feature branch environment | `superpowers:using-git-worktrees` | "Create a worktree for the payment-refactor feature" |
 
 ---
 
@@ -164,8 +165,8 @@ presentation-planner → interactive-presentation-generator → Slide Files
 
 > **Review skill routing guide:**
 > - **During daily development:** Use `/code-review-gemini` (deep) or `/code-review-claude` (quick) directly
-> - **Before merging major features:** Use `/sp-requesting-code-review` for dual-layer review (auto-dispatches subagent + gemini, merges results)
-> - **When receiving review feedback:** `/sp-receiving-code-review` prevents blind agreement — requires technical verification before implementing changes
+> - **Before merging major features:** Use `/superpowers:requesting-code-review` for dual-layer review (auto-dispatches subagent + gemini, merges results)
+> - **When receiving review feedback:** `/superpowers:receiving-code-review` prevents blind agreement — requires technical verification before implementing changes
 
 ---
 
@@ -176,7 +177,7 @@ presentation-planner → interactive-presentation-generator → Slide Files
 | Not sure which skill to use | `skill-router` | "/skill-router I want to evaluate using Redis for session store" |
 | Browse all available skills by category | `skill-router list` | "/skill-router list" |
 | View predefined multi-skill workflows | `skill-router workflows` | "/skill-router workflows" |
-| Create or edit a skill | `sp-writing-skills` | "Create a new skill for database migration" |
+| Create or edit a skill | `superpowers:writing-skills` | "Create a new skill for database migration" |
 | Audit skill quality (required after create/modify) | `skill-auditor` | "Audit the new db-migrator skill" |
 | Sync skills across AI tools | `skillshare` | "Sync my skills to Cursor and Windsurf" |
 
@@ -191,6 +192,7 @@ These skills are automatically suggested or required under specific conditions:
 | Trigger Condition | Auto-Triggered Skill |
 |-------------------|---------------------|
 | Before implementing new features | `brainstorming` (CLAUDE.md routing rule) |
+| RD receives PM spec / wireframe | `spec-gap-finder` (suggested) |
 | brainstorming detects medium/large scope | `role-orchestrator` (suggested escalation) |
 | Before claiming work is complete | `completion-gate` |
 | After creating/modifying a skill | `skill-auditor` |

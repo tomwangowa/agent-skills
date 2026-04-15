@@ -1,6 +1,6 @@
 # Skills & Workflows 速查表
 
-> **注意：** 前綴為 `sp-` 的技能改編自開源專案 [superpowers](https://github.com/claude-did-this/skills)。
+> **注意：** 前綴為 `superpowers:` 的技能由 [superpowers](https://github.com/claude-did-this/skills) plugin 提供。`brainstorming` 技能有個人版覆蓋 superpowers 版本。
 
 ## 開發流程 (Development)
 
@@ -8,12 +8,12 @@
 
 ```
 小型專案：
-  brainstorming → sp-writing-plans → sp-test-driven-development → sp-executing-plans
-      → sp-requesting-code-review → sp-receiving-code-review → sp-finishing-a-development-branch
+  brainstorming → superpowers:writing-plans → superpowers:test-driven-development → superpowers:executing-plans
+      → superpowers:requesting-code-review → superpowers:receiving-code-review → superpowers:finishing-a-development-branch
 
 中大型專案：
-  role-orchestrator (PM → RD) → sp-writing-plans → sp-subagent-driven-development
-      → sp-requesting-code-review → sp-receiving-code-review → sp-finishing-a-development-branch
+  role-orchestrator (PM → RD) → superpowers:writing-plans → superpowers:subagent-driven-development
+      → superpowers:requesting-code-review → superpowers:receiving-code-review → superpowers:finishing-a-development-branch
 ```
 
 | 情境 | 使用技能 | 範例 |
@@ -22,27 +22,28 @@
 | 只需要 PM 需求分析 | `role-pm` | 「PM analysis for 建立通知系統」 |
 | 只需要 RD 技術設計 | `role-rd` | 「RD design for 這組需求」 |
 | 有新想法，還沒想清楚怎麼做 | `brainstorming` | 「我想加通知系統，但還沒想好架構」 |
-| 需求明確，要拆解成實作步驟 | `sp-writing-plans` | 「幫我寫一個加入 JWT 認證的實作計畫」 |
-| 要開始寫 code（先寫測試） | `sp-test-driven-development` | 「用 TDD 方式實作登入 endpoint」 |
-| 有計畫，要逐步執行並檢查 | `sp-executing-plans` | 「執行 plan.md 裡的認證實作計畫」 |
-| 功能完成，要請人 review | `sp-requesting-code-review` | 「Review 我的認證功能，準備合併了」 |
-| 收到 review 回饋，要處理 | `sp-receiving-code-review` | 「處理 PR #42 上的 review 意見」 |
-| 分支做完了，要 merge / PR | `sp-finishing-a-development-branch` | 「分支做完了，幫我建 PR」 |
+| 拿到 PM spec / wireframe，開發前要找缺口 | `spec-gap-finder` | 「幫我審查這份 spec，開發前先找出漏洞」 |
+| 需求明確，要拆解成實作步驟 | `superpowers:writing-plans` | 「幫我寫一個加入 JWT 認證的實作計畫」 |
+| 要開始寫 code（先寫測試） | `superpowers:test-driven-development` | 「用 TDD 方式實作登入 endpoint」 |
+| 有計畫，要逐步執行並檢查 | `superpowers:executing-plans` | 「執行 plan.md 裡的認證實作計畫」 |
+| 功能完成，要請人 review | `superpowers:requesting-code-review` | 「Review 我的認證功能，準備合併了」 |
+| 收到 review 回饋，要處理 | `superpowers:receiving-code-review` | 「處理 PR #42 上的 review 意見」 |
+| 分支做完了，要 merge / PR | `superpowers:finishing-a-development-branch` | 「分支做完了，幫我建 PR」 |
 
 ### 除錯
 
 | 情境 | 使用技能 | 範例 |
 |------|----------|------|
-| 遇到 bug 或測試失敗 | `sp-systematic-debugging` | 「auth.ts 跑測試出現 'undefined is not a function'」 |
+| 遇到 bug 或測試失敗 | `superpowers:systematic-debugging` | 「auth.ts 跑測試出現 'undefined is not a function'」 |
 | 修完要確認真的修好了 | `completion-gate` | 「我修完 auth 的 bug 了，幫我確認真的修好了」 |
 
 ### 並行任務
 
 | 情境 | 使用技能 | 範例 |
 |------|----------|------|
-| 多個獨立任務可以同時做 | `sp-dispatching-parallel-agents` | 「同時跑 lint、測試和型別檢查」 |
-| 計畫中有獨立子任務要分派 | `sp-subagent-driven-development` | 「把計畫中的步驟 2、3、5 同時執行」 |
-| 需要隔離的 feature 分支環境 | `sp-using-git-worktrees` | 「幫 payment-refactor 建一個 worktree」 |
+| 多個獨立任務可以同時做 | `superpowers:dispatching-parallel-agents` | 「同時跑 lint、測試和型別檢查」 |
+| 計畫中有獨立子任務要分派 | `superpowers:subagent-driven-development` | 「把計畫中的步驟 2、3、5 同時執行」 |
+| 需要隔離的 feature 分支環境 | `superpowers:using-git-worktrees` | 「幫 payment-refactor 建一個 worktree」 |
 
 ---
 
@@ -164,8 +165,8 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 
 > **Review 技能選用指引：**
 > - **日常開發中：** 直接用 `/code-review-gemini`（深度）或 `/code-review-claude`（快速）
-> - **重大功能要 merge 前：** 用 `/sp-requesting-code-review` 做雙層審查（自動調度 subagent + gemini，合併結果）
-> - **收到別人 review 意見時：** `/sp-receiving-code-review` 幫你避免盲目同意，要求技術驗證後再改
+> - **重大功能要 merge 前：** 用 `/superpowers:requesting-code-review` 做雙層審查（自動調度 subagent + gemini，合併結果）
+> - **收到別人 review 意見時：** `/superpowers:receiving-code-review` 幫你避免盲目同意，要求技術驗證後再改
 
 ---
 
@@ -176,7 +177,7 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 | 不確定該用哪個 skill | `skill-router` | 「/skill-router 我想評估用 Redis 做 session store」 |
 | 瀏覽所有可用 skills（按分類） | `skill-router list` | 「/skill-router list」 |
 | 查看預設多 skill 組合工作流 | `skill-router workflows` | 「/skill-router workflows」 |
-| 建立或編輯新技能 | `sp-writing-skills` | 「建立一個資料庫遷移的新技能」 |
+| 建立或編輯新技能 | `superpowers:writing-skills` | 「建立一個資料庫遷移的新技能」 |
 | 審計技能品質（建立/修改後必跑） | `skill-auditor` | 「審計剛建的 db-migrator 技能」 |
 | 跨 AI 工具同步技能 | `skillshare` | 「把技能同步到 Cursor 和 Windsurf」 |
 
@@ -191,6 +192,7 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 | 觸發條件 | 自動觸發的技能 |
 |----------|---------------|
 | 實作新功能前 | `brainstorming`（CLAUDE.md 路由規則） |
+| RD 收到 PM spec / wireframe | `spec-gap-finder`（建議） |
 | brainstorming 偵測到中大型範圍 | `role-orchestrator`（建議升級） |
 | 宣稱工作完成前 | `completion-gate` |
 | 建立/修改技能後 | `skill-auditor` |

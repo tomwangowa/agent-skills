@@ -14,7 +14,7 @@ This document tracks all skill ideas, their current status, and implementation p
 
 ## Overview
 
-**Total Implemented:** 18 skills across 6 categories
+**Total Implemented:** 19 skills across 6 categories
 
 ### By Category
 
@@ -22,7 +22,7 @@ This document tracks all skill ideas, their current status, and implementation p
 |----------|-------|--------|
 | 🔍 Code Quality & Review | 4 | code-review-gemini, code-review-claude, pr-review-assistant, skill-auditor |
 | 🔀 Git & Version Control | 1 | code-story-teller |
-| 🎨 Design & UI/UX | 1 | ui-design-analyzer |
+| 🎨 Design & UI/UX | 2 | ui-design-analyzer, spec-gap-finder |
 | 🤝 Multi-Agent Roles | 3 | role-orchestrator, role-pm, role-rd |
 | 🚀 Productivity & Content Creation | 3 | interactive-presentation-generator, work-log-analyzer, activity-logger |
 | 🔬 Research & Analysis | 6 | critical-research, deep-reading, assumption-extractor, micro-poc-validator, research-cross-validator, tech-research-pipeline |
@@ -38,6 +38,7 @@ This document tracks all skill ideas, their current status, and implementation p
 - **78/100** - research-cross-validator (production-ready ✅)
 - **76/100** - tech-research-pipeline (production-ready ✅)
 - **75/100** - interactive-presentation-generator (production-ready ✅)
+- **69/100** - spec-gap-finder (production-ready ✅)
 
 ---
 

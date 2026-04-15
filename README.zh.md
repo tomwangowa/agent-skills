@@ -18,7 +18,7 @@
 
 ## Skills 總覽
 
-目前共 **32 個自製 skills**，按用途分為 7 類。
+目前共 **34 個自製 skills**，按用途分為 7 類。
 
 ### 品質守門 (5)
 
@@ -58,13 +58,14 @@
 | [role-pm](./role-pm/) | PM 角色：將目標轉化為按規模校準的需求 artifact（Bullet + AC → User stories → 完整 PRD）。 |
 | [role-rd](./role-rd/) | RD 角色：將 PM 需求轉化為按規模校準的設計 artifact（Code plan → Design doc → Architecture doc）。 |
 
-### 設計與規劃 (2)
+### 設計與規劃 (3)
 
 在動手之前先想清楚。
 
 | Skill | 說明 |
 |-------|------|
 | [brainstorming](./brainstorming/) | 蘇格拉底式設計對話。透過一次一個問題探索需求，提出 2-3 個方案及其取捨，產出設計文件。偵測到中大型專案時自動建議切換至 `role-orchestrator`。 |
+| [spec-gap-finder](./spec-gap-finder/) | 開發前 spec/wireframe 審查。用 RD 視角跑 10 類、60+ 項 checklist，找出 spec 缺口和未定義的 edge case。產出分優先級的問題清單，帶進一次對齊會議就能搞定。 |
 | [ui-design-analyzer](./ui-design-analyzer/) | UI/UX 截圖分析。從可用性、無障礙、視覺設計等 6 個維度評估介面設計。 |
 
 ### 內容生成 (7)
@@ -157,11 +158,7 @@ brainstorming → tech-feasibility → assumption-extractor → micro-poc-valida
 
 ## 關於 Standard Procedures (sp-*)
 
-除了上述 29 個 skills，本 repo 透過 symlink 整合了 13 個 **Standard Procedures**——這些是嵌入開發流程的行為規範（例如 TDD、systematic debugging、plan-then-execute 等），來自 [superpowers](https://github.com/obra/superpowers) 專案。
-
-它們不是獨立工具，而是定義「在什麼情境下應該怎麼做」的流程協議。例如 `sp-systematic-debugging` 會在你遇到 bug 時要求先收集症狀、建立假說、再嘗試修復，而不是直接改 code。
-
-詳見 [EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md)。
+Superpowers 插件的 skills（brainstorming、writing-plans、executing-plans、systematic-debugging、TDD 等）現在直接從 [superpowers](https://github.com/obra/superpowers) 插件載入，不再需要本地副本或 symlink。啟用插件後，它們會以 `sp-*` 的形式自動出現在你的 session 中。
 
 ---
 
@@ -341,7 +338,6 @@ skill-name/
 
 ## 更多文件
 
-- **[EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md)** — 外部 skills 管理（sp-* 系列）
 - **[SKILLS_ROADMAP.md](./SKILLS_ROADMAP.md)** — Skills 發展路線圖
 - **[Cheatsheet (EN)](./cheatsheet/cheatsheet-en.md)** · **[速查表 (中文)](./cheatsheet/cheatsheet-zh.md)** — 快速參考
 

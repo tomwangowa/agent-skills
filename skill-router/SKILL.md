@@ -61,17 +61,17 @@ Use the disambiguation groups below. If the matched skills span multiple groups,
 > 2. 快速掃一眼（< 50 行，幾秒鐘） → `code-review-claude`
 > 3. 審查一個 GitHub PR → `pr-review-assistant`
 
-**設計類**（brainstorming, sp-writing-plans, role-pm, role-rd）
+**設計類**（brainstorming, superpowers:writing-plans, role-pm, role-rd）
 > **你在哪個階段？**
 > 1. 還在想要做什麼，需要探索需求 → `brainstorming`
-> 2. 已經知道要做什麼，需要拆解步驟 → `sp-writing-plans`
+> 2. 已經知道要做什麼，需要拆解步驟 → `superpowers:writing-plans`
 > 3. 需要完整的需求文件（PRD / user story） → `role-pm`
 > 4. 需要技術設計文件（architecture / design doc） → `role-rd`
 
-**平行執行類**（sp-dispatching-parallel-agents, sp-subagent-driven-development）
+**平行執行類**（superpowers:dispatching-parallel-agents, superpowers:subagent-driven-development）
 > **你的任務是什麼狀態？**
-> 1. 有多個獨立任務想同時跑 → `sp-dispatching-parallel-agents`
-> 2. 有一份實作計畫，裡面的子任務可以分派 → `sp-subagent-driven-development`
+> 1. 有多個獨立任務想同時跑 → `superpowers:dispatching-parallel-agents`
+> 2. 有一份實作計畫，裡面的子任務可以分派 → `superpowers:subagent-driven-development`
 
 **簡報類**（presentation-planner, interactive-presentation-generator）
 > **你到了哪一步？**

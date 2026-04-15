@@ -46,17 +46,7 @@ Followed by markdown content containing:
 ### Design & Development Process
 
 - **brainstorming** — Socratic design dialogue before any implementation; produces approved design doc
-- **sp-test-driven-development** — TDD workflow: write tests before implementation
-- **sp-systematic-debugging** — Structured debugging before proposing fixes
-- **sp-writing-plans** — Plan multi-step tasks before touching code
-- **sp-executing-plans** — Execute implementation plans with review checkpoints
-- **sp-dispatching-parallel-agents** — Dispatch independent tasks to parallel agents
-- **sp-subagent-driven-development** — Execute plans with independent subtasks
-- **sp-requesting-code-review** — Request code review after completing features
-- **sp-receiving-code-review** — Process code review feedback with rigor
-- **sp-finishing-a-development-branch** — Guide branch completion (merge, PR, cleanup)
-- **sp-using-git-worktrees** — Isolated feature work with git worktrees
-- **sp-writing-skills** — Create, edit, and verify skills
+- The following skills are provided by the **superpowers plugin** (use `superpowers:skill-name` format): `test-driven-development`, `systematic-debugging`, `writing-plans`, `executing-plans`, `dispatching-parallel-agents`, `subagent-driven-development`, `requesting-code-review`, `receiving-code-review`, `finishing-a-development-branch`, `using-git-worktrees`, `writing-skills`
 
 ### Productivity & Analysis
 

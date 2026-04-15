@@ -1,6 +1,6 @@
 # ============================================================
 # Skill Registry — single source of truth for skill routing
-# 44 skills · 10 categories · 6 workflows
+# 45 skills · 10 categories · 6 workflows
 # ============================================================
 
 categories:
@@ -177,7 +177,21 @@ categories:
           - "想法"
           - "approach"
 
-      - id: sp-test-driven-development
+      - id: spec-gap-finder
+        triggers:
+          - "review spec"
+          - "find gaps"
+          - "spec review"
+          - "pre-dev review"
+          - "wireframe gaps"
+          - "spec 缺口"
+          - "審查 spec"
+          - "找漏洞"
+          - "開發前檢查"
+          - "what questions should I ask PM"
+          - "spec 有什麼沒寫"
+
+      - id: superpowers:test-driven-development
         triggers:
           - "TDD"
           - "test first"
@@ -186,7 +200,7 @@ categories:
           - "寫測試"
           - "red green refactor"
 
-      - id: sp-systematic-debugging
+      - id: superpowers:systematic-debugging
         triggers:
           - "debug"
           - "bug"
@@ -203,7 +217,7 @@ categories:
           - "crash"
           - "報錯"
 
-      - id: sp-writing-plans
+      - id: superpowers:writing-plans
         triggers:
           - "寫計畫"
           - "write plan"
@@ -215,7 +229,7 @@ categories:
           - "planning"
           - "拆解任務"
 
-      - id: sp-executing-plans
+      - id: superpowers:executing-plans
         triggers:
           - "execute plan"
           - "執行計畫"
@@ -237,7 +251,7 @@ categories:
           - "確認結果"
           - "before commit"
 
-      - id: sp-using-git-worktrees
+      - id: superpowers:using-git-worktrees
         triggers:
           - "worktree"
           - "git worktree"
@@ -287,7 +301,7 @@ categories:
   delegation:
     label: 平行執行
     skills:
-      - id: sp-dispatching-parallel-agents
+      - id: superpowers:dispatching-parallel-agents
         triggers:
           - "parallel"
           - "平行"
@@ -298,7 +312,7 @@ categories:
           - "fan out"
           - "一起跑"
 
-      - id: sp-subagent-driven-development
+      - id: superpowers:subagent-driven-development
         triggers:
           - "subagent"
           - "子任務"
@@ -501,8 +515,8 @@ workflows:
     when: 從需求探索到交付的完整開發週期
     steps:
       - brainstorming
-      - sp-writing-plans
-      - sp-executing-plans
+      - superpowers:writing-plans
+      - superpowers:executing-plans
       - completion-gate
       - code-review-gemini
 
@@ -519,7 +533,7 @@ workflows:
     steps:
       - completion-gate
       - code-review-gemini
-      - sp-finishing-a-development-branch
+      - superpowers:finishing-a-development-branch
 
   - id: role-pipeline
     label: PM→RD 角色協作

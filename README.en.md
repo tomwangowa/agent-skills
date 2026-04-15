@@ -18,7 +18,7 @@ You don't need to agree with my approach to use these — they're independent mo
 
 ## Skills Overview
 
-Currently **30 custom skills** organized into 7 categories.
+Currently **34 custom skills** organized into 7 categories.
 
 ### Quality Gates (5)
 
@@ -154,11 +154,7 @@ You don't need to run the full pipeline every time. Each skill works standalone 
 
 ## About Standard Procedures (sp-*)
 
-Beyond the 30 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), sourced from the [superpowers](https://github.com/obra/superpowers) project.
-
-These aren't standalone tools but process protocols that define "what to do in which situation." For example, `sp-systematic-debugging` requires gathering symptoms and forming hypotheses before attempting fixes, rather than jumping straight to code changes.
-
-See [EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md) for details.
+Superpowers plugin skills (brainstorming, writing-plans, executing-plans, systematic-debugging, TDD, etc.) are now loaded directly from the [superpowers](https://github.com/obra/superpowers) plugin — no local copies or symlinks needed. They appear as `sp-*` skills in your session automatically when the plugin is enabled.
 
 ---
 
@@ -338,7 +334,6 @@ skill-name/
 
 ## More Documentation
 
-- **[EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md)** — External skills management (sp-* series)
 - **[SKILLS_ROADMAP.md](./SKILLS_ROADMAP.md)** — Skills development roadmap
 - **[Cheatsheet (EN)](./cheatsheet/cheatsheet-en.md)** · **[速查表 (中文)](./cheatsheet/cheatsheet-zh.md)** — Quick reference
 

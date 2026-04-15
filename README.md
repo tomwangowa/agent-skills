@@ -18,7 +18,7 @@ These principles don't require you to agree with my approach — they're indepen
 
 ## Skills Overview
 
-Currently **30 custom skills** organized into 7 categories.
+Currently **34 custom skills** organized into 7 categories.
 
 ### Quality Gates (5)
 
@@ -58,13 +58,14 @@ Simulate team-based collaboration with isolated PM and RD roles, each running in
 | [role-pm](./role-pm/) | PM role: translates goals into size-calibrated requirements artifacts (bullet + AC → user stories → full PRD). |
 | [role-rd](./role-rd/) | RD role: translates PM requirements into size-calibrated design artifacts (code plan → design doc → architecture doc). |
 
-### Design & Planning (2)
+### Design & Planning (3)
 
 Think before you build.
 
 | Skill | Description |
 |-------|-------------|
 | [brainstorming](./brainstorming/) | Socratic design dialogue. Explores requirements one question at a time, proposes 2-3 approaches with trade-offs, produces a design document. Auto-escalates to `role-orchestrator` for medium/large projects. |
+| [spec-gap-finder](./spec-gap-finder/) | Pre-dev spec/wireframe review from an RD perspective. Runs a 10-category, 60+ item checklist to find gaps, ambiguities, and undefined edge cases. Outputs a prioritized question list for a single alignment meeting with PM/Designer. |
 | [ui-design-analyzer](./ui-design-analyzer/) | UI/UX screenshot analysis. Evaluates interface design across 6 dimensions including usability, accessibility, and visual design. |
 
 ### Content Generation (5)
@@ -155,11 +156,7 @@ You don't need to run the full pipeline every time. Each skill works independent
 
 ## About Standard Procedures (sp-*)
 
-Beyond the 29 skills above, this repo integrates 13 **Standard Procedures** via symlinks — behavioral protocols embedded in the development workflow (e.g., TDD, systematic debugging, plan-then-execute), from the [superpowers](https://github.com/obra/superpowers) project.
-
-They're not standalone tools but process protocols defining "what to do in which context." For example, `sp-systematic-debugging` requires collecting symptoms, forming hypotheses, then attempting fixes when you encounter a bug — rather than jumping straight to modifying code.
-
-See [EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md) for details.
+Superpowers plugin skills (brainstorming, writing-plans, executing-plans, systematic-debugging, TDD, etc.) are now loaded directly from the [superpowers](https://github.com/obra/superpowers) plugin — no local copies or symlinks needed. They appear as `sp-*` skills in your session automatically when the plugin is enabled.
 
 ---
 
@@ -337,7 +334,6 @@ skill-name/
 
 ## More Documentation
 
-- **[EXTERNAL_SKILLS.md](./EXTERNAL_SKILLS.md)** — External skills management (sp-* series)
 - **[SKILLS_ROADMAP.md](./SKILLS_ROADMAP.md)** — Skills development roadmap
 - **[Cheatsheet (EN)](./cheatsheet/cheatsheet-en.md)** · **[速查表 (中文)](./cheatsheet/cheatsheet-zh.md)** — Quick reference
 
