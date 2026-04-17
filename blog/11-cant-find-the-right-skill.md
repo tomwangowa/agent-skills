@@ -45,7 +45,7 @@
 
 **Category Browse**：列出所有 skills，按分類整理。這是我自己最常用的模式——不是因為我不知道要做什麼，而是因為我想確認「有沒有什麼我忘了」。
 
-**Workflow Browse**：列出預設的工作流程。比如「新功能開發」的流程是 brainstorming → role-pm → role-rd → sp-writing-plans → sp-executing-plans。你不需要記住每一步，router 會告訴你下一步是什麼。
+**Workflow Browse**：列出預設的工作流程。比如「新功能開發」的流程是 brainstorming → role-pm → role-rd → superpowers:writing-plans → superpowers:executing-plans。你不需要記住每一步，router 會告訴你下一步是什麼。
 
 ---
 

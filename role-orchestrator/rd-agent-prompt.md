@@ -62,7 +62,7 @@ Agent tool (general-purpose):
     - The complete RD Artifact (in the specified format)
     - Any PM requirements you modified or descoped (with reasons)
     - Decisions that need user approval
-    - Recommended next step (sp-writing-plans or brainstorming)
+    - Recommended next step (superpowers:writing-plans or brainstorming)
 ```
 
 ## Usage Notes

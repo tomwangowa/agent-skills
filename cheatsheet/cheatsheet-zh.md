@@ -1,6 +1,6 @@
 # Skills & Workflows 速查表
 
-> **注意：** 前綴為 `superpowers:` 的技能由 [superpowers](https://github.com/claude-did-this/skills) plugin 提供。`brainstorming` 技能有個人版覆蓋 superpowers 版本。
+> **注意：** 前綴為 `superpowers:` 的技能由 [superpowers](https://github.com/obra/superpowers) plugin 提供。`brainstorming` 技能有個人版覆蓋 superpowers 版本。
 
 ## 開發流程 (Development)
 

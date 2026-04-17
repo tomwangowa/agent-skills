@@ -76,7 +76,7 @@ CLAUDE.md 是 Claude Code 的全局設定檔，你可以在裡面寫規則讓 AI
 
 我的 CLAUDE.md 裡現在有十幾條這樣的路由規則：
 
-- 遇到 bug → 觸發 `sp-systematic-debugging`
+- 遇到 bug → 觸發 `superpowers:systematic-debugging`
 - 完成功能前 → 觸發 `completion-gate`
 - 建立/修改 skill 後 → 觸發 `skill-auditor`
 - 新功能 → 觸發 `brainstorming`

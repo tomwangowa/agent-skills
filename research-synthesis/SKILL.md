@@ -197,7 +197,7 @@ Produce an ADR-style document:
 5. **Transition** based on context:
    - If called from `brainstorming` → return to brainstorming with the
      decision as input for design
-   - If standalone → done, or suggest `sp-writing-plans` if
+   - If standalone → done, or suggest `superpowers:writing-plans` if
      implementation follows
 
 ## Examples
@@ -355,5 +355,5 @@ docs.
 - **deep-reading** — parallel methodology: synthesis reconciles multiple
   research outputs; deep-reading reconstructs thinking from multiple
   documents. Different goals, similar multi-source input.
-- **sp-writing-plans** — downstream: once a decision is made, plan the
+- **superpowers:writing-plans** — downstream: once a decision is made, plan the
   implementation

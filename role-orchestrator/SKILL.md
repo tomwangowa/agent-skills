@@ -38,7 +38,7 @@ not the thinking.
 - Single-file bug fixes or changes under 30 minutes (just code directly)
 - Only requirements needed (invoke `role-pm` directly)
 - Only design needed (invoke `role-rd` directly)
-- Already have an approved design (use `sp-writing-plans` instead)
+- Already have an approved design (use `superpowers:writing-plans` instead)
 
 ## Pipeline Architecture
 
@@ -257,17 +257,17 @@ Use `AskUserQuestion`:
 ```
 Q: "Both PM and RD artifacts are approved. What's next?"
 Options:
-- Generate implementation plan (sp-writing-plans)
+- Generate implementation plan (superpowers:writing-plans)
 - Explore design further (brainstorming)
 - Start coding (proceed with RD's implementation roadmap)
 - Save artifacts and stop here
 ```
 
 **For each option:**
-- **sp-writing-plans:** Pass the RD artifact's implementation roadmap as input.
+- **superpowers:writing-plans:** Pass the RD artifact's implementation roadmap as input.
   Include both PM and RD artifacts as context.
 - **brainstorming:** Pass the specific area that needs exploration.
-- **Start coding:** Suggest `sp-subagent-driven-development` with the RD
+- **Start coding:** Suggest `superpowers:subagent-driven-development` with the RD
   artifact's task breakdown.
 - **Save and stop:** Offer to save artifacts to `docs/plans/`.
 
@@ -326,7 +326,7 @@ Present this state summary between phases so the user can track progress.
 | PM subagent produces incomplete artifact | Note gaps, present to user with warnings |
 | RD subagent rejects PM requirements | Present RD's concerns to user, facilitate resolution |
 | User wants to skip PM phase | Allow it — dispatch RD with user-provided requirements. Note: "PM phase skipped by user decision" |
-| User wants to skip RD phase | Allow it — hand off PM artifact directly to sp-writing-plans. Note: "RD phase skipped" |
+| User wants to skip RD phase | Allow it — hand off PM artifact directly to superpowers:writing-plans. Note: "RD phase skipped" |
 | Convergence check finds major gaps | Present gaps, ask user which artifact to revise |
 | Pipeline interrupted mid-session | Display pipeline state. User can resume by providing the state summary in a new session. |
 | Subagent asks a question | Surface the question to the user and pass the answer back when re-dispatching |
@@ -378,7 +378,7 @@ Gate B: User approves
 Phase 3: Convergence — 5/5 requirements covered, aligned
 
 Phase 4: User chooses "Generate implementation plan"
-  → Handoff to sp-writing-plans with RD roadmap
+  → Handoff to superpowers:writing-plans with RD roadmap
 ```
 
 ### Example: Medium Project with Revision
@@ -405,7 +405,7 @@ Phase 3: Convergence — 1 scope addition by RD flagged
   → User accepts
 
 Phase 4: User chooses "Start coding"
-  → Handoff to sp-subagent-driven-development
+  → Handoff to superpowers:subagent-driven-development
 ```
 
 ## Related Skills
@@ -415,9 +415,9 @@ Phase 4: User chooses "Start coding"
 - **role-rd** — Developer role (Phase 2)
 
 ### Handoff Targets (Phase 4 options)
-- **sp-writing-plans** — Convert design to implementation plan
+- **superpowers:writing-plans** — Convert design to implementation plan
 - **brainstorming** — Explore design questions further
-- **sp-subagent-driven-development** — Execute implementation with subagents
+- **superpowers:subagent-driven-development** — Execute implementation with subagents
 
 ### Supporting Skills (invoked by roles)
 - **tech-feasibility** — Used by RD for medium projects

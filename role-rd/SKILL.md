@@ -122,7 +122,7 @@ Prepare for the next phase:
 - Summarize the architectural approach in 2-3 sentences
 - List decisions that need user approval (tech choices, trade-offs)
 - Flag any PM requirements that were modified or descoped for technical reasons
-- Recommend next steps: `sp-writing-plans` for implementation planning, or
+- Recommend next steps: `superpowers:writing-plans` for implementation planning, or
   `brainstorming` if design needs deeper exploration
 
 ## Output Format: RD Artifact
@@ -165,7 +165,7 @@ Prepare for the next phase:
 [Size-calibrated — see Step 4]
 
 ## Handoff
-- next-phase: sp-writing-plans | brainstorming
+- next-phase: superpowers:writing-plans | brainstorming
 - context-for-next: [1-3 sentence summary]
 - pm-requirement-changes: [Requirements modified or descoped, with reasons]
 - decisions-needed: [Choices that need user approval]
@@ -285,7 +285,7 @@ src/
 5. Error handling + input validation
 
 ## Handoff
-- next-phase: sp-writing-plans
+- next-phase: superpowers:writing-plans
 - context-for-next: Simple Express API, 5 tasks, ~1 day. Start with auth, then CRUD.
 - pm-requirement-changes: None
 - decisions-needed: SQLite vs Postgres? (SQLite recommended for speed-to-market)
@@ -307,5 +307,5 @@ integration.
 - **role-pm** — produces the input artifact for this role
 - **tech-feasibility** — invoked for medium projects' uncertain decisions
 - **tech-research-pipeline** — invoked for large projects' critical decisions
-- **sp-writing-plans** — typical next step after this role
+- **superpowers:writing-plans** — typical next step after this role
 - **brainstorming** — alternative next step for complex designs

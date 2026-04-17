@@ -5,6 +5,8 @@
 
 ---
 
+> **編註：** 本文撰寫時 superpowers skills 以 `sp-*` 前綴命名（如 `sp-writing-plans`）。後來改為 plugin 機制，現在的呼叫格式為 `superpowers:skill-name`（如 `superpowers:writing-plans`）。
+
 第 5 篇提過，我的 brainstorming skill 是從一個叫 [superpowers](https://github.com/obra/superpowers) 的開源專案改來的。那篇只是順便提了一下出處。這篇要講的是背後更大的問題：我 32 個 skills 裡面，有多少是從零開始造的？
 
 答案是：不到一半。

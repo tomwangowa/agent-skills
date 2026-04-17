@@ -152,9 +152,9 @@ You don't need to run the full pipeline every time. Each skill works standalone 
 
 ---
 
-## About Standard Procedures (sp-*)
+## About Superpowers Plugin Skills
 
-Superpowers plugin skills (brainstorming, writing-plans, executing-plans, systematic-debugging, TDD, etc.) are now loaded directly from the [superpowers](https://github.com/obra/superpowers) plugin — no local copies or symlinks needed. They appear as `sp-*` skills in your session automatically when the plugin is enabled.
+Superpowers plugin skills (writing-plans, executing-plans, systematic-debugging, TDD, etc.) are loaded from the [superpowers](https://github.com/obra/superpowers) plugin. They appear as `superpowers:skill-name` in your session (e.g., `superpowers:writing-plans`, `superpowers:systematic-debugging`). No local copies or symlinks needed.
 
 ---
 

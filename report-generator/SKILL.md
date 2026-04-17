@@ -34,7 +34,7 @@ record, or explicit user input.
 - "summarize what I've been working on"
 
 **Prompted by other skills:**
-- After `sp-finishing-a-development-branch` — branch completion is a
+- After `superpowers:finishing-a-development-branch` — branch completion is a
   natural moment to capture what was accomplished
 - After `work-log-analyzer` aggregation — formatted data is ready to
   become a report
@@ -290,7 +290,7 @@ After approval:
 
 ### Example 2: After Branch Completion
 
-**Prompted by sp-finishing-a-development-branch:**
+**Prompted by superpowers:finishing-a-development-branch:**
 > "Branch merged. Want to capture what was accomplished with
 > `report-generator`?"
 
@@ -387,7 +387,7 @@ After approval:
 - **activity-logger** — primary data source (structured activity records)
 - **work-log-analyzer** — data aggregation layer (reads activity-logger output)
 - **code-story-teller** — complementary narrative for specific files
-- **sp-finishing-a-development-branch** — natural trigger point for reports
+- **superpowers:finishing-a-development-branch** — natural trigger point for reports
 - **document-skills:docx** — optional DOCX format conversion
 - **document-skills:pdf** — optional PDF format conversion
 - **interactive-presentation-generator** — convert report to presentation

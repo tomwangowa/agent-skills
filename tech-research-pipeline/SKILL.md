@@ -319,7 +319,7 @@ prompt the user to save as a note.
 
 ### Phase 8: Action Plan (Optional)
 
-**Invoke:** `sp-writing-plans` (if user approves)
+**Invoke:** `superpowers:writing-plans` (if user approves)
 
 **Purpose:** Convert the decision document into a concrete, executable
 implementation plan with runnable scripts and test matrices.

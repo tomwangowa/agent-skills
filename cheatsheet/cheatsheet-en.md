@@ -1,6 +1,6 @@
 # Skills & Workflows Cheatsheet
 
-> **Note:** Skills prefixed with `superpowers:` are provided by the [superpowers](https://github.com/claude-did-this/skills) plugin. The `brainstorming` skill has a personal override that shadows the superpowers version.
+> **Note:** Skills prefixed with `superpowers:` are provided by the [superpowers](https://github.com/obra/superpowers) plugin. The `brainstorming` skill has a personal override that shadows the superpowers version.
 
 ## Development Workflow
 

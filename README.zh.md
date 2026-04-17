@@ -156,9 +156,9 @@ brainstorming → tech-feasibility → assumption-extractor → micro-poc-valida
 
 ---
 
-## 關於 Standard Procedures (sp-*)
+## 關於 Superpowers 插件 Skills
 
-Superpowers 插件的 skills（brainstorming、writing-plans、executing-plans、systematic-debugging、TDD 等）現在直接從 [superpowers](https://github.com/obra/superpowers) 插件載入，不再需要本地副本或 symlink。啟用插件後，它們會以 `sp-*` 的形式自動出現在你的 session 中。
+Superpowers 插件的 skills（writing-plans、executing-plans、systematic-debugging、TDD 等）從 [superpowers](https://github.com/obra/superpowers) 插件載入。啟用後以 `superpowers:skill-name` 格式出現（如 `superpowers:writing-plans`、`superpowers:systematic-debugging`），不需要本地副本或 symlink。
 
 ---
 

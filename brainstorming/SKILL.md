@@ -299,11 +299,11 @@ Wait for response. If they request changes, make them and re-run
 self-review. Only proceed once user approves.
 
 **Transition:**
-- For multi-step tasks → invoke `sp-writing-plans`
+- For multi-step tasks → invoke `superpowers:writing-plans`
 - For trivial tasks (user approved a 3-sentence design) → proceed
   directly with user's permission
 
-**The default next step is `sp-writing-plans`.** Only skip it when the
+**The default next step is `superpowers:writing-plans`.** Only skip it when the
 design is so small that a plan would be longer than the implementation.
 
 ## Rationalization Prevention
@@ -378,7 +378,7 @@ asks for the full system.
 >    B) User profile API (syncs across devices)
 >    C) CSS custom properties only (no persistence)"
 > 5. [Presents 2 approaches with trade-offs, gets approval]
-> 6. Writes 5-sentence design doc → invokes sp-writing-plans
+> 6. Writes 5-sentence design doc → invokes superpowers:writing-plans
 
 ### Example 2: Ambiguous Request
 
@@ -477,7 +477,7 @@ If the user agreed to the companion, read the detailed guide before proceeding:
 
 - **role-orchestrator** — for medium/large projects, escalate to the
   PM → RD pipeline instead of brainstorming (see Phase 1.5)
-- **sp-writing-plans** — the default downstream skill (design → plan)
+- **superpowers:writing-plans** — the default downstream skill (design → plan)
 - **tech-feasibility** — REQUIRED in Phase 4 for technical decisions
 - **critical-research** — REQUIRED in Phase 4 for factual claims
 - **assumption-extractor** — invoke after tech-feasibility to surface
@@ -491,4 +491,4 @@ If the user agreed to the companion, read the detailed guide before proceeding:
   pipeline instead of manually chaining research skills
 - **deep-reading** — build domain understanding from existing documents
   before brainstorming a solution in that domain
-- **sp-test-driven-development** — downstream of sp-writing-plans
+- **superpowers:test-driven-development** — downstream of superpowers:writing-plans
