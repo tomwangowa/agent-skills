@@ -142,7 +142,8 @@ categories:
           - "glance review"
 
       - id: code-review-gemini
-        # Depth / final-validation reviewer; required for pre-commit auto-review
+        # Optional depth / second-opinion reviewer; produces a fully worked refactored patch.
+        # As of 2026-04, pre-commit auto-review defaults to code-review-claude (broader coverage + 0 hallucination).
         triggers:
           - "deep review"
           - "thorough review"
@@ -523,7 +524,7 @@ workflows:
       - superpowers:writing-plans
       - superpowers:executing-plans
       - completion-gate
-      - code-review-gemini
+      - code-review-claude  # default reviewer (2026-04); add code-review-gemini afterwards for depth / patch
 
   - id: presentation
     label: 簡報製作
@@ -537,7 +538,7 @@ workflows:
     when: 代碼寫完，準備 review 和合併
     steps:
       - completion-gate
-      - code-review-gemini
+      - code-review-claude  # default reviewer (2026-04); chain code-review-gemini afterwards only for depth / refactored patch
       - superpowers:finishing-a-development-branch
 
   - id: role-pipeline

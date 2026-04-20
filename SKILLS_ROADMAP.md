@@ -1056,7 +1056,7 @@ When implementing a new skill:
    ```
 
 2. **Use existing skills during development**
-   - Use `code-review-gemini` to review changes
+   - Use `code-review-claude` as the default reviewer (add `code-review-gemini` afterwards only when a refactored patch is needed)
    - Follow Conventional Commits format for commit messages
 
 3. **Update this roadmap**

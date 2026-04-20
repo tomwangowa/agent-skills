@@ -1,23 +1,31 @@
 # PR Review Assistant
 
-AI-powered pull request reviewer that provides comprehensive, structured feedback to help you review code faster and more thoroughly.
+PR-level review orchestrator. Fetches the PR diff via GitHub CLI, runs `code-review-claude`'s review workflow natively (default), or delegates to Gemini CLI for a deep / refactored-patch pass (opt-in).
+
+> **Default reviewer (2026-04):** `code-review-claude` — broad coverage, adversarial + assumptions pass, syntax-checker-verified findings, 0/6 verified hallucinations in the 2026-04 benchmark. The Gemini path is retained for users who explicitly want a different model's depth or a ready-to-apply patch. See `SKILL.md` § "Why claude is the default PR reviewer".
 
 ## Features
 
-- **Comprehensive Analysis** - Checks correctness, security, performance, and code quality
-- **Structured Feedback** - Organized by priority (blocking, important, minor)
-- **Specific References** - Includes file names and line numbers
-- **GitHub Integration** - Fetches PR data and can post reviews directly
-- **Risk Assessment** - Evaluates merge risk level
-- **Positive Recognition** - Acknowledges good practices
-- **Bilingual Output** - Traditional Chinese descriptions with English code terms
+- **Structured Feedback** — Findings organized by priority (blocking / important / minor) with file:line references
+- **Adversarial + Assumptions** (default Claude path) — Each finding checked against the 4-item adversarial list; unvalidated contracts emitted as an Assumptions Identified section
+- **Syntax-checker verified** (default Claude path) — Whitespace / regex / char-class findings checked with language-matched checkers before being listed
+- **GitHub Integration** — `gh` fetches PR data; you can post the review back with `gh pr comment` / `gh pr review`
+- **Risk Assessment** — Verdict + risk level + issue counts
+- **Positive Recognition** (optional) — Acknowledges good practices when genuinely noteworthy
+- **Bilingual Output** (Gemini path) — Traditional Chinese descriptions with English code terms
 
 ## Dependencies
 
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
+### Default path (Claude-native review)
 - [GitHub CLI](https://cli.github.com/): Install from https://cli.github.com/
 - [jq](https://stedolan.github.io/jq/): JSON processor (`brew install jq` or `apt-get install jq`)
 - Git repository with access to the PR
+
+**No Gemini CLI or API key required.** The review runs inside the Claude Code session.
+
+### Deep / Gemini path (opt-in)
+Additionally requires:
+- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - `GEMINI_API_KEY` environment variable set
 
 ## Quick Start
@@ -25,14 +33,12 @@ AI-powered pull request reviewer that provides comprehensive, structured feedbac
 ### 1. Setup
 
 ```bash
-# Install dependencies
-npm install -g @google/gemini-cli
-brew install gh  # or follow https://cli.github.com/
-
-# Authenticate with GitHub
+# Required for both paths
+brew install gh jq  # or your platform's equivalent
 gh auth login
 
-# Set Gemini API key
+# Only if you plan to use the opt-in Gemini path
+npm install -g @google/gemini-cli
 export GEMINI_API_KEY="your-api-key"
 ```
 
@@ -479,14 +485,19 @@ chmod +x ~/.claude/skills/pr-review-assistant/scripts/review_pr.sh
 - ❌ Costs API usage
 - ❌ Less precise
 
-### vs code-review-gemini skill
-- **PR Review Assistant**: Reviews entire PRs (multiple commits)
-- **code-review-gemini**: Reviews staged changes (pre-commit)
-- Use both in workflow: code-review-gemini for self-review, PR Review Assistant for team review
+### vs code-review-claude / code-review-gemini
+- **pr-review-assistant** — PR-level orchestrator: fetches the PR diff via `gh`, then runs code-review-claude's workflow on it (default) or delegates to the gemini CLI script (opt-in)
+- **code-review-claude** — Staged-diff reviewer (no PR wrapping)
+- **code-review-gemini** — Optional depth reviewer for staged changes; powers this skill's Gemini PR path
+- Typical use: team PR → `pr-review-assistant`; local staged diff → `code-review-claude`
 
 ## Cost Considerations
 
-Gemini API usage:
+### Default path (Claude-native)
+- Zero external API cost. Review runs inside the Claude Code session.
+
+### Deep / Gemini path
+Gemini API usage (only applies when you explicitly invoke the deep path):
 - ~2-5KB per small PR
 - ~10-20KB per medium PR
 - ~50KB per large PR (truncated)
@@ -495,9 +506,13 @@ Estimated cost: $0.01 - $0.05 per PR (depends on your API plan)
 
 ## Privacy & Security
 
-⚠️ **Important**: PR diffs are sent to Gemini API
+### Default path (Claude-native)
+✅ The PR diff stays inside the Claude Code session — no external API besides GitHub (`gh`). Safe for PRs that might contain sensitive data.
 
-**Do NOT review PRs containing:**
+### Deep / Gemini path
+⚠️ PR diffs **are** sent to the Gemini API.
+
+**Do NOT use the Gemini path to review PRs containing:**
 - Credentials or API keys
 - Private keys or certificates
 - Proprietary algorithms
@@ -505,9 +520,9 @@ Estimated cost: $0.01 - $0.05 per PR (depends on your API plan)
 - Trade secrets
 
 **Best practices:**
-- Review public repos only, or
-- Ensure sensitive data is never in PRs, or
-- Use self-hosted AI if reviewing proprietary code
+- For sensitive repos, stick to the default Claude path
+- Review public repos only on the Gemini path, or
+- Ensure sensitive data is never in PRs you send to Gemini
 
 ## FAQ
 
@@ -534,7 +549,8 @@ A: Not directly, but you can modify the prompt to include team guidelines.
 
 ## Related Skills
 
-- **code-review-gemini** - Review staged changes before commit
+- **code-review-claude** (default reviewer) - Staged-diff review with adversarial + assumptions pass; powers this skill's default PR path
+- **code-review-gemini** - Optional depth reviewer; powers this skill's keyword-triggered Gemini PR path via `scripts/review_pr.sh`
 - **code-story-teller** - Understand code evolution
 - **pr-description-generator** - Create PR descriptions (coming soon)
 - **pr-merge-readiness-checker** - Automated merge checks (coming soon)

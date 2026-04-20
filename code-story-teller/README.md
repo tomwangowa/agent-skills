@@ -207,7 +207,7 @@ Generated stories are valuable documentation:
 ### 4. Combine with Other Tools
 
 Use alongside other skills:
-- **Before refactoring:** Tell story → Make changes → Review with code-review-gemini
+- **Before refactoring:** Tell story → Make changes → Review with code-review-claude (default; chain code-review-gemini afterwards for a refactored patch)
 - **After major work:** Tell story → Commit with Conventional Commits format
 - **For releases:** Tell story → Use for release notes
 
@@ -324,7 +324,7 @@ git add src/modules/payment/processor.js
 
 # In Claude Code:
 # > Review the staged files
-# (Use code-review-gemini skill)
+# (Default: code-review-claude. For a refactored patch, chain code-review-gemini afterwards.)
 
 # 6. Commit changes
 git commit -m "refactor(payment): improve error handling for edge cases"
@@ -361,7 +361,8 @@ A: Usually 5-15 seconds per file, depending on history complexity and API latenc
 
 ## Related Skills
 
-- **code-review-gemini** - Review code quality before committing
+- **code-review-claude** (default) - Native code review with adversarial pass + assumptions list
+- **code-review-gemini** - Optional second-opinion / refactored patch generator
 - **work-log-analyzer** - Combine code history with work log context
 - **release-notes-generator** - Generate release documentation (coming soon)
 

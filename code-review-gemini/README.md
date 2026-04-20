@@ -1,15 +1,23 @@
 # Code Review with Gemini
 
-Automated code review using Gemini AI for staged git changes.
+Optional depth / refactored-patch code reviewer using Gemini CLI.
+
+> **Role (effective 2026-04):** Not the default reviewer. `code-review-claude` is the default for any review request and for the pre-commit auto-review rule, because a 2026-04 n=6 benchmark found it produces broader finding coverage (2.3×–5.0×) and zero verified hallucinations, whereas this skill hallucinated P0/P1 syntax issues in 3/6 runs.
+>
+> **When to use this skill instead:** you want a fully worked refactored patch, or an external second-opinion pass after a `code-review-claude` review. Trigger words: "gemini review", "detailed review", "thorough review", "refactored patch".
 
 ## Overview
 
-This skill performs structured code reviews on staged changes by leveraging Gemini AI to analyze code for:
+This skill performs a structured code review on staged changes by sending the diff to Gemini CLI. The output is a prioritized findings list plus a verdict — useful when you want a different model's perspective or need a ready-to-apply rewrite on a small file.
+
+It covers:
 - Security vulnerabilities (XSS, SQL injection, authentication issues)
 - Logic errors and potential bugs
 - Performance concerns
 - Code quality and maintainability
 - Best practice violations
+
+Weaknesses (documented here so you can compensate): no syntax-checker verification of whitespace / regex / character-class findings (responsible for the 3/6 hallucination rate in the benchmark), no adversarial pass, no assumptions list. If those matter, run `code-review-claude` first and chain this skill only when you specifically want the patch or second opinion.
 
 ## Quick Start
 
@@ -252,15 +260,16 @@ git add <files>  # Stage files first
 ## Integration with Other Skills
 
 ### Works well with:
-- **code-review-claude**: Quick native review for small changes
-- **pr-review-assistant**: Final review before merging
+- **code-review-claude** (the default reviewer) — Run that first; chain this skill only when you need a refactored patch or an external second opinion
+- **pr-review-assistant** — PR-level review (also defaults to claude; this skill powers the keyword-triggered deep PR review path via `scripts/review_pr.sh`)
 
-### Typical Workflow:
+### Typical Workflow (2026-04 onward):
 ```
 1. [Write code]
-2. code-review-gemini → Review implementation  ← You are here
-3. [Commit with Conventional Commits format]
-4. pr-review-assistant → Final PR review
+2. code-review-claude → Default review (broad coverage + adversarial + assumptions + syntax-verified)
+3. (optional) code-review-gemini → Depth second opinion and/or refactored patch  ← This skill
+4. [Commit with Conventional Commits format]
+5. (for PRs) pr-review-assistant → PR-level review
 ```
 
 ## File Structure

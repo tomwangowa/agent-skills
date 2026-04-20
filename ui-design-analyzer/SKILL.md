@@ -613,12 +613,13 @@ Side-by-side analysis of design vs implementation or before vs after.
 4. Implement based on spec and feedback
 ```
 
-### With code-review-gemini
+### With code-review
 ```
 1. Implement UI
 2. Analyze screenshot (ui-design-analyzer) ← Visual check
-3. Review code (code-review-gemini) ← Code quality check
-4. Ensure both visual and code quality
+3. Review code (code-review-claude — default reviewer) ← Code quality check, adversarial + assumptions
+4. Optional: chain code-review-gemini for a refactored patch
+5. Ensure both visual and code quality
 ```
 
 ---
@@ -664,11 +665,12 @@ Recommendations for responsive design:
 
 ## Related Skills
 
-- **code-review-gemini**: Review UI implementation code
+- **code-review-claude** (default): Review UI implementation code with adversarial + assumptions pass
+- **code-review-gemini**: Optional depth / refactored patch pass after claude review
 
 **Recommended Workflow**:
 1. Design → **ui-design-analyzer** (this skill)
-2. Implement → code-review-gemini
+2. Implement → code-review-claude (default); optionally chain code-review-gemini for a patch
 3. Visual check → **ui-design-analyzer** again
 4. Ship with confidence
 

@@ -8,7 +8,7 @@
 
 我的做法是把工程紀律嵌入 AI 工作流程本身——用結構化流程對抗 AI 和人類共有的認知盲點。具體來說：
 
-- **Dual-AI Review**：Claude 負責開發，Gemini 擔任獨立 reviewer。不是為了多一個 AI，而是因為任何模型在檢視自己的產出時都會過度合理化。
+- **結構化 Code Review**：任何模型在檢視自己的產出時都會過度合理化——所以 review 是 skill 觸發的明確步驟，不是口頭承諾。2026-04 起預設使用 `code-review-claude`（廣度 + adversarial + assumptions + syntax 驗證，0/6 hallucination）；需要完整 refactored patch 或外部第二意見時，追加 `code-review-gemini`。
 - **Falsification-first**：研究類 skills 要求先搜尋反面證據，再搜尋支持證據。這不是悲觀，而是對確認偏誤的系統性防禦。
 - **Evidence before assertion**：在宣稱任何工作「完成」之前，必須先執行驗證命令並確認輸出。說「通過測試」的前提是真的跑過測試。
 
@@ -121,15 +121,16 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 
 ---
 
-## 關於 Dual-AI Review
+## 關於 Code Review 的分層設計
 
-這個 repo 裡有一個可能看起來奇怪的設計：code review 預設交給 Gemini 而不是 Claude 自己。
+**任何模型在檢視自己產生的程式碼時，都傾向對既有結構過度合理化。** 所以這個 repo 把 review 切成一個獨立步驟——以 skill 觸發、有 adversarial checklist、有 assumptions 清單——而不是靠「Claude 檢查一下自己寫的」這種同步審視。
 
-原因很簡單——**任何模型在檢視自己產生的程式碼時，都傾向對既有結構過度合理化**。Claude 負責開發和上下文理解，Gemini 扮演相對保守的 reviewer，特別擅長抓邏輯漏洞、邊界條件與防禦性不足的問題。
+### 兩個 reviewer，兩個角色（2026-04 起）
 
-這模擬的是實際團隊中「作者與 reviewer 分工」的狀態。目前的做法是每完成一個小任務就自動調用 Gemini review，依回饋修正直到 fully approved。價值不在於多一個 AI，而在於把 review 前移、系統化，在風險累積之前攔下問題。
+- **`code-review-claude`（預設 reviewer）**：原生 Claude < 30 秒完成。流程包含 Step 3.3 syntax-checker 驗證（消除 whitespace / regex / 字元類別這類 hallucination）、Step 3.4 語言別 checklist、Step 3.5 adversarial quick check（Assumption / Mirror test / Suppression / What breaks this?）、Step 3.6 Assumptions Identified。Step 4.5 可選擇性產出 refactored patch。2026-04 對 6 種語言的 HTTP retry client 做 n=6 benchmark，Claude 每次的 findings 廣度是 Gemini 的 2.3–5.0 倍，且 0/6 出現需修正的 hallucination。
+- **`code-review-gemini`（選配）**：Gemini CLI 外部 review，適合想要完整可套用的 refactored patch、或在 claude review 之後再來一次外部第二意見。不是預設，但保留下來作為 patch 生成器與 cross-check 工具。
 
-如果你不使用 Gemini，`code-review-claude` 提供了純 Claude 的快速 review 替代方案。
+> **pre-commit auto-review** 也預設走 `code-review-claude`。pre-commit 是 hallucination 成本最高的場景，所以用 benchmark 上最可靠的 reviewer。
 
 ---
 
@@ -167,7 +168,7 @@ Superpowers 插件的 skills（writing-plans、executing-plans、systematic-debu
 ### 前置需求
 
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
-- [Node.js](https://nodejs.org/)（for Gemini CLI）
+- [Node.js](https://nodejs.org/)（僅當想使用 Gemini 相關 skills 時需要）
 - Git
 
 ### 安裝
@@ -184,9 +185,9 @@ git clone https://github.com/tomwangowa/agent-skills.git ~/.claude/skills
 ln -s /path/to/cloned/repo ~/.claude/skills
 ```
 
-### 設定 Gemini CLI
+### 設定 Gemini CLI（選配）
 
-Gemini CLI 用於 code-review-gemini、code-story-teller、pr-review-assistant 等需要外部 review 的 skills。
+預設 reviewer `code-review-claude` 是原生 Claude，不需要 Gemini。Gemini CLI 僅在以下 skills 使用：`code-review-gemini`（選配深度 reviewer / refactored patch 生成器）、`code-story-teller`、`pr-review-assistant` 的 keyword-triggered Gemini 路徑（詳見該 skill 文件）。如果你只跑預設流程，可以跳過本節。
 
 ```bash
 # 安裝 Gemini CLI
@@ -205,7 +206,7 @@ echo 'export GEMINI_API_KEY="your-api-key-here"' >> ~/.zshrc  # 或 ~/.bashrc
 # 確認 Claude Code 能看到 skills
 ls ~/.claude/skills/
 
-# 測試 Gemini CLI
+# 測試 Gemini CLI（僅當你安裝了 Gemini 相關 skills）
 gemini "Hello, test"
 ```
 
@@ -213,7 +214,7 @@ gemini "Hello, test"
 
 ## 使用範例
 
-### Code Review（Gemini）
+### Code Review（預設：Claude）
 
 ```bash
 # 1. Stage 你的改動
@@ -225,11 +226,19 @@ git add src/app.js
 > check code quality before commit
 ```
 
-Claude 會調用 Gemini 分析你的改動，產出包含以下面向的結構化報告：
-- 潛在 bug 或安全問題
-- 程式碼品質與最佳實踐
-- 可讀性與可維護性
-- 改善建議
+預設會觸發 `code-review-claude`，< 30 秒完成，產出包含以下面向的結構化報告：
+- 🔴 High / 🟡 Medium / 🟢 Low 優先級 findings
+- 語言別 checklist（Python / Shell / JS / TS / Java / PHP）命中
+- **Adversarial quick check**：Assumption exposed / Mirror test / Suppression / What breaks this?
+- **Assumptions Identified**：未驗證的契約清單
+- **Refactored Patch**（選配，diff ≤ 200 行時自動產出）
+
+想要更深度的外部視角或完整 refactored patch？在 claude review 之後追加：
+
+```
+> gemini review 這次的改動，給我 refactored patch
+> detailed review with gemini
+```
 
 ### Activity Logger
 

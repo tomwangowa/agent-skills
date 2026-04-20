@@ -703,7 +703,8 @@ Expected behavior:
 ## Integration Points
 
 ### With Other Skills
-- **code-review-gemini**: Review skill's scripts (if any)
+- **code-review-claude** (default): Review skill's scripts (if any) with adversarial + assumptions pass
+- **code-review-gemini**: Optional second-opinion pass when a refactored patch is desired
 
 ### With Git Workflow
 ```bash

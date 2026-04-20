@@ -163,9 +163,10 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 | 深度 review / 要 refactored patch / pre-commit 驗證 | `code-review-gemini` | 「gemini review 這個模組，給我 refactored patch」 |
 | 要 review 一個 PR | `pr-review-assistant` | 「Review PR #42」 |
 
-> **Review 技能選用指引：**
-> - **日常開發中：** 直接用 `/code-review-gemini`（深度）或 `/code-review-claude`（快速）
-> - **重大功能要 merge 前：** 用 `/superpowers:requesting-code-review` 做雙層審查（自動調度 subagent + gemini，合併結果）
+> **Review 技能選用指引（2026-04 起）：**
+> - **日常開發中（預設）：** 直接用 `/code-review-claude` — 廣度 + adversarial + assumptions + syntax 驗證，0 hallucination（benchmark n=6）
+> - **想要外部第二意見 / 完整可複製的 refactored patch：** 追加 `/code-review-gemini`（可在 claude review 後串接）
+> - **重大功能要 merge 前：** 用 `/superpowers:requesting-code-review` 做雙層審查（自動調度 subagent，合併結果）
 > - **收到別人 review 意見時：** `/superpowers:receiving-code-review` 幫你避免盲目同意，要求技術驗證後再改
 
 ---

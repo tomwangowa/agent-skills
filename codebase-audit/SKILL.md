@@ -25,7 +25,7 @@ This is not a code review. Code reviews ask "is this code good?" This skill asks
 
 ## When NOT to Use
 
-- General code quality review (use `code-review-gemini` or `code-review-claude`)
+- General code quality review (use `code-review-claude` as default, `code-review-gemini` for depth / refactored patch)
 - Research tasks with no codebase to audit (use `critical-research`)
 - Security vulnerability scanning (use dedicated security tools)
 - Performance auditing (use profilers and benchmarks)

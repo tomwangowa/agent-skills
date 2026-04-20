@@ -1,5 +1,11 @@
 # Meta-Skills Design Pattern
 
+> **Document Status (2026-04):** This is a design-thinking document that explores the *pattern* of routing across multiple similar skills. It uses the code-review family as the running example.
+>
+> Specific defaults referenced in the examples below were updated in 2026-04: `code-review-claude` is now the **default reviewer** and the **pre-commit auto-reviewer** (not Gemini, as older examples here may say). Routing reason: the 2026-04 n=6 benchmark showed Claude broader coverage (2.3×–5.0×) + 0/6 verified hallucinations vs. Gemini's 3/6 P0/P1 hallucinations.
+>
+> The *pattern* described below (meta-skill router, fallback chains, context-aware dispatch) is still valid — just read the concrete routing table in the current `global/CLAUDE.md` and `skill-router/skill-registry.yaml` as the authoritative source, not the examples baked into this doc.
+
 ## 概述
 
 **Meta-Skill Pattern** 是一種進階的 Claude Code Skills 架構設計模式，用於解決當多個 skills 提供相似功能時的選擇和路由問題。
@@ -104,8 +110,8 @@ Read from `~/.claude/CLAUDE.md` section 9 (Notice):
 |-----------|----------|--------|
 | User preference explicitly set | Preferred skill | Respect user choice |
 | Default case | code-review-claude | 2026-04 benchmark: broader coverage, 0/6 verified hallucinations |
-| User asks for "deep", "thorough", "gemini", or "refactored patch" | code-review-gemini | Depth / final validation / patch generation |
-| Pre-commit auto-review | code-review-gemini | Required by CLAUDE.md pre-commit rule |
+| User asks for "deep", "thorough", "gemini", or "refactored patch" | code-review-gemini | Depth / refactored-patch / optional second opinion |
+| Pre-commit auto-review | code-review-claude | As of 2026-04: pre-commit is highest-cost for hallucinations, routes to benchmark-most-reliable reviewer |
 | User says "checklist" | code-review-checklist | Explicit request |
 
 ### Step 4: Execute & Report
@@ -126,9 +132,9 @@ Meta: Using code-review-claude (fast, < 30s)
 **Example 2: Default review**
 ```
 User: "Review my code"
-Meta: Checking preferences... gemini is preferred
-Meta: Using code-review-gemini
-→ Executes code-review-gemini
+Meta: Analyzing... no depth keyword → default path
+Meta: Using code-review-claude (default reviewer, 2026-04)
+→ Executes code-review-claude
 ```
 
 **Example 3: Explicit choice**
@@ -161,10 +167,10 @@ Meta: Using code-review-checklist
 
 #### Code Review
 - **Default reviewer**: code-review-claude (as of 2026-04)
-- **Depth / final validation / refactored patch**: code-review-gemini
-- **Pre-commit auto-review**: code-review-gemini (required by CLAUDE.md rule)
+- **Depth / refactored patch / external second opinion**: code-review-gemini
+- **Pre-commit auto-review**: code-review-claude (as of 2026-04; pre-commit is highest-cost hallucination scenario, so it uses the most reliable reviewer)
 - **Learning mode**: code-review-checklist
-- **Rationale**: 2026-04 benchmark showed Claude's native reviewer had broader coverage (2.3×–5.0× gemini's findings) and 0/6 verified hallucinations; Gemini remains valuable for depth + fully worked patches
+- **Rationale**: 2026-04 benchmark showed Claude's native reviewer had broader coverage (2.3×–5.0× Gemini's findings) and 0/6 verified hallucinations vs. Gemini's 3/6 P0/P1 hallucinations; Gemini remains valuable for fully worked refactored patches and cross-model second opinions
 
 #### [Other skill categories can be added here]
 ```
@@ -179,8 +185,8 @@ Meta: Using code-review-checklist
 
 ### 2. 功能互補而非重疊 (Complementary, Not Redundant)
 每個底層 skill 應該有明確的獨特價值：
-- **code-review-claude**: 速度優勢
-- **code-review-gemini**: 外部視角
+- **code-review-claude**: 預設 reviewer — 廣度、adversarial、assumptions、syntax 驗證，0 hallucination（2026-04 benchmark）
+- **code-review-gemini**: 選配 — 外部模型視角、完整 refactored patch 生成
 - **code-review-checklist**: 教學用途
 
 ### 3. 決策透明化 (Transparent Decision Making)
@@ -195,7 +201,7 @@ Meta-skill 應該告知用戶：
 
 ### 5. 偏好可覆寫 (Preferences Override-able)
 情境可以覆寫預設偏好：
-- 用戶說 "quick review" → 即使預設是 gemini，也使用 claude
+- 用戶說 "gemini review" 或 "refactored patch" → 即使預設是 claude，也改派 gemini
 - 尊重當下的需求
 
 ---
@@ -385,8 +391,8 @@ mkdir ~/.claude/skills/code-reviewer
 ```markdown
 ## Decision Logic
 
-1. Check CLAUDE.md preferences (default: gemini)
-2. If user says "quick" → use claude
+1. Check CLAUDE.md preferences (default: claude, as of 2026-04)
+2. If user says "gemini" / "refactored patch" → use gemini
 3. If user says "checklist" → use checklist
 4. Otherwise → use preference
 ```
@@ -394,15 +400,15 @@ mkdir ~/.claude/skills/code-reviewer
 **3. 設定偏好 (CLAUDE.md)**
 ```markdown
 ### Code Review
-- Default: code-review-gemini
-- Quick fallback: code-review-claude
+- Default: code-review-claude
+- Deep / refactored-patch fallback: code-review-gemini
 ```
 
 **4. 測試**
 ```bash
 # Test 1: Default routing
 claude "review my code"
-# Expected: Uses gemini
+# Expected: Uses code-review-claude (default, 2026-04)
 
 # Test 2: Quick override
 claude "quick review"
@@ -415,8 +421,8 @@ claude "show me the review checklist"
 
 ### 結果
 - 用戶只需記住 "review my code"
-- 大多數情況使用 gemini（偏好）
-- 快速檢查時自動切換到 claude
+- 大多數情況使用 claude（預設，2026-04 起）
+- 需要外部視角或 refactored patch 時切換到 gemini
 - 學習時可明確要求 checklist
 - 減少選擇疲勞，提高效率
 

@@ -163,9 +163,10 @@ presentation-planner → interactive-presentation-generator → Slide Files
 | Deep review / need a refactored patch / pre-commit validation | `code-review-gemini` | "Gemini review this module, give me a refactored patch" |
 | Review a pull request | `pr-review-assistant` | "Review PR #42" |
 
-> **Review skill routing guide:**
-> - **During daily development:** Use `/code-review-gemini` (deep) or `/code-review-claude` (quick) directly
-> - **Before merging major features:** Use `/superpowers:requesting-code-review` for dual-layer review (auto-dispatches subagent + gemini, merges results)
+> **Review skill routing guide (effective 2026-04):**
+> - **During daily development (default):** Use `/code-review-claude` — broad coverage + adversarial + assumptions + syntax verification, 0 hallucinations (benchmark n=6)
+> - **Want a second opinion or a fully applied refactored patch:** Chain `/code-review-gemini` after the claude review
+> - **Before merging major features:** Use `/superpowers:requesting-code-review` for dual-layer review (auto-dispatches subagents, merges results)
 > - **When receiving review feedback:** `/superpowers:receiving-code-review` prevents blind agreement — requires technical verification before implementing changes
 
 ---

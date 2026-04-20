@@ -7,56 +7,111 @@ description: Assist in reviewing pull requests by analyzing diffs and providing 
 
 ## Purpose
 
-This Skill assists in reviewing pull requests by:
-1. Fetching PR information and diff using GitHub CLI
-2. Analyzing code changes comprehensively with Gemini AI
-3. Identifying bugs, security issues, and code quality problems
-4. Providing structured, prioritized feedback
-5. Generating actionable review comments
+This Skill orchestrates a PR-level review workflow:
+1. Fetches PR metadata and diff via GitHub CLI
+2. Runs the `code-review-claude` workflow natively on the diff (default) — or delegates to Gemini CLI for a deep pass (opt-in)
+3. Produces a prioritized, actionable findings list
+4. Helps the user post the review back to GitHub
 
-The Skill helps developers:
-- Review PRs faster and more thoroughly
-- Catch issues that might be missed in manual review
-- Maintain consistent review standards
-- Learn from AI-suggested best practices
-- Provide constructive feedback to teammates
+> **Default reviewer (as of 2026-04):** `code-review-claude`. Pre-2026-04 this skill defaulted to Gemini; the switch is documented in the "Why claude is the default PR reviewer" section below.
 
 ---
 
 ## Instructions
 
-When the user expresses intent to review a PR (for example: "review PR #123", "help me review this pull request", "analyze this PR"), follow the steps below strictly.
+When the user expresses intent to review a PR (e.g., "review PR #123", "analyze this pull request", "help me review this PR"), route between two paths based on keywords:
 
-### Execution steps
+- **Default path** — no Gemini keyword → native Claude review via `code-review-claude` workflow
+- **Opt-in deep path** — "gemini review", "deep PR review", "refactored patch" → Gemini CLI via `scripts/review_pr.sh`
 
-1. **Identify the PR** to review
-   - If user provides PR number: use it directly
-   - If user provides PR URL: extract the number
-   - If unclear, ask for clarification
+Both paths use `gh` CLI to fetch PR metadata + diff, then produce a prioritized findings list and offer to post the review back to GitHub.
 
-2. **Determine the skill base directory** from the skill invocation context (provided when the skill is loaded).
+### Workflow overview
 
-3. **Run the script** from the skill directory: `<skill_base_directory>/scripts/review_pr.sh <PR-number|PR-URL>`
+```
+PR identifier (number or URL)
+    ↓
+gh pr view + gh pr diff (common)
+    ↓
+Default path: run code-review-claude workflow natively
+OR
+Opt-in path: run scripts/review_pr.sh (Gemini CLI)
+    ↓
+Present structured findings to user
+    ↓
+Offer to post via gh pr comment / gh pr review
+```
 
-   **Important**: Always use the full absolute path to the script based on the skill base directory,
-   not a relative path, since the current working directory may be the user's project directory.
+---
 
-   - The script will fetch PR details using GitHub CLI
-   - It will analyze the diff with Gemini AI
-   - It will generate a structured review
+## Default path: native Claude PR review
 
-3. **Present the review** to the user:
-   - Summarize the overall verdict and risk level
-   - Highlight blocking issues first (if any)
-   - Explain important issues
-   - Mention minor suggestions
-   - Note positive observations
+Use this path when the user says "review PR #42", "check the code in this PR", "PR review", etc. — no Gemini keyword.
 
-4. **Offer follow-up actions**:
-   - Post review as PR comment
-   - Dive deeper into specific issues
-   - Review related files
-   - Suggest fixes for identified problems
+### Execution steps (default)
+
+1. **Identify the PR** to review.
+   - User provides PR number → use directly.
+   - User provides PR URL → extract number from the trailing `/pull/<N>`.
+   - Unclear → ask.
+
+2. **Fetch PR metadata** with `gh`:
+   ```bash
+   gh pr view <PR-number> --json title,body,author,headRefName,baseRefName,additions,deletions,files
+   ```
+
+3. **Fetch the diff** with `gh`:
+   ```bash
+   gh pr diff <PR-number>
+   ```
+
+   If the diff exceeds ~2000 lines, note the size; review file-by-file (use `gh pr diff --name-only` to list files, then fetch per-file diffs as needed). Do **not** silently truncate — tell the user and ask how to proceed.
+
+4. **Run the `code-review-claude` workflow** on the fetched diff:
+   - Apply Step 0 (self-review detection — usually N/A for teammate PRs; flag if the current session authored any of the PR's files).
+   - Apply Steps 3.1–3.6 (severity-prioritized findings, Step 3.3 syntax-checker verification, Step 3.4 language checklists, Step 3.5 adversarial, Step 3.6 assumptions list).
+   - Label findings with file path + line number from the diff context.
+   - Emit Step 4.5 Refactored Patch **only** if the PR is small (≤ ~200 lines / ≤ 3 files) and the user asked for it; PRs usually span multiple files so skip by default.
+
+5. **Present to the user** in this order:
+   - Review summary: verdict (Approve / Request changes / Comment), risk level, counts
+   - 🔴 Blocking issues (with file:line + concrete fix)
+   - 🟡 Important issues
+   - 🟢 Minor suggestions
+   - `[ADVERSARIAL]` findings
+   - Assumptions Identified
+   - ✅ Positive observations (sparingly — only when genuinely noteworthy)
+
+6. **Offer follow-up actions**:
+   - Post as PR comment: `gh pr comment <N> --body-file <file>`
+   - Post as review with status: `gh pr review <N> --request-changes|--approve|--comment --body-file <file>`
+   - Deep dive into a specific finding
+   - Run the optional deep Gemini path (see below)
+
+## Opt-in deep path: Gemini PR review
+
+Use this path only when the user explicitly asks — trigger words: "gemini review this PR", "deep PR review", "detailed PR review", or "give me a refactored patch for this PR".
+
+### Execution steps (deep / gemini)
+
+1. Determine the skill base directory from the skill invocation context.
+2. Run the script: `<skill_base_directory>/scripts/review_pr.sh <PR-number|PR-URL>`.
+   - The script uses `gh` to fetch PR info + diff, sends the prompt to `gemini` CLI, and writes the result to `${TMPDIR:-/tmp}/pr_review_result.txt`.
+   - Requires `gemini` CLI + `GEMINI_API_KEY`. If either is missing, the script exits with an actionable error; in that case fall back to the default Claude-native path.
+3. Present the Gemini output to the user. Note explicitly that this review did **not** go through Step 3.3 syntax-checker verification — the user should sanity-check any syntax/regex/whitespace findings before acting on them.
+4. Offer to post the review back to the PR via `gh pr comment` / `gh pr review`.
+
+## Why claude is the default PR reviewer (2026-04)
+
+A 2026-04 n=6 benchmark comparing `code-review-claude` and `code-review-gemini` on the same source code (HTTP retry clients in Java / Python / JS / TS / PHP / Shell) found:
+
+- **Finding coverage**: Claude produced 2.3×–5.0× as many valid findings as Gemini across all six languages.
+- **Hallucinations**: Claude 0/6. Gemini 3/6, all P0/P1-labelled, all in whitespace/regex/character-class category (e.g., falsely flagging `[^\s@]` as "space inside character class").
+- **Adversarial + assumptions**: Claude's workflow includes these by default; Gemini's prompt (in `scripts/review_pr.sh`) does not.
+
+PR reviews are higher-stakes than staged-diff reviews because findings often get posted publicly and consumed by another engineer. Hallucinated findings are expensive — they either erode trust in AI review or, worse, prompt the author to "fix" working code. So the default routes to the reviewer with the lowest verified-hallucination rate and the broadest coverage in the benchmark.
+
+Gemini remains valuable as the opt-in deep path when the user specifically wants a different model's perspective or a fully applied refactored patch.
 
 ### Output requirements
 
@@ -80,8 +135,9 @@ Your response should include:
 
 - Requires GitHub CLI (`gh`) installed and authenticated
 - PR must be accessible with current GitHub credentials
-- Requires Gemini CLI and API key
-- Large PRs (>2000 lines) are truncated for analysis
+- **Default path**: no external dependencies beyond `gh` — uses native Claude review
+- **Deep / Gemini path**: additionally requires `gemini` CLI + `GEMINI_API_KEY`
+- Large PRs (>2000 lines): default path asks how to proceed; deep path truncates via the script's `MAX_DIFF_LINES`
 - File-specific context may be limited for very large PRs
 
 ---
@@ -345,21 +401,22 @@ gh pr list
 
 ## Related Skills
 
-- **code-review-gemini** - Review staged changes before committing
-- **code-story-teller** - Understand code evolution
-- **pr-description-generator** - Create PR descriptions (coming soon)
+- **code-review-claude** (default) — Staged-diff reviewer; powers this skill's default PR-review path
+- **code-review-gemini** — Optional depth / refactored-patch reviewer; powers this skill's keyword-triggered Gemini PR-review path via `scripts/review_pr.sh`
+- **code-story-teller** — Understand code evolution
+- **pr-description-generator** — Create PR descriptions (coming soon)
 
 ---
 
 ## Security Note
 
-⚠️ **The PR diff is sent to the Gemini API for analysis.**
+⚠️ **Default Claude-native path:** The PR diff stays inside the Claude Code session — no external API besides GitHub (`gh`). Use this path for PRs that might contain sensitive data.
 
-**Never review PRs containing:**
+⚠️ **Deep / Gemini path:** The PR diff **is** sent to the Gemini API for analysis. **Never run this path on PRs containing:**
 - API keys, tokens, or passwords
 - Private keys or certificates
 - Personal identifiable information (PII)
 - Proprietary algorithms or trade secrets
 - Other sensitive data
 
-Always check what's in the PR before running the review.
+Always check what's in the PR before choosing the deep path.

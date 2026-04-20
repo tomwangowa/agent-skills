@@ -483,7 +483,7 @@ Analyze this UI and give me CSS code to fix the color contrast issues
 3. Write implementation spec (see CLAUDE.md spec guidelines)
 4. Developers implement
 5. ui-design-analyzer checks implementation ← Verify match
-6. code-review-gemini reviews code
+6. code-review-claude reviews code (default; chain code-review-gemini afterwards only for a refactored patch)
 7. Ship with confidence!
 ```
 
@@ -633,7 +633,8 @@ Action items to achieve compliance:
 
 ## Related Skills
 
-- **code-review-gemini**: Review UI implementation code
+- **code-review-claude** (default): Review UI implementation code with adversarial + assumptions pass
+- **code-review-gemini**: Optional depth / refactored patch pass after claude review
 
 ## Support
 

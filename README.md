@@ -8,7 +8,7 @@ These skills aren't about showcasing what AI can do — they solve a specific pr
 
 My approach is to embed engineering discipline into the AI workflow itself — using structured processes to counter cognitive blind spots shared by both AI and humans. Specifically:
 
-- **Dual-AI Review**: Claude develops, Gemini reviews independently. Not for the sake of adding another AI, but because any model tends to over-rationalize when reviewing its own output.
+- **Structured code review**: Any model over-rationalizes when reviewing its own output, so review is a skill-triggered step — not a verbal assurance. As of 2026-04, `code-review-claude` is the default (broad coverage + adversarial + assumptions + syntax verification, 0/6 hallucinations in benchmark); `code-review-gemini` is optional when you want a fully applied refactored patch or an external second opinion.
 - **Falsification-first**: Research skills require searching for counter-evidence before supporting evidence. This isn't pessimism — it's a systematic defense against confirmation bias.
 - **Evidence before assertion**: Before claiming any work is "done", you must run verification commands and confirm the output. Saying "tests pass" requires actually running the tests.
 
@@ -119,15 +119,16 @@ Tools for managing skills themselves.
 
 ---
 
-## About Dual-AI Review
+## About the Layered Code Review Design
 
-This repo has a design that might seem odd: code review defaults to Gemini, not Claude itself.
+**Any model tends to over-rationalize existing structure when reviewing code it generated.** So this repo makes review an explicit, skill-triggered step — with an adversarial checklist and an assumptions list — instead of relying on "let Claude look it over."
 
-The reason is simple — **any model tends to over-rationalize existing structure when reviewing code it generated**. Claude handles development and context understanding; Gemini plays the relatively conservative reviewer, particularly good at catching logic gaps, edge cases, and insufficient defensive coding.
+### Two reviewers, two roles (effective 2026-04)
 
-This simulates the "author vs. reviewer separation" found in real teams. The current approach automatically invokes Gemini review after each small task, iterating on feedback until fully approved. The value isn't in adding another AI — it's in shifting review earlier and systematizing it, catching issues before risk accumulates.
+- **`code-review-claude` (default)** — Native Claude review in under 30 s. Includes Step 3.3 syntax-checker verification (eliminates whitespace/regex/character-class hallucinations), Step 3.4 language-specific checklists, Step 3.5 adversarial quick check (Assumption exposed / Mirror test / Suppression / What breaks this?), Step 3.6 Assumptions Identified list, and an optional Step 4.5 Refactored Patch. In a 2026-04 n=6 benchmark across Java / Python / JS / TS / PHP / Shell HTTP retry clients, this skill's finding coverage was 2.3×–5.0× that of Gemini, with 0/6 verified hallucinations.
+- **`code-review-gemini` (optional)** — External Gemini CLI review. Useful when you want a fully applied refactored patch or an external second opinion after the claude review. Not the default anymore, but retained as a patch generator and cross-check tool.
 
-If you don't use Gemini, `code-review-claude` provides a Claude-native fast review alternative.
+> **Pre-commit auto-review** also defaults to `code-review-claude`. Pre-commit is the highest-cost scenario for hallucinations, so it uses the benchmark-most-reliable reviewer.
 
 ---
 
@@ -165,7 +166,7 @@ Superpowers plugin skills (writing-plans, executing-plans, systematic-debugging,
 ### Prerequisites
 
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
-- [Node.js](https://nodejs.org/) (for Gemini CLI)
+- [Node.js](https://nodejs.org/) (only if you want to use Gemini-powered skills)
 - Git
 
 ### Installation
@@ -182,9 +183,9 @@ git clone https://github.com/tomwangowa/agent-skills.git ~/.claude/skills
 ln -s /path/to/cloned/repo ~/.claude/skills
 ```
 
-### Set Up Gemini CLI
+### Set Up Gemini CLI (optional)
 
-Gemini CLI is used by code-review-gemini, code-story-teller, pr-review-assistant, and other skills that require external review.
+The default reviewer `code-review-claude` is native Claude and requires no Gemini setup. Gemini CLI is only used by `code-review-gemini` (optional depth reviewer / refactored-patch generator), `code-story-teller`, and the keyword-triggered Gemini path of `pr-review-assistant`. You can skip this section if you only run the default flow.
 
 ```bash
 # Install Gemini CLI
@@ -203,7 +204,7 @@ echo 'export GEMINI_API_KEY="your-api-key-here"' >> ~/.zshrc  # or ~/.bashrc
 # Confirm Claude Code can see the skills
 ls ~/.claude/skills/
 
-# Test Gemini CLI
+# Test Gemini CLI (only if you installed Gemini-powered skills)
 gemini "Hello, test"
 ```
 
@@ -211,7 +212,7 @@ gemini "Hello, test"
 
 ## Usage Examples
 
-### Code Review (Gemini)
+### Code Review (default: Claude)
 
 ```bash
 # 1. Stage your changes
@@ -222,11 +223,19 @@ git add src/app.js
 > check code quality before commit
 ```
 
-Claude will invoke Gemini to analyze your changes, producing a structured report covering:
-- Potential bugs or security issues
-- Code quality and best practices
-- Readability and maintainability
-- Improvement suggestions
+The default trigger invokes `code-review-claude`, which returns a structured report in under 30 seconds:
+- 🔴 High / 🟡 Medium / 🟢 Low priority findings
+- Language-specific checklist hits (Python / Shell / JS / TS / Java / PHP)
+- **Adversarial quick check** — Assumption exposed / Mirror test / Suppression / What breaks this?
+- **Assumptions Identified** — unvalidated contracts the code relies on
+- **Refactored Patch** (optional, emitted when the diff is ≤ ~200 lines)
+
+Want an external second opinion or a fully worked refactored patch? Chain a Gemini review afterwards:
+
+```
+> gemini review these changes and give me a refactored patch
+> detailed review with gemini
+```
 
 ### Activity Logger
 

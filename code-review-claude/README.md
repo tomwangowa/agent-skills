@@ -2,11 +2,11 @@
 
 <div align="center">
 
-**⚡ Lightning-fast code review using Claude Code's native capabilities**
+**⚡ Default code reviewer — native Claude, adversarial pass, 0 hallucinations in benchmark**
 
-[![Production Ready](https://img.shields.io/badge/status-production%20ready-brightgreen)]()
-[![Audit Score](https://img.shields.io/badge/audit%20score-93%2F100-brightgreen)]()
-[![No Dependencies](https://img.shields.io/badge/dependencies-none-blue)]()
+[![Production Ready](https://img.shields.io/badge/status-default%20reviewer-brightgreen)]()
+[![Benchmark](https://img.shields.io/badge/2026--04%20benchmark-n%3D6-blue)]()
+[![Hallucinations](https://img.shields.io/badge/hallucinations-0%2F6-brightgreen)]()
 [![Speed](https://img.shields.io/badge/speed-%3C%2030%20seconds-blue)]()
 
 </div>
@@ -15,22 +15,20 @@
 
 ## 🎯 Purpose
 
-A lightweight, fast code review skill that provides immediate feedback during development without external dependencies or API keys. Designed as a complementary tool to `code-review-gemini` for rapid validation checks.
+Default code reviewer for the repo (as of 2026-04). Runs natively inside the Claude Code session — no API keys, no external calls — and produces a structured findings report with an adversarial quick check and an assumptions list. Also emits an optional ready-to-apply refactored patch when the diff is small enough.
 
 ### When to Use This Skill
 
-✅ **Perfect for:**
-- Quick sanity checks during active development
-- Immediate feedback on small changes (1-3 files)
-- Rapid validation before staging changes
-- Learning and code quality improvement
-- No-setup code review (zero configuration)
+✅ **Default use — any code review request:**
+- Daily development review of staged / unstaged changes
+- Pre-commit auto-review (CLAUDE.md rule delegates here by default)
+- Specific file, recent commit, or pasted snippet
+- Self-review after writing code (Step 0 auto-detects self-review bias)
 
-❌ **Use `code-review-gemini` instead for:**
-- Comprehensive security analysis
-- Production release validation
-- Deep architectural reviews
-- Compliance-required audits
+➕ **Chain `code-review-gemini` afterwards when you want:**
+- A fully worked refactored patch for a single file (Gemini's typical output)
+- An external second opinion on a specific claude-review finding
+- Depth via a different model on security- or compliance-critical code
 
 ---
 
@@ -38,23 +36,32 @@ A lightweight, fast code review skill that provides immediate feedback during de
 
 ### Prerequisites
 
-**None!** This skill uses only Claude Code's built-in capabilities.
+**None.** This skill uses only Claude Code's built-in Read / Grep / Bash tools.
 
 ### Usage
 
-Simply use one of these trigger phrases:
+Trigger phrases route to this skill by default:
 
 ```
+"review"
+"code review"
+"review my changes"
 "quick review"
 "native review"
-"fast code check"
-"review with claude"
+```
+
+For explicit routing to Gemini, include that keyword:
+
+```
+"gemini review"
+"detailed review with gemini"
+"refactored patch"
 ```
 
 ### Example
 
 ```
-User: "Quick review of my staged changes"
+User: "review my staged changes"
 
 Claude:
 ## Review Scope
@@ -69,68 +76,65 @@ Claude:
 1. **src/utils.ts:12** - Function name too generic
    - **Fix**: Rename to `validateEmailFormat`
 
+## [ADVERSARIAL] Findings
+1. **src/auth.ts:45** - [ADVERSARIAL] What breaks this? —
+   calling with `user=undefined` crashes before reaching the null check
+
+## Assumptions Identified
+- `user` is never null when `getProfile` is called
+- `config.tokenExpiry` is a positive integer
+
 ## Summary
-Total files: 2 | High: 1 | Medium: 1 | Low: 0
+Files: 2 | High: 1 | Medium: 1 | Adversarial: 1 | Assumptions: 2
 ```
 
 ---
 
-## 🚀 Features
+## 🚀 What it does
 
-### Speed
-- ⚡ **< 30 seconds** for typical reviews (1-3 files, ~200 lines)
-- No external API calls or network latency
-- Instant feedback during development
+### Workflow (see SKILL.md for the exact steps)
 
-### Zero Configuration
-- 📦 **No dependencies** - works out of the box
-- 🔑 **No API keys** required
-- 🛠️ **No installation** or setup needed
+- **Step 0 — Self-review detection** — If this session just edited files in the review scope, it either asks how to proceed (fresh session / subagent / warning-and-continue) or, under the pre-commit auto-review rule, silently prepends a bias warning and continues.
+- **Step 3.3 — Hallucination guard** — Before claiming any syntax / whitespace / regex / character-class finding, mandatorily runs a language-matched syntax checker (`python3 -c ast.parse`, `bash -n`, `node --check`, `php -l`, `gofmt -e`, `ruby -c`, `jq empty`, …). If the checker passes, the finding is dropped or reclassified. If Bash is unavailable, syntax-class findings get `[UNVERIFIED-SYNTAX]` and capped severity.
+- **Step 3.4 — Language-specific checklists** — Consults `references/language-checklists.md` for known-gap patterns the benchmark exposed (Python `body` dispatch, JS socket-idle vs overall timeout, Shell `&& true` suppression, etc.).
+- **Step 3.5 — Adversarial quick check** — Applies a 4-item checklist per function / change: Assumption exposed? / Mirror test? / Suppression not fix? / What breaks this?
+- **Step 3.6 — Assumptions Identified** — Emits the unvalidated contracts the code relies on (input shape, ordering, size limits).
+- **Step 4.5 — Refactored Patch (optional)** — Diff ≤ ~200 lines / ≤ 3 files → ready-to-apply rewrite. Never applies `[UNVERIFIED-SYNTAX]` findings.
 
-### Smart Analysis
-- 🔍 **Logic errors**: Off-by-one, wrong conditions, edge cases
-- 🛡️ **Basic security**: Input validation, error handling
-- 📚 **Code quality**: Naming, structure, maintainability
-- 🧪 **Testability**: Design issues affecting testing
+### Zero configuration
 
-### Production Ready
-- ✅ **Audit score: 93/100**
-- ✅ **Zero critical issues**
-- ✅ **Comprehensive security documentation**
-- ✅ **Well-tested workflow**
+- 📦 No external dependencies
+- 🔑 No API keys
+- 🛠️ No installation beyond having the skill file in `~/.claude/skills/`
 
 ---
 
 ## 📖 Usage Guide
 
-### Review Staged Changes
+### Review staged changes
 
 ```
-"Quick review of my staged changes"
+"review my staged changes"
 ```
 
-This reviews all files staged with `git add`. Most common use case.
+Reviews all files staged with `git add`. This is the default pre-commit auto-review path.
 
-### Review Specific File
-
-```
-"Native review of src/components/Auth.tsx"
-```
-
-Reviews a single file, providing targeted feedback.
-
-### Review Last Commit
+### Review a specific file
 
 ```
-"Quick review of my last commit"
+"review src/components/Auth.tsx"
 ```
 
-Reviews the most recent commit for quality checks.
-
-### Review Code Snippet
+### Review a recent commit
 
 ```
-I just wrote this function, quick review:
+"review the last commit"
+```
+
+### Review a pasted snippet
+
+```
+I just wrote this function, review it:
 
 function processData(items) {
   return items.map(item => item.value * 2)
@@ -138,40 +142,37 @@ function processData(items) {
 }
 ```
 
-Reviews provided code directly without file operations.
-
 ---
 
 ## 🎭 Comparison with code-review-gemini
 
-| Feature | code-review-claude | code-review-gemini |
-|---------|----------------------|----------------------|
-| **Speed** | ⚡ Immediate (< 30 sec) | 🐢 Slower (1-3 min) |
-| **Depth** | 🔍 Rapid validation | 🔬 Comprehensive analysis |
-| **Dependencies** | None | Gemini CLI + API key |
-| **Setup** | Zero configuration | Requires API setup |
-| **Use Case** | Development checks | Pre-commit reviews |
-| **Security Focus** | Basic | Advanced |
-| **Best For** | Quick iterations | Final validation |
-| **Trigger Words** | "quick", "native", "fast" | "detailed", "comprehensive", "gemini" |
+| Feature | code-review-claude (this skill) | code-review-gemini |
+|---|---|---|
+| **Role** | **Default reviewer** + pre-commit auto-reviewer | Optional depth / refactored-patch pass |
+| **Speed** | < 30 s (native, no API) | 1–2 min (external Gemini CLI) |
+| **Dependencies** | None | Gemini CLI + `GEMINI_API_KEY` |
+| **Finding coverage (2026-04 benchmark)** | **2.3×–5.0× Gemini's count** across 6 language demos | Baseline |
+| **Verified hallucinations (2026-04 benchmark)** | **0 / 6** | 3 / 6, all P0/P1, all in whitespace / char-class |
+| **Syntax-checker verification** | ✅ Mandatory Step 3.3 | ❌ None — source of the hallucination rate |
+| **Adversarial quick check** | ✅ Step 3.5 | ❌ |
+| **Assumptions list** | ✅ Step 3.6 | ❌ |
+| **Language-specific checklists** | ✅ `references/language-checklists.md` | ❌ |
+| **Refactored patch** | ✅ Optional Step 4.5, size-gated | ✅ Always emitted |
+| **Trigger words** | "review", "code review", "quick", "native" | "gemini review", "thorough review", "refactored patch" |
 
-### Which One to Use?
+### Benchmark context (2026-04, n=6)
 
-**Use `code-review-claude` when:**
-- You want immediate feedback (< 30 seconds)
-- Working on small changes (1-3 files)
-- Don't want to set up external tools
-- Doing rapid iteration during development
+Six HTTP retry clients in Java / Python / JS / TS / PHP / Shell were reviewed by both skills head-to-head. Claude produced broader finding coverage in all six languages with zero verified hallucinations; Gemini hallucinated P0/P1 syntax issues in three of six runs (whitespace-in-regex false positives), each of which would have broken working code if trusted. Not a guarantee for all future runs — but enough evidence to flip the default.
 
-**Use `code-review-gemini` when:**
-- You need comprehensive security analysis
-- Preparing for production deployment
-- Want deep architectural insights
-- Have time for thorough review (1-3 minutes)
+### Which one, when?
 
-**Pro Tip:** Use both sequentially!
-1. `quick review` during development for fast feedback
-2. `detailed review with gemini` before committing for comprehensive analysis
+| Situation | Use |
+|---|---|
+| Any review (the default) | `code-review-claude` |
+| Pre-commit auto-review (CLAUDE.md rule) | `code-review-claude` |
+| Just want a refactored patch on a small file | `code-review-gemini` (or chain after claude) |
+| Want an external second opinion on a specific claude finding | `code-review-gemini` (chain) |
+| Compliance / security-critical last-mile check | `code-review-claude` + `code-review-gemini` sequential |
 
 ---
 
@@ -197,250 +198,138 @@ Reviews provided code directly without file operations.
 - Minor refactoring opportunities
 - Documentation improvements
 
+### `[ADVERSARIAL]` Findings
+Findings surfaced by the Step 3.5 checklist. Often catch the "code looks right but assumes X" bugs that don't fall into the standard categories.
+
+### Assumptions Identified
+Unvalidated contracts the code relies on — useful even when no concrete exploit is named, because they tell the next maintainer where the implicit ground is.
+
 ---
 
 ## 🛡️ Security Considerations
 
 ### What This Skill Does
-- ✅ Read-only operations (no code execution)
-- ✅ Local analysis (no external API calls)
-- ✅ Validates file paths and git commands
+- ✅ Read-only operations — never executes the code being reviewed
+- ✅ Local analysis — no external API calls, no network
+- ✅ Validates file paths and uses read-only git commands
 - ✅ Sanitizes output to prevent injection
 
-### What This Skill Doesn't Do
-- ❌ Execute or evaluate code
-- ❌ Store or persist reviewed code
-- ❌ Share data with external services
-- ❌ Modify files without explicit consent
-
-### Privacy
-- All processing happens locally within Claude Code session
-- No telemetry or logging of reviewed code
-- User maintains full control over code visibility
-
 ### Limitations
-⚠️ **Important:**
-- Provides **suggestions**, not guarantees
-- Basic security review - use `code-review-gemini` for comprehensive security
-- Does not replace human code review or security audits
-- Cannot detect all types of vulnerabilities
+⚠️ Provides **suggestions**, not guarantees. Benchmark n=6 is encouraging but not a universal proof. Security-critical code still warrants human review and possibly a chained `code-review-gemini` pass.
 
 ---
 
 ## 🔧 Troubleshooting
 
-### Issue: Review seems incomplete
+### Review seems incomplete
 
-**Symptom:** Review doesn't cover all changes or misses obvious issues
+**Solution:** Be specific about scope. `"review src/auth.ts"` is better than `"review everything"`.
 
-**Solution:**
-- Be specific about what to review
-  - ✅ `"Quick review of src/auth.ts"`
-  - ✅ `"Native check on my authentication logic"`
-  - ❌ `"Review everything"` (too broad)
-- Break large changes into smaller chunks
-- Use `detailed review with gemini` for comprehensive analysis
+### No staged changes found
 
-### Issue: No staged changes found
-
-**Symptom:** Error message "No staged changes found"
-
-**Solution:**
 ```bash
-# Stage files first
-git add <files>
-
-# Or specify files directly
-"Quick review of src/file.ts"
+git add <files>          # stage first
+# or
+"review src/file.ts"     # specify file directly
 ```
 
-### Issue: Want more thorough analysis
+### Want a refactored patch on a single file
 
-**Symptom:** Review is too high-level or misses details
+```
+> gemini review src/auth.ts, give me a refactored patch
+```
 
-**Solution:**
-- Use `code-review-gemini` instead:
-  - `"Detailed review with gemini"`
-  - `"Comprehensive code review"`
-- For specific concerns, ask directly:
-  - `"Check security issues in auth.ts"`
-  - `"Review performance of data processing logic"`
+`code-review-claude` emits a Refactored Patch only when the diff is ≤ ~200 lines and ≤ 3 files. For anything larger, chain Gemini explicitly.
 
-### Issue: Conflicts with other review skills
+### Large changeset warning
 
-**Symptom:** Wrong skill gets triggered
+```
+⚠️ Large changeset detected (>1000 lines)
+```
 
-**Solution:**
-Use specific trigger words:
-- For this skill: `"quick review"` (< 30 sec), `"native review"`
-- For Gemini: `"detailed review"` (1-3 min), `"gemini review"`
-
-### Issue: Large changeset warning
-
-**Symptom:** "⚠️ Large changeset detected (>1000 lines)"
-
-**Solution:**
-1. Review in smaller chunks - specify individual files
-2. Use `code-review-gemini` for large changes
-3. Split into multiple commits for easier review
+**Solution:** split the commits, or review files individually. For a hot-spot file that needs a full rewrite, chain `code-review-gemini` on that single file.
 
 ---
 
 ## 📊 Review Scope Guidelines
 
-| Change Size | Files | Lines | Fit | Recommended Action |
-|-------------|-------|-------|-----|-------------------|
-| Small | 1-3 | < 200 | ✅ Perfect | Use code-review-claude |
-| Medium | 4-10 | 200-500 | ✅ Good | Use code-review-claude |
-| Large | 10+ | 500-1000 | ⚠️ Acceptable | Consider splitting or use gemini |
+| Change size | Files | Lines | Fit | Action |
+|---|---|---|---|---|
+| Small | 1–3 | < 200 | ✅ Perfect | Use as-is; Refactored Patch emitted |
+| Medium | 4–10 | 200–500 | ✅ Good | Findings reliable; patch switches to per-file diff or skipped |
+| Large | 10+ | 500–1000 | ⚠️ OK | Consider splitting; chain gemini on one hot-spot file for a full rewrite |
 | Very Large | 10+ | > 1000 | ❌ Too big | Split into smaller commits |
 
 ---
 
 ## 🎓 Examples
 
-### Example 1: Quick Review Before Staging
+### Example 1: Pre-staging sanity check
 
 ```
-User: "I just modified auth.ts, can you do a quick review?"
+User: "review src/auth.ts before I stage it"
 
-Claude: [Reads src/auth.ts]
-
+Claude:
 ## Review Scope
 - src/auth.ts (78 lines reviewed)
 
 ## 🔴 High Priority Issues
-1. **src/auth.ts:45** - Password comparison using `==` instead of secure compare
-   - **Risk**: Timing attack vulnerability
-   - **Fix**: Use `crypto.timingSafeEqual()` or bcrypt.compare()
+1. **src/auth.ts:45** - Password compared with `==`
+   - **Risk**: Timing attack
+   - **Fix**: `crypto.timingSafeEqual()` or `bcrypt.compare()`
 
 ## 🟡 Medium Priority Issues
-1. **src/auth.ts:67** - Hard-coded token expiry time
-   - **Fix**: Move to environment variable `TOKEN_EXPIRY_MS`
+1. **src/auth.ts:67** - Hard-coded token expiry
+   - **Fix**: Move to `TOKEN_EXPIRY_MS` env var
+
+## [ADVERSARIAL] Findings
+1. **src/auth.ts:45** - [ADVERSARIAL] Mirror test? — all three auth tests still pass
+   if `comparePasswords` becomes `() => true`
+
+## Assumptions Identified
+- Incoming passwords are always non-empty strings
+- `bcrypt.hash` is the only source of stored hashes
 
 ## Summary
-Total files: 1 | High: 1 | Medium: 1 | Low: 0
-
-## Next Steps
-1. Fix password comparison (critical security issue)
-2. Extract token expiry to config
+Files: 1 | High: 1 | Medium: 1 | Adversarial: 1 | Assumptions: 2
 ```
 
-### Example 2: Review Code Snippet
+### Example 2: Snippet review with hallucination guard
 
 ```
-User: "Quick review of this validator:
+User: "review this validator:
 
 function validateEmail(email) {
-  return email.includes('@');
-}
-"
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}"
 
 Claude:
-
-## 🔴 High Priority Issues
-1. **Validation too weak** - Only checks for '@' presence
-   - **Risk**: Accepts invalid emails like "@@", "test@", "@domain"
-   - **Fix**: Use proper regex or email validation library
-
-   ```javascript
-   function validateEmail(email) {
-     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-     return emailRegex.test(email);
-   }
-   ```
-
-## 🟡 Medium Priority Issues
-1. **No type checking** - Crashes if email is not a string
-   - **Fix**: Add type validation:
-
-   ```javascript
-   if (typeof email !== 'string') return false;
-   ```
-
-## Summary
-High: 1 | Medium: 1
-
-This validation is insufficient for production use. Consider using a library like `validator.js` or `email-validator` for robust validation.
-```
-
-### Example 3: Review Staged Changes
-
-```
-User: "Quick review before I commit"
-
-Claude: [Runs git diff --cached]
-
 ## Review Scope
-- src/api/users.ts (45 lines changed)
-- src/api/auth.ts (23 lines changed)
-- tests/api.test.ts (34 lines changed)
-
-## 🔴 High Priority Issues
-1. **src/api/users.ts:67** - SQL injection vulnerability
-   - Query uses string concatenation: `SELECT * FROM users WHERE id = ${userId}`
-   - **Fix**: Use parameterized query: `SELECT * FROM users WHERE id = ?`
+- Inline snippet (4 lines reviewed)
 
 ## 🟡 Medium Priority Issues
-1. **tests/api.test.ts:12** - Test doesn't verify error response format
-   - **Fix**: Add assertion for error structure
+1. **snippet:3** - No type check; crashes when `email` is not a string
+   - **Fix**: `if (typeof email !== 'string') return false;`
 
-## 🟢 Low Priority Suggestions
-1. **src/api/auth.ts:34** - Consider extracting magic number 3600 to constant
-   - **Fix**: `const TOKEN_EXPIRY_SECONDS = 3600`
+## Adversarial quick check: no issues found.
 
-## Summary
-Total files: 3 | High: 1 | Medium: 1 | Low: 1
+## Assumptions Identified
+- `email` is a string
 
-⚠️ **Do not commit** until SQL injection issue is fixed.
+## Note
+Earlier Gemini runs on similar code flagged `[^\s@]` as "space inside character class" —
+Step 3.3 verified this regex parses correctly (`re.test('a@b.c') === true`), so no
+[UNVERIFIED-SYNTAX] finding was emitted.
 ```
 
 ---
 
 ## 🔗 Related Skills
 
-- **code-review-gemini**: Comprehensive external AI code review
-- **pr-review-assistant**: Review pull requests before merging
-- **code-story-teller**: Understand code history and evolution
-
----
-
-## 📈 Roadmap
-
-### Current Version: 1.0.0
-
-**Implemented:**
-- ✅ Rapid code review (< 30 seconds)
-- ✅ Zero external dependencies
-- ✅ Comprehensive security documentation
-- ✅ Production-ready quality (93/100 audit score)
-
-**Future Enhancements:**
-- 🔄 Auto-fix suggestions with code patches
-- 🔄 Integration with git hooks (pre-commit)
-- 🔄 Customizable review rules
-- 🔄 Review history tracking
-- 🔄 Team-shared review templates
-
----
-
-## 🤝 Contributing
-
-### Feedback
-
-Found an issue or have a suggestion? Please provide feedback on:
-- Review quality and accuracy
-- Speed and responsiveness
-- Output format and clarity
-- Missing features or checks
-
-### Reporting Issues
-
-When reporting issues, please include:
-1. The trigger phrase used
-2. File size and complexity
-3. Expected vs actual behavior
-4. Example code (if applicable)
+- **code-review-gemini** — Optional depth / refactored-patch pass after claude review
+- **pr-review-assistant** — PR-level review (also defaults to claude under the hood; keyword-triggered fallback to gemini via its `scripts/review_pr.sh`)
+- **code-story-teller** — Understand code evolution history
 
 ---
 
@@ -450,33 +339,15 @@ Part of the Claude Code Skills repository.
 
 ---
 
-## 📚 Documentation
-
-- **Full Skill Definition**: See [SKILL.md](./SKILL.md)
-- **Naming Conventions**: See [../NAMING_CONVENTIONS.md](../NAMING_CONVENTIONS.md)
-- **Skill Auditor**: Use `tm-skill-auditor` to validate quality
-
----
-
-## 🏆 Quality Metrics
-
-- **Audit Score**: 93/100 (Excellent)
-- **Critical Issues**: 0
-- **Production Ready**: ✅ Yes
-- **Security Documentation**: ✅ Comprehensive
-- **Test Coverage**: ✅ Validated with tm-skill-auditor
-
----
-
 **Maintainer:** Tom Wang
 **Created:** 2026-01-20
-**Last Updated:** 2026-01-20
-**Version:** 1.0.0
+**Last Updated:** 2026-04-20
+**Version:** 2.0.0 (promoted to default reviewer 2026-04)
 
 ---
 
 <div align="center">
 
-**⚡ Fast • 📦 Zero Dependencies • 🛡️ Secure • 🎯 Production Ready**
+**⚡ Default • 🎯 Adversarial • 📝 Assumptions List • 🛡️ Syntax-Checker-Verified**
 
 </div>
