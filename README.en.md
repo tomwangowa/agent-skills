@@ -181,6 +181,17 @@ git clone https://github.com/tomwangowa/agent-skills.git ~/.claude/skills
 ln -s /path/to/cloned/repo ~/.claude/skills
 ```
 
+### Set Up Slash Commands
+
+Slash commands live in `~/.claude/commands/`, a separate directory from skills. After the main install, symlink the bundled commands into place:
+
+```bash
+mkdir -p ~/.claude/commands
+ln -s ~/.claude/skills/commands/sos.md ~/.claude/commands/sos.md
+```
+
+Without this step, typing `/sos` in Claude Code returns "command not found" even though the backing `claude-workflow-designer` skill is installed.
+
 ### Set Up Gemini CLI (optional)
 
 The default reviewer `code-review-claude` is native Claude and requires no Gemini setup. Gemini CLI is only used by `code-review-gemini` (optional depth reviewer / refactored-patch generator), `code-story-teller`, and the keyword-triggered Gemini path of `pr-review-assistant`. You can skip this section if you only run the default flow.

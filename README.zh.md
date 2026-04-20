@@ -185,6 +185,17 @@ git clone https://github.com/tomwangowa/agent-skills.git ~/.claude/skills
 ln -s /path/to/cloned/repo ~/.claude/skills
 ```
 
+### 設定 Slash Commands
+
+Slash commands 放在 `~/.claude/commands/`，跟 skills 是不同目錄。主安裝完成後，把 repo 內附的 commands symlink 過去：
+
+```bash
+mkdir -p ~/.claude/commands
+ln -s ~/.claude/skills/commands/sos.md ~/.claude/commands/sos.md
+```
+
+少了這一步，在 Claude Code 打 `/sos` 會出現「command not found」——即使背後的 `claude-workflow-designer` skill 已經裝好。
+
 ### 設定 Gemini CLI（選配）
 
 預設 reviewer `code-review-claude` 是原生 Claude，不需要 Gemini。Gemini CLI 僅在以下 skills 使用：`code-review-gemini`（選配深度 reviewer / refactored patch 生成器）、`code-story-teller`、`pr-review-assistant` 的 keyword-triggered Gemini 路徑（詳見該 skill 文件）。如果你只跑預設流程，可以跳過本節。
