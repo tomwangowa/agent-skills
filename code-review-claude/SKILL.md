@@ -1,6 +1,6 @@
 ---
 name: code-review-claude
-description: Use when the user asks for any code review, 'review', 'code review', 'quick review', 'native review', or a fast code check — this is the default reviewer as of 2026-04. Runs native (< 30 s) line-by-line analysis with adversarial pass, assumptions list, syntax-checker-verified syntax findings, and an optional ready-to-apply Refactored Patch. Benchmark (2026-04, n=6): broader finding coverage than code-review-gemini and 0 verified hallucinations across 6 demos; not a guarantee for future runs.
+description: Use when the user asks for any code review, 'review', 'code review', 'quick review', 'native review', or a fast code check — this is the default reviewer as of 2026-04. Runs native (< 30 s) line-by-line analysis with adversarial pass, assumptions list, syntax-checker-verified syntax findings, and an optional ready-to-apply Refactored Patch. In a 2026-04 benchmark (n=6) this skill produced broader finding coverage than code-review-gemini with 0 verified hallucinations across 6 demos — not a guarantee for future runs.
 id: code-review-claude
 version: "2.0.0"
 tags:
