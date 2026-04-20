@@ -13,23 +13,12 @@ Analyze git history to tell the evolutionary story of your code. Understand why 
 
 ## Dependencies
 
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
 - Git repository with commit history
-- `GEMINI_API_KEY` environment variable set
+- Claude Code (analysis runs natively inside Claude — no external API keys required)
 
 ## Usage
 
-### Step 1: Identify a file to analyze
-
-Choose a file you want to understand:
-- Core modules you're unfamiliar with
-- Frequently changed files
-- Complex legacy code
-- Files you're about to refactor
-
-### Step 2: Run the analysis
-
-**Using Claude Code** (Recommended):
+The skill is invoked in Claude Code using natural language. Point it at a single file you want to understand:
 
 ```
 > Tell me the story of src/api/auth.js
@@ -37,22 +26,13 @@ Choose a file you want to understand:
 > Explain the history of this file
 ```
 
-**Direct script usage**:
+The skill then:
 
-```bash
-cd /path/to/your/project
-bash ~/.claude/skills/code-story-teller/scripts/tell_code_story.sh src/api/auth.js
-```
-
-### Step 3: Read the story
-
-The tool generates a comprehensive narrative including:
-- Origin story (when & why created)
-- Evolution timeline (major milestones)
-- Design decisions (architectural choices)
-- Current state (present structure)
-- Patterns & insights (what can we learn)
-- Notable contributors (who shaped the code)
+1. Verifies the file is tracked by git
+2. Collects up to the 20 most recent commits (`git log --follow -p`)
+3. Analyzes origin, milestones, design decisions, contributors
+4. Reads the current file for comparison
+5. Presents a structured narrative (see *Output Format* in `SKILL.md`)
 
 ## Example Output
 
@@ -88,9 +68,8 @@ The tool generates a comprehensive narrative including:
 
 **Scenario:** You inherit a complex module and need to understand it.
 
-```bash
-# Analyze the main file
-tell_code_story.sh src/legacy/payment-processor.js
+```
+> Tell me the story of src/legacy/payment-processor.js
 ```
 
 **Benefits:**
@@ -103,9 +82,8 @@ tell_code_story.sh src/legacy/payment-processor.js
 
 **Scenario:** Planning a major refactoring.
 
-```bash
-# Study the file's history first
-tell_code_story.sh src/core/data-processor.js
+```
+> Tell me the story of src/core/data-processor.js
 ```
 
 **Benefits:**
@@ -118,9 +96,8 @@ tell_code_story.sh src/core/data-processor.js
 
 **Scenario:** Reviewing a complex PR.
 
-```bash
-# Get context on the file being changed
-tell_code_story.sh src/components/UserProfile.jsx
+```
+> Tell me the story of src/components/UserProfile.jsx
 ```
 
 **Benefits:**
@@ -132,10 +109,9 @@ tell_code_story.sh src/components/UserProfile.jsx
 
 **Scenario:** New team member needs to understand the codebase.
 
-```bash
-# Generate stories for key modules
-tell_code_story.sh src/api/index.js
-tell_code_story.sh src/database/schema.js
+```
+> Tell me the story of src/api/index.js
+> Now tell me the story of src/database/schema.js
 ```
 
 **Benefits:**
@@ -148,9 +124,8 @@ tell_code_story.sh src/database/schema.js
 
 **Scenario:** Creating technical documentation.
 
-```bash
-# Generate stories for documentation
-tell_code_story.sh src/core/engine.js > docs/engine-history.md
+```
+> Tell me the story of src/core/engine.js and save the result to docs/engine-history.md
 ```
 
 **Benefits:**
@@ -158,25 +133,11 @@ tell_code_story.sh src/core/engine.js > docs/engine-history.md
 - Architecture Decision Records (ADRs)
 - Historical context for future developers
 
-## Configuration
+## Behavior
 
-### Adjust Maximum Commits
-
-By default, the tool analyzes the most recent 20 commits. To change this:
-
-```bash
-# Edit the script
-vim ~/.claude/skills/code-story-teller/scripts/tell_code_story.sh
-
-# Change this line:
-MAX_COMMITS=20  # Increase or decrease as needed
-```
-
-**Note:** More commits = more context but longer processing time and higher API costs.
-
-### Language Preference
-
-The default output is in Traditional Chinese with English technical terms. To change this, modify the prompt in the script.
+- **Commit depth:** The skill analyzes up to the 20 most recent commits per file (hard-coded in `SKILL.md` to avoid context overflow). For longer windows, ask Claude to split the analysis by date range — see *Advanced Usage* below.
+- **Rename handling:** `git log --follow` tracks renames automatically.
+- **Language:** Narrative in Traditional Chinese, technical terms / commit hashes / dates in English. Ask in English to override.
 
 ## Tips & Best Practices
 
@@ -227,7 +188,7 @@ Periodically analyze key files:
 
 **Solution:**
 - Verify the file exists and is committed
-- Check if the file was recently renamed (tool may not track renames beyond git's defaults)
+- Check if the file was recently renamed (rare cases where `--follow` heuristics don't catch the rename)
 
 ### "File not tracked by git"
 
@@ -248,98 +209,84 @@ git commit -m "Initial commit"
 - Manually add context in the story output
 - Combine with issue/PR links for more context
 
-### Output is truncated
+### Output is truncated or history feels clipped
 
-**Cause:** Too many commits or large diffs.
+**Cause:** File has more than 20 commits; the skill intentionally caps depth.
 
 **Solution:**
-- Reduce MAX_COMMITS in the script
-- Focus on specific time periods
+- Scope by time range (see Advanced Usage)
 - Analyze smaller, more focused files
-
-### API quota exceeded
-
-**Cause:** Analyzed too many files in a short time.
-
-**Solution:**
-- Wait for quota reset
-- Use a different API key
-- Reduce analysis frequency
-- Cache results for frequently analyzed files
+- Ask for a narrative on a specific phase ("what happened in 2024 Q1?")
 
 ## Advanced Usage
 
-### Analyze Specific Time Period
+### Analyze a specific time period
 
-```bash
-# Modify the script to use date ranges
-git log --follow --since="2023-01-01" --until="2023-12-31" -- <file>
+```
+> Tell me the story of src/core/app.js focusing on commits between 2024-01-01 and 2024-06-30
 ```
 
-### Compare Two Time Periods
+When the prompt specifies a date range, Claude typically passes `--since` / `--until` through to `git log` on the fly. Behavior is not encoded in `SKILL.md`, so treat it as best-effort rather than a guarantee — rerun the prompt if the returned history ignores your window.
 
-```bash
-# Run analysis for different periods and compare
-tell_code_story.sh --since="2023-01-01" --until="2023-06-30" file.js
-tell_code_story.sh --since="2023-07-01" --until="2023-12-31" file.js
+### Compare two time periods
+
+```
+> Tell me the story of src/core/app.js in two parts: 2023 H1 vs 2023 H2, and highlight how the design direction changed
 ```
 
 ### Export to Markdown
 
-```bash
-# Save story as documentation
-tell_code_story.sh src/core/app.js | sed 's/^===.*===/---/' > docs/app-history.md
+```
+> Tell me the story of src/core/app.js and write it to docs/app-history.md
 ```
 
-### Batch Analysis
+### Batch analysis
 
-```bash
-# Analyze multiple files
-for file in src/core/*.js; do
-  echo "Analyzing $file..."
-  tell_code_story.sh "$file" > "docs/stories/$(basename $file .js)-story.txt"
-done
+Ask Claude to iterate:
+
+```
+> For each file under src/core/, tell me a short one-paragraph story and save to docs/stories/<basename>.md
 ```
 
 ## Example Workflow
 
 ### Scenario: Understanding a Complex Module Before Refactoring
 
-```bash
-# 1. Analyze the main file
-tell_code_story.sh src/modules/payment/processor.js
+1. **Analyze the main file** in Claude Code:
+   ```
+   > Tell me the story of src/modules/payment/processor.js
+   ```
 
-# 2. Read the story and understand design decisions
-# (Output appears in terminal and saved to temp file)
+2. **Read the narrative** and internalize the design decisions.
 
-# 3. Check related files
-tell_code_story.sh src/modules/payment/validator.js
-tell_code_story.sh src/modules/payment/gateway.js
+3. **Check related files** the same way:
+   ```
+   > Tell me the story of src/modules/payment/validator.js
+   > Tell me the story of src/modules/payment/gateway.js
+   ```
 
-# 4. Make refactoring changes
-vim src/modules/payment/processor.js
+4. **Refactor** `processor.js`.
 
-# 5. Stage and review changes
-git add src/modules/payment/processor.js
+5. **Stage + review** the changes:
+   ```
+   > Review the staged files
+   ```
+   (Default: code-review-claude. For a fully-worked refactored patch, chain code-review-gemini afterwards.)
 
-# In Claude Code:
-# > Review the staged files
-# (Default: code-review-claude. For a refactored patch, chain code-review-gemini afterwards.)
+6. **Commit** using Conventional Commits format, e.g.:
+   ```
+   refactor(payment): improve error handling for edge cases
+   ```
 
-# 6. Commit changes
-git commit -m "refactor(payment): improve error handling for edge cases"
-
-# 7. Commit
-git commit -F /tmp/commit_msg_result.txt
-
-# 8. Generate updated story (optional)
-tell_code_story.sh src/modules/payment/processor.js > docs/payment-refactoring.md
-```
+7. **Optionally regenerate the story** to capture the refactoring in docs:
+   ```
+   > Tell me the updated story of src/modules/payment/processor.js and save it to docs/payment-refactoring.md
+   ```
 
 ## FAQ
 
 **Q: How far back does it analyze?**
-A: By default, the most recent 20 commits. Configurable via MAX_COMMITS.
+A: The 20 most recent commits per file (hard-coded in `SKILL.md` to protect the context window). For wider windows, request a time-bounded analysis — see *Advanced Usage*.
 
 **Q: Does it work with renamed files?**
 A: Yes, uses `git log --follow` to track renames.
@@ -351,13 +298,13 @@ A: No, the file must currently exist in the working directory.
 A: All languages tracked by git. The analysis focuses on commit history, not code syntax.
 
 **Q: How much does it cost?**
-A: Depends on your Gemini API usage. Each analysis sends ~2-5KB of data.
+A: No external API cost — analysis runs natively inside Claude Code. Counts against your regular Claude Code usage.
 
 **Q: Can I analyze an entire directory?**
-A: No, analyze one file at a time. Use a bash loop for batch processing.
+A: Not directly, but you can ask Claude to loop over files — see *Batch analysis* in Advanced Usage.
 
 **Q: How long does analysis take?**
-A: Usually 5-15 seconds per file, depending on history complexity and API latency.
+A: Usually a few seconds per file, depending on history length and diff complexity.
 
 ## Related Skills
 

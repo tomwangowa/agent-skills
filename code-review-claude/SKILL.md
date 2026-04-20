@@ -22,7 +22,7 @@ updated: "2026-04-20"
 This skill provides immediate, native code review using Claude Code's built-in capabilities. Unlike external AI-based reviews, this skill requires no external dependencies, API keys, or network calls. It's designed for rapid validation checks (< 30 seconds) during active development.
 
 **Key differences from `code-review-gemini`:**
-- 🎯 **Role**: Default reviewer (this skill) vs. depth / final-validation / refactored-patch (gemini)
+- 🎯 **Role**: Default reviewer (this skill, including pre-commit auto-review) vs. depth / fully-worked refactored-patch (gemini)
 - ⚡ **Speed**: Immediate (< 30 seconds) — no external API calls
 - 📦 **Dependencies**: None — uses Claude Code's native tools
 - 🔑 **Setup**: Zero configuration required
@@ -40,7 +40,6 @@ Use this skill when you want:
 
 **Don't use this skill when you need:**
 - A fully-worked refactored patch on a small single file (use `code-review-gemini`)
-- Final pre-commit validation (use `code-review-gemini` — required by the CLAUDE.md pre-commit rule)
 - A second externally-hosted reviewer for cross-checking a claude-review finding
 
 ---
@@ -90,7 +89,7 @@ This skill responds to these natural language phrases:
 - "check my changes quickly"
 - "fast validation"
 
-**Note:** As of 2026-04, the bare word "review" and generic "code review" default to THIS skill. Route to `code-review-gemini` with "gemini review", "thorough review", "deep review", "detailed review", "final validation", or "refactored patch".
+**Note:** As of 2026-04, the bare word "review" and generic "code review" default to THIS skill (including pre-commit auto-review). Route to `code-review-gemini` with "gemini review", "thorough review", "deep review", "detailed review", or "refactored patch".
 
 ---
 
@@ -456,7 +455,7 @@ Based on a 6-language benchmark (2026-04) comparing both reviewers on the same H
 
 | Feature | code-review-claude (this skill) | code-review-gemini |
 |---------|---------------------------------|--------------------|
-| **Role** | **Default reviewer** | Depth / final-validation + refactored patch |
+| **Role** | **Default reviewer** (incl. pre-commit auto-review) | Depth + fully-worked refactored patch |
 | **Speed** | ⚡ < 30 seconds | 🐢 1–2 minutes (external API) |
 | **Dependencies** | None (native Claude tools) | Gemini CLI + API key |
 | **Finding count** | **2.3×–5.0× gemini's count** across 6 demos | baseline |
@@ -466,8 +465,8 @@ Based on a 6-language benchmark (2026-04) comparing both reviewers on the same H
 | **Refactored patch** | ✅ Optional Step 4.5, size-gated | ✅ Always emitted |
 | **Syntax-claim guard** | ✅ Mandatory syntax-checker verification (Step 3.3) | ❌ None — source of the 50% hallucination rate |
 | **Language-specific checklists** | ✅ `references/language-checklists.md` | ❌ Generic prompt |
-| **Best for** | Default use; broad discovery; any iteration; pre-commit scanning under tight feedback loops | Final validation; when a fully-written patch is required; pre-commit auto-review (per CLAUDE.md) |
-| **Trigger words** | "review", "code review", "quick", "native", "fast" | "detailed", "thorough", "gemini", "deep review", "final validation", "refactored patch" |
+| **Best for** | Default use; broad discovery; any iteration; **pre-commit auto-review (per CLAUDE.md)** | Depth pass / second opinion; when a fully-written patch is required |
+| **Trigger words** | "review", "code review", "quick", "native", "fast" | "detailed", "thorough", "gemini", "deep review", "refactored patch" |
 
 ---
 
