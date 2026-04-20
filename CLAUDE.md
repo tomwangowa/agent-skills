@@ -35,7 +35,7 @@ Followed by markdown content containing:
 ### Code Review
 
 - **code-review-claude** — Default reviewer: native code review with adversarial pass, assumptions list, and optional refactored patch. Broader coverage, zero hallucination (2026-04 benchmark: 2.3×–5.0× gemini's findings across 6 demos)
-- **code-review-gemini** — Depth / final-validation reviewer (Gemini CLI). Required for pre-commit auto-review; also useful when a fully worked refactored patch is needed
+- **code-review-gemini** — Optional depth / final-validation reviewer (Gemini CLI). Useful when a fully worked refactored patch is needed, or as a second-opinion pass after code-review-claude
 
 ### Multi-Agent Roles
 

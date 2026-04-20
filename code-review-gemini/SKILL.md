@@ -1,6 +1,6 @@
 ---
 name: code-review-gemini
-description: Perform deep, thorough code review using Gemini AI. Use this Skill when user explicitly requests 'gemini review', 'thorough review', 'detailed review', 'deep review', a fully refactored patch, or a final pre-commit validation. NOT the default reviewer — code-review-claude is default (2026-04 benchmark showed Claude's native reviewer has broader coverage and zero hallucination; Gemini remains valuable for depth + refactored patches).
+description: Perform deep, thorough code review using Gemini AI. Use this Skill when user explicitly requests 'gemini review', 'thorough review', 'detailed review', 'deep review', or a fully refactored patch. NOT the default reviewer and NOT the pre-commit reviewer — code-review-claude holds both roles as of 2026-04 (benchmark n=6 showed Claude's native reviewer has broader coverage and zero verified hallucinations; Gemini has value as an optional second-opinion pass or for generating ready-to-apply patches).
 allowed-tools: Bash, Read, Edit, Write
 ---
 

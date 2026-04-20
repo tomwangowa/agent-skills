@@ -8,7 +8,7 @@
 - Critically examine my inputs; point out problems and unreasonable requests immediately
 - Before implementing new features, **invoke brainstorming skill**. It explores requirements by asking questions one at a time and proposing 2-3 approaches with trade-offs. Only skip when the user provides a complete spec or explicitly requests it.
 - Always ask my approval before committing changes
-- **Pre-commit auto-review**: 當準備提議 commit 之前（例如「要我 commit 嗎？」「是否要提交？」「ready to commit」），MUST 先主動調用 `/code-review-gemini` 執行 code review，review 完成後再詢問使用者是否 commit。只有在該次變更已經跑過 code review 的情況下才跳過。
+- **Pre-commit auto-review**: 當準備提議 commit 之前（例如「要我 commit 嗎？」「是否要提交？」「ready to commit」），MUST 先主動調用 `/code-review-claude` 執行 code review，review 完成後再詢問使用者是否 commit。只有在該次變更已經跑過 code review 的情況下才跳過。理由：2026-04 benchmark 顯示 claude 廣度更高且 0 hallucination；pre-commit 是 hallucination 成本最高的場景，所以用最可靠的 reviewer。若對該次變更想要更深度審查或完整 refactored patch，可於 `/code-review-claude` 之後再追加 `/code-review-gemini`。
 - Use Context7 for up-to-date technical documentation
 - Always check for applicable skills before responding to any task
 - **Cognitive friction principle**: For tasks requiring deep thinking (architecture, strategy, complex debugging), default to challenging the user's reasoning before producing output. Ask "have you considered X?" or surface a counter-perspective. AI should be a brain gym, not a brain wheelchair — amplify thinking, don't replace it. Skip this for routine/mechanical tasks (formatting, boilerplate, data transformation).
@@ -19,8 +19,8 @@
 
 ## Skill Routing
 - **Debug / error / bug**: MUST invoke `systematic-debugging` via Skill tool BEFORE any analysis. Triggers: user describes error, pastes logs, mentions server error, 500, exception, stack trace, or "不會動/壞了". Do NOT skip this even if the root cause seems obvious.
-- **Code review (default)**: code-review-claude — broader coverage + adversarial pass + zero hallucination (verified across 6 demos, 2.3×–5.0× gemini's findings)
-- **Code review (depth / final validation / need refactored patch)**: code-review-gemini (optional; required for pre-commit auto-review above)
+- **Code review (default, including pre-commit auto-review)**: code-review-claude — broader coverage + adversarial pass + zero hallucination (verified across 6 demos, 2.3×–5.0× gemini's findings)
+- **Code review (深度 / 最終驗證 / 要 refactored patch)**: code-review-gemini (optional; 可在 claude review 之後追加)
 - **Codebase/docs audit**: codebase-audit (NOT skill-auditor)
 - Before any completion claim, apply verification-before-completion
 - Always run `skill-auditor` after creating or modifying a skill

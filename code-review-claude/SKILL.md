@@ -45,6 +45,37 @@ Use this skill when you want:
 
 ---
 
+## Session Hygiene — Fresh Session vs Same Session
+
+The reviewer's own session context can bias the review. Three known failure modes:
+
+- **Commitment bias** — if the reviewer (you, or a prior Claude turn in this session) just argued for the design, the reviewer is motivated to find it correct.
+- **Recency bias** — phrases and numbers already in the current context are disproportionately "available" when generating findings.
+- **Framing bias** — the task description that led to the code under review has already anchored the reviewer's frame.
+
+### Decision table
+
+| Scenario | Recommended |
+|---|---|
+| **Self-review** — reviewing code / docs the current session just produced | **New session.** Bias cost outweighs re-read cost. |
+| Reviewing another author's PR, or unrelated code | Same session is fine. |
+| Mechanical checks (typos, syntax, obvious bugs) | Same session is fine. Step 3.3 syntax guard is session-independent. |
+| High-stakes decision (merge blocker, security-sensitive) | New session **and** also run `code-review-gemini` for cross-check. |
+
+### Middle ground — subagent review in the same session
+
+If a fresh session is too expensive (re-reading the whole repo, re-establishing context), use the `Agent` tool to dispatch a subagent reviewer. The subagent has its own context window and does not see the current session's reasoning chain, but it still inherits the task framing the caller provides. Rank: fresh session > subagent review > direct same-session review.
+
+### Recommended invocation when self-reviewing
+
+When invoking the skill from the same session that produced the code, **state the bias up front** in the prompt to the subagent (or in your own working notes), e.g.:
+
+> "Review the changes to `X.md` below. I just wrote them, so treat my framing with suspicion. Prioritize what I might be over-claiming."
+
+This does not eliminate bias, but it primes the reviewer to apply the adversarial pass (Step 3.5) against the framing, not just against the code.
+
+---
+
 ## Trigger Phrases
 
 This skill responds to these natural language phrases:
@@ -66,6 +97,45 @@ This skill responds to these natural language phrases:
 ## Instructions
 
 When the user requests a native/quick code review, follow this workflow strictly:
+
+### Step 0: Self-Review Detection
+
+**Before identifying review scope, check for self-review bias.**
+
+Scan the current conversation history for `Edit` / `Write` / `NotebookEdit` tool calls. If any of those calls targeted a file that will fall within the review scope (determined in Step 1 below — for staged/working-tree reviews, any edited file in the session almost certainly qualifies), **this is a self-review** and the three bias modes in the "Session Hygiene" section above apply.
+
+**When self-review is detected, STOP and state:**
+
+```
+⚠️ SELF-REVIEW DETECTED
+
+This session already edited files in the review scope:
+  - <file 1>
+  - <file 2>
+  ...
+
+Reviewing in the same context risks commitment / recency / framing bias.
+How would you like to proceed?
+
+  (a) Open a fresh session and re-invoke — recommended for non-trivial self-review
+  (b) Dispatch a subagent to run the review in an isolated context — middle ground
+  (c) Continue in this session with an explicit bias warning attached to findings
+```
+
+**Wait for the user's choice before continuing.** Do not assume (c) as default.
+
+**Exemption — pre-commit auto-review context.** When this skill is invoked as part of the pre-commit auto-review rule (user's preceding message asked to commit, or the invocation was triggered automatically by the CLAUDE.md pre-commit rule — signals include "commit", "commit and push", "ready to commit", "要 commit 嗎", "是否要提交"), **do not ask for choice (a)/(b)/(c)**. Auto-select (c) silently: prepend the bias warning to the final report and proceed to Step 1. Reason: a pre-commit review is almost always self-review by definition (the user just wrote the code they're about to commit); asking every time creates friction without new information. The bias warning in the report is sufficient disclosure.
+
+- On **(a)**: end the skill invocation; the user will open a fresh session themselves.
+- On **(b)**: invoke the `Agent` tool (subagent_type: `general-purpose`) with a self-contained prompt containing the review scope, the SKILL.md rules, and instruction: "You are reviewing code produced in another session. Treat the author's framing with suspicion. Prioritize what they might be over-claiming." Return the subagent's findings directly.
+- On **(c)**: proceed with Step 1, and prepend to the final report: "⚠️ Self-review in same session — commitment / recency / framing bias not controlled."
+
+**When no self-review is detected,** skip this disclosure and proceed to Step 1 silently.
+
+**Edge cases:**
+- Session started with files already modified (e.g. user passed a diff in the opening message and edits came from a different AI / human): no Edit/Write tool calls from this session → not flagged. This is correct behavior; bias only applies to authorship within the current reasoning chain.
+- User is reviewing someone else's code that they happened to open and read: Read-only traffic does not trigger detection.
+- Review scope is narrower than what was edited (e.g. edited 5 files, user asks to review only 1 unchanged file): check intersection, not the full edit set.
 
 ### Step 1: Identify Review Scope
 1. Ask user what to review if not specified:
