@@ -142,9 +142,9 @@ Reviews provided code directly without file operations.
 
 ---
 
-## 🎭 Comparison with tm-code-review-gemini
+## 🎭 Comparison with code-review-gemini
 
-| Feature | tm-code-review-claude | tm-code-review-gemini |
+| Feature | code-review-claude | code-review-gemini |
 |---------|----------------------|----------------------|
 | **Speed** | ⚡ Immediate (< 30 sec) | 🐢 Slower (1-3 min) |
 | **Depth** | 🔍 Rapid validation | 🔬 Comprehensive analysis |
@@ -157,13 +157,13 @@ Reviews provided code directly without file operations.
 
 ### Which One to Use?
 
-**Use `tm-code-review-claude` when:**
+**Use `code-review-claude` when:**
 - You want immediate feedback (< 30 seconds)
 - Working on small changes (1-3 files)
 - Don't want to set up external tools
 - Doing rapid iteration during development
 
-**Use `tm-code-review-gemini` when:**
+**Use `code-review-gemini` when:**
 - You need comprehensive security analysis
 - Preparing for production deployment
 - Want deep architectural insights
@@ -221,7 +221,7 @@ Reviews provided code directly without file operations.
 ### Limitations
 ⚠️ **Important:**
 - Provides **suggestions**, not guarantees
-- Basic security review - use `tm-code-review-gemini` for comprehensive security
+- Basic security review - use `code-review-gemini` for comprehensive security
 - Does not replace human code review or security audits
 - Cannot detect all types of vulnerabilities
 
@@ -259,7 +259,7 @@ git add <files>
 **Symptom:** Review is too high-level or misses details
 
 **Solution:**
-- Use `tm-code-review-gemini` instead:
+- Use `code-review-gemini` instead:
   - `"Detailed review with gemini"`
   - `"Comprehensive code review"`
 - For specific concerns, ask directly:
@@ -281,7 +281,7 @@ Use specific trigger words:
 
 **Solution:**
 1. Review in smaller chunks - specify individual files
-2. Use `tm-code-review-gemini` for large changes
+2. Use `code-review-gemini` for large changes
 3. Split into multiple commits for easier review
 
 ---
@@ -290,8 +290,8 @@ Use specific trigger words:
 
 | Change Size | Files | Lines | Fit | Recommended Action |
 |-------------|-------|-------|-----|-------------------|
-| Small | 1-3 | < 200 | ✅ Perfect | Use tm-code-review-claude |
-| Medium | 4-10 | 200-500 | ✅ Good | Use tm-code-review-claude |
+| Small | 1-3 | < 200 | ✅ Perfect | Use code-review-claude |
+| Medium | 4-10 | 200-500 | ✅ Good | Use code-review-claude |
 | Large | 10+ | 500-1000 | ⚠️ Acceptable | Consider splitting or use gemini |
 | Very Large | 10+ | > 1000 | ❌ Too big | Split into smaller commits |
 

@@ -55,10 +55,10 @@ Use the disambiguation groups below. If the matched skills span multiple groups,
 > 3. 想針對一個說法找反證 → `critical-research`
 > 4. 已經做了多項研究，需要整合結論 → `research-synthesis`
 
-**Review 類**（code-review-gemini, code-review-claude, pr-review-assistant）
+**Review 類**（code-review-claude, code-review-gemini, pr-review-assistant）
 > **你要 review 什麼？**
-> 1. 深度 code review（不趕時間） → `code-review-gemini`
-> 2. 快速掃一眼（< 50 行，幾秒鐘） → `code-review-claude`
+> 1. 預設 review：廣度掃描 + adversarial + 0 hallucination（< 30 秒） → `code-review-claude`
+> 2. 深度 / 最終驗證，或需要完整可複製的 refactored patch → `code-review-gemini`
 > 3. 審查一個 GitHub PR → `pr-review-assistant`
 
 **設計類**（brainstorming, superpowers:writing-plans, role-pm, role-rd）

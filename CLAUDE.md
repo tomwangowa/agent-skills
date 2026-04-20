@@ -34,8 +34,8 @@ Followed by markdown content containing:
 
 ### Code Review
 
-- **code-review-gemini** — Deep code review using Gemini CLI (default reviewer)
-- **code-review-claude** — Fast native code review using Claude (< 50 lines)
+- **code-review-claude** — Default reviewer: native code review with adversarial pass, assumptions list, and optional refactored patch. Broader coverage, zero hallucination (2026-04 benchmark: 2.3×–5.0× gemini's findings across 6 demos)
+- **code-review-gemini** — Depth / final-validation reviewer (Gemini CLI). Required for pre-commit auto-review; also useful when a fully worked refactored patch is needed
 
 ### Multi-Agent Roles
 

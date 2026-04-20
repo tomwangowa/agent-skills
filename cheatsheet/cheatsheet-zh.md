@@ -159,8 +159,8 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 
 | 情境 | 使用技能 | 範例 |
 |------|----------|------|
-| 需要深度 code review（預設） | `code-review-gemini` | 「幫我深度 review src/auth/ 的改動」 |
-| 快速 review（< 50 行變更） | `code-review-claude` | 「快速 review 一下 utils.ts 這個小修改」 |
+| 任何 code review（預設） | `code-review-claude` | 「review 一下 src/auth/ 的改動」 |
+| 深度 review / 要 refactored patch / pre-commit 驗證 | `code-review-gemini` | 「gemini review 這個模組，給我 refactored patch」 |
 | 要 review 一個 PR | `pr-review-assistant` | 「Review PR #42」 |
 
 > **Review 技能選用指引：**

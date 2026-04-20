@@ -127,20 +127,12 @@ categories:
   code-review:
     label: 程式碼審查
     skills:
-      - id: code-review-gemini
+      - id: code-review-claude
+        # Default reviewer (2026-04): broader coverage, adversarial pass, zero hallucination
         triggers:
           - "code review"
           - "review 一下"
           - "幫我看 code"
-          - "deep review"
-          - "thorough review"
-          - "detailed review"
-          - "gemini review"
-          - "完整 review"
-          - "仔細看看"
-
-      - id: code-review-claude
-        triggers:
           - "quick review"
           - "快速 review"
           - "native review"
@@ -148,6 +140,19 @@ categories:
           - "簡單看一下"
           - "掃一眼"
           - "glance review"
+
+      - id: code-review-gemini
+        # Depth / final-validation reviewer; required for pre-commit auto-review
+        triggers:
+          - "deep review"
+          - "thorough review"
+          - "detailed review"
+          - "gemini review"
+          - "完整 review"
+          - "仔細看看"
+          - "深度 review"
+          - "最終驗證"
+          - "refactored patch"
 
       - id: pr-review-assistant
         triggers:

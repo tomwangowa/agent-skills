@@ -26,8 +26,8 @@ Embed review and verification into the development workflow, not as an afterthou
 
 | Skill | Description |
 |-------|-------------|
-| [code-review-gemini](./code-review-gemini/) | Deep code review using Gemini CLI. Analyzes staged changes, produces structured reports. **Default reviewer.** |
-| [code-review-claude](./code-review-claude/) | Fast native code review by Claude (< 30s). Best for changes under 50 lines. |
+| [code-review-claude](./code-review-claude/) | Native code review by Claude (< 30s). Adversarial pass + assumptions list + optional refactored patch. **Default reviewer** (2026-04 benchmark: broader coverage, 0/6 verified hallucinations). |
+| [code-review-gemini](./code-review-gemini/) | Deep code review using Gemini CLI. Use for final validation, or when a fully worked refactored patch is required. Also the reviewer required by the pre-commit auto-review rule in CLAUDE.md. |
 | [pr-review-assistant](./pr-review-assistant/) | Structured pull request review. Analyzes diffs, assesses risk, provides improvement suggestions. |
 | [codebase-audit](./codebase-audit/) | Claims-first codebase audit: extracts claims from documentation, verifies each against source code. Confirms whether docs and code are consistent. |
 | [completion-gate](./completion-gate/) | Evidence gate before completion. Forces running verification commands and confirming output before claiming "done" or "passing". |

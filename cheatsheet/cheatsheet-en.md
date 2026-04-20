@@ -159,8 +159,8 @@ presentation-planner → interactive-presentation-generator → Slide Files
 
 | Scenario | Skill to Use | Example |
 |----------|-------------|---------|
-| Deep code review (default) | `code-review-gemini` | "Do a thorough review of the changes in src/auth/" |
-| Quick review (< 50 lines changed) | `code-review-claude` | "Quick review this small fix in utils.ts" |
+| Any code review (default) | `code-review-claude` | "Review the changes in src/auth/" |
+| Deep review / need a refactored patch / pre-commit validation | `code-review-gemini` | "Gemini review this module, give me a refactored patch" |
 | Review a pull request | `pr-review-assistant` | "Review PR #42" |
 
 > **Review skill routing guide:**

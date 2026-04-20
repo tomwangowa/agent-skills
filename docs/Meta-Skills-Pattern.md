@@ -103,8 +103,9 @@ Read from `~/.claude/CLAUDE.md` section 9 (Notice):
 | Condition | Route To | Reason |
 |-----------|----------|--------|
 | User preference explicitly set | Preferred skill | Respect user choice |
-| < 50 lines + mentions "quick" | code-review-claude | Speed optimized |
-| Default case | code-review-gemini | Best balance |
+| Default case | code-review-claude | 2026-04 benchmark: broader coverage, 0/6 verified hallucinations |
+| User asks for "deep", "thorough", "gemini", or "refactored patch" | code-review-gemini | Depth / final validation / patch generation |
+| Pre-commit auto-review | code-review-gemini | Required by CLAUDE.md pre-commit rule |
 | User says "checklist" | code-review-checklist | Explicit request |
 
 ### Step 4: Execute & Report
@@ -159,10 +160,11 @@ Meta: Using code-review-checklist
 ### Skill Preferences
 
 #### Code Review
-- **Default reviewer**: code-review-gemini
-- **Quick review fallback**: code-review-claude
+- **Default reviewer**: code-review-claude (as of 2026-04)
+- **Depth / final validation / refactored patch**: code-review-gemini
+- **Pre-commit auto-review**: code-review-gemini (required by CLAUDE.md rule)
 - **Learning mode**: code-review-checklist
-- **Rationale**: Gemini provides external perspective, Claude for speed
+- **Rationale**: 2026-04 benchmark showed Claude's native reviewer had broader coverage (2.3×–5.0× gemini's findings) and 0/6 verified hallucinations; Gemini remains valuable for depth + fully worked patches
 
 #### [Other skill categories can be added here]
 ```

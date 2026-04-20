@@ -26,8 +26,8 @@
 
 | Skill | 說明 |
 |-------|------|
-| [code-review-gemini](./code-review-gemini/) | 使用 Gemini CLI 的深度 code review。分析 staged changes，產出結構化報告。**預設 reviewer。** |
-| [code-review-claude](./code-review-claude/) | Claude 原生的快速 code review（< 30 秒）。適合 50 行以下的小改動。 |
+| [code-review-claude](./code-review-claude/) | Claude 原生 code review（< 30 秒）。具備 adversarial pass、assumptions 清單、optional refactored patch。**預設 reviewer**（2026-04 benchmark：廣度更高、0/6 hallucination）。 |
+| [code-review-gemini](./code-review-gemini/) | 使用 Gemini CLI 的深度 code review。用於最終驗證、或需要完整可複製 refactored patch 時。亦為 CLAUDE.md pre-commit auto-review 規則指定的 reviewer。 |
 | [pr-review-assistant](./pr-review-assistant/) | Pull request 結構化審查。分析 diff、評估風險、提供改善建議。 |
 | [codebase-audit](./codebase-audit/) | Claims-first 程式碼庫審計：從文件中提取宣稱，逐一對照原始碼驗證。用來確認文件和程式碼是否一致。 |
 | [completion-gate](./completion-gate/) | 完成前的證據關卡。在宣稱「完成」或「通過」之前，強制執行驗證命令並確認輸出。 |

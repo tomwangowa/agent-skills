@@ -19,8 +19,8 @@
 
 ## Skill Routing
 - **Debug / error / bug**: MUST invoke `systematic-debugging` via Skill tool BEFORE any analysis. Triggers: user describes error, pastes logs, mentions server error, 500, exception, stack trace, or "不會動/壞了". Do NOT skip this even if the root cause seems obvious.
-- **Code review (default)**: code-review-gemini
-- **Code review (quick, < 50 lines)**: code-review-claude
+- **Code review (default)**: code-review-claude — broader coverage + adversarial pass + zero hallucination (verified across 6 demos, 2.3×–5.0× gemini's findings)
+- **Code review (depth / final validation / need refactored patch)**: code-review-gemini (optional; required for pre-commit auto-review above)
 - **Codebase/docs audit**: codebase-audit (NOT skill-auditor)
 - Before any completion claim, apply verification-before-completion
 - Always run `skill-auditor` after creating or modifying a skill

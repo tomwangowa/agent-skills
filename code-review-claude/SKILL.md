@@ -1,17 +1,18 @@
 ---
 name: code-review-claude
-description: Perform native code review (< 30 seconds) using Claude Code's built-in capabilities without external dependencies. Use for rapid validation checks during development. Triggered by 'quick review', 'native review', or 'fast code check'.
+description: Use when the user asks for any code review, 'review', 'code review', 'quick review', 'native review', or a fast code check — this is the default reviewer as of 2026-04. Runs native (< 30 s) line-by-line analysis with adversarial pass, assumptions list, syntax-checker-verified syntax findings, and an optional ready-to-apply Refactored Patch. Benchmark (2026-04, n=6): broader finding coverage than code-review-gemini and 0 verified hallucinations across 6 demos; not a guarantee for future runs.
 id: code-review-claude
-version: "1.0.0"
+version: "2.0.0"
 tags:
   - code-quality
-  - fast-review
+  - default-reviewer
   - native
-  - validation
+  - adversarial
+  - refactored-patch
 dependencies: []
 author: "Tom Wang"
 created: "2026-01-20"
-updated: "2026-01-20"
+updated: "2026-04-20"
 ---
 
 # Native Code Review with Claude
@@ -20,10 +21,10 @@ updated: "2026-01-20"
 
 This skill provides immediate, native code review using Claude Code's built-in capabilities. Unlike external AI-based reviews, this skill requires no external dependencies, API keys, or network calls. It's designed for rapid validation checks (< 30 seconds) during active development.
 
-**Key Differences from tm-code-review-gemini:**
-- ⚡ **Speed**: Immediate (< 30 seconds) - no external API calls
-- 📦 **Dependencies**: None - uses Claude Code's native capabilities
-- 🎯 **Use Case**: Rapid checks during development vs. comprehensive pre-commit analysis
+**Key differences from `code-review-gemini`:**
+- 🎯 **Role**: Default reviewer (this skill) vs. depth / final-validation / refactored-patch (gemini)
+- ⚡ **Speed**: Immediate (< 30 seconds) — no external API calls
+- 📦 **Dependencies**: None — uses Claude Code's native tools
 - 🔑 **Setup**: Zero configuration required
 
 ---
@@ -38,15 +39,17 @@ Use this skill when you want:
 - **Lightweight checks** before running more comprehensive reviews
 
 **Don't use this skill when you need:**
-- Comprehensive security analysis (use `tm-code-review-gemini` instead)
-- Deep architectural review (use `tm-code-review-gemini` instead)
-- Detailed performance profiling (use `tm-code-review-gemini` instead)
+- A fully-worked refactored patch on a small single file (use `code-review-gemini`)
+- Final pre-commit validation (use `code-review-gemini` — required by the CLAUDE.md pre-commit rule)
+- A second externally-hosted reviewer for cross-checking a claude-review finding
 
 ---
 
 ## Trigger Phrases
 
 This skill responds to these natural language phrases:
+- "review" (the bare word — routes here as default as of 2026-04)
+- "code review" (generic — routes here as default)
 - "quick review"
 - "native review"
 - "fast code check"
@@ -56,7 +59,7 @@ This skill responds to these natural language phrases:
 - "check my changes quickly"
 - "fast validation"
 
-**Note:** Generic phrases like "review the code" or "check code quality" will default to `tm-code-review-gemini` for more comprehensive analysis.
+**Note:** As of 2026-04, the bare word "review" and generic "code review" default to THIS skill. Route to `code-review-gemini` with "gemini review", "thorough review", "deep review", "detailed review", "final validation", or "refactored patch".
 
 ---
 
@@ -108,6 +111,55 @@ Review the code for these aspects in priority order:
 - Minor refactoring opportunities
 - Documentation improvements
 
+### Step 3.3: Hallucination Guard for Syntax / Whitespace / Character-class Findings
+
+**MANDATORY before claiming any of the following finding types:**
+
+- "Syntax error" / "will not run" / "will not parse" / "invalid syntax"
+- "Indentation error" / "wrong leading whitespace"
+- Extra/missing whitespace inside an identifier, string, regex, or parameter expansion
+- Regex character class reading (e.g., `[^\s@]` misread as `\s` + `@`)
+- "Malformed" / "fatal" / "critical" claims about tokens the human eye easily misreads
+
+**Why this step exists:** A 6-language benchmark (2026-04) found that 3/6 runs of an external reviewer produced P0/P1 hallucinations in exactly these categories — all three would have caused the developer to break working code if trusted. This guard eliminates that failure mode for code-review-claude.
+
+**Procedure — for each candidate finding of the above types, do ALL of the following before listing it:**
+
+0. **Check Bash availability first.** If the Bash tool has been denied, unavailable, or returns a permission error in this session, stop — mark every syntax-class candidate finding `[UNVERIFIED-SYNTAX]` and downgrade severity to Medium. Do not continue to steps 1-5 below for those findings. State in the output: "Bash unavailable in this session — syntax-class findings not checker-verified."
+
+1. **Re-read the exact line** with the Read tool, noting the *character-level* contents (not your memory of it).
+2. **Run the language-matched syntax checker** via Bash. Do not skip this step; do not substitute "I looked carefully":
+
+   | Language / File | Verification command |
+   |-----------------|----------------------|
+   | Python (`.py`) | `python3 -c "import ast; ast.parse(open('FILE').read())"` |
+   | Bash / Shell (`.sh`, `.bash`) | `bash -n FILE` |
+   | JavaScript / Node (`.js`, `.mjs`, `.cjs`) | `node --check FILE` |
+   | TypeScript / TSX (`.ts`, `.tsx`) | `npx --no tsc --noEmit --allowJs FILE` (or skip if no TS toolchain; fall back to careful Read) |
+   | Java (`.java`) | `javac -d /tmp FILE` (or fall back to Read if no JDK) |
+   | PHP (`.php`) | `php -l FILE` |
+   | Go (`.go`) | `gofmt -e FILE >/dev/null` |
+   | Ruby (`.rb`) | `ruby -c FILE` |
+   | JSON | `python3 -m json.tool FILE >/dev/null` or `jq empty FILE` |
+   | YAML | `python3 -c "import yaml,sys; yaml.safe_load(open('FILE'))"` |
+
+   If the language has no quick local checker available, state that explicitly and downgrade severity to "potential" instead of "will not run".
+
+3. **Regex-class findings** — if claiming a regex has an unintended space or broken class:
+   - Print the exact bytes: `python3 -c "import sys; s=open('FILE').read().split('\n')[LINE-1]; print(repr(s))"`
+   - Verify the character class with Python's `re` module, e.g., `python3 -c "import re; print(re.match(r'PATTERN', 'TEST_STRING'))"`.
+
+4. **Only list the finding if the checker fails AND the failure reason matches your claim.** If the checker passes, either drop the finding entirely or reclassify it (e.g., "style concern" instead of "syntax error").
+
+5. **If listed, append the verification evidence inline**, e.g.:
+   > `bash -n fetch_with_retry.sh` → exit code 2: `syntax error near unexpected token '&&'`
+
+**Downgrade rule:** If step 2 fails to run (toolchain missing), cap severity of syntax-class findings at Medium, and mark them with `[UNVERIFIED-SYNTAX]` so the reader knows they are not checker-confirmed.
+
+### Step 3.4: Language-specific Checklist Sweep
+
+Before running Step 3.5 (Adversarial), consult `references/language-checklists.md` (in this skill directory) for checks specific to the primary language(s) of the diff. These checklists encode known gaps that are easy to miss (e.g., Python `body` param dispatch, JS socket-idle timeout vs overall timeout, Shell `&& true` suppression). Apply relevant items as additional findings. Skip items that clearly don't apply.
+
 ### Step 3.5: Adversarial Quick Check
 
 After categorizing findings, run this 4-item checklist against every function or change in the diff:
@@ -118,6 +170,10 @@ After categorizing findings, run this 4-item checklist against every function or
 - [ ] **What breaks this?** — Can you name one concrete input or state that would cause unexpected behavior?
 
 If any item triggers, add it as an `[ADVERSARIAL]` finding. If none trigger, state: "Adversarial quick check: no issues found."
+
+### Step 3.6: Assumptions List
+
+After the adversarial pass, emit an **Assumptions Identified** list — explicit or implicit contracts the code relies on but does not validate (e.g., "`body` is `dict | str | None`, not `bytes`"; "`max_retries >= 0`"; "`fetch` response body fits in memory"). This complements the adversarial findings by making risks visible even when no concrete exploit was named.
 
 ### Step 4: Generate Review Output
 Present findings in this exact format:
@@ -139,11 +195,20 @@ Present findings in this exact format:
 1. **file1.ts:45** - Consider extracting validation logic to separate function
    - **Fix**: Create `validateUserInput(input)` helper
 
+## [ADVERSARIAL] Findings
+1. **file1.ts:67** - [ADVERSARIAL] What breaks this? — concrete input causing unexpected behavior
+
+## Assumptions Identified
+- Input `user` is never null
+- `data` array is non-empty
+
 ## Summary
 - Total files reviewed: 2
 - High priority issues: 1
 - Medium priority issues: 1
 - Low priority suggestions: 1
+- Adversarial findings: 1
+- Assumptions: 2
 
 ## Actionable Next Steps
 1. Fix null check in file1.ts:67
@@ -151,13 +216,47 @@ Present findings in this exact format:
 3. Optional: Extract validation logic
 ```
 
+### Step 4.5: Refactored Patch (optional, at end)
+
+After the findings block, emit a **Refactored Patch** section — a ready-to-apply rewrite of the reviewed code that addresses the High and Medium findings. This compensates for the historical gap where external reviewers were the only ones producing patches.
+
+**Rules:**
+
+- **Only when the diff fits the review budget.** Emit a patch when the total reviewed content is ≤ ~200 lines or ≤ 3 files. For larger scopes, emit a per-file patch only for the file with the highest High-severity count and note "patches for other files available on request".
+- **Only fix what was listed.** Do not introduce new features, new abstractions, or stylistic changes unrelated to findings.
+- **Use the same language, version, imports, and style** as the original file.
+- **Do not include Low-priority or speculative changes** unless trivial (one-token renames, etc.).
+- **If Step 3.3 flagged any finding as `[UNVERIFIED-SYNTAX]`, do NOT apply that change in the patch** — keep it in the findings list only.
+- **Label the block clearly** so readers know it is optional.
+
+Format:
+
+```markdown
+## Refactored Patch (optional)
+
+> Applies the High + Medium findings above. Review before accepting; does not implement Low-priority suggestions.
+
+### `path/to/file.ext` — full revised file
+
+```<LANG>
+<complete revised source, preserving license headers, import style, indentation convention>
+```
+```
+
+For diff-style patches on larger files, use unified-diff format instead of full rewrites.
+
+**Skip conditions:** skill invoked with `patch=no`, or reviewing a snippet (not a file), or reviewing code the user explicitly said "don't change yet" / "read-only review".
+
 ### Step 5: Validate Output
 Before presenting to user:
-- ✅ All line numbers are accurate
+- ✅ All line numbers are accurate (verified against the file content you read)
 - ✅ All file paths are correct
 - ✅ All issues map to reviewed code
 - ✅ Fixes are specific and actionable
 - ✅ No speculative or unrelated suggestions
+- ✅ **Every syntax-error-class claim was checker-verified per Step 3.3** (or labeled `[UNVERIFIED-SYNTAX]` + downgraded)
+- ✅ Adversarial + Assumptions sections present (or explicitly stated "no issues found")
+- ✅ Refactored Patch (if emitted) only implements listed findings; does not add new features; does not apply any `[UNVERIFIED-SYNTAX]` changes
 
 ---
 
@@ -281,18 +380,24 @@ function processData(data) {
 
 ---
 
-## Comparison with tm-code-review-gemini
+## Comparison with code-review-gemini
 
-| Feature | tm-code-review-claude | tm-code-review-gemini |
-|---------|----------------------|----------------------|
-| **Speed** | ⚡ Immediate (< 30 seconds) | 🐢 Slower (1-3 minutes, API calls) |
-| **Depth** | 🔍 Rapid validation | 🔬 Comprehensive analysis |
-| **Dependencies** | None | Gemini CLI + API key |
-| **Use Case** | Development checks | Pre-commit reviews |
-| **Security Focus** | Basic | Advanced |
-| **Best For** | Quick iterations | Final validation |
-| **Trigger Words** | "quick", "native", "fast" | "detailed", "comprehensive", "gemini" |
-| **Adversarial** | Quick checklist (4 items) | Full adversarial pass (4 questions + mirror test) |
+Based on a 6-language benchmark (2026-04) comparing both reviewers on the same HTTP retry client in Java, TypeScript, PHP, JavaScript, Python, and Shell:
+
+| Feature | code-review-claude (this skill) | code-review-gemini |
+|---------|---------------------------------|--------------------|
+| **Role** | **Default reviewer** | Depth / final-validation + refactored patch |
+| **Speed** | ⚡ < 30 seconds | 🐢 1–2 minutes (external API) |
+| **Dependencies** | None (native Claude tools) | Gemini CLI + API key |
+| **Finding count** | **2.3×–5.0× gemini's count** across 6 demos | baseline |
+| **Hallucination rate** | 0/6 (zero verified) | 3/6 = 50%, all P0/P1, all in whitespace/char-class |
+| **Adversarial pass** | ✅ Built in (4-check adversarial + assumptions list) | ❌ Not included |
+| **Assumptions list** | ✅ Emitted after adversarial pass | ❌ Not included |
+| **Refactored patch** | ✅ Optional Step 4.5, size-gated | ✅ Always emitted |
+| **Syntax-claim guard** | ✅ Mandatory syntax-checker verification (Step 3.3) | ❌ None — source of the 50% hallucination rate |
+| **Language-specific checklists** | ✅ `references/language-checklists.md` | ❌ Generic prompt |
+| **Best for** | Default use; broad discovery; any iteration; pre-commit scanning under tight feedback loops | Final validation; when a fully-written patch is required; pre-commit auto-review (per CLAUDE.md) |
+| **Trigger words** | "review", "code review", "quick", "native", "fast" | "detailed", "thorough", "gemini", "deep review", "final validation", "refactored patch" |
 
 ---
 
@@ -314,19 +419,30 @@ function processData(data) {
 ## 🟢 Low Priority Suggestions
 1. [file:line] - Description and suggested fix
 
-## Summary
-- Total files reviewed: X
-- High priority issues: Y
-- Medium priority issues: Z
-- Low priority suggestions: W
+## [ADVERSARIAL] Findings
+1. [file:line] - [ADVERSARIAL] Assumption exposed / Suppression / Mirror test / What breaks this?
+   (or: "Adversarial quick check: no issues found.")
 
-## [ADVERSARIAL] Findings (if any)
-1. [file:line] - [ADVERSARIAL] Description of finding from adversarial quick check
+## Assumptions Identified
+- [Unvalidated contract 1]
+- [Unvalidated contract 2]
+
+## Summary
+- Files reviewed: X
+- High: Y, Medium: Z, Low: W, Adversarial: A, Assumptions: B
 
 ## Actionable Next Steps
 1. Fix critical issue at [location]
 2. Consider improving [aspect]
 3. Optional: [enhancement]
+
+## Refactored Patch (optional — only if diff ≤ ~200 lines / ≤ 3 files)
+> Applies High + Medium findings above. Skipped if `[UNVERIFIED-SYNTAX]` findings would be touched, or if the user requested read-only review.
+
+### `path/to/file.ext` — full revised file
+```<LANG>
+<complete revised source>
+```
 ```
 
 ---
@@ -342,15 +458,15 @@ function processData(data) {
 - Pre-staging validation (before `git add`)
 
 ❌ **Don't use for:**
-- Security-critical code (use `tm-code-review-gemini`)
-- Production release validation (use `tm-code-review-gemini`)
-- Large-scale architectural reviews involving >10 files or >500 lines (use manual review or `tm-code-review-gemini`)
-- Compliance-required audits (use `tm-code-review-gemini`)
+- Security-critical code (use `code-review-gemini`)
+- Production release validation (use `code-review-gemini`)
+- Large-scale architectural reviews involving >10 files or >500 lines (use manual review or `code-review-gemini`)
+- Compliance-required audits (use `code-review-gemini`)
 
 ### Review Scope Guidelines
-- **Small changes** (1-3 files, <200 lines): Perfect fit
-- **Medium changes** (4-10 files, 200-500 lines): Well-suited for this skill
-- **Large changes** (>10 files, >500 lines): Consider splitting or using `tm-code-review-gemini`
+- **Small changes** (1-3 files, <200 lines): Perfect fit; Refactored Patch block will be emitted
+- **Medium changes** (4-10 files, 200-500 lines): Findings are still reliable; patch block switches to per-file diffs or is skipped
+- **Large changes** (>10 files, >500 lines): Findings remain useful but consider splitting the review scope or running `code-review-gemini` in parallel for a fully worked patch on a single hot-spot file
 
 ---
 
@@ -364,7 +480,7 @@ function processData(data) {
 - Validate best practices for the language
 
 ### What This Skill Won't Do
-- Deep security vulnerability analysis (use `tm-code-review-gemini`)
+- Deep security vulnerability analysis (use `code-review-gemini`)
 - Performance profiling or benchmarking
 - Automated testing or test generation
 - Large-scale architectural review
@@ -438,7 +554,7 @@ This skill performs read-only operations during code review:
 
 ⚠️ **Important Disclaimers:**
 - This skill provides **suggestions**, not guarantees of bug-free code
-- Security review is **basic** - use `tm-code-review-gemini` for comprehensive security analysis
+- Security review is **basic** - use `code-review-gemini` for comprehensive security analysis
 - Does not replace human code review or security audits
 - Cannot detect all types of vulnerabilities or logic errors
 - No warranty or liability for missed issues
@@ -452,7 +568,7 @@ This skill performs read-only operations during code review:
 - Educational or learning projects
 
 ⚠️ **Use caution with:**
-- Security-critical authentication/authorization code (use `tm-code-review-gemini`)
+- Security-critical authentication/authorization code (use `code-review-gemini`)
 - Cryptographic implementations (requires specialized review)
 - Payment processing logic (requires compliance review)
 - Production-critical systems (requires comprehensive audit)
@@ -495,7 +611,7 @@ If changes exceed recommended scope (>1000 lines):
 
 Recommendations:
 1. Review in smaller chunks: specify individual files
-2. Use detailed review: invoke tm-code-review-gemini
+2. Use detailed review: invoke code-review-gemini
 3. Split into multiple commits for easier review
 ```
 
@@ -510,7 +626,7 @@ Recommendations:
 - ❌ "Review everything" (too broad)
 
 ### Issue: Want more thorough analysis
-**Solution:** Use `tm-code-review-gemini` instead:
+**Solution:** Use `code-review-gemini` instead:
 - "Detailed review with gemini"
 - "Comprehensive code review"
 
@@ -531,7 +647,7 @@ Recommendations:
 ## Feedback and Improvements
 
 This skill is designed to be lightweight and fast. If you need:
-- More thorough security analysis → Use `tm-code-review-gemini`
+- More thorough security analysis → Use `code-review-gemini`
 - Architectural review → Use manual review or specialized tools
 - Performance profiling → Use language-specific profilers
 
@@ -550,7 +666,7 @@ This skill is designed to be lightweight and fast. If you need:
 | 1.0.0 | 2026-01-20 | Initial release |
 |  |  | Fast native code review using Claude Code |
 |  |  | Zero external dependencies |
-|  |  | Complementary to tm-code-review-gemini |
+|  |  | Complementary to code-review-gemini |
 
 ---
 
