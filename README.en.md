@@ -112,7 +112,7 @@ Tools for managing skills themselves.
 | Skill | Description |
 |-------|-------------|
 | [skill-auditor](./skill-auditor/) | Audits skills for quality, security, and best practices. Use after creating or modifying a skill. |
-| [skillshare](./skillshare/) | Syncs skills across AI CLI tools (Claude Code, Cursor, Windsurf, etc.). Single source of truth, used everywhere. |
+| [skillshare](https://github.com/runkids/skillshare) | Syncs skills across AI CLI tools (Claude Code, Cursor, Windsurf, etc.). Single source of truth, used everywhere. |
 | [skill-router](./skill-router/) | **Skill discovery and routing hub.** Three modes: smart routing (describe your need, get a skill recommendation), category browse (list all skills), and workflow browse (view predefined multi-skill chains). Your first stop when unsure which skill to use. |
 
 ---

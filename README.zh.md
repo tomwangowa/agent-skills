@@ -116,7 +116,7 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 | Skill | 說明 |
 |-------|------|
 | [skill-auditor](./skill-auditor/) | 審計 skills 的品質、安全性與最佳實踐。建立或修改 skill 後用來驗證。 |
-| [skillshare](./skillshare/) | 跨 AI CLI 工具同步 skills（Claude Code、Cursor、Windsurf 等）。單一來源、多處使用。 |
+| [skillshare](https://github.com/runkids/skillshare) | 跨 AI CLI 工具同步 skills（Claude Code、Cursor、Windsurf 等）。單一來源、多處使用。 |
 | [skill-router](./skill-router/) | **技能發現與路由中心。** 三種模式：智慧推薦（描述需求自動匹配 skill）、分類瀏覽（列出所有 skill）、工作流瀏覽（查看預設多 skill 組合流程）。不確定該用什麼 skill 時的第一站。 |
 
 ---

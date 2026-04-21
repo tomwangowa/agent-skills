@@ -115,7 +115,7 @@ Tools for managing skills themselves.
 | Skill | Description |
 |-------|-------------|
 | [skill-auditor](./skill-auditor/) | Audit skills for quality, security, and best practices. Use after creating or modifying a skill. |
-| [skillshare](./skillshare/) | Sync skills across AI CLI tools (Claude Code, Cursor, Windsurf, etc.). Single source of truth, used everywhere. |
+| [skillshare](https://github.com/runkids/skillshare) | Sync skills across AI CLI tools (Claude Code, Cursor, Windsurf, etc.). Single source of truth, used everywhere. |
 
 ---
 
