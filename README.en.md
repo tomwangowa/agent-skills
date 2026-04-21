@@ -194,7 +194,7 @@ Without this step, typing `/sos` in Claude Code returns "command not found" even
 
 ### Set Up Gemini CLI (optional)
 
-The default reviewer `code-review-claude` is native Claude and requires no Gemini setup. Gemini CLI is only used by `code-review-gemini` (optional depth reviewer / refactored-patch generator), `code-story-teller`, and the keyword-triggered Gemini path of `pr-review-assistant`. You can skip this section if you only run the default flow.
+The default reviewer `code-review-claude` is native Claude and requires no Gemini setup. Gemini CLI is only used by `code-review-gemini` (optional depth reviewer / refactored-patch generator) and the keyword-triggered Gemini path of `pr-review-assistant` (opt-in). You can skip this section if you only run the default flow.
 
 ```bash
 # Install Gemini CLI
@@ -284,8 +284,8 @@ Activity records can be used with `work-log-analyzer` for cross-project and cros
 |-------|-------------|
 | code-review-gemini | [Gemini CLI](https://github.com/google-gemini/gemini-cli), Git |
 | code-review-claude | None |
-| code-story-teller | [Gemini CLI](https://github.com/google-gemini/gemini-cli), Git |
-| pr-review-assistant | [Gemini CLI](https://github.com/google-gemini/gemini-cli), [GitHub CLI](https://cli.github.com/), Git |
+| code-story-teller | Git |
+| pr-review-assistant | [GitHub CLI](https://cli.github.com/), Git; [Gemini CLI](https://github.com/google-gemini/gemini-cli) (opt-in deep path only) |
 | ui-design-analyzer | None (uses Claude's native multimodal capabilities) |
 | interactive-presentation-generator | None (20 style templates bundled) |
 | activity-logger | `jq`, Git |

@@ -198,7 +198,7 @@ ln -s ~/.claude/skills/commands/sos.md ~/.claude/commands/sos.md
 
 ### 設定 Gemini CLI（選配）
 
-預設 reviewer `code-review-claude` 是原生 Claude，不需要 Gemini。Gemini CLI 僅在以下 skills 使用：`code-review-gemini`（選配深度 reviewer / refactored patch 生成器）、`code-story-teller`、`pr-review-assistant` 的 keyword-triggered Gemini 路徑（詳見該 skill 文件）。如果你只跑預設流程，可以跳過本節。
+預設 reviewer `code-review-claude` 是原生 Claude，不需要 Gemini。Gemini CLI 僅在以下 skills 使用：`code-review-gemini`（選配深度 reviewer / refactored patch 生成器）、`pr-review-assistant` 的 keyword-triggered Gemini 路徑（選配，詳見該 skill 文件）。如果你只跑預設流程，可以跳過本節。
 
 ```bash
 # 安裝 Gemini CLI
@@ -289,8 +289,8 @@ Activity records 可與 `work-log-analyzer` 搭配使用，跨專案和 session 
 |-------|------|
 | code-review-gemini | [Gemini CLI](https://github.com/google-gemini/gemini-cli)、Git |
 | code-review-claude | 無外部依賴 |
-| code-story-teller | [Gemini CLI](https://github.com/google-gemini/gemini-cli)、Git |
-| pr-review-assistant | [Gemini CLI](https://github.com/google-gemini/gemini-cli)、[GitHub CLI](https://cli.github.com/)、Git |
+| code-story-teller | Git |
+| pr-review-assistant | [GitHub CLI](https://cli.github.com/)、Git；[Gemini CLI](https://github.com/google-gemini/gemini-cli)（僅選配深度路徑） |
 | ui-design-analyzer | 無外部依賴（使用 Claude 原生多模態能力） |
 | interactive-presentation-generator | 無外部依賴（內建 20 種樣式模板） |
 | activity-logger | `jq`、Git |
