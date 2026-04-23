@@ -166,17 +166,11 @@ categories:
           - "check PR"
           - "PR 審查"
 
-      - id: superpowers:requesting-code-review
-        # Process skill: asks an agent to review your work (not a reviewer itself).
-        # Distinct from code-review-claude, which IS the reviewer.
-        # Triggers intentionally require explicit "request" language; plain
-        # "review" / "review 一下" should fall through to code-review-claude.
-        triggers:
-          - "request review"
-          - "請 reviewer"
-          - "request code review"
-          - "要求 review"
-          - "安排 review"
+      # Note: superpowers:requesting-code-review is intentionally NOT registered.
+      # It dispatches a `superpowers:code-reviewer` subagent, which conflicts
+      # with the CLAUDE.md rule "MUST 先走 code-review-claude" for any review
+      # intent. Users who specifically want the superpowers flow can invoke
+      # by full name.
 
       - id: superpowers:receiving-code-review
         # Process skill: how to technically engage with review feedback
@@ -221,14 +215,10 @@ categories:
           - "what questions should I ask PM"
           - "spec 有什麼沒寫"
 
-      - id: superpowers:test-driven-development
-        triggers:
-          - "TDD"
-          - "test first"
-          - "先寫測試"
-          - "test driven"
-          - "寫測試"
-          - "red green refactor"
+      # Note: superpowers:test-driven-development is intentionally NOT registered.
+      # Its Iron Law ("no production code without failing test first") is too rigid
+      # for ad-hoc work, and it's auto-invoked inside writing-plans task templates
+      # anyway. Users can invoke by full name when specifically doing TDD.
 
       - id: superpowers:systematic-debugging
         triggers:
