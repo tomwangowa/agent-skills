@@ -166,6 +166,30 @@ categories:
           - "check PR"
           - "PR 審查"
 
+      - id: superpowers:requesting-code-review
+        # Process skill: asks an agent to review your work (not a reviewer itself).
+        # Distinct from code-review-claude, which IS the reviewer.
+        # Triggers intentionally require explicit "request" language; plain
+        # "review" / "review 一下" should fall through to code-review-claude.
+        triggers:
+          - "request review"
+          - "請 reviewer"
+          - "request code review"
+          - "要求 review"
+          - "安排 review"
+
+      - id: superpowers:receiving-code-review
+        # Process skill: how to technically engage with review feedback
+        # without performative agreement or blind acceptance.
+        triggers:
+          - "review feedback"
+          - "收到 review"
+          - "處理 review 意見"
+          - "respond to review"
+          - "review 回覆"
+          - "reviewer 說"
+          - "how to respond to reviewer"
+
   # ── 3. 開發流程 ────────────────────────────────────────────
   dev-process:
     label: 開發流程
@@ -265,6 +289,17 @@ categories:
           - "開分支做"
           - "隔離開發"
           - "parallel branch"
+
+      - id: superpowers:finishing-a-development-branch
+        triggers:
+          - "finish branch"
+          - "收尾分支"
+          - "準備合併"
+          - "ready to merge"
+          - "wrap up"
+          - "分支完工"
+          - "開始整合"
+          - "how to merge"
 
   # ── 4. 角色協作 ────────────────────────────────────────────
   roles:
@@ -495,6 +530,12 @@ categories:
           - "install skill"
           - "匯出 skill"
           - "skill sync"
+
+# Note: skill authoring is handled by Claude Code's built-in `/skill-creator`.
+# `superpowers:writing-skills` is intentionally NOT registered here to avoid
+# stealing generic "write a skill" routing from the built-in. Invoke
+# `superpowers:writing-skills` by full name only when specifically writing
+# a superpowers-style (rigid, checklist-driven) skill.
 
 # ============================================================
 # Workflows — pre-defined skill chains for common scenarios

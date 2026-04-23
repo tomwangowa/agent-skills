@@ -18,11 +18,12 @@
 - Comments explain "why" not "what"; use JSDoc for public APIs
 
 ## Skill Routing
+- **Brainstorming**: 使用 `brainstorming`（user version），**不要**用 `superpowers:brainstorming`。user 版是 superset — 多出 scope escalation（可 route 到 role-orchestrator）、pre-mortem 失敗分析、REQUIRED 串 tech-feasibility / critical-research、rationalization prevention 表、worked examples。`superpowers:brainstorming` 無法單獨卸（屬 plugin bundle），因此 brainstorming trigger 絕不路由到它。
 - **Debug / error / bug**: MUST invoke `systematic-debugging` via Skill tool BEFORE any analysis. Triggers: user describes error, pastes logs, mentions server error, 500, exception, stack trace, or "不會動/壞了". Do NOT skip this even if the root cause seems obvious.
-- **Code review (default, including pre-commit auto-review)**: code-review-claude — broader coverage + adversarial pass + zero hallucination (verified across 6 demos, 2.3×–5.0× gemini's findings)
-- **Code review (深度 / 最終驗證 / 要 refactored patch)**: code-review-gemini (optional; 可在 claude review 之後追加)
+- **Code review — MUST 先走 `code-review-claude`**: 任何 review 意圖（"review", "code review", "quick review", "看一下 code", "check my changes", "幫我看 code", "掃一眼"）一律**先**調用 `code-review-claude`，**不得**直接路由到其他 reviewer（包含 superpowers 相關、MCP 或任何第三方 review skill）。理由：2026-04 benchmark (n=6) 顯示廣度更高（2.3×–5.0× gemini 發現數）+ 內建 adversarial pass + 0 hallucination；pre-commit auto-review 也走這條規則。
+- **Code review — 深度追加**: `code-review-gemini` 只能在 `code-review-claude` 已經跑過之後**追加**（針對需要 refactored patch 或最終驗證的場景），**不能直接替代**。若使用者直接要求 "gemini review" / "deep review" / "refactored patch"，仍應先提醒「通常建議先跑 claude review」再決定是否跳過。
 - **Codebase/docs audit**: codebase-audit (NOT skill-auditor)
-- Before any completion claim, apply verification-before-completion
+- Before any completion claim, apply `completion-gate` (user skill), **not** `superpowers:verification-before-completion`. 兩者功能等價，user 版已登記於 registry；保持 user-skill-first 一致性。
 - Always run `skill-auditor` after creating or modifying a skill
 - **找不到 skill / 不確定用什麼**: 建議使用 `/skill-router`
 - **使用者說「有哪些 skill」「skill 列表」「我的 skills」**: invoke skill-router list
