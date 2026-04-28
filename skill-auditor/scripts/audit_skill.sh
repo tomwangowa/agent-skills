@@ -11,10 +11,14 @@ NC='\033[0m' # No Color
 
 # Audit score tracking
 SCORE=0
-MAX_SCORE=130
+MAX_SCORE=125
 CRITICAL_ISSUES=0
 IMPORTANT_ISSUES=0
 SUGGESTIONS=0
+
+# Skill archetype — detected from SKILL_DIR layout. See detect_archetype().
+# Determines which checks apply and the score ceiling.
+SKILL_ARCHETYPE="unknown"
 
 # Output files
 REPORT_FILE=""
@@ -110,6 +114,56 @@ log_verbose() {
 
 log_check() {
     echo -e "${BLUE}ℹ️  $1${NC}"
+}
+
+# Detect skill archetype based on directory layout. Skills come in two flavors
+# with very different audit needs:
+#   - script-bearing: has executable scripts under scripts/ — needs Security,
+#     Error Handling, README, etc. (full audit).
+#   - pure-instruction: prompt-only — no I/O, no error surface of its own.
+#     Security/Error Handling checks are category errors here; SKILL.md
+#     itself serves as the README.
+detect_archetype() {
+    if [[ -d "$SKILL_DIR/scripts" ]]; then
+        local script_count
+        # Any non-hidden regular file in scripts/ counts. Broader than an
+        # extension whitelist so .rb, .go, .php, extension-less scripts, etc.
+        # don't slip past as pure-instruction and miss security/error-handling audit.
+        script_count=$(find "$SKILL_DIR/scripts" -type f ! -name '.*' 2>/dev/null | wc -l | tr -d ' ')
+        if [[ "$script_count" -gt 0 ]]; then
+            SKILL_ARCHETYPE="script-bearing"
+            MAX_SCORE=125
+            return
+        fi
+    fi
+    SKILL_ARCHETYPE="pure-instruction"
+    # Pure-instruction skills can't earn points from checks that don't apply
+    # to them. Subtract the inapplicable checks from the ceiling so the
+    # percentage stays comparable across archetypes:
+    #   - Error Handling section pass:        -10
+    #   - Security section pass:              -10
+    #   - Security keyword density (4+ kw):   -20
+    #   - README.md present:                   -5
+    #   - Quick start guide:                   -5
+    #   - Script quality (no scripts):        -10
+    MAX_SCORE=65
+}
+
+write_archetype_section() {
+    echo "## Skill Archetype" >> "$BODY_FILE"
+    echo "" >> "$BODY_FILE"
+    if [[ "$SKILL_ARCHETYPE" == "script-bearing" ]]; then
+        echo "**Detected**: \`script-bearing\` — has executable scripts under \`scripts/\`" >> "$BODY_FILE"
+        echo "" >> "$BODY_FILE"
+        echo "All checks apply (Security, Error Handling, Script Quality, README, etc.)." >> "$BODY_FILE"
+    else
+        echo "**Detected**: \`pure-instruction\` — no executable scripts" >> "$BODY_FILE"
+        echo "" >> "$BODY_FILE"
+        echo "Checks tailored for prompt-only skills:" >> "$BODY_FILE"
+        echo "- Skipped: Security keyword density, README.md, Quick Start (SKILL.md serves as README)" >> "$BODY_FILE"
+        echo "- Informational: missing Error Handling / Security sections (no I/O surface to document)" >> "$BODY_FILE"
+    fi
+    echo "" >> "$BODY_FILE"
 }
 
 # Check functions
@@ -268,29 +322,61 @@ check_required_sections() {
 
     local skill_md="$SKILL_DIR/SKILL.md"
 
-    # Critical sections
+    # Error Handling + Security sections.
+    # Only required as CRITICAL on script-bearing skills (their scripts can
+    # fail at runtime / read user input / make external calls). For
+    # pure-instruction skills, missing these sections is informational —
+    # the skill is just a prompt with no I/O surface of its own.
     local critical_sections=("Error Handling" "Security")
     for section in "${critical_sections[@]}"; do
         if grep -qi "##.*$section" "$skill_md"; then
             echo "✅ Found: **$section** section" >> "$BODY_FILE"
-            ((SCORE+=10))
-        else
+            # Only score on script-bearing — for pure-instruction these sections
+            # aren't applicable, so writing them shouldn't earn or cost points
+            # (otherwise the score ceiling overflows).
+            if [[ "$SKILL_ARCHETYPE" == "script-bearing" ]]; then
+                ((SCORE+=10))
+            fi
+        elif [[ "$SKILL_ARCHETYPE" == "script-bearing" ]]; then
             echo "❌ **CRITICAL**: Missing **$section** section" >> "$BODY_FILE"
             ((CRITICAL_ISSUES++))
+        else
+            echo "ℹ️  No **$section** section (pure-instruction skill — not required)" >> "$BODY_FILE"
         fi
     done
 
-    # Important sections
-    local important_sections=("Workflow" "Instructions" "Example")
-    for section in "${important_sections[@]}"; do
-        if grep -qi "##.*$section" "$skill_md"; then
-            echo "✅ Found: $section section" >> "$BODY_FILE"
-            ((SCORE+=5))
-        else
-            echo "⚠️  **IMPORTANT**: Missing $section section" >> "$BODY_FILE"
-            ((IMPORTANT_ISSUES++))
-        fi
-    done
+    # Instructional content: skills express instructions under varied names
+    # ("Workflow", "Instructions", "Steps", "Decision Flow", "Quick Rules"…),
+    # so we don't require a specific heading name. Pass if either:
+    #   (a) any heading whose name signals instructions, OR
+    #   (b) the body has ≥5 actionable list/step items (fallback signal).
+    local instructional_heading_pattern='^#{2,6}[[:space:]]+.*\<(Workflow|Workflows|Instructions|Steps|Process|Procedure|Procedures|How[[:space:]]+(to|it[[:space:]]+works|this[[:space:]]+works)|Decision[[:space:]]*(Flow|Tree|Process)?|Decisions|Rules|Guidelines|Guidance|Behavior|Behaviour|Usage|Approach|Strategy|Recipe|Recipes|Playbook|Operating[[:space:]]+(Rules|Principles))\>'
+
+    local has_instructional_heading=false
+    if grep -qiE "$instructional_heading_pattern" "$skill_md"; then
+        has_instructional_heading=true
+    fi
+
+    # Body = everything after the second --- (close of frontmatter)
+    local body_content
+    body_content=$(awk 'BEGIN{found=0} /^---$/{found++; if(found==2){skip=1; next}} skip{print}' "$skill_md" 2>/dev/null || true)
+    local actionable_lines
+    actionable_lines=$(echo "$body_content" | grep -cE '^[[:space:]]*([-*]|[0-9]+\.)[[:space:]]+' 2>/dev/null || echo 0)
+    actionable_lines=${actionable_lines:-0}
+
+    if [[ "$has_instructional_heading" == true ]]; then
+        echo "✅ Found: instructional heading (Workflow/Instructions/Steps/Rules/…)" >> "$BODY_FILE"
+        ((SCORE+=10))
+    elif [[ "$actionable_lines" -ge 5 ]]; then
+        echo "✅ Found: actionable content ($actionable_lines list/step items)" >> "$BODY_FILE"
+        ((SCORE+=10))
+    else
+        echo "⚠️  **IMPORTANT**: No instructional content detected" >> "$BODY_FILE"
+        echo "**Recommendation**: Add a section explaining how Claude should act on this skill (e.g., '## Workflow', '## Instructions', '## Decision Flow', or a list of actionable rules)" >> "$BODY_FILE"
+        ((IMPORTANT_ISSUES++))
+    fi
+
+    # Examples are checked separately in check_examples() — don't double-count here.
 
     echo "" >> "$BODY_FILE"
     log_verbose "Required sections check complete"
@@ -330,6 +416,16 @@ check_security_keywords() {
     echo "" >> "$BODY_FILE"
 
     local skill_md="$SKILL_DIR/SKILL.md"
+
+    # Pure-instruction skills don't process user input, don't make external
+    # calls, and don't execute scripts — keyword density says nothing about
+    # their safety. Skip the check entirely instead of misleading the reader.
+    if [[ "$SKILL_ARCHETYPE" != "script-bearing" ]]; then
+        echo "ℹ️  Security keyword density check skipped (pure-instruction skill — no I/O surface)" >> "$BODY_FILE"
+        echo "" >> "$BODY_FILE"
+        log_verbose "Security keywords check skipped (pure-instruction)"
+        return 0
+    fi
 
     local security_keywords=("XSS" "sanitize" "validate" "escape" "security" "CSP")
     local found_keywords=0
@@ -373,8 +469,33 @@ check_ambiguous_terms() {
     local ambiguous_terms=("simple" "complex" "appropriate" "reasonable" "good" "bad" "fast" "slow" "quick")
     local found_any=false
 
+    # Idiomatic compound terms — when the ambiguous word is part of a known
+    # phrase used as a section title or accepted technical term, it's not a
+    # vague descriptor. Keyed by term, value is an extended-regex alternation.
+    local quick_whitelist='quick[- ]?(start|rules|reference|references|fix|fixes|check|checks|win|wins|guide|tour|notes|recap|summary|tip|tips|look|peek|review|sort|sand|action|actions)'
+
     for term in "${ambiguous_terms[@]}"; do
-        local matches=$(grep -ni "\b$term\b" "$skill_md" 2>/dev/null | head -5 || true)
+        # Word-boundary, case-insensitive match. Use explicit boundaries
+        # ([^a-zA-Z0-9_]) for portability across grep implementations.
+        local matches
+        matches=$(grep -niE "(^|[^a-zA-Z0-9_])${term}([^a-zA-Z0-9_]|$)" "$skill_md" 2>/dev/null || true)
+
+        # Exclude heading lines: section names like "## Quick rules" are
+        # naming conventions, not vague descriptors.
+        if [[ -n "$matches" ]]; then
+            matches=$(echo "$matches" | grep -v ':[[:space:]]*#' || true)
+        fi
+
+        # Exclude idiomatic compound terms.
+        if [[ -n "$matches" ]] && [[ "$term" == "quick" ]]; then
+            matches=$(echo "$matches" | grep -viE "$quick_whitelist" || true)
+        fi
+
+        # Cap displayed matches.
+        if [[ -n "$matches" ]]; then
+            matches=$(echo "$matches" | head -5)
+        fi
+
         if [[ -n "$matches" ]]; then
             if [[ "$found_any" == false ]]; then
                 echo "⚠️  **IMPORTANT**: Ambiguous terms detected:" >> "$BODY_FILE"
@@ -439,21 +560,29 @@ check_examples() {
 check_documentation() {
     log_check "Checking documentation files..."
 
-    if [[ -f "$SKILL_DIR/README.md" ]]; then
-        echo "✅ README.md exists" >> "$BODY_FILE"
-        ((SCORE+=5))
-    else
-        echo "⚠️  **SUGGESTION**: No README.md found" >> "$BODY_FILE"
-        echo "**Recommendation**: Create README.md with quick start, features, and troubleshooting" >> "$BODY_FILE"
-        ((SUGGESTIONS++))
-    fi
+    # README.md and a separate quick-start guide make sense for skills with
+    # supporting scripts (where users may need install/usage docs beyond
+    # SKILL.md). For pure-instruction skills, SKILL.md *is* the README —
+    # requiring a duplicate file would be busywork.
+    if [[ "$SKILL_ARCHETYPE" == "script-bearing" ]]; then
+        if [[ -f "$SKILL_DIR/README.md" ]]; then
+            echo "✅ README.md exists" >> "$BODY_FILE"
+            ((SCORE+=5))
+        else
+            echo "⚠️  **SUGGESTION**: No README.md found" >> "$BODY_FILE"
+            echo "**Recommendation**: Create README.md with quick start, features, and troubleshooting" >> "$BODY_FILE"
+            ((SUGGESTIONS++))
+        fi
 
-    if [[ -f "$SKILL_DIR/QUICKSTART.md" ]] || grep -qi "quick.*start\|getting.*started" "$SKILL_DIR/SKILL.md" 2>/dev/null; then
-        echo "✅ Quick start documentation found" >> "$BODY_FILE"
-        ((SCORE+=5))
+        if [[ -f "$SKILL_DIR/QUICKSTART.md" ]] || grep -qi "quick.*start\|getting.*started" "$SKILL_DIR/SKILL.md" 2>/dev/null; then
+            echo "✅ Quick start documentation found" >> "$BODY_FILE"
+            ((SCORE+=5))
+        else
+            echo "⚠️  **SUGGESTION**: No quick start guide" >> "$BODY_FILE"
+            ((SUGGESTIONS++))
+        fi
     else
-        echo "⚠️  **SUGGESTION**: No quick start guide" >> "$BODY_FILE"
-        ((SUGGESTIONS++))
+        echo "ℹ️  README.md / quick-start checks skipped (pure-instruction skill — SKILL.md serves as README)" >> "$BODY_FILE"
     fi
 
     # Progressive Disclosure check
@@ -653,7 +782,12 @@ main() {
     echo -e "${BLUE}===================================================${NC}"
     echo "Auditing skill: $SKILL_NAME"
     echo "Directory: $SKILL_DIR"
+
+    detect_archetype
+    echo "Archetype: $SKILL_ARCHETYPE (max score ceiling: $MAX_SCORE)"
     echo ""
+
+    write_archetype_section
 
     # Run all checks (they write to BODY_FILE)
     check_yaml_frontmatter

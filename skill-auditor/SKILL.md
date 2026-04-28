@@ -69,6 +69,24 @@ A meta-skill that audits other skills to ensure they are:
 - "check if this skill is production-ready"
 - "validate skill standards"
 
+## Skill Archetype Detection
+
+Before running checks, the auditor classifies the skill into one of two archetypes
+based on directory layout. Different archetypes have different audit needs:
+
+- **`script-bearing`** — has executable scripts under `scripts/` (`.sh`, `.py`, `.js`, `.ts`, `.mjs`).
+  These can fail at runtime, read user input, and make external calls. Full audit
+  applies (Security, Error Handling, README, Script Quality, etc.). Score ceiling: **125**.
+
+- **`pure-instruction`** — prompt-only, no scripts. The skill is text that guides
+  Claude; it has no I/O surface of its own. Checks tailored accordingly:
+  - **Skipped**: Security keyword density, README.md, Quick Start (SKILL.md serves as README).
+  - **Informational only**: missing Error Handling / Security sections (no I/O surface to document).
+  Score ceiling: **65**.
+
+The archetype is reported in stdout and at the top of the audit report so reviewers
+know which checks applied.
+
 ## Audit Checklist (50+ Items)
 
 ### 1. Structure Integrity (Critical)
@@ -90,7 +108,10 @@ A meta-skill that audits other skills to ensure they are:
 - [ ] **Examples** section with at least 2 usage examples
 - [ ] **Trigger phrases** or **When to Use** clearly defined
 
-### 2. Security Considerations (Critical)
+### 2. Security Considerations (Critical for `script-bearing` only)
+
+> Pure-instruction skills have no I/O surface, so missing security docs is informational, not critical.
+
 
 #### Security Documentation
 - [ ] **Security Considerations** section exists
@@ -113,7 +134,10 @@ A meta-skill that audits other skills to ensure they are:
 - [ ] Dependency versions specified
 - [ ] Fallback options for external failures
 
-### 3. Error Handling (Critical)
+### 3. Error Handling (Critical for `script-bearing` only)
+
+> Pure-instruction skills have no I/O, network, or file ops of their own — there is no error surface to handle, so missing this section is informational, not critical.
+
 
 #### Error Handling Documentation
 - [ ] **Error Handling** section exists
@@ -455,7 +479,7 @@ For straightforward issues (e.g., missing sections, ambiguous terms):
 | Description Voice | — | 5 |
 | Writing Style | — | 5 |
 
-**Total**: 130 points
+**Total**: dynamic — `script-bearing` ceiling is 125 points; `pure-instruction` ceiling is 65 (inapplicable checks like Security/Error Handling sections, Security keyword density, README, and Script Quality are excluded). Reported score is always normalized to 0–100.
 
 **Scoring:**
 - 117-130: Excellent ✅
@@ -517,7 +541,7 @@ User Request → Claude (Main Agent)
 | Description Voice | — | 5 | Automated |
 | Writing Style | — | 5 | Automated |
 
-**Total**: 130 points
+**Total**: dynamic — `script-bearing` ceiling is 125 points; `pure-instruction` ceiling is 65 (inapplicable checks like Security/Error Handling sections, Security keyword density, README, and Script Quality are excluded). Reported score is always normalized to 0–100.
 
 ### Data Flow
 
