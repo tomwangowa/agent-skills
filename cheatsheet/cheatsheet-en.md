@@ -68,6 +68,7 @@ tech-research-pipeline (one-shot trigger for full workflow):
 | Fact-check external articles or marketing copy | `narrative-auditor` | "Fact-check this blog post about Redis vs Memcached" |
 | Cross-validate technical claims via multiple strategies | `research-cross-validator` | "Cross-validate the key claims in this feasibility report" |
 | Verify documentation matches actual code | `codebase-audit` | "Audit whether the README claims match the actual API" |
+| Deeply understand a document set (mental models, gaps, frameworks) | `deep-reading` | "Deep-read these 3 papers on retrieval-augmented generation" |
 | Ran 2+ research skills, need unified conclusion | `research-synthesis` | "Synthesize the database options research into a decision doc" |
 
 ### Narrative Auditor Full Workflow
@@ -178,6 +179,7 @@ presentation-planner → interactive-presentation-generator → Slide Files
 | Not sure which skill to use | `skill-router` | "/skill-router I want to evaluate using Redis for session store" |
 | Browse all available skills by category | `skill-router list` | "/skill-router list" |
 | View predefined multi-skill workflows | `skill-router workflows` | "/skill-router workflows" |
+| Design a Claude Code workflow / pick a mechanism (hook / skill / subagent / MCP) | `claude-workflow-designer` | `/sos` or "Help me design a workflow for nightly PR babysitting" |
 | Create or edit a skill | `superpowers:writing-skills` | "Create a new skill for database migration" |
 | Audit skill quality (required after create/modify) | `skill-auditor` | "Audit the new db-migrator skill" |
 | Sync skills across AI tools | `skillshare` | "Sync my skills to Cursor and Windsurf" |

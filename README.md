@@ -68,7 +68,7 @@ Think before you build.
 | [spec-gap-finder](./spec-gap-finder/) | Pre-dev spec/wireframe review from an RD perspective. Runs a 10-category, 60+ item checklist to find gaps, ambiguities, and undefined edge cases. Outputs a prioritized question list for a single alignment meeting with PM/Designer. |
 | [ui-design-analyzer](./ui-design-analyzer/) | UI/UX screenshot analysis. Evaluates interface design across 6 dimensions including usability, accessibility, and visual design. |
 
-### Content Generation (5)
+### Content Generation (7)
 
 Standardize repetitive documentation, presentation, and note-taking work.
 
@@ -80,6 +80,7 @@ Standardize repetitive documentation, presentation, and note-taking work.
 | [report-generator](./report-generator/) | Generate structured reports from activity logs and git history. Supports weekly, monthly, project summary, retrospective, and more. |
 | [ai-weekly-insight](./ai-weekly-insight/) | Weekly or daily AI news deep-analysis for TrendLife AI Taskforce. Weekly: top 5 news; Daily: top 3 news. Three-dimension analysis (tech/business/competitive), outputs to Obsidian + Confluence or ai_news repo. Supports `--dest` and `daily` mode. |
 | [arxiv-digest](./arxiv-digest/) | Digest arXiv AI papers into engineer-friendly shareable formats for Taskforce meetings. Supports URL, search, and multi-paper comparison modes. |
+| [newsletter-digest](./newsletter-digest/) | Batch newsletter digestion. Reads all `.eml` files from a folder, auto-clusters by topic, and produces a structured digest with topic summaries, per-article overviews, and deep-read recommendations. Supports recursive subfolders and date filtering. |
 
 ### Productivity & Tracking (3)
 
@@ -108,13 +109,15 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 
 See [skills-query-server/README.md](./skills-query-server/README.md) for details.
 
-### Tools & Meta-skills (2)
+### Tools & Meta-skills (4)
 
-Tools for managing skills themselves.
+Tools for managing skills and workflows themselves.
 
 | Skill | Description |
 |-------|-------------|
 | [skill-auditor](./skill-auditor/) | Audit skills for quality, security, and best practices. Use after creating or modifying a skill. |
+| [skill-router](./skill-router/) | **Skill discovery and routing hub.** Three modes: smart routing (describe your need, get a recommendation), category browse (list all skills), and workflow browse (view predefined multi-skill chains). Your first stop when unsure which skill to use. |
+| [claude-workflow-designer](./claude-workflow-designer/) | Design Claude Code workflows. Helps you choose between mechanisms (hook / skill / subagent / MCP / CLAUDE.md) and package automation for team distribution. Backs the `/sos` slash command. |
 | [skillshare](https://github.com/runkids/skillshare) | Sync skills across AI CLI tools (Claude Code, Cursor, Windsurf, etc.). Single source of truth, used everywhere. |
 
 ---
@@ -293,6 +296,7 @@ Activity records can be used with `work-log-analyzer` for cross-project and cros
 | activity-logger | `jq`, Git |
 | work-log-analyzer | `jq`, `date` (core functionality has no external dependencies) |
 | skill-auditor | Bash 4.0+ (optional: Gemini CLI for semantic analysis) |
+| newsletter-digest | Python 3 (bundled `parse_emls.py` script) |
 | skills-query-server | Node.js, `tsx` (registered via `claude mcp add`) |
 | All other skills | No external dependencies |
 

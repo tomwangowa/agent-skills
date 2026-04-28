@@ -68,6 +68,7 @@ tech-research-pipeline（一鍵觸發完整流程）:
 | 查核外部文章/行銷文案的真實性 | `narrative-auditor` | 「幫我查核這篇 Redis vs Memcached 的文章」 |
 | 用多策略交叉驗證技術主張 | `research-cross-validator` | 「交叉驗證這份可行性報告中的關鍵主張」 |
 | 驗證文件是否與程式碼一致 | `codebase-audit` | 「檢查 README 裡的 API 說明跟實際程式碼是否一致」 |
+| 深讀文件集，萃取心智模型／知識缺口／可教框架 | `deep-reading` | 「幫我深讀這 3 篇 RAG 論文」 |
 | 跑完 2+ 研究技能，要整合結論 | `research-synthesis` | 「把資料庫選型的研究結果整合成決策文件」 |
 
 ### Narrative Auditor 完整工作流
@@ -178,6 +179,7 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 | 不確定該用哪個 skill | `skill-router` | 「/skill-router 我想評估用 Redis 做 session store」 |
 | 瀏覽所有可用 skills（按分類） | `skill-router list` | 「/skill-router list」 |
 | 查看預設多 skill 組合工作流 | `skill-router workflows` | 「/skill-router workflows」 |
+| 設計 Claude Code 工作流／挑選實作機制（hook / skill / subagent / MCP） | `claude-workflow-designer` | `/sos` 或「幫我設計每晚自動 babysit PR 的 workflow」 |
 | 建立或編輯新技能 | `superpowers:writing-skills` | 「建立一個資料庫遷移的新技能」 |
 | 審計技能品質（建立/修改後必跑） | `skill-auditor` | 「審計剛建的 db-migrator 技能」 |
 | 跨 AI 工具同步技能 | `skillshare` | 「把技能同步到 Cursor 和 Windsurf」 |
