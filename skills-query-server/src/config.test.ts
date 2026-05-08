@@ -15,30 +15,38 @@ describe('loadConfig', () => {
     rmSync(testDir, { recursive: true, force: true });
   });
 
-  it('loads valid config file', () => {
+  const NEW_SHAPE = {
+    sources: {
+      activities: '/tmp/activities',
+      notes: {
+        paths: ['/tmp/notes', '/tmp/notes2'],
+        recursive: true,
+        exclude_hidden: true,
+      },
+    },
+  };
+
+  it('loads valid config (new shape)', () => {
     const configPath = join(testDir, 'config.json');
-    writeFileSync(configPath, JSON.stringify({
-      sources: {
-        activities: '/tmp/activities',
-        notes: '/tmp/notes'
-      }
-    }));
+    writeFileSync(configPath, JSON.stringify(NEW_SHAPE));
     const config = loadConfig(configPath);
     expect(config.sources.activities).toBe('/tmp/activities');
-    expect(config.sources.notes).toBe('/tmp/notes');
+    expect(config.sources.notes.paths).toEqual(['/tmp/notes', '/tmp/notes2']);
+    expect(config.sources.notes.recursive).toBe(true);
+    expect(config.sources.notes.exclude_hidden).toBe(true);
   });
 
-  it('expands ~ in paths', () => {
+  it('expands ~ in all paths', () => {
     const configPath = join(testDir, 'config.json');
     writeFileSync(configPath, JSON.stringify({
       sources: {
         activities: '~/.claude/activities',
-        notes: '~/notes'
-      }
+        notes: { paths: ['~/notes', '~/other'], recursive: false, exclude_hidden: true },
+      },
     }));
     const config = loadConfig(configPath);
     expect(config.sources.activities).not.toContain('~');
-    expect(config.sources.activities).toContain('.claude/activities');
+    config.sources.notes.paths.forEach(p => expect(p).not.toContain('~'));
   });
 
   it('throws on missing config file', () => {
@@ -46,9 +54,21 @@ describe('loadConfig', () => {
       .toThrow('Config file not found');
   });
 
-  it('throws on missing sources field', () => {
+  it('throws on missing notes.paths', () => {
     const configPath = join(testDir, 'config.json');
-    writeFileSync(configPath, JSON.stringify({}));
+    writeFileSync(configPath, JSON.stringify({
+      sources: { activities: '/tmp/a', notes: { recursive: true } },
+    }));
     expect(() => loadConfig(configPath)).toThrow();
+  });
+
+  it('defaults recursive=true and exclude_hidden=true if omitted', () => {
+    const configPath = join(testDir, 'config.json');
+    writeFileSync(configPath, JSON.stringify({
+      sources: { activities: '/tmp/a', notes: { paths: ['/tmp/n'] } },
+    }));
+    const config = loadConfig(configPath);
+    expect(config.sources.notes.recursive).toBe(true);
+    expect(config.sources.notes.exclude_hidden).toBe(true);
   });
 });

@@ -31,9 +31,15 @@ export interface QANote {
 }
 
 // Config schema
+export interface NotesConfig {
+  paths: string[];
+  recursive: boolean;
+  exclude_hidden: boolean;
+}
+
 export interface Config {
   sources: {
     activities: string;
-    notes: string;
+    notes: NotesConfig;
   };
 }

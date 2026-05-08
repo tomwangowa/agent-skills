@@ -21,14 +21,21 @@ export function loadConfig(configPath: string): Config {
 
   const raw = JSON.parse(readFileSync(configPath, 'utf-8'));
 
-  if (!raw.sources?.activities || !raw.sources?.notes) {
-    throw new Error('Config must have sources.activities and sources.notes');
+  if (!raw.sources?.activities) {
+    throw new Error('Config must have sources.activities');
+  }
+  if (!raw.sources?.notes?.paths || !Array.isArray(raw.sources.notes.paths) || raw.sources.notes.paths.length === 0) {
+    throw new Error('Config must have sources.notes.paths (non-empty array of strings)');
   }
 
   return {
     sources: {
       activities: expandHome(raw.sources.activities),
-      notes: expandHome(raw.sources.notes),
+      notes: {
+        paths: raw.sources.notes.paths.map(expandHome),
+        recursive: raw.sources.notes.recursive ?? true,
+        exclude_hidden: raw.sources.notes.exclude_hidden ?? true,
+      },
     },
   };
 }
