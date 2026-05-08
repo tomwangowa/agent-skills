@@ -15,7 +15,7 @@ export function loadConfig(configPath: string): Config {
     throw new Error(
       `Config file not found: ${configPath}\n` +
       'Create a config.json with:\n' +
-      '{\n  "sources": {\n    "activities": "~/.claude/activities",\n    "notes": "~/path/to/QA-TO-NOTES"\n  }\n}'
+      '{\n  "sources": {\n    "activities": "~/.claude/activities",\n    "notes": { "paths": ["~/path/to/QA-TO-NOTES"] }\n  }\n}'
     );
   }
 

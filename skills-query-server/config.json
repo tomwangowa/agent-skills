@@ -1,6 +1,12 @@
 {
   "sources": {
     "activities": "~/.claude/activities",
-    "notes": "~/Library/CloudStorage/GoogleDrive-tomwang.owa@gmail.com/My Drive/Obsidian KEEP/Working notes/Journal 2005/私人資訊/QA-TO-NOTES"
+    "notes": {
+      "paths": [
+        "/Users/tom_wang/Library/CloudStorage/GoogleDrive-tomwang.owa@gmail.com/My Drive/Obsidian KEEP/Working notes/Journal 2005/QA-TO-NOTES"
+      ],
+      "recursive": true,
+      "exclude_hidden": true
+    }
   }
 }
