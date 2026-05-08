@@ -34,7 +34,7 @@ describe('loadNotes', () => {
 
   it('loads markdown files with frontmatter', () => {
     writeFileSync(join(testDir, 'test-note.md'), SAMPLE_NOTE);
-    const notes = loadNotes(testDir);
+    const notes = loadNotes({ paths: [testDir], recursive: false, exclude_hidden: true });
     expect(notes).toHaveLength(1);
     expect(notes[0].title).toBe('PicoClaw：輕量 AI 助理的真相');
     expect(notes[0].date).toBe('2026-02-16');
@@ -44,14 +44,14 @@ describe('loadNotes', () => {
 
   it('extracts summary from 概述 section', () => {
     writeFileSync(join(testDir, 'test-note.md'), SAMPLE_NOTE);
-    const notes = loadNotes(testDir);
+    const notes = loadNotes({ paths: [testDir], recursive: false, exclude_hidden: true });
     expect(notes[0].summary).toContain('PicoClaw 是一個開源專案');
   });
 
   it('skips non-markdown files', () => {
     writeFileSync(join(testDir, 'test-note.md'), SAMPLE_NOTE);
     writeFileSync(join(testDir, 'debug.log'), 'not a note');
-    const notes = loadNotes(testDir);
+    const notes = loadNotes({ paths: [testDir], recursive: false, exclude_hidden: true });
     expect(notes).toHaveLength(1);
   });
 
@@ -69,16 +69,50 @@ source: claude-code
 This overview is the last section in the file.
 `;
     writeFileSync(join(testDir, 'last-section.md'), noteWithOverviewLast);
-    const notes = loadNotes(testDir);
+    const notes = loadNotes({ paths: [testDir], recursive: false, exclude_hidden: true });
     expect(notes[0].summary).toContain('This overview is the last section');
   });
 
   it('handles notes without frontmatter gracefully', () => {
     writeFileSync(join(testDir, 'plain.md'), '# Just a Title\n\nSome content.');
-    const notes = loadNotes(testDir);
+    const notes = loadNotes({ paths: [testDir], recursive: false, exclude_hidden: true });
     expect(notes).toHaveLength(1);
     expect(notes[0].title).toBe('Just a Title');
     expect(notes[0].tags).toEqual([]);
+  });
+
+  it('recurses into subfolders when recursive=true', () => {
+    mkdirSync(join(testDir, 'sub'), { recursive: true });
+    writeFileSync(join(testDir, 'top.md'), SAMPLE_NOTE);
+    writeFileSync(join(testDir, 'sub', 'nested.md'), SAMPLE_NOTE);
+    const notes = loadNotes({ paths: [testDir], recursive: true, exclude_hidden: true });
+    expect(notes).toHaveLength(2);
+  });
+
+  it('does not recurse when recursive=false', () => {
+    mkdirSync(join(testDir, 'sub'), { recursive: true });
+    writeFileSync(join(testDir, 'top.md'), SAMPLE_NOTE);
+    writeFileSync(join(testDir, 'sub', 'nested.md'), SAMPLE_NOTE);
+    const notes = loadNotes({ paths: [testDir], recursive: false, exclude_hidden: true });
+    expect(notes).toHaveLength(1);
+  });
+
+  it('skips hidden directories when exclude_hidden=true', () => {
+    mkdirSync(join(testDir, '.hidden'), { recursive: true });
+    writeFileSync(join(testDir, 'top.md'), SAMPLE_NOTE);
+    writeFileSync(join(testDir, '.hidden', 'secret.md'), SAMPLE_NOTE);
+    const notes = loadNotes({ paths: [testDir], recursive: true, exclude_hidden: true });
+    expect(notes).toHaveLength(1);
+    expect(notes[0].filename).toBe('top.md');
+  });
+
+  it('aggregates across multiple paths', () => {
+    const dir2 = join(testDir, '_second');
+    mkdirSync(dir2, { recursive: true });
+    writeFileSync(join(testDir, 'a.md'), SAMPLE_NOTE);
+    writeFileSync(join(dir2, 'b.md'), SAMPLE_NOTE);
+    const notes = loadNotes({ paths: [testDir, dir2], recursive: false, exclude_hidden: true });
+    expect(notes).toHaveLength(2);
   });
 });
 

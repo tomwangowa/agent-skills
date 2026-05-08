@@ -29,7 +29,8 @@ describe('integration: real data sources', () => {
   it('reads real notes if available', () => {
     if (!existsSync(configPath)) return;
     const config = loadConfig(configPath);
-    if (!existsSync(config.sources.notes)) return;
+    const firstPath = config.sources.notes.paths[0];
+    if (!firstPath || !existsSync(firstPath)) return;
     const notes = loadNotes(config.sources.notes);
     expect(Array.isArray(notes)).toBe(true);
     expect(notes.length).toBeGreaterThan(0);

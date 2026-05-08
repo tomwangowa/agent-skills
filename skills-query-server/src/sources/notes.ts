@@ -1,21 +1,52 @@
-import { readFileSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { readFileSync, readdirSync, statSync } from 'fs';
+import { join, basename } from 'path';
 import matter from 'gray-matter';
-import type { QANote } from '../types.js';
+import type { QANote, NotesConfig } from '../types.js';
 
-export function loadNotes(basePath: string): QANote[] {
-  const files = readdirSync(basePath).filter((f) => f.endsWith('.md'));
-  const notes: QANote[] = [];
+function walkMarkdown(dir: string, recursive: boolean, excludeHidden: boolean): string[] {
+  let results: string[] = [];
+  let entries: string[];
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return results;
+  }
 
-  for (const file of files) {
+  for (const entry of entries) {
+    if (excludeHidden && entry.startsWith('.')) continue;
+    const full = join(dir, entry);
+    let stat;
     try {
-      const filepath = join(basePath, file);
+      stat = statSync(full);
+    } catch {
+      continue;
+    }
+    if (stat.isDirectory()) {
+      if (recursive) {
+        results = results.concat(walkMarkdown(full, recursive, excludeHidden));
+      }
+    } else if (entry.endsWith('.md')) {
+      results.push(full);
+    }
+  }
+  return results;
+}
+
+export function loadNotes(config: NotesConfig): QANote[] {
+  const allFiles: string[] = [];
+  for (const root of config.paths) {
+    allFiles.push(...walkMarkdown(root, config.recursive, config.exclude_hidden));
+  }
+
+  const notes: QANote[] = [];
+  for (const filepath of allFiles) {
+    try {
       const raw = readFileSync(filepath, 'utf-8');
       const { data, content } = matter(raw);
 
       // Extract title from first H1
       const titleMatch = content.match(/^#\s+(.+)$/m);
-      const title = titleMatch?.[1] ?? file.replace(/\.md$/, '');
+      const title = titleMatch?.[1] ?? basename(filepath).replace(/\.md$/, '');
 
       // Extract summary from 概述 or Overview section
       const summaryMatch = content.match(
@@ -24,7 +55,7 @@ export function loadNotes(basePath: string): QANote[] {
       const summary = summaryMatch?.[1]?.trim() ?? '';
 
       notes.push({
-        filename: file,
+        filename: basename(filepath),
         filepath,
         date: data.date instanceof Date
           ? data.date.toISOString().slice(0, 10)
