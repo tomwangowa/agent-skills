@@ -18,7 +18,7 @@
 
 ## Skills 總覽
 
-目前共 **34 個自製 skills**，按用途分為 7 類。
+目前共 **37 個自製 skills**，按用途分為 7 類。
 
 ### 品質守門 (5)
 
@@ -68,7 +68,7 @@
 | [spec-gap-finder](./spec-gap-finder/) | 開發前 spec/wireframe 審查。用 RD 視角跑 10 類、60+ 項 checklist，找出 spec 缺口和未定義的 edge case。產出分優先級的問題清單，帶進一次對齊會議就能搞定。 |
 | [ui-design-analyzer](./ui-design-analyzer/) | UI/UX 截圖分析。從可用性、無障礙、視覺設計等 6 個維度評估介面設計。 |
 
-### 內容生成 (7)
+### 內容生成 (10)
 
 把重複性的文件、簡報、筆記工作標準化。
 
@@ -81,6 +81,9 @@
 | [ai-weekly-insight](./ai-weekly-insight/) | TrendLife AI Taskforce 專用的每週/每日 AI 新聞深度分析。Weekly: Top 5；Daily: Top 3。三維分析（技術/業務/競爭），輸出至 Obsidian + Confluence 或 ai_news repo。支援 `--dest` 和 `daily` 模式。 |
 | [arxiv-digest](./arxiv-digest/) | 將 arXiv AI 論文消化為工程師友善的分享格式，供 Taskforce 會議使用。支援 URL、搜尋、多篇比較三種模式。 |
 | [newsletter-digest](./newsletter-digest/) | 電子報批次消化。讀取整個資料夾的 `.eml` 檔，自動分群歸類，產出含主題摘要、逐篇速覽、深讀推薦的結構化 digest。支援遞迴子資料夾與日期篩選。 |
+| [md-translate](./md-translate/) | 翻譯 markdown 文件為英文與繁體中文。自動偵測來源語言，產出 `-en.md`、`-zh.md`，含覆寫確認保護。支援單檔、批次 glob、`--lang` / `--force` 旗標。 |
+| [pptx-to-md](./pptx-to-md/) | 將 PPTX、DOCX、XLSX、PDF、圖片轉為 Markdown，透過 Microsoft markitdown。安裝前需使用者確認、批次模式支援含空格路徑、逐檔覆寫保護。 |
+| [repo-sync](./repo-sync/) | 任意 repo 的 pull + submodule sync（有 `.gitmodules` 才執行）。依頂層目錄自動分組產出 What's New 摘要，可用 `.claude/repo-sync-roles.yaml` 自訂分組。`reset --hard` 前自動建 backup branch。 |
 
 ### 生產力與追蹤 (3)
 
@@ -299,6 +302,9 @@ Activity records 可與 `work-log-analyzer` 搭配使用，跨專案和 session 
 | skill-auditor | Bash 4.0+（可選：Gemini CLI 用於語義分析） |
 | newsletter-digest | Python 3（內建 `parse_emls.py` 腳本） |
 | skills-query-server | Node.js、`tsx`（透過 `claude mcp add` 註冊） |
+| pptx-to-md | Python 3 + `uv` 或 `pip`（markitdown；`uvx` 可免安裝直接執行） |
+| repo-sync | Git |
+| md-translate | 無外部依賴 |
 | 其餘 skills | 無外部依賴 |
 
 ---

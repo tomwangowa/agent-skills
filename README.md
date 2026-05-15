@@ -18,7 +18,7 @@ These principles don't require you to agree with my approach — they're indepen
 
 ## Skills Overview
 
-Currently **34 custom skills** organized into 7 categories.
+Currently **37 custom skills** organized into 7 categories.
 
 ### Quality Gates (5)
 
@@ -68,7 +68,7 @@ Think before you build.
 | [spec-gap-finder](./spec-gap-finder/) | Pre-dev spec/wireframe review from an RD perspective. Runs a 10-category, 60+ item checklist to find gaps, ambiguities, and undefined edge cases. Outputs a prioritized question list for a single alignment meeting with PM/Designer. |
 | [ui-design-analyzer](./ui-design-analyzer/) | UI/UX screenshot analysis. Evaluates interface design across 6 dimensions including usability, accessibility, and visual design. |
 
-### Content Generation (7)
+### Content Generation (10)
 
 Standardize repetitive documentation, presentation, and note-taking work.
 
@@ -81,6 +81,9 @@ Standardize repetitive documentation, presentation, and note-taking work.
 | [ai-weekly-insight](./ai-weekly-insight/) | Weekly or daily AI news deep-analysis for TrendLife AI Taskforce. Weekly: top 5 news; Daily: top 3 news. Three-dimension analysis (tech/business/competitive), outputs to Obsidian + Confluence or ai_news repo. Supports `--dest` and `daily` mode. |
 | [arxiv-digest](./arxiv-digest/) | Digest arXiv AI papers into engineer-friendly shareable formats for Taskforce meetings. Supports URL, search, and multi-paper comparison modes. |
 | [newsletter-digest](./newsletter-digest/) | Batch newsletter digestion. Reads all `.eml` files from a folder, auto-clusters by topic, and produces a structured digest with topic summaries, per-article overviews, and deep-read recommendations. Supports recursive subfolders and date filtering. |
+| [md-translate](./md-translate/) | Translate markdown files to English and Traditional Chinese. Auto-detects source language; generates `-en.md` and `-zh.md` with overwrite guard. Supports single file, batch glob, and `--lang` / `--force` flags. |
+| [pptx-to-md](./pptx-to-md/) | Convert PPTX, DOCX, XLSX, PDF, and images to Markdown via Microsoft markitdown. Consent-gated install, space-safe batch mode, per-file overwrite guard. |
+| [repo-sync](./repo-sync/) | Pull latest + optional submodule sync for any repo. Generates a What's New digest grouped by top-level directory (or custom `.claude/repo-sync-roles.yaml`). Safety backup branch before any `reset --hard`. |
 
 ### Productivity & Tracking (3)
 
@@ -298,6 +301,9 @@ Activity records can be used with `work-log-analyzer` for cross-project and cros
 | skill-auditor | Bash 4.0+ (optional: Gemini CLI for semantic analysis) |
 | newsletter-digest | Python 3 (bundled `parse_emls.py` script) |
 | skills-query-server | Node.js, `tsx` (registered via `claude mcp add`) |
+| pptx-to-md | Python 3 + `uv` or `pip` (for markitdown; `uvx` runs ephemerally with no install) |
+| repo-sync | Git |
+| md-translate | No external dependencies |
 | All other skills | No external dependencies |
 
 ---
