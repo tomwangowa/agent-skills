@@ -71,6 +71,9 @@ Followed by markdown content containing:
 - **presentation-planner** — Narrative strategy and slide planning before presentation generation
 - **interactive-presentation-generator** — Generate Marp/Slidev/reveal.js presentations
 - **ui-design-analyzer** — Analyze UI/UX design from screenshots
+- **md-translate** — Translate markdown files to English and Traditional Chinese; auto-detects source language; generates `-en.md` and `-zh.md`
+- **pptx-to-md** — Convert PPTX/DOCX/XLSX/PDF to Markdown via Microsoft markitdown; supports single file, batch, and print-only modes
+- **repo-sync** — Pull latest + submodule sync for any repo; generates What's New digest grouped by top-level directory or custom `.claude/repo-sync-roles.yaml`
 
 ### Meta
 
