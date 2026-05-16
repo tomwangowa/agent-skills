@@ -1,6 +1,6 @@
 ---
 name: repo-sync
-description: Keep any git repo up-to-date by pulling the latest changes and optionally syncing submodules. Also generates a "What's New" digest of recent changes, grouped by top-level directory (or by custom roles defined in .claude/repo-sync-roles.yaml). Works in any repo — no hardcoded paths or team structure required. Use when asked to sync, pull latest, update repo, or show what changed.
+description: Use when asked to sync, pull latest, update a repo, or show what changed recently. Keeps any git repo up-to-date by pulling the latest changes and optionally syncing submodules. Also generates a "What's New" digest of recent changes. Works in a single repo OR from a non-git parent directory to batch-sync all first-level sub-repos.
 compatibility: Designed for Claude Code. Requires git.
 allowed-tools: Bash Read Write Edit Glob Grep
 ---
@@ -10,10 +10,115 @@ allowed-tools: Bash Read Write Edit Glob Grep
 Two operations: **sync** (pull everything) and **whats-new** (digest of recent changes).
 
 ```
-/repo-sync              → pull latest, sync submodules if present
-/repo-sync whats-new    → digest grouped by component
+/repo-sync                     → pull latest (single repo, or all sub-repos if CWD is not a git repo)
+/repo-sync whats-new           → digest grouped by component (single or multi-repo)
 /repo-sync whats-new <group>   → digest for one specific group only
 ```
+
+---
+
+## Entry Detection
+
+**Run this check before every operation.**
+
+Detect whether CWD is inside a git repo:
+
+```bash
+git rev-parse --is-inside-work-tree 2>/dev/null
+```
+
+| Result | Action |
+|--------|--------|
+| Prints `true` | CWD is a git repo → proceed to Operation 1 (sync) or Operation 2 (whats-new) as normal |
+| Command fails / empty output | CWD is NOT a git repo → switch to **Operation 0 — Multi-Repo mode** |
+
+---
+
+## Operation 0 — Multi-Repo Sync
+
+Used automatically when CWD is not a git repo. Scans first-level subdirectories and batch-pulls all git repos found.
+
+### Step 1 — Scan first-level subdirectories
+
+```bash
+for d in */; do [ -d "$d/.git" ] && echo "$d"; done
+```
+
+Collect all directories that contain a `.git` folder. Non-git directories are silently skipped.
+
+If **no git repos found**, stop and tell the user:
+> No git repositories found in the current directory. Nothing to sync.
+
+### Step 2 — Collect branch info
+
+For each discovered repo, read its current branch:
+
+```bash
+git -C <repo-dir> rev-parse --abbrev-ref HEAD 2>/dev/null
+```
+
+Also detect the main branch name:
+
+```bash
+git -C <repo-dir> symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/origin/||'
+```
+
+If that returns empty, fall back:
+
+```bash
+git -C <repo-dir> branch -r | grep -E 'origin/(main|master)' | head -1 | sed 's|.*origin/||'
+```
+
+Flag any repo whose current branch ≠ main branch with `⚠️`.
+
+### Step 3 — List repos and confirm
+
+Print the discovered repos and prompt for confirmation:
+
+```
+Found N git repos:
+  • <repo-name>   (main)
+  • <repo-name>   (main)
+  • <repo-name>   (feature/xyz)  ⚠️ not on main branch
+
+Will pull all repos. Continue? (y/n)
+```
+
+Wait for user confirmation. If **n** or cancel → stop. Nothing changes.
+
+### Step 4 — Batch execute
+
+For each repo **in order**, apply the full **Operation 1** logic (Steps 1–6) using `git -C <repo-dir>` for all git commands. That means:
+- Check branch → if non-main, present Options A/B/Cancel **for that repo**, wait for response, then continue to next repo
+- Check working tree → if dirty, present Options A/B/Cancel **for that repo**, wait for response, then continue to next repo
+- Fetch and pull (`--ff-only`; if diverged → present Options A/B/Cancel for that repo)
+- Sync submodules if present
+- Write `.memory/last-sync.txt` inside that repo
+
+**Pause behavior:** Any problem with a repo (non-main branch, dirty tree, diverged commits) pauses execution for that repo only. Describe the issue clearly, wait for the user's instruction, then continue to the next repo regardless of what the user chose.
+
+**Never abort the entire batch** due to a single repo's problem.
+
+**Skip Operation 1 Step 6** (single-repo report) for each individual repo — the consolidated summary is printed in Step 5 below instead.
+
+### Step 5 — Print summary table
+
+After all repos have been processed, print:
+
+```
+| Repo                  | Status        | Details                      |
+|-----------------------|---------------|------------------------------|
+| Omni-Mobile-Platform  | ✅ updated    | abc1234 fix: auth token      |
+| REI-Project           | ⚪ up-to-date |                              |
+| hie-rei               | ⚠️ skipped   | stayed on feature/xyz branch |
+| kaleida-ai-agent      | ✅ updated    | def5678 feat: new agent      |
+```
+
+Status values:
+- `✅ updated` — pull succeeded and brought in new commits
+- `⚪ up-to-date` — already at latest, nothing to pull
+- `⚠️ skipped` — user chose to skip or cancel for this repo
+- `❌ error` — unexpected git error (show error message in Details)
 
 ---
 
@@ -48,10 +153,39 @@ If **not on the main branch**, present a proposal:
 
 Wait for user choice before continuing.
 
-### Step 2 — Fetch and pull
+### Step 2 — Preflight: check working tree
+
+Before any pull/rebase/reset, verify the working tree is clean:
+
+```bash
+git status --porcelain
+```
+
+If output is non-empty (uncommitted changes exist), stop and present:
+
+> **Uncommitted changes detected.** Pulling may conflict or `reset --hard` will discard them.
+>
+> **Options:**
+> - **A** — Stash changes first (`git stash`), then continue
+> - **B** — Abort — let me handle my changes first
+> - **Cancel**
+
+- **A**: run `git stash`, proceed with pull, then offer `git stash pop` at the end.
+- **B / Cancel**: stop. Nothing changes.
+
+If working tree is clean, proceed silently.
+
+### Step 3 — Fetch and pull
 
 ```bash
 git fetch origin
+```
+
+Resolve the pull target:
+- If the current branch has a tracking upstream (`git rev-parse --abbrev-ref @{u}` succeeds) → pull from that upstream.
+- If no upstream exists (local-only branch) → pull from `origin/<main-branch>` and note: "This branch has no remote upstream — pulling from `origin/<main>` instead."
+
+```bash
 git pull --ff-only origin <branch>
 ```
 
@@ -84,7 +218,7 @@ Then present a clear proposal:
   Then run `git reset --hard origin/<branch>`.
 - **cancel**: stop. Nothing changes.
 
-### Step 3 — Sync submodules (if present)
+### Step 4 — Sync submodules (if present)
 
 Check whether this repo uses submodules:
 
@@ -94,17 +228,18 @@ Check whether this repo uses submodules:
 
 **If submodules exist:**
 ```bash
-git submodule update --init
+git submodule sync --recursive
+git submodule update --init --recursive
 git submodule status
 ```
 
 > **Do NOT use `--remote`** — that advances each submodule to its own latest HEAD, creating
-> uncommitted changes in the parent repo. `--init` checks out the exact commit pinned by
-> the parent repo, leaving a clean working tree.
+> uncommitted changes in the parent repo. `--init --recursive` checks out the exact commit pinned by
+> the parent repo (including nested submodules), leaving a clean working tree.
 
 **If no submodules**: skip this step silently.
 
-### Step 4 — Record sync timestamp
+### Step 5 — Record sync timestamp
 
 Write the current UTC timestamp to `.memory/last-sync.txt`:
 ```
@@ -113,7 +248,7 @@ Write the current UTC timestamp to `.memory/last-sync.txt`:
 
 Create `.memory/` if it does not exist. (`.memory/` should be in `.gitignore` — check and offer to add it if missing.)
 
-### Step 5 — Report
+### Step 6 — Report
 
 Print a summary:
 
@@ -128,6 +263,74 @@ Print a summary:
 
 Scan recent changes and produce a digest, grouped by component.
 
+### Multi-Repo Mode
+
+If Entry Detection determined CWD is **not** a git repo, run the following multi-repo flow instead of the single-repo steps below.
+
+**Step M1 — Scan repos**
+
+Same as Operation 0 Step 1: find all first-level subdirectories containing `.git`.
+
+If no repos found:
+> No git repositories found in the current directory.
+
+**Step M2 — Collect digests**
+
+For each repo, apply the single-repo Operation 2 logic (Steps 1–4) using `git -C <repo-dir>` for all git commands. Each repo reads its own `.memory/last-sync.txt` for the time window. Collect the resulting digest data in memory — do not write individual repo digest files.
+
+**Step M3 — Merge and write cross-repo report**
+
+Combine all repos' digest data into a single report. Write to:
+
+```
+<parent-dir>/.memory/whats-new/<YYYY-MM-DD>.md
+```
+
+Create `<parent-dir>/.memory/whats-new/` if it does not exist. Apply the same same-day collision rule (append `-<HHMM>` suffix) as the single-repo operation.
+
+**Output format:**
+
+```markdown
+# What's New — <DATE>
+> Changes across N repos since earliest last-sync (or 7 days ago)
+
+## Summary
+| Repo                 | Commits | Files changed |
+|----------------------|---------|---------------|
+| Omni-Mobile-Platform | 4       | 12            |
+| REI-Project          | 0       | —             |
+| kaleida-ai-agent     | 7       | 23            |
+
+---
+
+## <Repo Name>
+
+> Since <SINCE for this repo>
+
+### Key changes
+<1–2 sentence narrative>
+
+### Commits
+| Date | Hash | Description |
+|------|------|-------------|
+| 2026-05-14 | `a1b2c3` | fix(api): correct auth token expiry |
+
+### Changed files
+<grouped by subfolder, bullet list>
+
+---
+
+## <Next Repo>
+...
+```
+
+If a repo has zero commits in its window:
+> No changes in `<repo>` since `<SINCE>`.
+
+**If `/repo-sync whats-new <group>` is called in multi-repo mode**, filter each repo's digest to only the matching group. Repos with no matching group changes are still listed in the Summary table with 0 commits.
+
+---
+
 ### Step 1 — Determine time window
 
 Read `.memory/last-sync.txt` for the previous sync timestamp.
@@ -140,18 +343,18 @@ Read `.memory/last-sync.txt` for the previous sync timestamp.
 git log \
   --since="<SINCE>" \
   --name-only \
-  --pretty=format:"COMMIT|%h|%ad|%s" \
+  --pretty=format:"COMMIT%x00%h%x00%ad%x00%s" \
   --date=short
 ```
 
-Parse into a list of `{ hash, date, subject, files[] }` entries.
+Use NUL (`%x00`) as the field delimiter — commit subjects may contain `|`, which would corrupt a pipe-delimited format. Split each `COMMIT…` line on NUL bytes to extract `{ hash, date, subject }`, then collect the following non-empty lines as `files[]` until the next `COMMIT…` marker.
 
 For each registered submodule (if any):
 ```bash
 git -C <submodule-path> log \
   --since="<SINCE>" \
   --name-only \
-  --pretty=format:"COMMIT|%h|%ad|%s" \
+  --pretty=format:"COMMIT%x00%h%x00%ad%x00%s" \
   --date=short
 ```
 
@@ -184,6 +387,11 @@ groups:
 > want to merge directories, rename groups, or map glob patterns to logical team names.
 
 ### Step 4 — Generate digest
+
+Ensure the output directory exists before writing:
+```bash
+mkdir -p .memory/whats-new
+```
 
 Write to `.memory/whats-new/<YYYY-MM-DD>.md` and also print to the conversation.
 
@@ -293,9 +501,37 @@ Rules:
 
 ---
 
+## Examples
+
+### Example 1: Sync a single repo
+```
+# Inside a git repo
+/repo-sync
+```
+Expected: pulls latest from origin, syncs submodules if present, prints summary table.
+
+### Example 2: Batch-sync all sub-repos from a parent directory
+```
+# CWD is ~/Development/MyOrg (not a git repo itself)
+/repo-sync
+```
+Expected: scans first-level subdirectories, lists all git repos with branch info, asks "Continue? (y/n)", batch-pulls all, prints cross-repo summary table.
+
+### Example 3: Cross-repo What's New digest
+```
+# CWD is ~/Development/MyOrg (not a git repo itself)
+/repo-sync whats-new
+```
+Expected: collects git log from each sub-repo since last sync, generates a combined digest saved to `.memory/whats-new/<date>.md`.
+
+---
+
 ## Notes
 
 - `.memory/` is local-only and should be gitignored. The skill will offer to add it to `.gitignore` if missing.
 - On repos without submodules, the submodule step is silently skipped — no config needed.
 - Never force-push or reset submodule HEADs.
 - If the user asks to add a new submodule: `git submodule add <url> <path>` then `git submodule update --init`.
+- In multi-repo mode, `.memory/` for the cross-repo whats-new report is created in the **parent directory** (CWD), not inside individual repos.
+- In multi-repo mode, each repo's own `.memory/last-sync.txt` is updated independently after sync.
+- Non-git subdirectories in CWD are silently skipped — no warning is printed unless zero git repos are found.
