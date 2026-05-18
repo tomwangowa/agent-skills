@@ -311,9 +311,9 @@ Create `<parent-dir>/.memory/whats-new/` if it does not exist. Apply the same sa
 <1–2 sentence narrative>
 
 ### Commits
-| Date | Hash | Description |
-|------|------|-------------|
-| 2026-05-14 | `a1b2c3` | fix(api): correct auth token expiry |
+| Date/Time | Hash | Owner | Description |
+|-----------|------|-------|-------------|
+| 2026-05-14 14:32 | `a1b2c3` | alice | fix(api): correct auth token expiry |
 
 ### Changed files
 <grouped by subfolder, bullet list>
@@ -343,19 +343,19 @@ Read `.memory/last-sync.txt` for the previous sync timestamp.
 git log \
   --since="<SINCE>" \
   --name-only \
-  --pretty=format:"COMMIT%x00%h%x00%ad%x00%s" \
-  --date=short
+  --pretty=format:"COMMIT%x00%h%x00%ad%x00%an%x00%s" \
+  --date=format:'%Y-%m-%d %H:%M'
 ```
 
-Use NUL (`%x00`) as the field delimiter — commit subjects may contain `|`, which would corrupt a pipe-delimited format. Split each `COMMIT…` line on NUL bytes to extract `{ hash, date, subject }`, then collect the following non-empty lines as `files[]` until the next `COMMIT…` marker.
+Use NUL (`%x00`) as the field delimiter — commit subjects may contain `|`, which would corrupt a pipe-delimited format. Split each `COMMIT…` line on NUL bytes to extract `{ hash, datetime, author, subject }`, then collect the following non-empty lines as `files[]` until the next `COMMIT…` marker.
 
 For each registered submodule (if any):
 ```bash
 git -C <submodule-path> log \
   --since="<SINCE>" \
   --name-only \
-  --pretty=format:"COMMIT%x00%h%x00%ad%x00%s" \
-  --date=short
+  --pretty=format:"COMMIT%x00%h%x00%ad%x00%an%x00%s" \
+  --date=format:'%Y-%m-%d %H:%M'
 ```
 
 ### Step 3 — Determine grouping
@@ -416,9 +416,9 @@ Write to `.memory/whats-new/<YYYY-MM-DD>.md` and also print to the conversation.
 <1–2 sentence narrative of the most impactful changes>
 
 ### Commits
-| Date | Hash | Description |
-|------|------|-------------|
-| 2026-05-14 | `a1b2c3` | fix(api): correct auth token expiry |
+| Date/Time | Hash | Owner | Description |
+|-----------|------|-------|-------------|
+| 2026-05-14 14:32 | `a1b2c3` | alice | fix(api): correct auth token expiry |
 
 ### Changed files
 <grouped by subfolder, bullet list>
