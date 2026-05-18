@@ -1,3 +1,6 @@
+# Skill sync config (contains personal paths)
+.skill-sync-targets
+
 # Review output files
 gemini_review_result.txt
 **/gemini_review_result.txt
