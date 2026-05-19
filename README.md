@@ -18,7 +18,7 @@ These principles don't require you to agree with my approach — they're indepen
 
 ## Skills Overview
 
-Currently **37 custom skills** organized into 7 categories.
+Currently **38 custom skills** organized into 7 categories.
 
 ### Quality Gates (5)
 
@@ -112,7 +112,7 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 
 See [skills-query-server/README.md](./skills-query-server/README.md) for details.
 
-### Tools & Meta-skills (4)
+### Tools & Meta-skills (5)
 
 Tools for managing skills and workflows themselves.
 
@@ -121,6 +121,7 @@ Tools for managing skills and workflows themselves.
 | [skill-auditor](./skill-auditor/) | Audit skills for quality, security, and best practices. Use after creating or modifying a skill. |
 | [skill-router](./skill-router/) | **Skill discovery and routing hub.** Three modes: smart routing (describe your need, get a recommendation), category browse (list all skills), and workflow browse (view predefined multi-skill chains). Your first stop when unsure which skill to use. |
 | [claude-workflow-designer](./claude-workflow-designer/) | Design Claude Code workflows. Helps you choose between mechanisms (hook / skill / subagent / MCP / CLAUDE.md) and package automation for team distribution. Backs the `/sos` slash command. |
+| [skill-sync](./skill-sync/) | One-way sync `~/.claude/skills/` to other agent skill folders (codex, gemini, cursor, antigravity). Dry-run preview before writing. Configurable targets and exclude list; sensible defaults. No external dependencies. |
 | [skillshare](https://github.com/runkids/skillshare) | Sync skills across AI CLI tools (Claude Code, Cursor, Windsurf, etc.). Single source of truth, used everywhere. |
 
 ---
