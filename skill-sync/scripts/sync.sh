@@ -52,3 +52,33 @@ for target in "${targets[@]}"; do
         mkdir -p "$target"
     fi
 done
+
+# ── Dry-run ────────────────────────────────────────────────────
+echo ""
+echo "🔍  Dry-run preview:"
+echo "─────────────────────────────────────────"
+
+all_dry_output=""
+for target in "${targets[@]}"; do
+    dry=$(rsync -av --delete --dry-run "${exclude_args[@]}" "$SKILLS_DIR/" "$target/" 2>/dev/null \
+        | grep -Ev '^(sending|sent|total size|\./)' | grep -v '^$' || true)
+    if [[ -n "$dry" ]]; then
+        echo "→ $target"
+        echo "$dry"
+        echo ""
+        all_dry_output+="$dry"
+    fi
+done
+
+if [[ -z "$all_dry_output" ]]; then
+    echo "All targets already up to date."
+    exit 0
+fi
+
+echo "─────────────────────────────────────────"
+printf "Proceed with sync? (y/n) "
+read -r confirm
+if [[ "$(echo "$confirm" | tr '[:upper:]' '[:lower:]')" != "y" ]]; then
+    echo "Sync cancelled."
+    exit 0
+fi
