@@ -10,9 +10,11 @@ allowed-tools: Bash Read Write Edit Glob Grep
 Two operations: **sync** (pull everything) and **whats-new** (digest of recent changes).
 
 ```
-/repo-sync                     → pull latest (single repo, or all sub-repos if CWD is not a git repo)
-/repo-sync whats-new           → digest grouped by component (single or multi-repo)
-/repo-sync whats-new <group>   → digest for one specific group only
+/repo-sync                              → pull latest (single repo, or all sub-repos if CWD is not a git repo)
+/repo-sync whats-new                    → digest of what the most recent sync brought in
+/repo-sync whats-new <group>            → digest filtered to one group (e.g. Backend)
+/repo-sync whats-new <window>           → override time window (e.g. 24h, 7d) instead of using pre-sync HEAD
+/repo-sync whats-new <window> <group>   → window override + group filter
 ```
 
 ---
@@ -89,11 +91,11 @@ Wait for user confirmation. If **n** or cancel → stop. Nothing changes.
 ### Step 4 — Batch execute
 
 For each repo **in order**, apply the full **Operation 1** logic (Steps 1–6) using `git -C <repo-dir>` for all git commands. That means:
-- Check branch → if non-main, present Options A/B/Cancel **for that repo**, wait for response, then continue to next repo
-- Check working tree → if dirty, present Options A/B/Cancel **for that repo**, wait for response, then continue to next repo
-- Fetch and pull (`--ff-only`; if diverged → present Options A/B/Cancel for that repo)
-- Sync submodules if present
-- Write `.memory/last-sync.txt` inside that repo
+- Step 1 — Check branch → if non-main, present Options A/B/Cancel **for that repo**, wait for response, then continue to next repo
+- Step 2 — Snapshot pre-sync HEAD into `.memory/last-sync.txt` (BEFORE any pull, so whats-new knows what was brought in)
+- Step 3 — Preflight: if tracked changes are dirty, present Options A/B/Cancel **for that repo**, wait for response, then continue to next repo (untracked-only does not block)
+- Step 4 — Fetch and pull (`--ff-only`; if diverged → present Options A/B/Cancel for that repo)
+- Step 5 — Sync submodules if present
 
 **Pause behavior:** Any problem with a repo (non-main branch, dirty tree, diverged commits) pauses execution for that repo only. Describe the issue clearly, wait for the user's instruction, then continue to the next repo regardless of what the user chose.
 
@@ -153,29 +155,50 @@ If **not on the main branch**, present a proposal:
 
 Wait for user choice before continuing.
 
-### Step 2 — Preflight: check working tree
+### Step 2 — Snapshot pre-sync HEAD
 
-Before any pull/rebase/reset, verify the working tree is clean:
+Record the current HEAD SHA **before** anything else, so `whats-new` can later show exactly what this sync brought in:
+
+```bash
+mkdir -p .memory
+sha=$(git rev-parse HEAD 2>/dev/null) && [ -n "$sha" ] && printf '%s\n' "$sha" > .memory/last-sync.txt
+```
+
+This overwrites any prior content (timestamps from older skill versions are superseded automatically). The empty-repo guard (`[ -n "$sha" ]`) prevents writing a corrupt/empty file when `git rev-parse HEAD` fails on a repo with no commits.
+
+If the sync is later aborted/cancelled (preflight blocks, user picks Cancel on divergence, etc.), the SHA written here still acts as a valid "last attempted sync" boundary — the next `whats-new` will correctly show 0 commits (nothing was pulled).
+
+`.memory/` is local-only and should not be tracked. Two options:
+
+- **Repos where you commit** (you own / have write access): add `.memory/` to `.gitignore`. Skill will offer if missing.
+- **Read-only repos** (you only pull, never commit): add `.memory/` to `.git/info/exclude` instead — git's per-repo, never-shared ignore file. Avoids dirtying a `.gitignore` you wouldn't push anyway. Note: `.git/info/` may not exist — `mkdir -p` it first.
+
+### Step 3 — Preflight: check working tree
+
+Verify there are no modified or staged tracked files that could block the pull:
 
 ```bash
 git status --porcelain
 ```
 
-If output is non-empty (uncommitted changes exist), stop and present:
+Examine each status line's two-character prefix:
 
-> **Uncommitted changes detected.** Pulling may conflict or `reset --hard` will discard them.
->
-> **Options:**
-> - **A** — Stash changes first (`git stash`), then continue
-> - **B** — Abort — let me handle my changes first
-> - **Cancel**
+- Lines starting with `??` (untracked) → **do NOT block.** Untracked files are not affected by `git pull --ff-only`. Proceed silently.
+- Any other status code in either column (`M`, `A`, `D`, `R`, `C`, `U`) → tracked changes exist; stop and present:
 
-- **A**: run `git stash`, proceed with pull, then offer `git stash pop` at the end.
-- **B / Cancel**: stop. Nothing changes.
+  > **Uncommitted changes to tracked files detected.** Pulling may conflict or `reset --hard` will discard them.
+  >
+  > **Options:**
+  > - **A** — Stash changes first (`git stash`), then continue
+  > - **B** — Abort — let me handle my changes first
+  > - **Cancel**
 
-If working tree is clean, proceed silently.
+  - **A**: run `git stash`, proceed with pull, then offer `git stash pop` at the end.
+  - **B / Cancel**: stop. Nothing changes.
 
-### Step 3 — Fetch and pull
+If working tree has no tracked changes (clean or untracked-only), proceed silently.
+
+### Step 4 — Fetch and pull
 
 ```bash
 git fetch origin
@@ -218,7 +241,7 @@ Then present a clear proposal:
   Then run `git reset --hard origin/<branch>`.
 - **cancel**: stop. Nothing changes.
 
-### Step 4 — Sync submodules (if present)
+### Step 5 — Sync submodules (if present)
 
 Check whether this repo uses submodules:
 
@@ -238,15 +261,6 @@ git submodule status
 > the parent repo (including nested submodules), leaving a clean working tree.
 
 **If no submodules**: skip this step silently.
-
-### Step 5 — Record sync timestamp
-
-Write the current UTC timestamp to `.memory/last-sync.txt`:
-```
-2026-05-15T10:00:00Z
-```
-
-Create `.memory/` if it does not exist. (`.memory/` should be in `.gitignore` — check and offer to add it if missing.)
 
 ### Step 6 — Report
 
@@ -276,23 +290,25 @@ If no repos found:
 
 **Step M2 — Collect digests**
 
-For each repo, apply the single-repo Operation 2 logic (Steps 1–4) using `git -C <repo-dir>` for all git commands. Each repo reads its own `.memory/last-sync.txt` for the time window. Collect the resulting digest data in memory — do not write individual repo digest files.
+For each repo, apply the single-repo Operation 2 logic (Steps 1–4) using `git -C <repo-dir>` for all git commands. Each repo reads its own `.memory/last-sync.txt` to determine its commit-range or fallback window. Collect the resulting digest data in memory — do not write individual repo digest files.
 
 **Step M3 — Merge and write cross-repo report**
 
 Combine all repos' digest data into a single report. Write to:
 
 ```
-<parent-dir>/.memory/whats-new/<YYYY-MM-DD>.md
+<parent-dir>/whats-new/<YYYY-MM-DD>.md
 ```
 
-Create `<parent-dir>/.memory/whats-new/` if it does not exist. Apply the same same-day collision rule (append `-<HHMM>` suffix) as the single-repo operation.
+The cross-repo digest is a **user-facing artifact**, not skill internal state — output goes to a visible top-level `whats-new/` directory (NOT inside `.memory/`). Per-repo `.memory/last-sync.txt` files inside each sub-repo are unchanged; those remain skill-internal.
+
+Create `<parent-dir>/whats-new/` if it does not exist. Apply the same same-day collision rule (append `-<HHMM>` suffix) as the single-repo operation.
 
 **Output format:**
 
 ```markdown
 # What's New — <DATE>
-> Changes across N repos since earliest last-sync (or 7 days ago)
+> Changes across N repos. Each repo uses its own pre-sync HEAD as the boundary (or 7-day fallback if no sync history). When `<window>` override is given, that window applies to all repos.
 
 ## Summary
 | Repo                 | Commits | Files changed |
@@ -327,36 +343,57 @@ Create `<parent-dir>/.memory/whats-new/` if it does not exist. Apply the same sa
 If a repo has zero commits in its window:
 > No changes in `<repo>` since `<SINCE>`.
 
-**If `/repo-sync whats-new <group>` is called in multi-repo mode**, filter each repo's digest to only the matching group. Repos with no matching group changes are still listed in the Summary table with 0 commits.
+**Argument parsing for `/repo-sync whats-new [arg1] [arg2]`:**
+
+- If `arg1` matches `^\d+[hd]$` → it's a window override (see Step 1). `arg2` (if any) is the group filter.
+- Otherwise `arg1` is the group filter (no window override).
+
+In multi-repo mode, the group filter applies to each repo's digest. Repos with no matching group are still listed in the Summary table with 0 commits.
 
 ---
 
-### Step 1 — Determine time window
+### Step 1 — Determine commit range or time window
 
-Read `.memory/last-sync.txt` for the previous sync timestamp.
-- If the file exists → use that date as `SINCE`
-- If not → default to 7 days ago
+**If a `<window>` argument was provided** (matches `^\d+[hd]$`, e.g. `24h`, `7d`):
+- `^(\d+)h$` → use `--since="<N> hours ago"`
+- `^(\d+)d$` → use `--since="<N> days ago"`
+- Skip reading `.memory/last-sync.txt`. Note in digest header: ``"Window override: `<window>`"``.
+
+**Otherwise, read `.memory/last-sync.txt`** (strip trailing whitespace before matching — `git rev-parse > file` writes with a trailing newline; use e.g. `content=$(tr -d '[:space:]' < .memory/last-sync.txt)`):
+
+| File content | Action | Header note |
+|---|---|---|
+| 40-char hex SHA, reachable from HEAD (`git merge-base --is-ancestor <sha> HEAD`) | Use commit range: `git log <sha>..HEAD` | "Since pre-sync HEAD `<sha-short>`" |
+| 40-char hex SHA, NOT reachable | Fall back: `--since="7 days ago"` | "Stale ref `<sha-short>`, falling back to 7-day window (may occur in shallow clones)" |
+| ISO-8601 timestamp `YYYY-MM-DDTHH:MM:SSZ` (legacy from older skill versions) | Use `--since=<timestamp>` | "Legacy timestamp format; will be replaced on next sync" |
+| File missing or unrecognized content | Fall back: `--since="7 days ago"` | "No sync history; 7-day fallback" |
+
+The chosen form (`<sha>..HEAD` vs `--since=...`) is referred to below as the `RANGE`.
 
 ### Step 2 — Collect recent commits
 
 ```bash
-git log \
-  --since="<SINCE>" \
+git log <RANGE> \
   --name-only \
   --pretty=format:"COMMIT%x00%h%x00%ad%x00%an%x00%s" \
   --date=format:'%Y-%m-%d %H:%M'
 ```
+
+`<RANGE>` is either `<sha>..HEAD` (commit-range form) or `--since="..."` (time-window form), as determined in Step 1.
 
 Use NUL (`%x00`) as the field delimiter — commit subjects may contain `|`, which would corrupt a pipe-delimited format. Split each `COMMIT…` line on NUL bytes to extract `{ hash, datetime, author, subject }`, then collect the following non-empty lines as `files[]` until the next `COMMIT…` marker.
 
 For each registered submodule (if any):
 ```bash
-git -C <submodule-path> log \
-  --since="<SINCE>" \
+git -C <submodule-path> log <RANGE> \
   --name-only \
   --pretty=format:"COMMIT%x00%h%x00%ad%x00%an%x00%s" \
   --date=format:'%Y-%m-%d %H:%M'
 ```
+
+> Submodules use the parent repo's RANGE as a time/commit reference.
+> - **Time-window form** (`--since="..."`): pass through unchanged to the submodule log.
+> - **SHA-range form** (`<sha>..HEAD`): the SHA is for the **parent** repo and won't exist in the submodule's history, so convert to a time window — use the committer date of the parent's `<sha>` (`git show -s --format=%cI <sha>`) and pass it as `--since` to the submodule log.
 
 ### Step 3 — Determine grouping
 
@@ -522,16 +559,29 @@ Expected: scans first-level subdirectories, lists all git repos with branch info
 # CWD is ~/Development/MyOrg (not a git repo itself)
 /repo-sync whats-new
 ```
-Expected: collects git log from each sub-repo since last sync, generates a combined digest saved to `.memory/whats-new/<date>.md`.
+Expected: For each sub-repo, computes commit-range from the pre-sync HEAD recorded in its `.memory/last-sync.txt` (or 7-day fallback). Generates a combined digest at `<CWD>/whats-new/<date>.md`.
+
+### Example 4: What's New with explicit time window
+```
+/repo-sync whats-new 24h
+/repo-sync whats-new 7d Backend
+```
+Expected: Ignores `.memory/last-sync.txt`; uses `--since="24 hours ago"` (or `"7 days ago"`) for every repo. Second form also filters to the `Backend` group.
 
 ---
 
 ## Notes
 
-- `.memory/` is local-only and should be gitignored. The skill will offer to add it to `.gitignore` if missing.
+- `.memory/` is local-only. Two ways to ignore it:
+  - **Default** (for repos you commit to): add to `.gitignore`. Skill offers to add if missing.
+  - **Read-only repos** (no commit rights): add to `.git/info/exclude` instead — git's per-repo, never-shared ignore file. Avoids modifying a tracked `.gitignore` you wouldn't push.
+- `.memory/last-sync.txt` content semantics:
+  - **Current format** — 40-char hex SHA: the HEAD just before the most recent sync. Used by whats-new as the boundary (`<sha>..HEAD`).
+  - **Legacy format** — ISO timestamp (from older skill versions): auto-detected, used as `--since` fallback, replaced on next sync.
+- The cross-repo whats-new digest (multi-repo mode) is written to `<CWD>/whats-new/<date>.md` — a visible top-level directory, not `.memory/`. This output is a user-facing artifact.
+- Per-repo `.memory/last-sync.txt` files are written into each repo independently (skill internal state).
 - On repos without submodules, the submodule step is silently skipped — no config needed.
 - Never force-push or reset submodule HEADs.
 - If the user asks to add a new submodule: `git submodule add <url> <path>` then `git submodule update --init`.
-- In multi-repo mode, `.memory/` for the cross-repo whats-new report is created in the **parent directory** (CWD), not inside individual repos.
-- In multi-repo mode, each repo's own `.memory/last-sync.txt` is updated independently after sync.
 - Non-git subdirectories in CWD are silently skipped — no warning is printed unless zero git repos are found.
+- Untracked files do NOT block the preflight check (Operation 1 Step 3) — only modified/staged tracked files do.
