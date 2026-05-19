@@ -34,5 +34,21 @@ else
     ignores=("blog" "cheatsheet" "skills-query-server")
 fi
 
-echo "Targets  : ${targets[*]}"
-echo "Ignoring : ${ignores[*]}"
+# ── Build exclude args ─────────────────────────────────────────
+exclude_args=(
+    "--exclude=.git"
+    "--exclude=.DS_Store"
+    "--exclude=.skill-sync-targets"
+    "--exclude=.skill-sync-ignore"
+)
+for skill in "${ignores[@]}"; do
+    exclude_args+=("--exclude=${skill}/")
+done
+
+# ── Pre-flight ─────────────────────────────────────────────────
+for target in "${targets[@]}"; do
+    if [[ ! -d "$target" ]]; then
+        echo "📁  Creating $target"
+        mkdir -p "$target"
+    fi
+done
