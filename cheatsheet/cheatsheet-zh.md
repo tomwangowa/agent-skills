@@ -122,6 +122,17 @@ narrative-auditor (fact-check + 短評)
 | 已存檔的 fact-check 要改成可分享版本 | Teams publish | 「改寫成 Teams 版」 |
 | 追加內容到現有筆記 | Standard / Direct write | 「把這段追加到之前那篇 OpenClaw 筆記」 |
 
+### Repo 同步與 What's New 摘要
+
+| 情境 | 使用技能 | 範例 |
+|------|----------|------|
+| 拉一個 repo 的最新變更（含 submodule） | `repo-sync` | 「`/repo-sync` ~/projects/myrepo」 |
+| 批次同步父目錄下的所有 sub-repo | `repo-sync`（multi-repo 模式） | 在 `~/work/` 下：「`/repo-sync` 同步底下所有 repo」 |
+| 看最近改了什麼（不 pull，純摘要） | `repo-sync whats-new` | 「`/repo-sync whats-new` 從上週開始的變更」 |
+| 用角色檔案分群 What's New（PM/RD/QA 各看不同） | `repo-sync` + `.claude/repo-sync-roles.yaml` | 「按 roles.yaml 分群顯示這個 monorepo 的變更」 |
+
+> **設計精神：** `repo-sync` 解決兩個常見痛點：一是多 repo / submodule 之間同步繁瑣（手動 `git pull` + `git submodule update` 經常漏），二是「上次摸這個 repo 是兩週前，現在 main 改了哪些東西」需要快速看懂。預設按 top-level 目錄分群摘要，可用 `.claude/repo-sync-roles.yaml` 自訂角色視角。
+
 ---
 
 ## 簡報流程 (Presentation)

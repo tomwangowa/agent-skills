@@ -122,6 +122,17 @@ narrative-auditor (fact-check + commentary)
 | Saved fact-check needs a shareable version | Teams publish | "Rewrite for Teams" |
 | Append content to existing note | Standard / Direct write | "Append this to the OpenClaw note" |
 
+### Repo Sync & What's New Digest
+
+| Scenario | Skill to Use | Example |
+|----------|-------------|---------|
+| Pull latest changes for a repo (incl. submodules) | `repo-sync` | "`/repo-sync` ~/projects/myrepo" |
+| Batch-sync all sub-repos under a parent directory | `repo-sync` (multi-repo mode) | In `~/work/`: "`/repo-sync` sync all repos below" |
+| See what changed recently without pulling | `repo-sync whats-new` | "`/repo-sync whats-new` since last week" |
+| Group What's New by role (PM/RD/QA see different things) | `repo-sync` + `.claude/repo-sync-roles.yaml` | "Group changes in this monorepo by roles.yaml" |
+
+> **Design philosophy:** `repo-sync` addresses two recurring pains: (1) keeping multi-repo / submodule setups in sync (manual `git pull` + `git submodule update` is easy to forget), and (2) re-orienting after a gap ("I last touched this repo two weeks ago — what changed on main?"). Default digest groups by top-level directory; custom role-based views supported via `.claude/repo-sync-roles.yaml`.
+
 ---
 
 ## Presentation Workflow

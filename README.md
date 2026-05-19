@@ -304,6 +304,7 @@ Activity records can be used with `work-log-analyzer` for cross-project and cros
 | skills-query-server | Node.js, `tsx` (registered via `claude mcp add`) |
 | pptx-to-md | Python 3 + `uv` or `pip` (for markitdown; `uvx` runs ephemerally with no install) |
 | repo-sync | Git |
+| skill-sync | `rsync` (preinstalled on macOS/Linux) |
 | md-translate | No external dependencies |
 | All other skills | No external dependencies |
 

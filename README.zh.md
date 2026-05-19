@@ -305,6 +305,7 @@ Activity records 可與 `work-log-analyzer` 搭配使用，跨專案和 session 
 | skills-query-server | Node.js、`tsx`（透過 `claude mcp add` 註冊） |
 | pptx-to-md | Python 3 + `uv` 或 `pip`（markitdown；`uvx` 可免安裝直接執行） |
 | repo-sync | Git |
+| skill-sync | `rsync`（macOS/Linux 預裝） |
 | md-translate | 無外部依賴 |
 | 其餘 skills | 無外部依賴 |
 
