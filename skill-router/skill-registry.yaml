@@ -1,6 +1,6 @@
 # ============================================================
 # Skill Registry — single source of truth for skill routing
-# 45 skills · 10 categories · 6 workflows
+# 46 skills · 10 categories · 6 workflows
 # ============================================================
 
 categories:
@@ -511,15 +511,26 @@ categories:
           - "validate skill"
           - "skill audit"
 
-      - id: skillshare
+      - id: skill-sync
+        # Replaces skillshare for day-to-day cross-agent sync. No external dependency.
         triggers:
           - "sync skills"
-          - "同步 skill"
+          - "同步 skills"
+          - "skill-sync"
+          - "push skills to agents"
+          - "更新其他 agent"
+          - "sync to codex"
+          - "sync to gemini"
+
+      - id: skillshare
+        # Use only for skillshare-specific operations (install, search, doctor, ui)
+        triggers:
           - "skillshare"
           - "share skills"
           - "install skill"
           - "匯出 skill"
-          - "skill sync"
+          - "skill doctor"
+          - "skillshare ui"
 
 # Note: skill authoring is handled by Claude Code's built-in `/skill-creator`.
 # `superpowers:writing-skills` is intentionally NOT registered here to avoid
