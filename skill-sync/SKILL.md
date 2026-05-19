@@ -11,7 +11,7 @@ Always runs a dry-run preview first, then asks for confirmation before writing a
 ## ⚠️ Important: This is a Mirror, Not Additive Sync
 
 - **`--delete` is active.** Files in target folders that don't exist in the source will be **deleted**. If you keep an agent-specific skill only in `~/.codex/skills/` (and not in `~/.claude/skills/`), it will be removed on first sync. Add it to source first if you want to keep it.
-- **Symlinks in source are dereferenced (`rsync -L`)** so the actual content (not the link) is copied. To avoid leaking content from symlinked-in paths (e.g., `~/.config/...`), add those entries to `.skill-sync-ignore`. The defaults already exclude `skillshare` and `spec-generator` for this reason.
+- **Symlinks in source are dereferenced (`rsync -L`)** so the actual content (not the link) is copied. To avoid leaking content from symlinked-in paths (e.g., `~/.config/...`), add those entries to `.skill-sync-ignore`. The defaults already exclude `spec-generator` for this reason.
 - The **dry-run preview always runs first** and explicitly counts deletions per target before asking for confirmation.
 
 ## When to Use
@@ -98,15 +98,14 @@ Both files live in `~/.claude/skills/`. If absent **or empty/comments-only**, de
 blog
 cheatsheet
 skills-query-server
-skillshare
 spec-generator
 ```
 
 **Defaults (when files are absent or empty):**
 - Targets: `~/.codex/skills`, `~/.gemini/skills`, `~/.cursor/skills`, `~/.gemini/antigravity/skills`
-- Ignore: `blog`, `cheatsheet`, `skills-query-server`, `skillshare`, `spec-generator`
+- Ignore: `blog`, `cheatsheet`, `skills-query-server`, `spec-generator`
 
-Note: `.skill-sync-targets` is gitignored (contains personal local paths). `.skill-sync-ignore` is committed because the defaults (including the symlink protection for `skillshare` / `spec-generator`) should be the same for everyone.
+Note: `.skill-sync-targets` is gitignored (contains personal local paths). `.skill-sync-ignore` is committed because the defaults (including the symlink protection for `spec-generator`) should be the same for everyone.
 
 ## Error Handling
 
@@ -149,7 +148,7 @@ What the script does **not** do: it does not roll back a partially completed syn
 
 - `-L` dereferences symlinks in the source tree, copying the *content* of the link target into each sync destination.
 - This can leak content from outside `~/.claude/skills/` (e.g., a symlink pointing into `~/.config/`) into every target folder.
-- Mitigation: the default `.skill-sync-ignore` excludes `skillshare` and `spec-generator` because both are known symlinks into `~/.config/skillshare/`. Add any new symlink names to `.skill-sync-ignore` before running.
+- Mitigation: the default `.skill-sync-ignore` excludes `spec-generator` because it is a known symlink pointing outside the source tree. Add any new such symlink names to `.skill-sync-ignore` before running.
 
 ### Path Handling
 

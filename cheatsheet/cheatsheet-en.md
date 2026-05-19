@@ -193,7 +193,7 @@ presentation-planner → interactive-presentation-generator → Slide Files
 | Design a Claude Code workflow / pick a mechanism (hook / skill / subagent / MCP) | `claude-workflow-designer` | `/sos` or "Help me design a workflow for nightly PR babysitting" |
 | Create or edit a skill | `superpowers:writing-skills` | "Create a new skill for database migration" |
 | Audit skill quality (required after create/modify) | `skill-auditor` | "Audit the new db-migrator skill" |
-| Sync skills across AI tools | `skillshare` | "Sync my skills to Cursor and Windsurf" |
+| Sync `~/.claude/skills/` to other agents (codex / gemini / cursor / antigravity) | `skill-sync` | "sync skills" / "push skills to agents" |
 
 > **skill-router design philosophy:** With 30+ skills, remembering each one's purpose and trigger phrases becomes impractical. skill-router is the unified entry point — describe your need and it semantically matches the best skill or workflow from its registry, but **never auto-executes** — always waits for confirmation. Three modes: smart routing (default), category browse, and workflow browse.
 

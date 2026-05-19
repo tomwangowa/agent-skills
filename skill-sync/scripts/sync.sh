@@ -21,7 +21,7 @@ DEFAULT_TARGETS=(
     "$HOME/.cursor/skills"
     "$HOME/.gemini/antigravity/skills"
 )
-DEFAULT_IGNORES=("blog" "cheatsheet" "skills-query-server" "skillshare" "spec-generator")
+DEFAULT_IGNORES=("blog" "cheatsheet" "skills-query-server" "spec-generator")
 
 # ── Read targets ──────────────────────────────────────────────
 targets=()

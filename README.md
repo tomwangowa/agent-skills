@@ -121,8 +121,7 @@ Tools for managing skills and workflows themselves.
 | [skill-auditor](./skill-auditor/) | Audit skills for quality, security, and best practices. Use after creating or modifying a skill. |
 | [skill-router](./skill-router/) | **Skill discovery and routing hub.** Three modes: smart routing (describe your need, get a recommendation), category browse (list all skills), and workflow browse (view predefined multi-skill chains). Your first stop when unsure which skill to use. |
 | [claude-workflow-designer](./claude-workflow-designer/) | Design Claude Code workflows. Helps you choose between mechanisms (hook / skill / subagent / MCP / CLAUDE.md) and package automation for team distribution. Backs the `/sos` slash command. |
-| [skill-sync](./skill-sync/) | One-way mirror of `~/.claude/skills/` to other agent skill folders (codex, gemini, cursor, antigravity). Uses `rsync --delete` — target-side files not in source are **removed**, shown explicitly in the dry-run preview before the `y/N` confirmation (defaults to N). Configurable targets and exclude list; sensible defaults include symlink protection for `skillshare`/`spec-generator`. No external dependencies. |
-| [skillshare](https://github.com/runkids/skillshare) | Sync skills across AI CLI tools (Claude Code, Cursor, Windsurf, etc.). Single source of truth, used everywhere. |
+| [skill-sync](./skill-sync/) | One-way mirror of `~/.claude/skills/` to other agent skill folders (codex, gemini, cursor, antigravity). Uses `rsync --delete` — target-side files not in source are **removed**, shown explicitly in the dry-run preview before the `y/N` confirmation (defaults to N). Configurable targets and exclude list; sensible defaults include symlink protection for `spec-generator`. No external dependencies. |
 
 ---
 

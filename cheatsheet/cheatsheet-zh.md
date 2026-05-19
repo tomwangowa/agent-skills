@@ -193,7 +193,7 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 | 設計 Claude Code 工作流／挑選實作機制（hook / skill / subagent / MCP） | `claude-workflow-designer` | `/sos` 或「幫我設計每晚自動 babysit PR 的 workflow」 |
 | 建立或編輯新技能 | `superpowers:writing-skills` | 「建立一個資料庫遷移的新技能」 |
 | 審計技能品質（建立/修改後必跑） | `skill-auditor` | 「審計剛建的 db-migrator 技能」 |
-| 跨 AI 工具同步技能 | `skillshare` | 「把技能同步到 Cursor 和 Windsurf」 |
+| 同步 `~/.claude/skills/` 到其他 agent（codex / gemini / cursor / antigravity） | `skill-sync` | 「同步 skills」「push skills to agents」 |
 
 > **skill-router 設計精神：** 當 skills 超過 30 個，記住每個的用途和觸發詞變得不切實際。skill-router 是統一入口——描述你的需求，它從 registry 中語義匹配最適合的 skill 或 workflow，但**不會自動執行**，一定等你確認。三種模式：智慧推薦（預設）、分類瀏覽、工作流瀏覽。
 

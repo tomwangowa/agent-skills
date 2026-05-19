@@ -512,7 +512,6 @@ categories:
           - "skill audit"
 
       - id: skill-sync
-        # Replaces skillshare for day-to-day cross-agent sync. No external dependency.
         triggers:
           - "sync skills"
           - "同步 skills"
@@ -522,15 +521,23 @@ categories:
           - "sync to codex"
           - "sync to gemini"
 
-      - id: skillshare
-        # Use only for skillshare-specific operations (install, search, doctor, ui)
+      - id: repo-sync
+        # Pull latest + submodule sync for any repo; generates What's New digest.
+        # Works in a single repo OR from a non-git parent dir to batch-sync sub-repos.
         triggers:
-          - "skillshare"
-          - "share skills"
-          - "install skill"
-          - "匯出 skill"
-          - "skill doctor"
-          - "skillshare ui"
+          - "repo-sync"
+          - "pull latest"
+          - "sync repo"
+          - "更新 repo"
+          - "拉最新"
+          - "拉一下最新"
+          - "what's new"
+          - "whats new"
+          - "更新了什麼"
+          - "最近有什麼變化"
+          - "submodule sync"
+          - "同步 submodule"
+          - "repo digest"
 
 # Note: skill authoring is handled by Claude Code's built-in `/skill-creator`.
 # `superpowers:writing-skills` is intentionally NOT registered here to avoid
