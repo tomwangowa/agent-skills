@@ -60,7 +60,7 @@ echo "────────────────────────�
 
 all_dry_output=""
 for target in "${targets[@]}"; do
-    dry=$(rsync -av --delete --dry-run "${exclude_args[@]}" "$SKILLS_DIR/" "$target/" 2>/dev/null \
+    dry=$(rsync -avL --delete --dry-run "${exclude_args[@]}" "$SKILLS_DIR/" "$target/" 2>/dev/null \
         | grep -Ev '^(sending|sent|total size|\./)' | grep -v '^$' || true)
     if [[ -n "$dry" ]]; then
         echo "→ $target"
@@ -82,3 +82,27 @@ if [[ "$(echo "$confirm" | tr '[:upper:]' '[:lower:]')" != "y" ]]; then
     echo "Sync cancelled."
     exit 0
 fi
+
+# ── Execute ────────────────────────────────────────────────────
+echo ""
+sync_targets=()
+sync_statuses=()
+
+for target in "${targets[@]}"; do
+    sync_targets+=("$target")
+    if rsync -aL --delete "${exclude_args[@]}" "$SKILLS_DIR/" "$target/" 2>/dev/null; then
+        sync_statuses+=("✅ synced")
+    else
+        sync_statuses+=("❌ error")
+    fi
+done
+
+# ── Summary ────────────────────────────────────────────────────
+echo ""
+echo "| Target | Status |"
+echo "|--------|--------|"
+i=0
+while [[ $i -lt ${#sync_targets[@]} ]]; do
+    printf "| %-50s | %s |\n" "${sync_targets[$i]}" "${sync_statuses[$i]}"
+    i=$((i + 1))
+done
