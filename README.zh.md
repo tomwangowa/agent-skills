@@ -121,7 +121,7 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 | [skill-auditor](./skill-auditor/) | 審計 skills 的品質、安全性與最佳實踐。建立或修改 skill 後用來驗證。 |
 | [skill-router](./skill-router/) | **技能發現與路由中心。** 三種模式：智慧推薦（描述需求自動匹配 skill）、分類瀏覽（列出所有 skill）、工作流瀏覽（查看預設多 skill 組合流程）。不確定該用什麼 skill 時的第一站。 |
 | [claude-workflow-designer](./claude-workflow-designer/) | 設計 Claude Code 工作流。協助選擇實作機制（hook / skill / subagent / MCP / CLAUDE.md），並把自動化打包給團隊使用。`/sos` slash command 的後端 skill。 |
-| [skill-sync](./skill-sync/) | 將 `~/.claude/skills/` 單向同步到其他 agent skill 資料夾（codex、gemini、cursor、antigravity）。執行前 dry-run 預覽，無外部依賴。支援自訂 target 和 exclude 清單，有合理 default。 |
+| [skill-sync](./skill-sync/) | 將 `~/.claude/skills/` 單向**鏡射**到其他 agent skill 資料夾（codex、gemini、cursor、antigravity）。使用 `rsync --delete`：target 端有但 source 端沒有的檔案**會被刪除**，會在 dry-run 預覽明確列出，之後再透過 `y/N` 確認（預設 N）。支援自訂 target 和 exclude 清單，預設值含 `skillshare`/`spec-generator` 的 symlink 保護。無外部依賴。 |
 | [skillshare](https://github.com/runkids/skillshare) | 跨 AI CLI 工具同步 skills（Claude Code、Cursor、Windsurf 等）。單一來源、多處使用。 |
 
 ---

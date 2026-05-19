@@ -77,7 +77,7 @@ Followed by markdown content containing:
 
 ### Meta
 
-- **skill-sync** — one-way sync `~/.claude/skills/` to other agent folders (codex, gemini, cursor, antigravity); dry-run + confirm; configurable via `.skill-sync-targets` and `.skill-sync-ignore`
+- **skill-sync** — one-way **mirror** of `~/.claude/skills/` to other agent folders (codex, gemini, cursor, antigravity) via `rsync --delete` (target files not in source are removed); dry-run preview shows deletion count before `y/N` confirmation (defaults N); configurable via `.skill-sync-targets` (gitignored) and `.skill-sync-ignore` (committed, defaults include symlink protection for `skillshare`/`spec-generator`)
 - **skill-auditor** — Audit skills for quality, security, and best practices
 - **skillshare** — Sync skills across AI CLI tools
 - **skill-router** — Unified skill discovery and routing: smart match, category browse, workflow browse
