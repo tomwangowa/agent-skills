@@ -39,6 +39,18 @@ COLOR=1; assert_contains "paint on"  "$(printf '\033[31m')" "$(paint red X)"
 COLOR=0; assert_eq       "paint off" "X" "$(paint red X)"
 unset COLOR
 
+# --- Task 3: box primitives ---
+INNER=20
+assert_eq "row width plain"   "24" "$(disp_width "$(row 'hi')")"
+assert_eq "row width colored" "24" "$(disp_width "$(COLOR=1 row "$(COLOR=1 paint red dot)")")"
+assert_eq "row width cjk"     "24" "$(disp_width "$(row '中文 狀態')")"
+assert_eq "ttop width"        "24" "$(disp_width "$(ttop 'git status')")"
+assert_eq "ftitle width"      "24" "$(disp_width "$(ftitle 'working tree')")"
+assert_eq "fbot width"        "24" "$(disp_width "$(fbot)")"
+assert_eq "cell pad"   "8" "$(disp_width "$(cell 'main' 8)")"
+assert_eq "cell trunc" "8" "$(disp_width "$(cell 'feature/very-long-branch' 8)")"
+unset INNER COLOR
+
 # ---- test blocks are added by later tasks ----
 
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"

@@ -48,6 +48,30 @@ main() {
   return 0
 }
 
+# bar <n> — print n box-drawing horizontal chars.
+# Print directly; do NOT accumulate the multibyte char into a quoted var
+# (`s="$s─"`) — that trips a bash 3.2 set -u parser bug in subshells.
+bar() { local n="$1" i=0; while [ "$i" -lt "$n" ]; do printf '─'; i=$((i+1)); done; }
+
+# titled top corner: ┌─ title ───────┐
+ttop() { local t="$1" w k; w=$(disp_width "$t"); k=$((INNER-1-w)); [ "$k" -lt 0 ] && k=0
+  printf '┌─ %s ' "$t"; bar "$k"; printf '┐'; }
+
+# titled separator: ├─ title ───────┤
+ftitle() { local t="$1" w k; w=$(disp_width "$t"); k=$((INNER-1-w)); [ "$k" -lt 0 ] && k=0
+  printf '├─ %s ' "$t"; bar "$k"; printf '┤'; }
+
+# bottom corner
+fbot() { printf '└'; bar $((INNER+2)); printf '┘'; }
+
+# content row, padded to INNER (ANSI-aware). Caller must pre-fit content (no truncation here).
+row() { local c="$1" w pad; w=$(disp_width "$c"); pad=$((INNER-w)); [ "$pad" -lt 0 ] && pad=0
+  printf '│ %s%*s │' "$c" "$pad" ""; }
+
+# cell <plain-text> <width> — truncate (plain) then left-pad to exact display width.
+cell() { local t w pad; t=$(trunc_end "$1" "$2"); w=$(disp_width "$t"); pad=$(($2-w)); [ "$pad" -lt 0 ] && pad=0
+  printf '%s%*s' "$t" "$pad" ""; }
+
 # init_style — sets global COLOR=1 unless NO_COLOR set or stdout is not a TTY.
 init_style() {
   if [ -n "${NO_COLOR:-}" ] || [ ! -t 1 ]; then COLOR=0; else COLOR=1; fi
