@@ -200,6 +200,45 @@ render_single() {
   fbot; printf '\n'
 }
 
+# scan_repos <dir> — prints one line per first-level git repo:
+# "name<TAB>branch<TAB>state<TAB>ab<TAB>stash"
+scan_repos() {
+  local base="$1" d name branch porc state ab abtxt stash behind ahead
+  for d in "$base"/*/; do
+    d=${d%/}
+    git -C "$d" rev-parse --is-inside-work-tree >/dev/null 2>&1 || continue
+    name=$(basename "$d")
+    branch=$(git -C "$d" symbolic-ref --short -q HEAD 2>/dev/null || echo 'DETACHED')
+    porc=$(git -C "$d" status --porcelain=v1 2>/dev/null)
+    state=$([ -n "$porc" ] && echo '✗ dirty' || echo '✓ clean')
+    ab=$(git -C "$d" rev-list --left-right --count '@{u}...HEAD' 2>/dev/null)
+    if [ -n "$ab" ]; then set -- $ab; behind=$1; ahead=$2; abtxt="↑$ahead ↓$behind"; else abtxt='—'; fi
+    stash=$(git -C "$d" stash list 2>/dev/null | grep -c '' | tr -d ' ')
+    printf '%s\t%s\t%s\t%s\t%s\n' "$name" "$branch" "$state" "$abtxt" "$stash"
+  done
+}
+
+# render_overview <dir> — prints the multi-repo overview table.
+render_overview() {
+  INNER=66
+  local base="$1" rows n dirty stcell
+  rows=$(scan_repos "$base")
+  ttop "repos in $(abbrev_path "$base" 48)"; printf '\n'
+  if [ -z "$rows" ]; then
+    row "$(paint yellow 'no git repos found here')"; printf '\n'; fbot; printf '\n'; return 0
+  fi
+  row "$(cell REPO 16)  $(cell BRANCH 16)  $(cell STATE 8)  $(cell AHEAD/BEHIND 12)  $(cell STASH 6)"; printf '\n'
+  printf '%s\n' "$rows" | while IFS=$'\t' read -r name br st ab stash; do
+    stcell=$(cell "$st" 8)
+    case "$st" in *dirty*) stcell=$(paint red "$stcell");; *) stcell=$(paint green "$stcell");; esac
+    row "$(cell "$name" 16)  $(cell "$br" 16)  $stcell  $(cell "$ab" 12)  $(cell "$stash" 6)"; printf '\n'
+  done
+  fbot; printf '\n'
+  n=$(printf '%s\n' "$rows" | grep -c '')
+  dirty=$(printf '%s\n' "$rows" | grep -c 'dirty')
+  printf '%s repos · %s dirty · scanned %s\n' "$n" "$dirty" "$(abbrev_path "$base" 48)"
+}
+
 # init_style — sets global COLOR=1 unless NO_COLOR set or stdout is not a TTY.
 init_style() {
   if [ -n "${NO_COLOR:-}" ] || [ ! -t 1 ]; then COLOR=0; else COLOR=1; fi

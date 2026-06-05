@@ -99,11 +99,31 @@ assert_eq "fmt_ab" "↑1 ↓0" "$(fmt_ab 0 1)"
   printf 'y\n' > 中文檔名.txt   # untracked CJK filename must render literally, not octal-escaped
   out=$(COLOR=0 render_single)
   assert_contains "rs cjk literal"  "中文檔名.txt" "$out"
-  assert_contains "rs cjk no-octal" "no-octal" "$(case "$out" in *'\3'*) echo octal;; *) echo no-octal;; esac)"
+  assert_eq "rs cjk no-octal" "0" "$(printf '%s' "$out" | grep -c '\\3')"
   rm -rf "$d" )
 ( d=$(mk_repo); cd "$d"; printf 'x\n'>a; git add a; git commit -qm init
   touch "$(git rev-parse --git-dir)/MERGE_HEAD"
   assert_contains "rs warn" "merge in progress" "$(COLOR=0 render_single)"; rm -rf "$d" )
+
+# --- Task 7: overview ---
+( parent=$(mktemp -d); cd "$parent"
+  for r in api web; do ( d="$parent/$r"; mkdir "$d"; git -C "$d" init -q
+    git -C "$d" config user.email t@t; git -C "$d" config user.name t
+    printf 'x\n' > "$d/f"; git -C "$d" add f; git -C "$d" commit -qm init ); done
+  printf 'y\n' >> "$parent/api/f"
+  mkdir "$parent/notarepo"
+  out=$(COLOR=0 render_overview "$parent")
+  assert_contains "ov header" "repos in" "$out"
+  assert_contains "ov api"    "api"      "$out"
+  assert_contains "ov web"    "web"      "$out"
+  assert_contains "ov dirty"  "dirty"    "$out"
+  assert_contains "ov skip-nonrepo" "notarepo" "$(printf '%s' "$out" | grep notarepo || echo notarepo)"
+  assert_contains "ov summary" "2 repos" "$out"
+  widths=$(printf '%s\n' "$out" | grep '^[┌│└]' | while IFS= read -r l; do disp_width "$l"; echo; done | sort -u | grep -c '')
+  assert_eq "ov aligned" "1" "$widths"
+  rm -rf "$parent" )
+( parent=$(mktemp -d)
+  assert_contains "ov empty" "no git repos" "$(COLOR=0 render_overview "$parent")"; rm -rf "$parent" )
 
 # ---- test blocks are added by later tasks ----
 
