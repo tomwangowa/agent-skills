@@ -1,6 +1,7 @@
 ---
 name: skill-sync
-description: Use when syncing ~/.claude/skills/ to other agent skill folders (codex, gemini, cursor, antigravity). One-way mirror with --delete (target-side files not in source are removed) — always shown in a dry-run preview before any write. Configure targets via .skill-sync-targets and excludes via .skill-sync-ignore; sensible defaults when files are absent. Triggers: "sync skills", "skill-sync", "同步 skills", "push skills to other agents", "更新其他 agent 的 skills".
+description: >-
+  Use when syncing ~/.claude/skills/ to other agent skill folders (codex, gemini, cursor, antigravity). One-way mirror with --delete (target-side files not in source are removed) — always shown in a dry-run preview before any write. Configure targets via .skill-sync-targets and excludes via .skill-sync-ignore; sensible defaults when files are absent. Triggers: "sync skills", "skill-sync", "同步 skills", "push skills to other agents", "更新其他 agent 的 skills".
 ---
 
 # Skill Sync
