@@ -68,6 +68,17 @@ unset INNER COLOR
   assert_contains "g_empty head" "no commits" "$(g_head)"
   rm -rf "$d" )
 
+# --- Task 5: porcelain ---
+SAMPLE=$(printf 'M  a\n M b\n?? c\nMM d\n')
+assert_eq "counts" "2 2 1" "$(printf '%s\n' "$SAMPLE" | parse_counts)"
+# change_lines emits "XY path<TAB>label"; the "(label)" wrapping is render_single's job.
+assert_contains "cl staged"    "$(printf 'M  a\tstaged')"    "$(printf '%s\n' "$SAMPLE" | change_lines 10)"
+assert_contains "cl modified"  "$(printf ' M b\tmodified')"  "$(printf '%s\n' "$SAMPLE" | change_lines 10)"
+assert_contains "cl untracked" "$(printf '?? c\tuntracked')" "$(printf '%s\n' "$SAMPLE" | change_lines 10)"
+BIG=$(for i in 1 2 3; do printf '?? f%s\n' "$i"; done)
+assert_contains "cl overflow" "+1 more" "$(printf '%s\n' "$BIG" | change_lines 2)"
+assert_eq "fmt_ab" "↑1 ↓0" "$(fmt_ab 0 1)"
+
 # ---- test blocks are added by later tasks ----
 
 # grep -c always prints a count (0 when no match) even though it exits 1 then.

@@ -111,6 +111,40 @@ g_submodules() {
   printf '%s %s' "$n" "$dirty"
 }
 
+# parse_counts — reads `git status --porcelain=v1` on STDIN, prints "STAGED MODIFIED UNTRACKED".
+parse_counts() {
+  awk '
+    /^\?\?/ { u++; next }
+    { x = substr($0,1,1); y = substr($0,2,1) }
+    (x != " " && x != "?") { s++ }
+    (y == "M" || y == "D") { m++ }
+    END { printf "%d %d %d", s+0, m+0, u+0 }
+  '
+}
+
+# change_lines <limit> — reads porcelain on STDIN, prints up to <limit> formatted rows
+# (plain text; caller wraps each in row()). Appends "… +N more" when truncated.
+change_lines() {
+  local limit="$1"
+  awk -v lim="$limit" '
+    { total++; lines[total] = $0 }
+    END {
+      shown = (total < lim) ? total : lim
+      for (i = 1; i <= shown; i++) {
+        xy = substr(lines[i],1,2); path = substr(lines[i],4)
+        if (xy ~ /^\?\?/)                lbl = "untracked"
+        else if (substr(xy,1,1) != " ")  lbl = "staged"
+        else                             lbl = "modified"
+        printf "%s %s\t%s\n", xy, path, lbl
+      }
+      if (total > shown) printf "… +%d more\n", total - shown
+    }
+  '
+}
+
+# fmt_ab <behind> <ahead> — "↑ahead ↓behind"
+fmt_ab() { printf '↑%s ↓%s' "$2" "$1"; }
+
 # init_style — sets global COLOR=1 unless NO_COLOR set or stdout is not a TTY.
 init_style() {
   if [ -n "${NO_COLOR:-}" ] || [ ! -t 1 ]; then COLOR=0; else COLOR=1; fi
