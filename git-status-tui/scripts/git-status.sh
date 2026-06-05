@@ -72,6 +72,45 @@ row() { local c="$1" w pad; w=$(disp_width "$c"); pad=$((INNER-w)); [ "$pad" -lt
 cell() { local t w pad; t=$(trunc_end "$1" "$2"); w=$(disp_width "$t"); pad=$(($2-w)); [ "$pad" -lt 0 ] && pad=0
   printf '%s%*s' "$t" "$pad" ""; }
 
+g_root() { git rev-parse --show-toplevel 2>/dev/null; }
+
+g_branch_or_detached() {
+  local b; b=$(git symbolic-ref --short -q HEAD 2>/dev/null)
+  if [ -n "$b" ]; then printf '%s' "$b"
+  else printf 'HEAD detached @ %s' "$(git rev-parse --short HEAD 2>/dev/null)"; fi
+}
+
+g_head() {
+  local h; h=$(git log -1 --format='%h %s' 2>/dev/null)
+  if [ -n "$h" ]; then printf '%s' "$h"; else printf 'no commits yet'; fi
+}
+
+g_upstream() { git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || printf 'no upstream'; }
+
+# prints "<behind>\t<ahead>" or empty when no upstream
+g_aheadbehind() { git rev-list --left-right --count '@{u}...HEAD' 2>/dev/null; }
+
+g_stash() { git stash list 2>/dev/null | grep -c '' | tr -d ' '; }
+
+# prints a marker name if a merge/rebase/cherry-pick/revert is in progress, else empty
+g_inprogress() {
+  local gd; gd=$(git rev-parse --git-dir 2>/dev/null) || return 0
+  if   [ -d "$gd/rebase-merge" ] || [ -d "$gd/rebase-apply" ]; then printf 'rebase'
+  elif [ -f "$gd/MERGE_HEAD" ];       then printf 'merge'
+  elif [ -f "$gd/CHERRY_PICK_HEAD" ]; then printf 'cherry-pick'
+  elif [ -f "$gd/REVERT_HEAD" ];      then printf 'revert'; fi
+}
+
+# prints "N M" = submodule count, dirty count (empty when none)
+g_submodules() {
+  local s; s=$(git submodule status 2>/dev/null)
+  [ -z "$s" ] && return 0
+  local n dirty
+  n=$(printf '%s\n' "$s" | grep -c '')
+  dirty=$(printf '%s\n' "$s" | grep -c '^+')
+  printf '%s %s' "$n" "$dirty"
+}
+
 # init_style — sets global COLOR=1 unless NO_COLOR set or stdout is not a TTY.
 init_style() {
   if [ -n "${NO_COLOR:-}" ] || [ ! -t 1 ]; then COLOR=0; else COLOR=1; fi
