@@ -131,6 +131,7 @@ g_submodules() {
 # parse_counts — reads `git status --porcelain=v1` on STDIN, prints "STAGED MODIFIED UNTRACKED".
 parse_counts() {
   awk '
+    /^$/ { next }
     /^\?\?/ { u++; next }
     { x = substr($0,1,1); y = substr($0,2,1) }
     (x != " " && x != "?") { s++ }
@@ -144,6 +145,7 @@ parse_counts() {
 change_lines() {
   local limit="$1"
   awk -v lim="$limit" '
+    /^$/ { next }
     { total++; lines[total] = $0 }
     END {
       shown = (total < lim) ? total : lim
@@ -179,11 +181,22 @@ render_single() {
 
   row "$(trunc_end "repo    $name    $(abbrev_path "$root" 36)" "$INNER")"; printf '\n'
 
+  # Pre-fit plain components to a budget, THEN paint, THEN row. Never wrap a
+  # painted string in trunc_end — _udisp strips ANSI, which would drop color.
   case "$branch" in
-    *detached*) row "branch  $branch";;
-    *) if [ "$up" = "no upstream" ]; then row "branch  $branch   $(paint yellow 'no upstream')"
-       else ab=$(g_aheadbehind); set -- $ab
-         row "branch  $branch   $(paint yellow "$(fmt_ab "${1:-0}" "${2:-0}")")  →  $up"; fi;;
+    *detached*) row "$(trunc_end "branch  $branch" "$INNER")";;
+    *)
+      if [ "$up" = "no upstream" ]; then
+        # "branch  " (8) + branch + "   " (3) + "no upstream" (11) = INNER
+        row "branch  $(trunc_end "$branch" $((INNER-8-3-11)))   $(paint yellow 'no upstream')"
+      else
+        ab=$(g_aheadbehind); set -- $ab
+        abp=$(fmt_ab "${1:-0}" "${2:-0}"); abw=$(disp_width "$abp")
+        # fixed parts: "branch  "(8) + "   "(3) + ab + "  →  "(5) = 16 + abw
+        avail=$((INNER-16-abw)); [ "$avail" -lt 10 ] && avail=10
+        bb=$((avail/2)); ub=$((avail-bb))
+        row "branch  $(trunc_end "$branch" "$bb")   $(paint yellow "$abp")  →  $(trunc_end "$up" "$ub")"
+      fi;;
   esac
   printf '\n'
 

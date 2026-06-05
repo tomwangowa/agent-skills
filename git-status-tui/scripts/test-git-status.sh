@@ -78,6 +78,8 @@ assert_contains "cl untracked" "$(printf '?? c\tuntracked')" "$(printf '%s\n' "$
 BIG=$(for i in 1 2 3; do printf '?? f%s\n' "$i"; done)
 assert_contains "cl overflow" "+1 more" "$(printf '%s\n' "$BIG" | change_lines 2)"
 assert_eq "fmt_ab" "↑1 ↓0" "$(fmt_ab 0 1)"
+# empty porcelain (clean tree) must yield zero counts, not a phantom staged 1
+assert_eq "counts empty" "0 0 0" "$(printf '%s\n' '' | parse_counts)"
 
 # --- Task 6: render_single ---
 ( d=$(mk_repo); cd "$d"
@@ -94,7 +96,27 @@ assert_eq "fmt_ab" "↑1 ↓0" "$(fmt_ab 0 1)"
   assert_eq "rs aligned" "1" "$widths"
   rm -rf "$d" )
 ( d=$(mk_repo); cd "$d"; printf 'x\n'>a; git add a; git commit -qm init
-  assert_contains "rs clean" "clean" "$(COLOR=0 render_single)"; rm -rf "$d" )
+  out=$(COLOR=0 render_single)
+  assert_contains "rs clean" "clean" "$out"
+  assert_contains "rs clean staged0" "staged     0" "$out"   # no phantom staged count
+  rm -rf "$d" )
+# long branch name (no upstream) must not break panel alignment
+( d=$(mk_repo); cd "$d"; printf 'x\n'>a; git add a; git commit -qm init
+  git checkout -q -b feature/super-long-branch-name-that-definitely-exceeds-the-panel
+  out=$(COLOR=0 render_single)
+  widths=$(printf '%s\n' "$out" | while IFS= read -r l; do disp_width "$l"; echo; done | sort -u | grep -c '')
+  assert_eq "rs long-branch aligned" "1" "$widths"
+  rm -rf "$d" )
+# long branch + long upstream must not break alignment (and must keep ahead/behind color in TTY)
+( up=$(mktemp -d); git -C "$up" init -q --bare
+  d=$(mk_repo); cd "$d"; printf 'x\n'>a; git add a; git commit -qm init
+  git remote add origin "$up"
+  git checkout -q -b feature/super-long-branch-name-exceeding-the-panel-width-limit
+  git push -q -u origin HEAD 2>/dev/null
+  out=$(COLOR=0 render_single)
+  widths=$(printf '%s\n' "$out" | while IFS= read -r l; do disp_width "$l"; echo; done | sort -u | grep -c '')
+  assert_eq "rs long-upstream aligned" "1" "$widths"
+  rm -rf "$d" "$up" )
 ( d=$(mk_repo); cd "$d"; printf 'x\n'>a; git add a; git commit -qm init
   printf 'y\n' > 中文檔名.txt   # untracked CJK filename must render literally, not octal-escaped
   out=$(COLOR=0 render_single)
