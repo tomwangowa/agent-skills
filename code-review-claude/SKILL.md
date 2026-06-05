@@ -157,6 +157,47 @@ How would you like to proceed?
    - Security-sensitive functions (auth, validation)
    - Common anti-patterns
 
+### Step 2.5: Cross-reference Check for Documentation Artifacts
+
+**Trigger:** the review scope includes any documentation file (`.md`, `.rst`, `.txt`, `.adoc`) — design docs, specs, RFCs, ADRs, READMEs, integration contracts, runbooks, migration plans.
+
+The document itself is prose, but it almost always references concrete code identifiers. Treating the doc as self-contained misses the highest-impact failure mode for design-doc reviews: **the doc says X about the code, and the code disagrees** (or the doc specifies a change that's incomplete once you trace it through the real call chain). Codex caught two such gaps on a doc that code-review-claude's earlier pass had missed; this step closes that gap.
+
+**Procedure:**
+
+1. **Extract code references** from the doc. Look for:
+   - File paths (`backend/app/services/foo.py`, `Dockerfile`, `Makefile`, `pyproject.toml`)
+   - Function / class / method names in monospace (`_build_flow_request`, `OnboardingFlowEngine`)
+   - Environment variables, config keys (`MOCK_LOCALE`, `WORKDIR`, settings field names)
+   - Route paths, schema field names, ORM table names
+   - Shell commands the doc claims to be runnable (`make migrate`, `python backend/scripts/...`)
+   - PR / commit references (`PR #287`, `commit c707016`) — for these, treat the doc's status statement as the claim ("merged" / "pending merge") and verify with `git log` or `git show --stat`
+
+2. **For each reference, follow the falsification-first rule** (same spirit as `codebase-audit`):
+   - Assume the doc's claim is FALSE → grep / Read the referenced identifier → look for counter-evidence first
+   - If counter-evidence found, list as a finding (Medium or High, depending on whether the gap silently breaks the spec)
+   - If no counter-evidence and the claim is plausible, mark it implicit-verified (no finding needed)
+
+3. **Look explicitly for these recurring design-doc gap patterns** — these are common enough to deserve a dedicated sweep:
+
+   | Pattern | What to grep / check |
+   |---|---|
+   | Doc adds a field to schema A but doesn't mention the adapter / projection layer that copies A → B | Find the projection function (e.g. `_build_flow_request`, `to_dataclass`, mapper); check whether the new field is propagated |
+   | Doc gives a repo-relative resource path (e.g. `backend/resources/...`) but runtime cwd / image layout differs | Read `Dockerfile` (`WORKDIR`, `COPY backend/ .`), `Makefile` (`cd backend && ...`); flag if doc path won't resolve at runtime |
+   | Doc names a function / class that's been renamed or removed | Grep the identifier; if absent, flag |
+   | Doc references a config key, env var, or settings field with no consumer | Grep usage; zero hits = dead config |
+   | Doc claims a test / script exists at a path | `ls` the path; if absent and not in proposed changes, flag |
+   | Doc cites a PR or commit as "merged" or "pending" | Verify with `git log --oneline | grep <PR#>` or `git show --stat <sha>` |
+
+4. **List findings with the standard `file:line — issue — fix` format**, using the same severity ladder as Step 3. A silent propagation gap (Pattern #1) or runtime-broken path (Pattern #2) is typically Medium-to-High; a renamed-but-not-removed identifier is typically Low.
+
+5. **Skip rule** — when the doc is purely conceptual (vision statement, narrative, retrospective) with no specific code references, state "Step 2.5: no code references in artifact, skipping cross-reference check" and move on.
+
+**Relationship to other skills:**
+
+- For a **full-document audit** of one doc against the whole codebase, prefer `codebase-audit` — it's exhaustive and uses the same falsification-first verdict system.
+- This Step 2.5 is the **inline lightweight version** for code-review-claude: 5-15 minutes of cross-reference work to catch the highest-value design-doc gaps inside a normal review pass.
+
 ### Step 3: Analyze Code Quality
 Review the code for these aspects in priority order:
 
@@ -324,6 +365,7 @@ Before presenting to user:
 - ✅ Fixes are specific and actionable
 - ✅ No speculative or unrelated suggestions
 - ✅ **Every syntax-error-class claim was checker-verified per Step 3.3** (or labeled `[UNVERIFIED-SYNTAX]` + downgraded)
+- ✅ **If review scope included documentation, Step 2.5 cross-reference check was performed** (or explicitly stated "no code references in artifact, skipping")
 - ✅ Adversarial + Assumptions sections present (or explicitly stated "no issues found")
 - ✅ Refactored Patch (if emitted) only implements listed findings; does not add new features; does not apply any `[UNVERIFIED-SYNTAX]` changes
 
