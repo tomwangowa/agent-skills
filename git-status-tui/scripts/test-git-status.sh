@@ -34,6 +34,11 @@ assert_eq "trunc cjk width" "7" "$(disp_width "$(trunc_end '中文檔名測試�
 assert_contains "trunc mid" "…" "$(trunc_mid '/Users/tom_wang/.claude/skills/git-status-tui/scripts' 30)"
 assert_eq "abbrev home" "~/x" "$(HOME=/home/u abbrev_path /home/u/x 40)"
 
+# --- Task 2: style ---
+COLOR=1; assert_contains "paint on"  "$(printf '\033[31m')" "$(paint red X)"
+COLOR=0; assert_eq       "paint off" "X" "$(paint red X)"
+unset COLOR
+
 # ---- test blocks are added by later tasks ----
 
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"

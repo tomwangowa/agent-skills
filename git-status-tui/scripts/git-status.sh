@@ -48,4 +48,19 @@ main() {
   return 0
 }
 
+# init_style — sets global COLOR=1 unless NO_COLOR set or stdout is not a TTY.
+init_style() {
+  if [ -n "${NO_COLOR:-}" ] || [ ! -t 1 ]; then COLOR=0; else COLOR=1; fi
+}
+# paint <name> <text> — wraps text in ANSI when COLOR=1, else returns text unchanged.
+paint() {
+  if [ "${COLOR:-0}" = "1" ]; then
+    local code
+    case "$1" in red) code=31;; green) code=32;; yellow) code=33;; *) code=0;; esac
+    printf '\033[%sm%s\033[0m' "$code" "$2"
+  else
+    printf '%s' "$2"
+  fi
+}
+
 if [ "${BASH_SOURCE[0]:-$0}" = "${0}" ]; then main "$@"; fi
