@@ -125,6 +125,17 @@ assert_eq "fmt_ab" "↑1 ↓0" "$(fmt_ab 0 1)"
 ( parent=$(mktemp -d)
   assert_contains "ov empty" "no git repos" "$(COLOR=0 render_overview "$parent")"; rm -rf "$parent" )
 
+# --- Task 8: main dispatch ---
+SCRIPT="$HERE/git-status.sh"
+( d=$(mk_repo); cd "$d"; printf 'x\n'>a; git add a; git commit -qm init
+  assert_contains "main single" "git status" "$(bash "$SCRIPT")"; rm -rf "$d" )
+( parent=$(mktemp -d)
+  ( d="$parent/r"; mkdir "$d"; git -C "$d" init -q; git -C "$d" config user.email t@t
+    git -C "$d" config user.name t; printf 'x\n'>"$d/f"; git -C "$d" add f; git -C "$d" commit -qm init )
+  cd "$parent"
+  assert_contains "main overview" "repos in" "$(bash "$SCRIPT")"; rm -rf "$parent" )
+assert_contains "main help" "Usage" "$(bash "$SCRIPT" --help)"
+
 # ---- test blocks are added by later tasks ----
 
 # grep -c always prints a count (0 when no match) even though it exits 1 then.

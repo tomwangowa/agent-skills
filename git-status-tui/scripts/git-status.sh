@@ -44,8 +44,20 @@ abbrev_path() {
 
 main() {
   set -u
-  printf 'git-status.sh: not yet implemented\n' >&2
-  return 0
+  case "${1:-}" in
+    -h|--help)
+      printf 'Usage: git-status.sh\n'
+      printf '  Inside a git repo  → detailed single-repo status panel.\n'
+      printf '  In a non-repo dir  → one-line overview of first-level git repos.\n'
+      printf '  Read-only; never fetches. NO_COLOR honored; color off when not a TTY.\n'
+      return 0;;
+  esac
+  init_style
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    render_single
+  else
+    render_overview "$(pwd)"
+  fi
 }
 
 # bar <n> — print n box-drawing horizontal chars.
