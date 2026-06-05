@@ -22,6 +22,18 @@ mk_repo() {
   printf '%s' "$d"
 }
 
+# --- Task 1: width / truncation ---
+assert_eq "width ascii"  "3" "$(disp_width abc)"
+assert_eq "width cjk"    "4" "$(disp_width 中文)"
+assert_eq "width mixed"  "3" "$(disp_width a中)"
+assert_eq "width empty"  "0" "$(disp_width '')"
+assert_eq "width ansi-stripped" "7" "$(disp_width "$(printf '\033[31m● dirty\033[0m')")"
+assert_eq "trunc none"   "短"  "$(trunc_end 短 18)"
+assert_eq "trunc end"    "code-review-claud…" "$(trunc_end 'code-review-claude/SKILL.md' 18)"
+assert_eq "trunc cjk width" "7" "$(disp_width "$(trunc_end '中文檔名測試很長很長' 8)")"
+assert_contains "trunc mid" "…" "$(trunc_mid '/Users/tom_wang/.claude/skills/git-status-tui/scripts' 30)"
+assert_eq "abbrev home" "~/x" "$(HOME=/home/u abbrev_path /home/u/x 40)"
+
 # ---- test blocks are added by later tasks ----
 
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
