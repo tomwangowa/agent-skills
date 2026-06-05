@@ -74,6 +74,7 @@ Followed by markdown content containing:
 - **md-translate** — Translate markdown files to English and Traditional Chinese; auto-detects source language; generates `-en.md` and `-zh.md`
 - **pptx-to-md** — Convert PPTX/DOCX/XLSX/PDF to Markdown via Microsoft markitdown; supports single file, batch, and print-only modes
 - **repo-sync** — Pull latest + submodule sync for any repo; generates What's New digest grouped by top-level directory or custom `.claude/repo-sync-roles.yaml`
+- **git-status-tui** — Read-only git status dashboard rendered as a box-drawing TUI panel; single-repo detail or parent-directory multi-repo overview. CJK-aware alignment, auto-degrades color to symbols, never fetches.
 
 ### Meta
 

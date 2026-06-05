@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # git-status.sh — read-only git status dashboard (single repo) / overview (parent dir).
 # Requires: git, perl. bash 3.2 compatible. Source-safe (main is guarded).
+#
+# NOTE: `set -e` is intentionally NOT used. Many steps rely on non-zero exits
+# being normal (`grep -c` with no match, `[ -n "$x" ] && …`), and errexit at
+# file scope would also abort when this file is sourced for testing. `set -u`
+# is scoped inside main() only.
 
 # _udisp <mode> [max]  — reads string on STDIN. mode: width | trunc_end | trunc_mid.
 # ANSI escapes are stripped before measuring so visible width is used.
