@@ -145,6 +145,61 @@ change_lines() {
 # fmt_ab <behind> <ahead> — "↑ahead ↓behind"
 fmt_ab() { printf '↑%s ↓%s' "$2" "$1"; }
 
+# render_single — prints the single-repo panel for CWD's repo. Read-only.
+render_single() {
+  INNER=58
+  local root name branch head up ab inprog porc counts s m u subs dot
+  root=$(g_root); name=$(basename "$root")
+  branch=$(g_branch_or_detached); head=$(g_head); up=$(g_upstream)
+  inprog=$(g_inprogress)
+  # -c core.quotePath=false so CJK/UTF-8 filenames show literally (not "\3xx" octal).
+  porc=$(git -c core.quotePath=false status --porcelain=v1 2>/dev/null)
+  counts=$(printf '%s\n' "$porc" | parse_counts); set -- $counts; s=$1; m=$2; u=$3
+
+  ttop 'git status'; printf '\n'
+
+  if [ -n "$inprog" ]; then row "$(paint red "⚠ $inprog in progress")"; printf '\n'; fi
+
+  row "$(trunc_end "repo    $name    $(abbrev_path "$root" 36)" "$INNER")"; printf '\n'
+
+  case "$branch" in
+    *detached*) row "branch  $branch";;
+    *) if [ "$up" = "no upstream" ]; then row "branch  $branch   $(paint yellow 'no upstream')"
+       else ab=$(g_aheadbehind); set -- $ab
+         row "branch  $branch   $(paint yellow "$(fmt_ab "${1:-0}" "${2:-0}")")  →  $up"; fi;;
+  esac
+  printf '\n'
+
+  row "$(trunc_end "head    $head" "$INNER")"; printf '\n'
+
+  subs=$(g_submodules)
+  [ -n "$subs" ] && { set -- $subs; row "submod  $1 ($2 dirty)"; printf '\n'; }
+
+  ftitle 'working tree'; printf '\n'
+  dot=$([ "$s" -gt 0 ] && paint yellow '●' || paint green '●'); row "$dot staged     $s"; printf '\n'
+  dot=$([ "$m" -gt 0 ] && paint red '●'    || paint green '●'); row "$dot modified   $m"; printf '\n'
+  dot=$([ "$u" -gt 0 ] && paint red '●'    || paint green '●'); row "$dot untracked  $u"; printf '\n'
+  row "$(paint green '●') stash      $(g_stash)"; printf '\n'
+
+  ftitle 'changes'; printf '\n'
+  if [ -n "$porc" ]; then
+    printf '%s\n' "$porc" | change_lines 10 | while IFS=$'\t' read -r left label; do
+      if [ -n "$label" ]; then
+        suffix="  ($label)"
+        body=$(trunc_end "$left" $((INNER - $(disp_width "$suffix"))))
+        row "$body$suffix"
+      else
+        row "$left"
+      fi
+      printf '\n'
+    done
+  else
+    row "$(paint green '(clean working tree)')"; printf '\n'
+  fi
+
+  fbot; printf '\n'
+}
+
 # init_style — sets global COLOR=1 unless NO_COLOR set or stdout is not a TTY.
 init_style() {
   if [ -n "${NO_COLOR:-}" ] || [ ! -t 1 ]; then COLOR=0; else COLOR=1; fi

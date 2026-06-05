@@ -79,6 +79,32 @@ BIG=$(for i in 1 2 3; do printf '?? f%s\n' "$i"; done)
 assert_contains "cl overflow" "+1 more" "$(printf '%s\n' "$BIG" | change_lines 2)"
 assert_eq "fmt_ab" "↑1 ↓0" "$(fmt_ab 0 1)"
 
+# --- Task 6: render_single ---
+( d=$(mk_repo); cd "$d"
+  printf 'x\n' > a; git add a; git commit -qm "first commit"
+  printf 'y\n' > a; printf 'z\n' > b
+  out=$(COLOR=0 render_single)
+  assert_contains "rs header"  "git status"    "$out"
+  assert_contains "rs branch"  "$(git symbolic-ref --short HEAD)" "$out"
+  assert_contains "rs head"    "first commit"  "$out"
+  assert_contains "rs section" "working tree"  "$out"
+  assert_contains "rs changes" "(untracked)"   "$out"
+  assert_contains "rs noupstream" "no upstream" "$out"
+  widths=$(printf '%s\n' "$out" | while IFS= read -r l; do disp_width "$l"; echo; done | sort -u | grep -c '')
+  assert_eq "rs aligned" "1" "$widths"
+  rm -rf "$d" )
+( d=$(mk_repo); cd "$d"; printf 'x\n'>a; git add a; git commit -qm init
+  assert_contains "rs clean" "clean" "$(COLOR=0 render_single)"; rm -rf "$d" )
+( d=$(mk_repo); cd "$d"; printf 'x\n'>a; git add a; git commit -qm init
+  printf 'y\n' > 中文檔名.txt   # untracked CJK filename must render literally, not octal-escaped
+  out=$(COLOR=0 render_single)
+  assert_contains "rs cjk literal"  "中文檔名.txt" "$out"
+  assert_contains "rs cjk no-octal" "no-octal" "$(case "$out" in *'\3'*) echo octal;; *) echo no-octal;; esac)"
+  rm -rf "$d" )
+( d=$(mk_repo); cd "$d"; printf 'x\n'>a; git add a; git commit -qm init
+  touch "$(git rev-parse --git-dir)/MERGE_HEAD"
+  assert_contains "rs warn" "merge in progress" "$(COLOR=0 render_single)"; rm -rf "$d" )
+
 # ---- test blocks are added by later tasks ----
 
 # grep -c always prints a count (0 when no match) even though it exits 1 then.
