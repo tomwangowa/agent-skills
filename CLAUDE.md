@@ -75,6 +75,7 @@ Followed by markdown content containing:
 - **pptx-to-md** — Convert PPTX/DOCX/XLSX/PDF to Markdown via Microsoft markitdown; supports single file, batch, and print-only modes
 - **repo-sync** — Pull latest + submodule sync for any repo; generates What's New digest grouped by top-level directory or custom `.claude/repo-sync-roles.yaml`
 - **git-status-tui** — Read-only git status dashboard rendered as a box-drawing TUI panel; single-repo detail or parent-directory multi-repo overview. CJK-aware alignment, auto-degrades color to symbols, never fetches.
+- **deai-voice-rewrite** — On-demand de-AI-ify + plain-language + Tom's-voice rewriter for outward-facing content (slides/blog/newsletter/posts). Two hard guards: fact-freeze (numbers/ports/filenames/identifiers never change) and flag-don't-fix (suspicious terms flagged for the user, not silently edited). Output = rewrite + fact-freeze checklist + flagged-terms list. Companion output-style `deai-tom` (tracked in this repo at `output-styles/deai-tom.md`, symlinked to `~/.claude/output-styles/`, toggled via `/config`) regulates ongoing responses using the same rules; SKILL.md is the single source of truth.
 
 ### Meta
 
