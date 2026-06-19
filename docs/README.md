@@ -64,6 +64,25 @@ Advanced architectural pattern for managing multiple skills with similar functio
 
 ---
 
+### 🔌 Superpowers-Integration.md
+
+**Superpowers Plugin × 個人 Skills 整合對照**
+
+How the `superpowers` plugin integrates with this repo's custom skills, and the user-skill-first override rules.
+
+**Contents**:
+- Install layer (plugin version, source, enable mechanism)
+- Activation via SessionStart hook injecting `using-superpowers`
+- Instruction priority order
+- Override table: brainstorming / completion-gate / code-review route to custom versions
+- Which superpowers skills are used directly (no custom equivalent)
+
+**Best for**: Understanding why a trigger routes to a custom skill vs. the `superpowers:` version
+
+**Status**: Living document (snapshot of superpowers v5.0.7)
+
+---
+
 ---
 
 ## 🎯 Recommended Reading Order
@@ -105,6 +124,7 @@ Advanced architectural pattern for managing multiple skills with similar functio
 |----------|--------|----------|---------|----------|
 | AI_Developer_Workflow.pdf | Visual slides | Everyone | Quick overview | 5-10 min |
 | Meta-Skills-Pattern.md | Technical guide | Architects | Advanced patterns | 15-20 min |
+| Superpowers-Integration.md | Reference table | Developers | Plugin × custom skill routing | 5-10 min |
 | SKILLS_DEMO_SCRIPT_v2.md | Detailed script | Presenters | Demo preparation | 30-35 min |
 | UI-UX-Skills-Plan.md | Planning doc | Architects | Future planning | 20-30 min |
 | Main README.md | Reference | Developers | Setup & usage | Ongoing |
