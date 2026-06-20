@@ -5,6 +5,41 @@ SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TARGETS_FILE="$SKILLS_DIR/.skill-sync-targets"
 IGNORE_FILE="$SKILLS_DIR/.skill-sync-ignore"
 
+# ── Parse args ─────────────────────────────────────────────────
+# Default is mirror mode (rsync --delete). --no-delete switches to
+# additive mode: source skills are synced in, but target-only files
+# are preserved (never removed). delete_args stays empty in additive
+# mode and is expanded with the set -u-safe ${arr[@]+"${arr[@]}"} idiom.
+delete_args=("--delete")
+for arg in "$@"; do
+    case "$arg" in
+        --no-delete)
+            delete_args=()
+            ;;
+        -h|--help)
+            cat <<'EOF'
+Usage: sync.sh [--no-delete]
+
+Mirror ~/.claude/skills/ to configured agent skill folders.
+
+  (default)     Mirror mode: rsync --delete removes target-side files
+                that are not present in the source.
+  --no-delete   Additive mode: sync source skills into targets but
+                PRESERVE target-only files (no deletion).
+
+Targets:  .skill-sync-targets  (falls back to built-in defaults)
+Excludes: .skill-sync-ignore   (falls back to built-in defaults)
+EOF
+            exit 0
+            ;;
+        *)
+            echo "Unknown argument: $arg" >&2
+            echo "Run 'bash sync.sh --help' for usage." >&2
+            exit 2
+            ;;
+    esac
+done
+
 # Trim CR, inline comment, surrounding whitespace; echo cleaned line.
 clean_line() {
     local s="$1"
@@ -72,14 +107,20 @@ done
 
 # ── Dry-run ────────────────────────────────────────────────────
 echo ""
-echo "🔍  Dry-run preview (⚠️  --delete is active: files in target not in source WILL be removed):"
+if [[ ${#delete_args[@]} -gt 0 ]]; then
+    echo "🔍  Dry-run preview — mode: mirror"
+    echo "    ⚠️  --delete is active: files in target not in source WILL be removed."
+else
+    echo "🔍  Dry-run preview — mode: additive (--no-delete)"
+    echo "    ✅  target-only files are preserved; nothing in targets will be deleted."
+fi
 echo "─────────────────────────────────────────"
 
 all_dry_output=""
 tmp_err="$(mktemp)"
 trap 'rm -f "$tmp_err"' EXIT
 for target in "${targets[@]}"; do
-    if ! dry=$(rsync -avL --delete --dry-run "${exclude_args[@]}" "$SKILLS_DIR/" "$target/" 2>"$tmp_err"); then
+    if ! dry=$(rsync -avL ${delete_args[@]+"${delete_args[@]}"} --dry-run "${exclude_args[@]}" "$SKILLS_DIR/" "$target/" 2>"$tmp_err"); then
         echo "→ $target  ⚠️  rsync error:"
         sed 's/^/    /' "$tmp_err"
         continue
@@ -117,7 +158,7 @@ sync_statuses=()
 
 for target in "${targets[@]}"; do
     sync_targets+=("$target")
-    if err=$(rsync -aL --delete "${exclude_args[@]}" "$SKILLS_DIR/" "$target/" 2>&1 >/dev/null); then
+    if err=$(rsync -aL ${delete_args[@]+"${delete_args[@]}"} "${exclude_args[@]}" "$SKILLS_DIR/" "$target/" 2>&1 >/dev/null); then
         sync_statuses+=("✅ synced")
         echo "✅ $target"
     else
