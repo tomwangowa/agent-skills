@@ -27,26 +27,30 @@ When the user asks about their work journal, TODOs, project history, or past dec
 
 ### Workflow
 
-**Step 0 — Data Access Priority: PREFER `mcp__skills-query__*` tools when available**
+**Step 0 — Data Access Priority: PREFER `mcp__skills-query__*` / `mcp__skills_query__*` tools when available**
 
 This skill has two backends for querying activity records:
 
-- **Primary (preferred)**: `mcp__skills-query__*` MCP tools, exposed by the **Skills Query MCP Server** at `~/.claude/skills/skills-query-server/`. Structured, typed, cross-source (activities + QA notes).
+- **Primary (preferred)**: `mcp__skills-query__*` / `mcp__skills_query__*` MCP tools, exposed by the **Skills Query MCP Server** at `~/.claude/skills/skills-query-server/`. Structured, typed, cross-source (activities + QA notes). Tool names may use hyphens or underscores depending on the runtime.
 - **Fallback**: the shell script `<skill_base_directory>/scripts/aggregate_activities.sh`. Only supports Activity Aggregation.
 
 **Decision rule (concrete procedure)**:
 
-1. **Detect MCP availability** — scan the session's available tools list for any tool whose name starts with `mcp__skills-query__`. The list is visible in the system reminder delivered at session start.
-   - ✅ Found → use MCP tools for all query types. Skip steps 2–3.
+1. **Detect exposed MCP availability** — scan the session's available tools list for any tool whose name starts with `mcp__skills-query__` or `mcp__skills_query__`. The list is visible in the system reminder delivered at session start.
+   - ✅ Found → use MCP tools for all query types. Skip steps 2–4.
    - ❌ Not found → continue to step 2.
 
-2. **Handle "MCP not found" gracefully**:
+2. **Codex deferred-tool discovery** — in Codex sessions, MCP tools may exist but stay hidden until discovered. If the `tool_search` tool is available, search for `skills-query mcp activity work-log analyzer`, then re-scan the newly exposed tools for `mcp__skills-query__*` / `mcp__skills_query__*`.
+   - ✅ Found after discovery → use MCP tools for all query types. Skip steps 3–4.
+   - ❌ Still not found, or `tool_search` is unavailable → continue to step 3.
+
+3. **Handle "MCP not found" gracefully**:
    - Tell the user explicitly: *"Skills Query MCP server 沒有在這個 session 掛載，改用 shell script fallback。功能仍可用，但 cross-source search（notes + activities）和 dashboard 不會運作。"*
    - Fall back to `<skill_base_directory>/scripts/aggregate_activities.sh` for Activity Aggregation.
    - For Timeline / TODO / Decision Tracking / General Search: use `jq` + `grep` against `~/.claude/activities/*.json` directly.
    - For Recent Overview (dashboard): tell the user this query type requires the MCP server; offer a manual aggregation instead.
 
-3. **Offer recovery path** (only if the user wants full functionality):
+4. **Offer recovery path** (only if the user wants full functionality):
    - Provide the one-liner to register the MCP server:
      ```bash
      claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-server/src/index.ts
@@ -55,18 +59,21 @@ This skill has two backends for querying activity records:
    - Do NOT auto-run this command — confirm with the user first.
    - After offering recovery, **end here** — do not retry `mcp__skills-query__*` tools in the same session. Ask the user to restart Claude Code and re-issue the query.
 
-**Do NOT** attempt to call `mcp__skills-query__*` speculatively when it is not in the tool list; it will fail with `InputValidationError` rather than a clean "not found" signal.
+**Do NOT** attempt to call `mcp__skills-query__*` / `mcp__skills_query__*` speculatively when it is not in the tool list after discovery; it will fail with `InputValidationError` rather than a clean "not found" signal.
 
-**Tool mapping** (query type → MCP tool + fallback + reference):
+**Tool mapping** (query type → MCP suffix + fallback + reference):
 
-| Query Type | MCP Tool | Fallback | Output format |
-|------------|----------|----------|---------------|
-| Activity Aggregation | `mcp__skills-query__query_activities` | `aggregate_activities.sh` | see [Inline Example](#inline-example-activity-aggregation) below |
-| Timeline | `mcp__skills-query__query_timeline` | grep + manual sort | `references/examples.md#timeline` |
-| TODO Management | `mcp__skills-query__query_todos` | grep TODO/FIXME patterns | `references/examples.md#todo-management` |
-| Decision Tracking | `mcp__skills-query__query_decisions` | keyword search + manual synthesis | `references/examples.md#decision-tracking` |
-| General Search | `mcp__skills-query__search` | grep across activity JSONs | `references/examples.md#general-search` |
-| Recent Overview | `mcp__skills-query__dashboard` | N/A | — |
+When MCP tools are available, call the tool using the detected prefix from Step 0:
+`mcp__skills-query__` or `mcp__skills_query__`, plus the suffix below.
+
+| Query Type | MCP Suffix | Fallback | Output format |
+|------------|------------|----------|---------------|
+| Activity Aggregation | `query_activities` | `aggregate_activities.sh` | see [Inline Example](#inline-example-activity-aggregation) below |
+| Timeline | `query_timeline` | grep + manual sort | `references/examples.md#timeline` |
+| TODO Management | `query_todos` | grep TODO/FIXME patterns | `references/examples.md#todo-management` |
+| Decision Tracking | `query_decisions` | keyword search + manual synthesis | `references/examples.md#decision-tracking` |
+| General Search | `search` | grep across activity JSONs | `references/examples.md#general-search` |
+| Recent Overview | `dashboard` | N/A | — |
 
 **Step 1 — Identify input source**
 
@@ -117,7 +124,7 @@ The most common query type. Full examples for the other 4 types live in `referen
 
 **User:** "本週做了什麼？"
 
-**Execute:** `mcp__skills-query__query_activities` with `range: "this-week"`
+**Execute:** `<detected MCP prefix>query_activities` with `range: "this-week"`
 (or fallback: `aggregate_activities.sh -r this-week`)
 
 **Output shape** (N = actual count; replace with real numbers):
@@ -157,7 +164,7 @@ This skill is read-only and query-oriented. Handle these common failure modes:
 - **Log file not found** (user-supplied path): report the exact path tried and ask the user to confirm or paste the log content directly.
 - **Empty result set** (e.g., project name typo, wrong date range): surface the exact filter used and suggest 1–2 corrections (alternative project names seen in recent activities, or expanding the range).
 - **Malformed activity record JSON**: skip the malformed record, continue aggregating, and list the skipped file path at the end so the user can investigate.
-- **MCP server unavailable**: follow the three-step procedure in Step 0 (detect → degrade → offer recovery). Never silently fail.
+- **MCP server unavailable**: follow the Step 0 procedure (detect exposed tools → Codex deferred-tool discovery and re-scan → degrade to shell/jq/grep → offer recovery). Never silently fail.
 - **Ambiguous date phrase** (e.g., "last Thursday" crossing a week boundary): state the absolute date(s) the skill resolved to (e.g., "interpreting 'last Thursday' as 2026-04-16") so the user can correct before trusting the output.
 - **Large log file (>10,000 lines)**: inform the user before reading; offer to read in chunks or to filter the scope first.
 
