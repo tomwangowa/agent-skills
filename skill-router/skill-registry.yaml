@@ -200,6 +200,13 @@ categories:
           - "怎麼設計"
           - "想法"
           - "approach"
+          - "grill"
+          - "grilling"
+          - "烤"
+          - "烤我"
+          - "stress-test"
+          - "challenge my plan"
+          - "壓力測試"
 
       - id: spec-gap-finder
         triggers:

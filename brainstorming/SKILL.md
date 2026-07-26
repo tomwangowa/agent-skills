@@ -2,9 +2,11 @@
 name: brainstorming
 description: >-
   Use before any creative or implementation work — new features, architecture
-  changes, refactoring, or workflow design. Explores intent through Socratic
-  dialogue, proposes approaches with trade-offs, and produces an approved
-  design before any code is written.
+  changes, refactoring, or workflow design. Also use when the user wants to
+  grill / stress-test a plan or idea (triggers: grill, 烤, stress-test).
+  Relentlessly interviews one decision at a time with a recommended answer
+  each round, then proposes approaches with trade-offs and produces an
+  approved design before any code is written.
 ---
 
 # Brainstorming Ideas Into Designs
@@ -15,6 +17,10 @@ before a single line of code exists.
 **Core principle:** Design is not overhead — it is the fastest path to
 correct implementation. Every hour of brainstorming saves ten hours of
 rework.
+
+**Grilling is not optional.** Phase 3 relentlessly pressure-tests every
+decision branch until shared understanding. Soft, agreement-seeking Q&A
+is a failure mode — not brainstorming.
 
 **Violating the letter but not the spirit doesn't count.** Presenting a
 "design" that's just a restatement of the user's request with
@@ -30,8 +36,9 @@ simplicity.
 </HARD-GATE>
 
 **Announce at start:**
-> "Activating brainstorming — I'll explore the idea with you before
-> writing any code."
+> "Activating brainstorming — I'll grill the decisions one at a time
+> (with my recommended answer each round) before we lock a design or
+> write any code."
 
 ## When to Use
 
@@ -41,12 +48,16 @@ simplicity.
 - Significant refactoring (touching 3+ files or changing interfaces)
 - Workflow or process design
 - Any task where the user's first message contains ambiguity
+- User wants to stress-test a plan/decision/idea ("grill", "烤",
+  "stress-test", "challenge my plan", or similar)
 
 **Exceptions (brainstorming can be skipped):**
 - Single-line bug fixes with obvious root cause
 - Typo corrections, formatting changes
 - Tasks where the user provides a complete, unambiguous spec
 - The user explicitly says "skip brainstorming" or "just do it"
+  (these exceptions take priority over grilling — do not grill after
+  an explicit skip)
 
 Thinking "this is too trivial to need a design"? That's exactly when
 unexamined assumptions cause the most wasted work. The design can be
@@ -59,7 +70,7 @@ You MUST create a task for each of these items and complete them in order:
 1. **Explore project context** — check files, docs, recent commits
 2. **Scope escalation check** — assess if project needs role-orchestrator
 3. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question
-4. **Ask clarifying questions** — one at a time via Socratic dialogue
+4. **Grill decisions** — one at a time, relentlessly, with a recommended answer each round, until shared understanding
 5. **Propose 2-3 approaches** — with trade-offs, pre-mortem, and your recommendation
 6. **Present design** — in sections scaled to complexity, get user approval after each section
 7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
@@ -76,7 +87,8 @@ digraph brainstorming {
     "Invoke role-orchestrator" [shape=doublecircle];
     "Visual questions ahead?" [shape=diamond];
     "Offer Visual Companion\n(own message, no other content)" [shape=box];
-    "Socratic dialogue\n(one question at a time)" [shape=box];
+    "Grill decisions\n(one at a time + recommended answer)" [shape=box];
+    "Shared understanding?" [shape=diamond];
     "Propose 2-3 approaches\n(with pre-mortem)" [shape=box];
     "Present design sections" [shape=box];
     "User approves design?" [shape=diamond];
@@ -89,9 +101,11 @@ digraph brainstorming {
     "Scope escalation check" -> "Invoke role-orchestrator" [label="medium/large"];
     "Scope escalation check" -> "Visual questions ahead?" [label="small"];
     "Visual questions ahead?" -> "Offer Visual Companion\n(own message, no other content)" [label="yes"];
-    "Visual questions ahead?" -> "Socratic dialogue\n(one question at a time)" [label="no"];
-    "Offer Visual Companion\n(own message, no other content)" -> "Socratic dialogue\n(one question at a time)";
-    "Socratic dialogue\n(one question at a time)" -> "Propose 2-3 approaches\n(with pre-mortem)";
+    "Visual questions ahead?" -> "Grill decisions\n(one at a time + recommended answer)" [label="no"];
+    "Offer Visual Companion\n(own message, no other content)" -> "Grill decisions\n(one at a time + recommended answer)";
+    "Grill decisions\n(one at a time + recommended answer)" -> "Shared understanding?";
+    "Shared understanding?" -> "Grill decisions\n(one at a time + recommended answer)" [label="open branches"];
+    "Shared understanding?" -> "Propose 2-3 approaches\n(with pre-mortem)" [label="confirmed"];
     "Propose 2-3 approaches\n(with pre-mortem)" -> "Present design sections";
     "Present design sections" -> "User approves design?";
     "User approves design?" -> "Present design sections" [label="no, revise"];
@@ -164,34 +178,78 @@ If they agree, read the detailed guide: `skills/brainstorming/visual-companion.m
 **Skip this phase** if the topic is purely non-visual (API design,
 data modeling, backend logic, CLI tools).
 
-### Phase 3: Socratic Dialogue
+### Phase 3: Grill Decisions (relentless)
+
+Interview the user relentlessly about every aspect of the idea until you
+reach a **shared understanding**. Walk down each branch of the decision
+tree, resolving dependencies between decisions one-by-one.
 
 Ask questions **one at a time**. After each answer, ask the next
-question informed by the response.
+question informed by the response. Asking multiple questions at once is
+bewildering — never batch.
 
-**Question strategy:**
+**Fact vs decision (HARD):**
+- If a *fact* can be found by exploring the environment (filesystem, git,
+  docs, tools, runtime), look it up — do **not** ask the user.
+- The *decisions* are the user's. Put each one to them and wait for
+  their answer before continuing.
+
+**Decision-tree discipline:**
+- Order questions by dependency: close blocker decisions before
+  dependent ones (e.g. "who is this for?" before "what auth model?").
+- After each answer, briefly note which branch closed and which opens
+  next (one sentence), then ask the next question.
+- Do not skip a branch because it feels awkward or the user seems sure —
+  certainty without interrogation is where bad designs hide.
+
+**Recommended answer on EVERY decision question (HARD):**
+- For each decision, state your recommended answer *in the same message*
+  as the question (or mark the recommended select option).
+- Keep the recommendation brief and opinionated. Do not hide behind
+  "it depends" unless you name the single fact that would change it.
+- The user may reject the recommendation — that is fine. The point is
+  to surface a concrete stance so they can agree or push back.
+
+**Question strategy (cover each; order by dependency):**
 1. **Purpose** — "What problem does this solve?" / "Who is this for?"
 2. **Scope** — "What's in scope? What's explicitly out of scope?"
 3. **Constraints** — "Any technical constraints, deadlines, or
    dependencies?"
 4. **Success criteria** — "How will we know this works correctly?"
 5. **Edge cases** — "What happens when X fails / is empty / is huge?"
+6. **Load-bearing assumptions** — anything the design collapses without;
+   grill these until explicit
 
 **Default to structured select options (2-4 choices)** whenever you can
-anticipate the likely answers. Select options have lower answer cost
-than open-ended prose — the user can tap instead of type. Reserve
-open-ended format only when you genuinely cannot predict the answer
-space (e.g., "what specific problem triggered this?").
+anticipate the likely answers. Mark the recommended option. Select
+options have lower answer cost than open-ended prose — the user can tap
+instead of type. Reserve open-ended format only when you genuinely
+cannot predict the answer space (e.g., "what specific problem triggered
+this?") — and still give your recommended answer in one sentence.
 
 **Spoiler preview:** If the user's idea has an obvious issue you'll need
 to address later, hint at it in your first question rather than
-surprising them after 5 rounds of Q&A:
-> "Let me ask a few questions first. (Heads up: the caching approach
+surprising them after many rounds of Q&A:
+> "Let me grill a few decisions first. (Heads up: the caching approach
 > might have a consistency trade-off we'll need to address.)"
 
-**Stop asking when:** you can describe the solution back to the user and
-they agree you understand it. Don't over-interview — 3-5 questions is
-typical.
+**Stop asking only when shared understanding is explicit:**
+- You can describe the problem, constraints, and key decisions back to
+  the user.
+- They confirm that description is correct.
+- No open decision-tree branches remain that would change the design.
+- Do **not** stop early just because 3–5 questions have passed. Keep
+  grilling while open branches remain. Do not over-interview *closed*
+  branches — once a decision is locked, move on.
+
+**Gate before Phase 4:**
+Confirm shared understanding in one short message, then wait:
+> "Shared understanding check — we agree on: [X], [Y], [Z]. Any open
+> branch I missed, or shall I propose approaches?"
+
+Do **not** propose approaches, write a design, or take any
+implementation action until they confirm. If they name an open branch,
+resume grilling that branch first.
 
 ### Phase 4: Explore Approaches
 
@@ -316,6 +374,9 @@ design is so small that a plan would be longer than the implementation.
 | "The user seems impatient" | Spending 2 minutes on design saves 20 minutes of wrong-direction coding. Users prefer this. |
 | "I already know the best approach" | Then presenting it for approval takes 30 seconds. If you're right, no time lost. If wrong, disaster averted. |
 | "EnterPlanMode covers this" | Planning is HOW to build. Brainstorming is WHAT to build and WHY. Different stages. |
+| "3–5 questions is enough" | Stop when branches are closed and understanding is confirmed — not when a question quota is met. |
+| "I'll ask without recommending — stay neutral" | Neutrality hides your model. Every decision question needs a recommended answer so the user can agree or push back. |
+| "They're sure, so I won't push" | Certainty without interrogation is where bad designs hide. Grill the load-bearing assumption anyway. |
 
 ## Red Flags — STOP
 
@@ -327,6 +388,14 @@ design is so small that a plan would be longer than the implementation.
 - You're copy-pasting the user's request as the "design" → that's not
   design, that's transcription
 - You skipped context gathering → you're guessing instead of designing
+- You asked a decision question without a recommended answer → add the
+  recommendation before waiting
+- You asked the user for a fact you could look up → go look it up
+- You jumped to Phase 4 without an explicit shared-understanding
+  confirmation → go back and confirm
+- You stopped grilling while open decision branches remain → keep going
+  (unless the user explicitly chose to proceed with those open branches
+  as assumptions — see Error Handling)
 
 ## Anti-patterns
 
@@ -337,7 +406,8 @@ Maybe. But if you can describe your design in 30 seconds and get
 approval, no time is lost. If you're wrong, disaster averted. Ask:
 "Can you walk me through the happy path in one sentence?" — if
 they can, the design is nearly done. If they can't, they need
-brainstorming more than they think.
+brainstorming more than they think. Either way, still grill the
+load-bearing decisions with recommended answers.
 
 **"Can you add X, Y, and Z while you're at it?"**
 Scope creep during clarification. The user's *original* request is the
@@ -349,11 +419,16 @@ they might not be needed at all."
 Premature abstraction. Design for the task at hand. Configurability is
 free to add later but expensive to remove. Ask: "What specific future
 change are you anticipating?" If they can't name one, skip it.
+Recommend against premature configurability unless they name the change.
 
 **"Let's design the whole system before testing anything."**
 Build the smallest working version first. Validate the core assumption,
 then layer on complexity. Propose a single-path MVP even when the user
 asks for the full system.
+
+**"Just ask neutrally — don't bias me with a recommendation."**
+A recommendation is a stake in the ground, not a command. Soft
+neutrality wastes rounds. State your pick; let them override.
 
 ---
 
@@ -368,17 +443,21 @@ asks for the full system.
 > (Skipped brainstorming entirely)
 
 **RIGHT:**
-> "Activating brainstorming — let me explore this before writing code."
+> "Activating brainstorming — I'll grill decisions one at a time before
+> we lock a design."
 > 1. Reads existing settings page, theme system, CSS architecture
-> 2. "Is this a system-preference-aware toggle (follows OS setting) or a
->    manual override that persists across sessions?"
+> 2. "Is this a system-preference-aware toggle (follows OS) or a manual
+>    override that persists across sessions?
+>    **Recommended: manual override that persists** — users who hunt for
+>    a toggle usually want control, not OS mirroring alone.
+>    A) System-preference-aware  B) Manual override (recommended)  C) Both"
 > 3. [User answers]
 > 4. "Where should the preference be stored?
->    A) localStorage (simplest, no backend)
->    B) User profile API (syncs across devices)
->    C) CSS custom properties only (no persistence)"
-> 5. [Presents 2 approaches with trade-offs, gets approval]
-> 6. Writes 5-sentence design doc → invokes superpowers:writing-plans
+>    **Recommended: A** for an MVP settings page with no cross-device need.
+>    A) localStorage (recommended)  B) User profile API  C) CSS only"
+> 5. Shared understanding check → user confirms
+> 6. [Presents 2 approaches with trade-offs, gets approval]
+> 7. Writes 5-sentence design doc → invokes superpowers:writing-plans
 
 ### Example 2: Ambiguous Request
 
@@ -390,21 +469,27 @@ asks for the full system.
 > (Jumped to solutions without understanding the problem)
 
 **RIGHT:**
-> "Activating brainstorming — 'faster' can mean many things."
-> 1. "Which part feels slow? Initial load, navigation between pages,
->    or specific actions like search?"
+> "Activating brainstorming — 'faster' can mean many things. Grilling
+> the decision tree before approaches."
+> 1. "Which part feels slow? **Recommended: measure before guessing —
+>    start by naming the user-visible symptom.**
+>    A) Initial load  B) Navigation  C) Specific actions like search"
 > 2. [User: "Search is unbearable"]
-> 3. Profiles search endpoint, reads query code
-> 4. "Search takes 3.2s. The bottleneck is a full table scan on the
->    `products` table. Two approaches: ..."
+> 3. Profiles search endpoint, reads query code (fact lookup — does not
+>    ask the user what the bottleneck is)
+> 4. Shared understanding check on symptom + measured bottleneck
 > 5. Invokes tech-feasibility to evaluate indexing vs. search engine
+> 6. Proposes approaches with trade-offs
 
 ## Constraints
 
 - **One question per message** — never batch questions
+- **Recommended answer on every decision question** — never ask neutrally
+- **Look up facts; ask only decisions** — do not interview the filesystem
 - **Never skip for small tasks** — scale the design down, don't skip it
 - **Never present a single approach** — minimum 2 options
-- **Never proceed without explicit approval**
+- **Never proceed without explicit approval** — including the Phase 3
+  shared-understanding gate before approaches
 - **YAGNI ruthlessly** — remove speculative features from every design
 - **Design docs are short** — shorter than the implementation they describe
 
@@ -424,7 +509,18 @@ asks for the full system.
 ### User Provides Contradictory Requirements
 - Surface the contradiction explicitly: "You mentioned X, but also Y —
   these seem to conflict. Which takes priority?"
+  Include your recommended priority in the same message.
 - Do not silently resolve contradictions by picking one side
+
+### User Asks to Stop Grilling Mid-Phase
+- If they say "enough questions" / "just propose approaches", give a
+  one-line shared-understanding summary of what is locked vs still open
+- Ask once: proceed with open branches as explicit assumptions, or keep
+  grilling the open ones?
+- Do not silently treat unconfirmed branches as decided
+- If they choose to proceed with open branches as assumptions, still run
+  the Phase 4 shared-understanding gate (list locked decisions + open
+  assumptions) and wait for confirmation before proposing approaches
 
 ### Sub-Skill Invocation Failures
 - If `tech-feasibility` or `critical-research` cannot reach a
@@ -492,3 +588,7 @@ If the user agreed to the companion, read the detailed guide before proceeding:
 - **deep-reading** — build domain understanding from existing documents
   before brainstorming a solution in that domain
 - **superpowers:test-driven-development** — downstream of superpowers:writing-plans
+
+Grilling is built into Phase 3 of this skill — do **not** look for or
+create a separate `grilling` skill. Triggers like "grill" / "烤" /
+"stress-test" route here.
