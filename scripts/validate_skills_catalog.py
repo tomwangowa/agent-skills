@@ -33,6 +33,10 @@ README_PATHS = (Path("README.md"), Path("README.zh.md"))
 SYNC_IGNORE_PATH = Path(".skill-sync-ignore")
 GENERATED_PATH = Path("SKILLS_CATALOG.md")
 ROUTER_ID = re.compile(r"^\s*-\s+id:\s+([^\s#]+)")
+WORKFLOWS_HEADER = re.compile(r"^workflows:\s*(?P<value>.*)$")
+WORKFLOW_ITEM = re.compile(r"^(?P<indent>\s*)-\s+(?P<key>[^\s#:]+):")
+WORKFLOW_STEP_ID = re.compile(r"^\s*-\s+([^\s#:]+(?::[^\s#:]+)?)\s*(?:#.*)?$")
+WORKFLOW_STEPS = re.compile(r"^(?P<indent>\s*)steps:\s*(?P<value>.*)$")
 CORE_START = "<!-- core-skills:start -->"
 CORE_END = "<!-- core-skills:end -->"
 
@@ -150,25 +154,100 @@ def validate_lifecycle_surfaces(entries: Iterable[Mapping[str, Any]]) -> None:
             )
 
 
-def read_router_ids(root: Path) -> list[str]:
+def read_router_references(root: Path) -> tuple[list[str], list[str]]:
+    """Return local category IDs and workflow step IDs from the router registry."""
     path = root / ROUTER_PATH
     try:
         content = path.read_text(encoding="utf-8")
     except FileNotFoundError:
         fail(f"{ROUTER_PATH}: missing file")
 
-    ids: list[str] = []
+    router_ids: list[str] = []
+    workflow_step_ids: list[str] = []
+    in_workflows = False
+    workflow_item_indent: int | None = None
+    workflow_field_indent: int | None = None
+    workflow_steps_indent: int | None = None
+    workflow_step_item_indent: int | None = None
     for line in content.splitlines():
-        if re.match(r"^workflows:\s*(?:#.*)?$", line):
-            break
-        match = ROUTER_ID.match(line)
-        if match and ":" not in match.group(1):
-            ids.append(match.group(1))
-    return ids
+        workflows_match = WORKFLOWS_HEADER.match(line)
+        if workflows_match:
+            value = workflows_match.group("value").strip()
+            if value and not value.startswith("#"):
+                fail(f"{ROUTER_PATH}: workflows must use a block sequence")
+            in_workflows = True
+            workflow_item_indent = None
+            workflow_field_indent = None
+            workflow_steps_indent = None
+            workflow_step_item_indent = None
+            continue
+        if not in_workflows:
+            match = ROUTER_ID.match(line)
+            if match and ":" not in match.group(1):
+                router_ids.append(match.group(1))
+            continue
+        indentation = len(line) - len(line.lstrip())
+        stripped = line.strip()
+        if stripped and not stripped.startswith("#") and indentation == 0:
+            in_workflows = False
+            workflow_item_indent = None
+            workflow_field_indent = None
+            workflow_steps_indent = None
+            workflow_step_item_indent = None
+            continue
+        if workflow_steps_indent is not None:
+            if stripped and indentation <= workflow_steps_indent:
+                workflow_steps_indent = None
+                workflow_step_item_indent = None
+            elif not stripped or stripped.startswith("#"):
+                continue
+            else:
+                if not stripped.startswith("- "):
+                    fail(f"{ROUTER_PATH}: workflow steps must contain only scalar skill IDs")
+                if workflow_step_item_indent is None:
+                    workflow_step_item_indent = indentation
+                elif indentation != workflow_step_item_indent:
+                    fail(f"{ROUTER_PATH}: workflow steps must contain only scalar skill IDs")
+                match = WORKFLOW_STEP_ID.match(line)
+                if not match:
+                    fail(f"{ROUTER_PATH}: workflow steps must contain only scalar skill IDs")
+                workflow_step_ids.append(match.group(1))
+                continue
+        workflow_item_match = WORKFLOW_ITEM.match(line)
+        if workflow_item_match and (
+            workflow_item_indent is None or indentation == workflow_item_indent
+        ):
+            if workflow_item_match.group("key") != "id":
+                fail(f"{ROUTER_PATH}: workflow item must begin with - id")
+            workflow_item_indent = indentation
+            workflow_field_indent = None
+            continue
+        if (
+            stripped.startswith("- ")
+            and (workflow_item_indent is None or indentation == workflow_item_indent)
+        ):
+            fail(f"{ROUTER_PATH}: workflow item must begin with - id")
+        if workflow_item_indent is None or indentation <= workflow_item_indent:
+            continue
+        if workflow_field_indent is None:
+            workflow_field_indent = indentation
+        if indentation > workflow_field_indent and WORKFLOW_STEPS.match(line):
+            fail(f"{ROUTER_PATH}: workflow steps must be a direct workflow item field")
+        if indentation != workflow_field_indent:
+            continue
+        steps_match = WORKFLOW_STEPS.match(line)
+        if steps_match:
+            value = steps_match.group("value").strip()
+            if value and not value.startswith("#") and value != "[]":
+                fail(
+                    f"{ROUTER_PATH}: workflow steps must use one skill ID per indented line"
+                )
+            workflow_steps_indent = len(steps_match.group("indent"))
+    return router_ids, workflow_step_ids
 
 
 def validate_router(entries: Iterable[Mapping[str, Any]], root: Path) -> None:
-    router_ids = read_router_ids(root)
+    router_ids, workflow_step_ids = read_router_references(root)
     catalog_ids = {entry["id"] for entry in entries}
     # Namespaced IDs belong to external providers (for example, superpowers).
     # The catalog governs only this repository's top-level local skills.
@@ -177,6 +256,24 @@ def validate_router(entries: Iterable[Mapping[str, Any]], root: Path) -> None:
         fail(
             f"{ROUTER_PATH}: local ids absent from {CATALOG_PATH}: "
             f"{', '.join(unknown_ids)}"
+        )
+    unknown_workflow_ids = sorted(
+        {skill_id for skill_id in workflow_step_ids if ":" not in skill_id} - catalog_ids
+    )
+    if unknown_workflow_ids:
+        fail(
+            f"{ROUTER_PATH}: local workflow step ids absent from {CATALOG_PATH}: "
+            f"{', '.join(unknown_workflow_ids)}"
+        )
+    deprecated_workflow_ids = sorted(
+        entry["id"]
+        for entry in entries
+        if entry["lifecycle"] == "deprecated" and entry["id"] in workflow_step_ids
+    )
+    if deprecated_workflow_ids:
+        fail(
+            f"{ROUTER_PATH}: deprecated skill must not appear in workflow steps: "
+            f"{', '.join(deprecated_workflow_ids)}"
         )
     for entry in entries:
         skill_id = entry["id"]

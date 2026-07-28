@@ -137,7 +137,7 @@ Your response should include:
 
 **Expected behavior:**
 - Extract PR number (789) from URL
-- Run review script
+- Run the active runtime's native review workflow
 - Present findings organized by severity
 - Highlight any blocking issues immediately
 
@@ -357,16 +357,13 @@ gh pr list
 
 ### "Diff too large"
 
-**Solution:** The script automatically truncates large diffs. For comprehensive review:
-1. Review smaller chunks manually
-2. Focus on specific files
-3. Review commits individually
+**Solution:** Do not truncate the diff. State its size, then ask whether to review it file-by-file, focus on specific files, or review commits individually.
 
 ### Review quality issues
 
 **If the review is too generic:**
 - Ensure the PR has meaningful changes
-- Check if diff was truncated
+- Confirm the requested review scope; it must not be silently truncated
 - Provide additional context to the AI
 
 **If the review misses obvious issues:**

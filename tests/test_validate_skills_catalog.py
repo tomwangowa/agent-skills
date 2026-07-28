@@ -556,7 +556,7 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
 
         self.assert_validator_rejects("rogue")
 
-    def test_router_ignores_local_id_after_workflows_section(self) -> None:
+    def test_router_ignores_workflow_ids(self) -> None:
         self.generate_valid_catalog()
         router_path = self.root / "skill-router" / "skill-registry.yaml"
         router_path.write_text(
@@ -568,6 +568,162 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
         )
 
         self.assert_validator_succeeds("--check")
+
+    def test_router_ignores_non_step_workflow_lists(self) -> None:
+        self.generate_valid_catalog()
+        catalog = self.catalog()
+        skills = catalog["skills"]
+        assert isinstance(skills, list)
+        beta = next(entry for entry in skills if entry["id"] == "beta")
+        beta["lifecycle"] = "deprecated"
+        self.write_catalog(catalog)
+        router_path = self.root / "skill-router" / "skill-registry.yaml"
+        router_path.write_text(
+            router_path.read_text(encoding="utf-8").replace(
+                "steps: []",
+                "labels:\n      - beta\n    steps: []",
+            ),
+            encoding="utf-8",
+        )
+
+        self.assert_validator_succeeds("--write")
+        self.assert_validator_succeeds("--check")
+
+    def test_router_ignores_steps_outside_workflows(self) -> None:
+        self.generate_valid_catalog()
+        catalog = self.catalog()
+        skills = catalog["skills"]
+        assert isinstance(skills, list)
+        beta = next(entry for entry in skills if entry["id"] == "beta")
+        beta["lifecycle"] = "deprecated"
+        self.write_catalog(catalog)
+        router_path = self.root / "skill-router" / "skill-registry.yaml"
+        router_path.write_text(
+            router_path.read_text(encoding="utf-8")
+            + "metadata:\n  steps:\n    - beta\n",
+            encoding="utf-8",
+        )
+
+        self.assert_validator_succeeds("--write")
+        self.assert_validator_succeeds("--check")
+
+    def test_router_rejects_local_workflow_skill_without_catalog_entry(self) -> None:
+        self.generate_valid_catalog()
+        router_path = self.root / "skill-router" / "skill-registry.yaml"
+        router_path.write_text(
+            router_path.read_text(encoding="utf-8").replace(
+                "steps: []",
+                "steps:\n      - rogue",
+            ),
+            encoding="utf-8",
+        )
+
+        self.assert_validator_rejects("rogue", "workflow step")
+
+    def test_router_rejects_mapping_workflow_step(self) -> None:
+        self.generate_valid_catalog()
+        router_path = self.root / "skill-router" / "skill-registry.yaml"
+        router_path.write_text(
+            router_path.read_text(encoding="utf-8").replace(
+                "steps: []",
+                "steps:\n      - id: beta\n        reason: legacy",
+            ),
+            encoding="utf-8",
+        )
+
+        self.assert_validator_rejects("workflow steps", "scalar skill IDs")
+
+    def test_router_rejects_inline_workflow_steps(self) -> None:
+        self.generate_valid_catalog()
+        router_path = self.root / "skill-router" / "skill-registry.yaml"
+        router_path.write_text(
+            router_path.read_text(encoding="utf-8").replace(
+                "steps: []",
+                "steps: [beta]",
+            ),
+            encoding="utf-8",
+        )
+
+        self.assert_validator_rejects("workflow steps", "one skill ID")
+
+    def test_router_rejects_nested_workflow_steps(self) -> None:
+        self.generate_valid_catalog()
+        router_path = self.root / "skill-router" / "skill-registry.yaml"
+        router_path.write_text(
+            router_path.read_text(encoding="utf-8").replace(
+                "steps: []",
+                "metadata:\n      steps:\n        - beta",
+            ),
+            encoding="utf-8",
+        )
+
+        self.assert_validator_rejects("workflow steps", "direct workflow item field")
+
+    def test_router_rejects_workflow_item_without_leading_id(self) -> None:
+        self.generate_valid_catalog()
+        router_path = self.root / "skill-router" / "skill-registry.yaml"
+        router_path.write_text(
+            router_path.read_text(encoding="utf-8").replace(
+                "  - id: fixture-workflow\n    steps: []",
+                "  - label: Fixture\n    steps:\n      - beta\n    id: fixture-workflow",
+            ),
+            encoding="utf-8",
+        )
+
+        self.assert_validator_rejects("workflow item", "begin with - id")
+
+    def test_router_rejects_bare_workflow_item_after_valid_item(self) -> None:
+        self.generate_valid_catalog()
+        router_path = self.root / "skill-router" / "skill-registry.yaml"
+        router_path.write_text(
+            router_path.read_text(encoding="utf-8").replace(
+                "steps: []",
+                "steps: []\n  - rogue",
+            ),
+            encoding="utf-8",
+        )
+
+        self.assert_validator_rejects("workflow item", "begin with - id")
+
+    def test_router_rejects_inline_workflows(self) -> None:
+        self.generate_valid_catalog()
+        catalog = self.catalog()
+        skills = catalog["skills"]
+        assert isinstance(skills, list)
+        beta = next(entry for entry in skills if entry["id"] == "beta")
+        beta["lifecycle"] = "deprecated"
+        self.write_catalog(catalog)
+        router_path = self.root / "skill-router" / "skill-registry.yaml"
+        router_path.write_text(
+            router_path.read_text(encoding="utf-8").replace(
+                "workflows:\n  - id: fixture-workflow\n    steps: []",
+                "workflows: [{id: fixture-workflow, steps: [beta]}]",
+            ),
+            encoding="utf-8",
+        )
+
+        self.assert_validator_rejects("workflows", "block sequence")
+
+    def test_validation_rejects_deprecated_skill_in_workflow(self) -> None:
+        self.generate_valid_catalog()
+        router_path = self.root / "skill-router" / "skill-registry.yaml"
+        router_path.write_text(
+            router_path.read_text(encoding="utf-8").replace(
+                "steps: []",
+                "steps:\n      - beta",
+            ),
+            encoding="utf-8",
+        )
+        self.assert_validator_succeeds("--check")
+
+        catalog = self.catalog()
+        skills = catalog["skills"]
+        assert isinstance(skills, list)
+        beta = next(entry for entry in skills if entry["id"] == "beta")
+        beta["lifecycle"] = "deprecated"
+        self.write_catalog(catalog)
+
+        self.assert_validator_rejects("deprecated skill", "beta", "workflow steps")
 
     def test_renderer_sorts_rows_by_category_then_id(self) -> None:
         self.write_skill("gamma")
