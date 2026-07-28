@@ -20,6 +20,12 @@ These principles don't require you to agree with my approach — they're indepen
 
 The complete, generated inventory and its lifecycle/surface policy live in [SKILLS_CATALOG.md](./SKILLS_CATALOG.md). Use `skill-router` when you want a recommendation rather than a list.
 
+### Skills Maintenance
+
+`skills-catalog.json` is the governance source of truth for tracked top-level skills; `SKILLS_CATALOG.md` is generated from it. After changing the catalog, run `python3 scripts/validate_skills_catalog.py --write`; before committing, run `python3 scripts/validate_skills_catalog.py --check` to verify the catalog, router, both READMEs, sync excludes, and generated index agree.
+
+For a sync preview that makes no filesystem changes, run `bash skill-sync/scripts/sync.sh --dry-run` (add `--no-delete` to preview additive mode). The regular sync command is interactive and may create configured target directories.
+
 ### Core Skills
 
 <!-- core-skills:start -->

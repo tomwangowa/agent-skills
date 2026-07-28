@@ -20,6 +20,12 @@
 
 完整、生成式的 inventory，以及 lifecycle／surface 政策，都在 [SKILLS_CATALOG.md](./SKILLS_CATALOG.md)。若想依需求取得推薦，請用 `skill-router`。
 
+### Skills 維護
+
+`skills-catalog.json` 是已追蹤 top-level skills 的治理來源，`SKILLS_CATALOG.md` 由它產生。改 catalog 後，執行 `python3 scripts/validate_skills_catalog.py --write`；commit 前執行 `python3 scripts/validate_skills_catalog.py --check`，確認 catalog、router、兩份 README、sync excludes 與生成的 index 一致。
+
+若只想預覽同步且不改任何檔案系統內容，執行 `bash skill-sync/scripts/sync.sh --dry-run`；要預覽 additive mode，再加 `--no-delete`。一般 sync 仍是互動式操作，也可能建立設定的 target directories。
+
 ### Core Skills
 
 <!-- core-skills:start -->
