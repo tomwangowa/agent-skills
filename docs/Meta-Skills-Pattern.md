@@ -2,7 +2,7 @@
 
 > **Document Status (2026-04):** This is a design-thinking document that explores the *pattern* of routing across multiple similar skills. It uses the code-review family as the running example.
 >
-> Specific defaults referenced in the examples below were updated in 2026-04: `code-review-claude` is now the **default reviewer** and the **pre-commit auto-reviewer** (not Gemini, as older examples here may say). Routing reason: the 2026-04 n=6 benchmark showed Claude broader coverage (2.3×–5.0×) + 0/6 verified hallucinations vs. Gemini's 3/6 P0/P1 hallucinations.
+> **Policy update (2026-07):** `code-review-gemini` is retired. Generic review now selects `code-review-claude` in Claude Code and `code-review-codex` in Codex. Any older Gemini routing examples below are historical only and must not be invoked. Future external reviewers require an explicit model choice and diff-scope approval.
 >
 > The *pattern* described below (meta-skill router, fallback chains, context-aware dispatch) is still valid — just read the concrete routing table in the current `global/CLAUDE.md` and `skill-router/skill-registry.yaml` as the authoritative source, not the examples baked into this doc.
 

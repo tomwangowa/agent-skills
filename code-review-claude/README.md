@@ -1,8 +1,8 @@
-# Native Code Review with Claude
+# Claude Code Native Review
 
 <div align="center">
 
-**⚡ Default code reviewer — native Claude, adversarial pass, 0 hallucinations in benchmark**
+**⚡ Claude Code native reviewer — adversarial pass and syntax verification**
 
 [![Production Ready](https://img.shields.io/badge/status-default%20reviewer-brightgreen)]()
 [![Benchmark](https://img.shields.io/badge/2026--04%20benchmark-n%3D6-blue)]()
@@ -15,20 +15,17 @@
 
 ## 🎯 Purpose
 
-Default code reviewer for the repo (as of 2026-04). Runs natively inside the Claude Code session — no API keys, no external calls — and produces a structured findings report with an adversarial quick check and an assumptions list. Also emits an optional ready-to-apply refactored patch when the diff is small enough.
+Native code reviewer for Claude Code. Runs inside the Claude Code session — no API keys or external calls — and produces a structured findings report with an adversarial quick check and an assumptions list. In Codex, use `code-review-codex` instead.
 
 ### When to Use This Skill
 
-✅ **Default use — any code review request:**
+✅ **Use in Claude Code:**
 - Daily development review of staged / unstaged changes
-- Pre-commit auto-review (CLAUDE.md rule delegates here by default)
+- Pre-commit auto-review in Claude Code
 - Specific file, recent commit, or pasted snippet
 - Self-review after writing code (Step 0 auto-detects self-review bias)
 
-➕ **Chain `code-review-gemini` afterwards when you want:**
-- A fully worked refactored patch for a single file (Gemini's typical output)
-- An external second opinion on a specific claude-review finding
-- Depth via a different model on security- or compliance-critical code
+For security- or compliance-critical code, obtain qualified specialist review. `code-review-gemini` is deprecated and must not be used.
 
 ---
 
@@ -50,13 +47,7 @@ Trigger phrases route to this skill by default:
 "native review"
 ```
 
-For explicit routing to Gemini, include that keyword:
-
-```
-"gemini review"
-"detailed review with gemini"
-"refactored patch"
-```
+In Codex, generic review routes to `code-review-codex`. A future external reviewer requires an explicit model choice and approval of the exact diff or data scope.
 
 ### Example
 
@@ -144,11 +135,11 @@ function processData(items) {
 
 ---
 
-## 🎭 Comparison with code-review-gemini
+## 🎭 Historical benchmark context
 
-| Feature | code-review-claude (this skill) | code-review-gemini |
+| Feature | code-review-claude (this skill) | code-review-gemini (retired) |
 |---|---|---|
-| **Role** | **Default reviewer** + pre-commit auto-reviewer | Optional depth / refactored-patch pass |
+| **Role** | **Claude Code native reviewer** | Historical external reviewer |
 | **Speed** | < 30 s (native, no API) | 1–2 min (external Gemini CLI) |
 | **Dependencies** | None | Gemini CLI + `GEMINI_API_KEY` |
 | **Finding coverage (2026-04 benchmark)** | **2.3×–5.0× Gemini's count** across 6 language demos | Baseline |
@@ -158,7 +149,7 @@ function processData(items) {
 | **Assumptions list** | ✅ Step 3.6 | ❌ |
 | **Language-specific checklists** | ✅ `references/language-checklists.md` | ❌ |
 | **Refactored patch** | ✅ Optional Step 4.5, size-gated | ✅ Always emitted |
-| **Trigger words** | "review", "code review", "quick", "native" | "gemini review", "thorough review", "refactored patch" |
+| **Status** | Active in Claude Code | Deprecated; do not invoke |
 
 ### Benchmark context (2026-04, n=6)
 
@@ -168,11 +159,10 @@ Six HTTP retry clients in Java / Python / JS / TS / PHP / Shell were reviewed by
 
 | Situation | Use |
 |---|---|
-| Any review (the default) | `code-review-claude` |
-| Pre-commit auto-review (CLAUDE.md rule) | `code-review-claude` |
-| Just want a refactored patch on a small file | `code-review-gemini` (or chain after claude) |
-| Want an external second opinion on a specific claude finding | `code-review-gemini` (chain) |
-| Compliance / security-critical last-mile check | `code-review-claude` + `code-review-gemini` sequential |
+| Generic review in Claude Code | `code-review-claude` |
+| Generic review in Codex | `code-review-codex` |
+| Pre-commit auto-review | Native reviewer of the active runtime |
+| Compliance / security-critical last-mile check | Qualified human or specialist review |
 
 ---
 
@@ -215,7 +205,7 @@ Unvalidated contracts the code relies on — useful even when no concrete exploi
 - ✅ Sanitizes output to prevent injection
 
 ### Limitations
-⚠️ Provides **suggestions**, not guarantees. Benchmark n=6 is encouraging but not a universal proof. Security-critical code still warrants human review and possibly a chained `code-review-gemini` pass.
+⚠️ Provides **suggestions**, not guarantees. Benchmark n=6 is encouraging but not a universal proof. Security-critical code still warrants qualified human review.
 
 ---
 
@@ -235,11 +225,7 @@ git add <files>          # stage first
 
 ### Want a refactored patch on a single file
 
-```
-> gemini review src/auth.ts, give me a refactored patch
-```
-
-`code-review-claude` emits a Refactored Patch only when the diff is ≤ ~200 lines and ≤ 3 files. For anything larger, chain Gemini explicitly.
+`code-review-claude` emits a Refactored Patch only when the diff is ≤ ~200 lines and ≤ 3 files. For larger changes, split the review scope or obtain qualified specialist review.
 
 ### Large changeset warning
 
@@ -247,7 +233,7 @@ git add <files>          # stage first
 ⚠️ Large changeset detected (>1000 lines)
 ```
 
-**Solution:** split the commits, or review files individually. For a hot-spot file that needs a full rewrite, chain `code-review-gemini` on that single file.
+**Solution:** split the commits, review files individually, or obtain qualified specialist review for a hot-spot file.
 
 ---
 
@@ -257,7 +243,7 @@ git add <files>          # stage first
 |---|---|---|---|---|
 | Small | 1–3 | < 200 | ✅ Perfect | Use as-is; Refactored Patch emitted |
 | Medium | 4–10 | 200–500 | ✅ Good | Findings reliable; patch switches to per-file diff or skipped |
-| Large | 10+ | 500–1000 | ⚠️ OK | Consider splitting; chain gemini on one hot-spot file for a full rewrite |
+| Large | 10+ | 500–1000 | ⚠️ OK | Consider splitting or qualified specialist review |
 | Very Large | 10+ | > 1000 | ❌ Too big | Split into smaller commits |
 
 ---
@@ -327,8 +313,8 @@ Step 3.3 verified this regex parses correctly (`re.test('a@b.c') === true`), so 
 
 ## 🔗 Related Skills
 
-- **code-review-gemini** — Optional depth / refactored-patch pass after claude review
-- **pr-review-assistant** — PR-level review (also defaults to claude under the hood; keyword-triggered fallback to gemini via its `scripts/review_pr.sh`)
+- **code-review-codex** — Native review path for Codex
+- **pr-review-assistant** — PR-level review using the active runtime's native reviewer
 - **code-story-teller** — Understand code evolution history
 
 ---

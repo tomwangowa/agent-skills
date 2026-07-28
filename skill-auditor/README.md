@@ -310,7 +310,7 @@ Claude: [Compares with previous audit]
 
 ## Related Skills
 
-- **code-review-gemini**: Reviews code changes
+- **code-review-claude** / **code-review-codex**: Review code changes in their native runtimes
 
 **skill-auditor** reviews the skills themselves, ensuring meta-quality.
 

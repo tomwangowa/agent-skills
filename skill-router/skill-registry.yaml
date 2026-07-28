@@ -127,8 +127,9 @@ categories:
   code-review:
     label: 程式碼審查
     skills:
-      - id: code-review-claude
-        # Default reviewer (2026-04): broader coverage, adversarial pass, zero hallucination
+      - id: code-review-codex
+        # The native reviewer for Codex. skill-router selects it for generic
+        # review only when the active runtime is Codex.
         triggers:
           - "code review"
           - "review 一下"
@@ -141,19 +142,13 @@ categories:
           - "掃一眼"
           - "glance review"
 
-      - id: code-review-gemini
-        # Optional depth / second-opinion reviewer; produces a fully worked refactored patch.
-        # As of 2026-04, pre-commit auto-review defaults to code-review-claude (broader coverage + 0 hallucination).
+      - id: code-review-claude
+        # The native reviewer for Claude Code. skill-router selects it for
+        # generic review only when the active runtime is Claude Code.
         triggers:
-          - "deep review"
-          - "thorough review"
-          - "detailed review"
-          - "gemini review"
-          - "完整 review"
-          - "仔細看看"
-          - "深度 review"
-          - "最終驗證"
-          - "refactored patch"
+          - "code-review-claude"
+          - "claude review"
+          - "review with claude"
 
       - id: pr-review-assistant
         triggers:
@@ -166,22 +161,9 @@ categories:
           - "check PR"
           - "PR 審查"
 
-      - id: review-convergence-gate
-        triggers:
-          - "review 收斂"
-          - "停止 review"
-          - "review loop"
-          - "over-review"
-          - "reviewer drift"
-          - "可以開始實作嗎"
-          - "convergence review"
-          - "final review gate"
-
       # Note: superpowers:requesting-code-review is intentionally NOT registered.
-      # It dispatches a `superpowers:code-reviewer` subagent, which conflicts
-      # with the CLAUDE.md rule "MUST 先走 code-review-claude" for any review
-      # intent. Users who specifically want the superpowers flow can invoke
-      # by full name.
+      # It bypasses skill-router's runtime-native reviewer selection. Users who
+      # specifically want that process can invoke it by full name.
 
       - id: superpowers:receiving-code-review
         # Process skill: how to technically engage with review feedback
@@ -232,25 +214,6 @@ categories:
           - "開發前檢查"
           - "what questions should I ask PM"
           - "spec 有什麼沒寫"
-
-      - id: claude-workflow-designer
-        triggers:
-          - "Claude workflow"
-          - "設計工作流"
-          - "hook 還是 skill"
-          - "skill 還是 MCP"
-          - "要不要做成 plugin"
-          - "automation design"
-          - "/sos"
-
-      - id: ui-design-analyzer
-        triggers:
-          - "analyze this UI"
-          - "review this screenshot"
-          - "UI/UX 分析"
-          - "介面設計"
-          - "設計好不好"
-          - "accessibility review"
 
       # Note: superpowers:test-driven-development is intentionally NOT registered.
       # Its Iron Law ("no production code without failing test first") is too rigid
@@ -307,24 +270,6 @@ categories:
           - "double check result"
           - "確認結果"
           - "before commit"
-
-      - id: git-status-tui
-        triggers:
-          - "git status"
-          - "git 狀態"
-          - "gst"
-          - "掃一下 git"
-          - "repo 狀態"
-          - "哪個 repo 還沒乾淨"
-
-      - id: handoff
-        triggers:
-          - "/handoff"
-          - "收工"
-          - "交接"
-          - "留交接"
-          - "hand off"
-          - "下班"
 
       - id: superpowers:using-git-worktrees
         triggers:
@@ -525,22 +470,6 @@ categories:
           - "整理信件"
           - "newsletter 摘要"
 
-      - id: pptx-to-md
-        triggers:
-          - "convert pptx to markdown"
-          - "extract text from slides"
-          - "turn this presentation into md"
-          - "簡報轉 markdown"
-          - "markitdown"
-
-      - id: md-translate
-        triggers:
-          - "translate markdown"
-          - "翻譯 markdown"
-          - "markdown 翻譯"
-          - "轉成英文"
-          - "轉成繁中"
-
   # ── 9. 內容策展 ────────────────────────────────────────────
   content:
     label: 內容策展
@@ -568,16 +497,6 @@ categories:
           - "AI 分析"
           - "sharing session"
           - "ai weekly"
-
-      - id: deai-voice-rewrite
-        triggers:
-          - "去 AI 味"
-          - "去AI味"
-          - "白話化"
-          - "改成我的口吻"
-          - "潤成我的語氣"
-          - "de-AI this"
-          - "rewrite in my voice"
 
   # ── 10. 工具與維護 ─────────────────────────────────────────
   meta:
@@ -654,7 +573,7 @@ workflows:
       - superpowers:writing-plans
       - superpowers:executing-plans
       - completion-gate
-      - code-review-claude  # default reviewer (2026-04); add code-review-gemini afterwards for depth / patch
+      # Review is selected by skill-router from the active runtime.
 
   - id: presentation
     label: 簡報製作
@@ -668,7 +587,7 @@ workflows:
     when: 代碼寫完，準備 review 和合併
     steps:
       - completion-gate
-      - code-review-claude  # default reviewer (2026-04); chain code-review-gemini afterwards only for depth / refactored patch
+      # Review is selected by skill-router from the active runtime.
       - superpowers:finishing-a-development-branch
 
   - id: role-pipeline

@@ -34,8 +34,9 @@ Followed by markdown content containing:
 
 ### Code Review
 
-- **code-review-claude** — Default reviewer: native code review with adversarial pass, assumptions list, and optional refactored patch. Broader coverage, zero hallucination (2026-04 benchmark: 2.3×–5.0× gemini's findings across 6 demos)
-- **code-review-gemini** — Optional depth / final-validation reviewer (Gemini CLI). Useful when a fully worked refactored patch is needed, or as a second-opinion pass after code-review-claude
+- **code-review-claude** — Native reviewer for Claude Code: adversarial pass, assumptions list, and optional refactored patch.
+- **code-review-codex** — Native reviewer for Codex. Generic review must select the active runtime's reviewer.
+- **code-review-gemini** — Deprecated migration reference. It must not be routed or invoked.
 
 ### Multi-Agent Roles
 

@@ -171,13 +171,12 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 
 | 情境 | 使用技能 | 範例 |
 |------|----------|------|
-| 任何 code review（預設） | `code-review-claude` | 「review 一下 src/auth/ 的改動」 |
-| 深度 review / 要 refactored patch / pre-commit 驗證 | `code-review-gemini` | 「gemini review 這個模組，給我 refactored patch」 |
+| 一般 code review | 依 runtime：Claude Code 用 `code-review-claude`，Codex 用 `code-review-codex` | 「review 一下 src/auth/ 的改動」 |
 | 要 review 一個 PR | `pr-review-assistant` | 「Review PR #42」 |
 
 > **Review 技能選用指引（2026-04 起）：**
-> - **日常開發中（預設）：** 直接用 `/code-review-claude` — 廣度 + adversarial + assumptions + syntax 驗證，0 hallucination（benchmark n=6）
-> - **想要外部第二意見 / 完整可複製的 refactored patch：** 追加 `/code-review-gemini`（可在 claude review 後串接）
+> - **日常開發中：** 依目前 runtime 用原生 reviewer。
+> - **Gemini review：** `code-review-gemini` 已退役。未來外部 reviewer 必須明確選擇模型並確認 diff 範圍。
 > - **重大功能要 merge 前：** 用 `/superpowers:requesting-code-review` 做雙層審查（自動調度 subagent，合併結果）
 > - **收到別人 review 意見時：** `/superpowers:receiving-code-review` 幫你避免盲目同意，要求技術驗證後再改
 

@@ -25,7 +25,7 @@ This is not a code review. Code reviews ask "is this code good?" This skill asks
 
 ## When NOT to Use
 
-- General code quality review (use `code-review-claude` as default, `code-review-gemini` for depth / refactored patch)
+- General code quality review (use the active runtime's native reviewer: `code-review-claude` in Claude Code or `code-review-codex` in Codex)
 - Research tasks with no codebase to audit (use `critical-research`)
 - Security vulnerability scanning (use dedicated security tools)
 - Performance auditing (use profilers and benchmarks)
@@ -265,8 +265,8 @@ Step 8 → Report with 89% accuracy score
 ## Related Skills
 
 - **critical-research** — Uses the same falsification-first methodology for web research. Verdict system aligned.
-- **code-review-gemini** — Complements audits with code quality review (includes adversarial pass).
-- **code-review-claude** — Quick code quality checks (includes adversarial quick check).
+- **code-review-claude** — Native Claude Code review with adversarial checks.
+- **code-review-codex** — Native Codex review with adversarial checks.
 - **completion-gate** — Applies similar rigor to completion claims (includes adversarial self-verification).
 - **assumption-extractor** — Complementary: codebase-audit verifies doc claims against code; assumption-extractor surfaces implicit assumptions in design docs that may not match implementation.
 - **research-synthesis** — Downstream: combines codebase-audit findings with other research outputs into decision documents.

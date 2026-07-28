@@ -339,6 +339,31 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
                 self.assert_validator_rejects(invalid_value)
                 self.write_catalog(baseline)
 
+    def test_validation_allows_deprecated_lifecycle(self) -> None:
+        self.generate_valid_catalog()
+        catalog = self.catalog()
+        skills = catalog["skills"]
+        assert isinstance(skills, list)
+        beta = next(entry for entry in skills if entry["id"] == "beta")
+        beta["lifecycle"] = "deprecated"
+        self.write_catalog(catalog)
+        self.run_validator("--write")
+
+        result = self.run_check_read_only()
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_validation_rejects_deprecated_skill_on_promoted_surfaces(self) -> None:
+        self.generate_valid_catalog()
+        catalog = self.catalog()
+        skills = catalog["skills"]
+        assert isinstance(skills, list)
+        alpha = next(entry for entry in skills if entry["id"] == "alpha")
+        alpha["lifecycle"] = "deprecated"
+        self.write_catalog(catalog)
+
+        self.assert_validator_rejects("deprecated skill alpha")
+
     def test_validation_rejects_routable_skill_missing_from_router_categories(self) -> None:
         self.generate_valid_catalog()
         self.write_router(set())

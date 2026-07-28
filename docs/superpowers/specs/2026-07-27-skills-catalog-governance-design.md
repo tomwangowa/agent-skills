@@ -11,7 +11,7 @@ The repository will gain one machine-readable catalog, deterministic validation,
 ## Non-goals
 
 - Do not move skills into bucket directories.
-- Do not change `disable-model-invocation`, `agents/openai.yaml`, or any runtime routing behaviour in this change.
+- Do not change `disable-model-invocation` or `agents/openai.yaml`. The only runtime-routing change is selecting the runtime-native reviewer for generic review and retiring Gemini from automatic routing.
 - Do not run a real `skill-sync` write or modify target agent directories.
 - Do not include untracked `ONBOARDING.md` or `team-onboarding/` in the inventory.
 - Do not convert this repository into a Claude or Codex plugin package.
@@ -45,7 +45,7 @@ Add a root-level `skills-catalog.json` with `schema_version: 1` and one entry fo
 |---|---|---|
 | `id` | a tracked top-level skill directory name | Stable skill identity and path anchor. |
 | `category` | `quality-gates`, `research-critical-thinking`, `multi-agent-roles`, `design-planning`, `content-generation`, `productivity-tracking`, `tools-meta` | Human-facing organisation reused by the generated index. |
-| `lifecycle` | `promoted`, `experimental`, `personal` | Maturity and promotion policy, independent of discovery or sync. |
+| `lifecycle` | `promoted`, `experimental`, `personal`, `deprecated` | Maturity and promotion policy, independent of discovery or sync. |
 | `invocation_intent` | `model`, `user` | Desired future invocation policy. Informational in this change. |
 | `surfaces.routable` | boolean | Whether the local skill must have exactly one entry in `skill-router/skill-registry.yaml`. |
 | `surfaces.listed_in_readme` | boolean | Whether the skill appears in the concise Core Skills section of both root READMEs. |
@@ -102,6 +102,7 @@ Initial lifecycle definitions:
 - `promoted`: maintained and intentionally discoverable; it has a defined README and/or router surface.
 - `experimental`: usable local work that is not yet promoted as a stable default.
 - `personal`: Tom-specific workflow or context; it may still be routed or synced when its surface flags say so.
+- `deprecated`: retained only for migration or reference; it must not be routable or listed in a README core set.
 
 ## Delivery plan
 
@@ -119,7 +120,7 @@ Initial lifecycle definitions:
 - Both root READMEs link to the generated catalog and contain no authoritative total-skill claim.
 - Router and `.skill-sync-ignore` relationships match the approved catalog flags.
 - `bash skill-sync/scripts/sync.sh --dry-run` does not create a missing configured target and does not prompt for confirmation.
-- No runtime invocation metadata, target sync state, or untracked source-worktree content changes.
+- No runtime invocation metadata, target sync state, or untracked source-worktree content changes. The only routing exception is runtime-native generic review selection; Gemini is absent from automatic routing.
 
 ## Risks and mitigations
 

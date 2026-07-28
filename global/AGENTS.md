@@ -8,7 +8,7 @@
 - Critically examine my inputs; point out problems and unreasonable requests immediately
 - Before implementing new features, **invoke brainstorming skill**. It explores requirements by asking questions one at a time and proposing 2-3 approaches with trade-offs. Only skip when the user provides a complete spec or explicitly requests it.
 - Always ask my approval before committing changes
-- **Pre-commit auto-review**: 當準備提議 commit 之前（例如「要我 commit 嗎？」「是否要提交？」「ready to commit」），MUST 先主動調用 `code-review-codex` 執行 code review，review 完成後再詢問使用者是否 commit。只有在該次變更已經跑過 code review 的情況下才跳過。理由：2026-04 benchmark 顯示 Codex 廣度更高且 0 hallucination；pre-commit 是 hallucination 成本最高的場景，所以用最可靠的 reviewer。若對該次變更想要更深度審查或完整 refactored patch，可於 `code-review-codex` 之後再追加 `code-review-gemini`；若需要 implementation-level 逐行修正或 Codex 視角驗證，可再追加 `/codex:review`。
+- **Pre-commit auto-review**: 當準備提議 commit 之前（例如「要我 commit 嗎？」「是否要提交？」「ready to commit」），MUST 先主動呼叫目前 runtime 的原生 reviewer：Claude Code 用 `code-review-claude`，Codex 用 `code-review-codex`。review 完成後再詢問使用者是否 commit。只有在該次變更已經跑過原生 review 的情況下才跳過。需要跨模型第二意見時，必須由使用者明確選擇可用的 reviewer；不自動送出程式碼到外部 endpoint。
 - Use Context7 for up-to-date technical documentation
 - Always check for applicable skills before responding to any task
 - **Cognitive friction principle**: For tasks requiring deep thinking (architecture, strategy, complex debugging), default to challenging the user's reasoning before producing output. Ask "have you considered X?" or surface a counter-perspective. AI should be a brain gym, not a brain wheelchair — amplify thinking, don't replace it. Skip this for routine/mechanical tasks (formatting, boilerplate, data transformation).
@@ -20,9 +20,9 @@
 ## Skill Routing
 - **Brainstorming**: 使用 `brainstorming`（user version），**不要**用 `superpowers:brainstorming`。user 版是 superset — 多出 scope escalation（可 route 到 role-orchestrator）、pre-mortem 失敗分析、REQUIRED 串 tech-feasibility / critical-research、rationalization prevention 表、worked examples。`superpowers:brainstorming` 無法單獨卸（屬 plugin bundle），因此 brainstorming trigger 絕不路由到它。
 - **Debug / error / bug**: MUST invoke `systematic-debugging` via Skill tool BEFORE any analysis. Triggers: user describes error, pastes logs, mentions server error, 500, exception, stack trace, or "不會動/壞了". Do NOT skip this even if the root cause seems obvious.
-- **Code review — MUST 先走 `code-review-codex`**: 任何 review 意圖（"review", "code review", "quick review", "看一下 code", "check my changes", "幫我看 code", "掃一眼"）一律**先**調用 `code-review-codex`，**不得**直接路由到其他 reviewer（包含 superpowers 相關、MCP 或任何第三方 review skill）。理由：2026-04 benchmark (n=6) 顯示廣度更高（2.3×–5.0× gemini 發現數）+ 內建 adversarial pass + 0 hallucination；pre-commit auto-review 也走這條規則。
-- **Code review — 深度追加**: `code-review-gemini` 只能在 `code-review-codex` 已經跑過之後**追加**（針對需要 refactored patch 或最終驗證的場景），**不能直接替代**。若使用者直接要求 "gemini review" / "deep review" / "refactored patch"，仍應先提醒「通常建議先跑 Codex review」再決定是否跳過。
-- **Code review — implementation-level 追加**: `codex:review` 可在 `code-review-codex`（必跑）之後追加，用於需要 implementation-level 逐行修正建議、Codex 視角驗證、或大重構的 ready-to-apply patch 的場景。若使用者直接要求 "codex review"，仍應先提醒「通常建議先跑 Codex review」再決定是否跳過。三道 review 順序固定：`code-review-codex` → `code-review-gemini` → `/codex:review`（若都需要）。
+- **Code review — runtime-native first pass**: 任何 generic review 意圖（"review", "code review", "quick review", "看一下 code", "check my changes", "幫我看 code", "掃一眼"）先走目前 runtime 的原生 reviewer：Claude Code → `code-review-claude`；Codex → `code-review-codex`。不得把另一個原生 skill 當成目前 runtime 的替代品。
+- **Code review — Gemini retired**: `code-review-gemini` 已退役；router、workflow 與 pre-commit 不得推薦或呼叫它。使用者明確要求 Gemini review 時，說明它已退役，改走目前 runtime 的原生 reviewer。
+- **Code review — external reviewers**: 未來 RDSec AI Endpoint reviewer 必須由使用者明確選擇模型，並確認可送出的 diff／資料範圍；不得自動送出。`codex:review` 只可在 Codex runtime、且 `code-review-codex` 完成後，作為明確要求的 implementation-level 追加檢視。
 - **Codebase/docs audit**: codebase-audit (NOT skill-auditor)
 - Before any completion claim, apply `completion-gate` (user skill), **not** `superpowers:verification-before-completion`. 兩者功能等價，user 版已登記於 registry；保持 user-skill-first 一致性。
 - Always run `skill-auditor` after creating or modifying a skill

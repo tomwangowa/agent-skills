@@ -8,7 +8,7 @@ These skills aren't about showcasing what AI can do — they solve a specific pr
 
 My approach is to embed engineering discipline into the AI workflow itself — using structured processes to counter cognitive blind spots shared by both AI and humans. Specifically:
 
-- **Structured code review**: Any model over-rationalizes when reviewing its own output, so review is a skill-triggered step — not a verbal assurance. As of 2026-04, `code-review-claude` is the default (broad coverage + adversarial + assumptions + syntax verification, 0/6 hallucinations in benchmark); `code-review-gemini` is optional when you want a fully applied refactored patch or an external second opinion.
+- **Structured code review**: Any model over-rationalizes when reviewing its own output, so review is a skill-triggered step — not a verbal assurance. Generic review uses the active runtime's native reviewer: `code-review-claude` in Claude Code and `code-review-codex` in Codex. `code-review-gemini` is deprecated and never runs automatically.
 - **Falsification-first**: Research skills require searching for counter-evidence before supporting evidence. This isn't pessimism — it's a systematic defense against confirmation bias.
 - **Evidence before assertion**: Before claiming any work is "done", you must run verification commands and confirm the output. Saying "tests pass" requires actually running the tests.
 
@@ -61,12 +61,13 @@ See [skills-query-server/README.md](./skills-query-server/README.md) for details
 
 **Any model tends to over-rationalize existing structure when reviewing code it generated.** So this repo makes review an explicit, skill-triggered step — with an adversarial checklist and an assumptions list — instead of relying on "let Claude look it over."
 
-### Two reviewers, two roles (effective 2026-04)
+### Native reviewers by runtime
 
-- **`code-review-claude` (default)** — Native Claude review in under 30 s. Includes Step 3.3 syntax-checker verification (eliminates whitespace/regex/character-class hallucinations), Step 3.4 language-specific checklists, Step 3.5 adversarial quick check (Assumption exposed / Mirror test / Suppression / What breaks this?), Step 3.6 Assumptions Identified list, and an optional Step 4.5 Refactored Patch. In a 2026-04 n=6 benchmark across Java / Python / JS / TS / PHP / Shell HTTP retry clients, this skill's finding coverage was 2.3×–5.0× that of Gemini, with 0/6 verified hallucinations.
-- **`code-review-gemini` (optional)** — External Gemini CLI review. Useful when you want a fully applied refactored patch or an external second opinion after the claude review. Not the default anymore, but retained as a patch generator and cross-check tool.
+- **Claude Code → `code-review-claude`** — Native Claude review with syntax verification, adversarial checks, and an assumptions list.
+- **Codex → `code-review-codex`** — Native Codex review with the same local, findings-first discipline.
+- **`code-review-gemini`** — Deprecated migration reference. Router, workflow, and pre-commit flows never invoke it.
 
-> **Pre-commit auto-review** also defaults to `code-review-claude`. Pre-commit is the highest-cost scenario for hallucinations, so it uses the benchmark-most-reliable reviewer.
+> **Pre-commit auto-review** uses the native reviewer of the active runtime. Future RDSec endpoint reviewers require an explicit model choice and approval of the diff or data scope before anything is sent externally.
 
 ---
 
@@ -134,7 +135,7 @@ Without this step, typing `/sos` in Claude Code returns "command not found" even
 
 ### Set Up Gemini CLI (optional)
 
-The default reviewer `code-review-claude` is native Claude and requires no Gemini setup. Gemini CLI is only used by `code-review-gemini` (optional depth reviewer / refactored-patch generator) and the keyword-triggered Gemini path of `pr-review-assistant` (opt-in). You can skip this section if you only run the default flow.
+Gemini CLI is not used by any code-review flow: `code-review-gemini` is retired. Some unrelated opt-in skills may still use it; skip this section unless one of those skills asks for it.
 
 ```bash
 # Install Gemini CLI
@@ -161,7 +162,7 @@ gemini "Hello, test"
 
 ## Usage Examples
 
-### Code Review (default: Claude)
+### Code Review (native to the active runtime)
 
 ```bash
 # 1. Stage your changes
@@ -172,19 +173,14 @@ git add src/app.js
 > check code quality before commit
 ```
 
-The default trigger invokes `code-review-claude`, which returns a structured report in under 30 seconds:
+The default trigger invokes `code-review-claude` in Claude Code or `code-review-codex` in Codex. Both return a structured report with:
 - 🔴 High / 🟡 Medium / 🟢 Low priority findings
 - Language-specific checklist hits (Python / Shell / JS / TS / Java / PHP)
 - **Adversarial quick check** — Assumption exposed / Mirror test / Suppression / What breaks this?
 - **Assumptions Identified** — unvalidated contracts the code relies on
 - **Refactored Patch** (optional, emitted when the diff is ≤ ~200 lines)
 
-Want an external second opinion or a fully worked refactored patch? Chain a Gemini review afterwards:
-
-```
-> gemini review these changes and give me a refactored patch
-> detailed review with gemini
-```
+`code-review-gemini` is retired. A future RDSec endpoint reviewer will require you to choose the model and approve the exact diff or data scope first.
 
 ### Activity Logger
 
@@ -222,10 +218,10 @@ Activity records can be used with `work-log-analyzer` for cross-project and cros
 
 | Skill | Dependencies |
 |-------|-------------|
-| code-review-gemini | [Gemini CLI](https://github.com/google-gemini/gemini-cli), Git |
+| code-review-gemini | Deprecated migration reference; not a supported review path |
 | code-review-claude | No external dependencies |
 | code-story-teller | Git |
-| pr-review-assistant | [GitHub CLI](https://cli.github.com/), Git; [Gemini CLI](https://github.com/google-gemini/gemini-cli) (opt-in deep path only) |
+| pr-review-assistant | [GitHub CLI](https://cli.github.com/), Git |
 | ui-design-analyzer | No external dependencies (uses Claude's native multimodal capabilities) |
 | interactive-presentation-generator | No external dependencies (20 built-in theme templates) |
 | activity-logger | `jq`, Git |

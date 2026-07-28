@@ -1,6 +1,6 @@
 ---
 name: code-review-claude
-description: Use when the user asks for any code review, 'review', 'code review', 'quick review', 'native review', or a fast code check — this is the default reviewer as of 2026-04. Runs native (< 30 s) line-by-line analysis with adversarial pass, assumptions list, syntax-checker-verified syntax findings, and an optional ready-to-apply Refactored Patch. In a 2026-04 benchmark (n=6) this skill produced broader finding coverage than code-review-gemini with 0 verified hallucinations across 6 demos — not a guarantee for future runs.
+description: Use when Claude Code receives a code-review request, 'review', 'code review', 'quick review', 'native review', or a fast code check. Runs native (< 30 s) line-by-line analysis with adversarial pass, assumptions list, syntax-checker-verified syntax findings, and an optional ready-to-apply Refactored Patch. In Codex, use code-review-codex instead.
 id: code-review-claude
 version: "2.0.0"
 tags:
@@ -15,14 +15,19 @@ created: "2026-01-20"
 updated: "2026-04-20"
 ---
 
-# Native Code Review with Claude
+# Claude Code Native Review
+
+> **Runtime boundary:** This skill is the native review path for Claude Code.
+> In Codex, use `code-review-codex`; do not describe this workflow as a Claude
+> review when no Claude runtime is active. `code-review-gemini` is deprecated
+> and must not be recommended or invoked.
 
 ## Overview
 
 This skill provides immediate, native code review using Claude Code's built-in capabilities. Unlike external AI-based reviews, this skill requires no external dependencies, API keys, or network calls. It's designed for rapid validation checks (< 30 seconds) during active development.
 
-**Key differences from `code-review-gemini`:**
-- 🎯 **Role**: Default reviewer (this skill, including pre-commit auto-review) vs. depth / fully-worked refactored-patch (gemini)
+**Runtime properties:**
+- 🎯 **Role**: Native reviewer for Claude Code, including Claude Code pre-commit review
 - ⚡ **Speed**: Immediate (< 30 seconds) — no external API calls
 - 📦 **Dependencies**: None — uses Claude Code's native tools
 - 🔑 **Setup**: Zero configuration required
@@ -38,9 +43,7 @@ Use this skill when you want:
 - **Instant insights** on logic, structure, and potential issues
 - **Lightweight checks** before running more comprehensive reviews
 
-**Don't use this skill when you need:**
-- A fully-worked refactored patch on a small single file (use `code-review-gemini`)
-- A second externally-hosted reviewer for cross-checking a claude-review finding
+**Don't use this skill when you are in Codex:** use `code-review-codex`.
 
 ---
 
@@ -59,7 +62,7 @@ The reviewer's own session context can bias the review. Three known failure mode
 | **Self-review** — reviewing code / docs the current session just produced | **New session.** Bias cost outweighs re-read cost. |
 | Reviewing another author's PR, or unrelated code | Same session is fine. |
 | Mechanical checks (typos, syntax, obvious bugs) | Same session is fine. Step 3.3 syntax guard is session-independent. |
-| High-stakes decision (merge blocker, security-sensitive) | New session **and** also run `code-review-gemini` for cross-check. |
+| High-stakes decision (merge blocker, security-sensitive) | New session and a qualified human or security specialist review. |
 
 ### Middle ground — subagent review in the same session
 
@@ -89,7 +92,7 @@ This skill responds to these natural language phrases:
 - "check my changes quickly"
 - "fast validation"
 
-**Note:** As of 2026-04, the bare word "review" and generic "code review" default to THIS skill (including pre-commit auto-review). Route to `code-review-gemini` with "gemini review", "thorough review", "deep review", "detailed review", or "refactored patch".
+**Note:** In Claude Code, the bare word "review" and generic "code review" use this skill (including pre-commit auto-review). In Codex, they use `code-review-codex`. Gemini review is retired.
 
 ---
 
@@ -491,13 +494,13 @@ function processData(data) {
 
 ---
 
-## Comparison with code-review-gemini
+## Historical benchmark context
 
 Based on a 6-language benchmark (2026-04) comparing both reviewers on the same HTTP retry client in Java, TypeScript, PHP, JavaScript, Python, and Shell:
 
-| Feature | code-review-claude (this skill) | code-review-gemini |
+| Feature | code-review-claude (this skill) | code-review-gemini (retired) |
 |---------|---------------------------------|--------------------|
-| **Role** | **Default reviewer** (incl. pre-commit auto-review) | Depth + fully-worked refactored patch |
+| **Role** | **Claude Code native reviewer** (incl. Claude Code pre-commit review) | Historical external reviewer |
 | **Speed** | ⚡ < 30 seconds | 🐢 1–2 minutes (external API) |
 | **Dependencies** | None (native Claude tools) | Gemini CLI + API key |
 | **Finding count** | **2.3×–5.0× gemini's count** across 6 demos | baseline |
@@ -507,8 +510,8 @@ Based on a 6-language benchmark (2026-04) comparing both reviewers on the same H
 | **Refactored patch** | ✅ Optional Step 4.5, size-gated | ✅ Always emitted |
 | **Syntax-claim guard** | ✅ Mandatory syntax-checker verification (Step 3.3) | ❌ None — source of the 50% hallucination rate |
 | **Language-specific checklists** | ✅ `references/language-checklists.md` | ❌ Generic prompt |
-| **Best for** | Default use; broad discovery; any iteration; **pre-commit auto-review (per CLAUDE.md)** | Depth pass / second opinion; when a fully-written patch is required |
-| **Trigger words** | "review", "code review", "quick", "native", "fast" | "detailed", "thorough", "gemini", "deep review", "refactored patch" |
+| **Best for** | Claude Code generic review and Claude Code pre-commit review | Retired migration reference |
+| **Status** | Active in Claude Code | Deprecated; do not invoke |
 
 ---
 
@@ -569,15 +572,15 @@ Based on a 6-language benchmark (2026-04) comparing both reviewers on the same H
 - Pre-staging validation (before `git add`)
 
 ❌ **Don't use for:**
-- Security-critical code (use `code-review-gemini`)
-- Production release validation (use `code-review-gemini`)
-- Large-scale architectural reviews involving >10 files or >500 lines (use manual review or `code-review-gemini`)
-- Compliance-required audits (use `code-review-gemini`)
+- Security-critical code (use human or specialist security review)
+- Production release validation (use a release-specific verification process)
+- Large-scale architectural reviews involving >10 files or >500 lines (use manual or specialist review)
+- Compliance-required audits (use a qualified compliance review)
 
 ### Review Scope Guidelines
 - **Small changes** (1-3 files, <200 lines): Perfect fit; Refactored Patch block will be emitted
 - **Medium changes** (4-10 files, 200-500 lines): Findings are still reliable; patch block switches to per-file diffs or is skipped
-- **Large changes** (>10 files, >500 lines): Findings remain useful but consider splitting the review scope or running `code-review-gemini` in parallel for a fully worked patch on a single hot-spot file
+- **Large changes** (>10 files, >500 lines): Findings remain useful, but split the review scope or request a qualified specialist review for a hot-spot file.
 
 ---
 
@@ -591,7 +594,7 @@ Based on a 6-language benchmark (2026-04) comparing both reviewers on the same H
 - Validate best practices for the language
 
 ### What This Skill Won't Do
-- Deep security vulnerability analysis (use `code-review-gemini`)
+- Deep security vulnerability analysis (use a qualified security review)
 - Performance profiling or benchmarking
 - Automated testing or test generation
 - Large-scale architectural review
@@ -665,7 +668,7 @@ This skill performs read-only operations during code review:
 
 ⚠️ **Important Disclaimers:**
 - This skill provides **suggestions**, not guarantees of bug-free code
-- Security review is **basic** - use `code-review-gemini` for comprehensive security analysis
+- Security review is **basic**; use a qualified security review for comprehensive analysis.
 - Does not replace human code review or security audits
 - Cannot detect all types of vulnerabilities or logic errors
 - No warranty or liability for missed issues
@@ -679,7 +682,7 @@ This skill performs read-only operations during code review:
 - Educational or learning projects
 
 ⚠️ **Use caution with:**
-- Security-critical authentication/authorization code (use `code-review-gemini`)
+- Security-critical authentication/authorization code (requires qualified security review)
 - Cryptographic implementations (requires specialized review)
 - Payment processing logic (requires compliance review)
 - Production-critical systems (requires comprehensive audit)
@@ -722,7 +725,7 @@ If changes exceed recommended scope (>1000 lines):
 
 Recommendations:
 1. Review in smaller chunks: specify individual files
-2. Use detailed review: invoke code-review-gemini
+2. Ask for a qualified specialist review when the risk warrants it
 3. Split into multiple commits for easier review
 ```
 
@@ -737,20 +740,17 @@ Recommendations:
 - ❌ "Review everything" (too broad)
 
 ### Issue: Want more thorough analysis
-**Solution:** Use `code-review-gemini` instead:
-- "Detailed review with gemini"
-- "Comprehensive code review"
+**Solution:** Use a fresh Claude Code session, split the review scope, or obtain a qualified specialist review. `code-review-gemini` is retired.
 
 ### Issue: Conflicts with other review skills
 **Solution:** Use specific trigger words:
 - For this skill: "quick review" (< 30 sec), "native review"
-- For Gemini: "detailed review" (1-3 min), "gemini review"
+- For deeper analysis: use a fresh session or a qualified specialist reviewer.
 
 ---
 
 ## Related Skills
 
-- **code-review-gemini**: Comprehensive external AI code review
 - **pr-review-assistant**: Review pull requests before merging
 
 ---
@@ -758,7 +758,7 @@ Recommendations:
 ## Feedback and Improvements
 
 This skill is designed to be lightweight and fast. If you need:
-- More thorough security analysis → Use `code-review-gemini`
+- More thorough security analysis → Use a qualified security reviewer
 - Architectural review → Use manual review or specialized tools
 - Performance profiling → Use language-specific profilers
 
@@ -777,7 +777,7 @@ This skill is designed to be lightweight and fast. If you need:
 | 1.0.0 | 2026-01-20 | Initial release |
 |  |  | Fast native code review using Claude Code |
 |  |  | Zero external dependencies |
-|  |  | Complementary to code-review-gemini |
+|  |  | Runtime-native reviewer for Claude Code |
 
 ---
 

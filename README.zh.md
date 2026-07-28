@@ -8,7 +8,7 @@
 
 我的做法是把工程紀律嵌入 AI 工作流程本身——用結構化流程對抗 AI 和人類共有的認知盲點。具體來說：
 
-- **結構化 Code Review**：任何模型在檢視自己的產出時都會過度合理化——所以 review 是 skill 觸發的明確步驟，不是口頭承諾。2026-04 起預設使用 `code-review-claude`（廣度 + adversarial + assumptions + syntax 驗證，0/6 hallucination）；需要完整 refactored patch 或外部第二意見時，追加 `code-review-gemini`。
+- **結構化 Code Review**：任何模型在檢視自己的產出時都會過度合理化——所以 review 是 skill 觸發的明確步驟，不是口頭承諾。一般 review 依目前 runtime 選原生 reviewer：Claude Code 用 `code-review-claude`，Codex 用 `code-review-codex`。`code-review-gemini` 已退役，不會自動執行。
 - **Falsification-first**：研究類 skills 要求先搜尋反面證據，再搜尋支持證據。這不是悲觀，而是對確認偏誤的系統性防禦。
 - **Evidence before assertion**：在宣稱任何工作「完成」之前，必須先執行驗證命令並確認輸出。說「通過測試」的前提是真的跑過測試。
 
@@ -61,12 +61,13 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 
 **任何模型在檢視自己產生的程式碼時，都傾向對既有結構過度合理化。** 所以這個 repo 把 review 切成一個獨立步驟——以 skill 觸發、有 adversarial checklist、有 assumptions 清單——而不是靠「Claude 檢查一下自己寫的」這種同步審視。
 
-### 兩個 reviewer，兩個角色（2026-04 起）
+### 依 runtime 分流的原生 reviewer
 
-- **`code-review-claude`（預設 reviewer）**：原生 Claude < 30 秒完成。流程包含 Step 3.3 syntax-checker 驗證（消除 whitespace / regex / 字元類別這類 hallucination）、Step 3.4 語言別 checklist、Step 3.5 adversarial quick check（Assumption / Mirror test / Suppression / What breaks this?）、Step 3.6 Assumptions Identified。Step 4.5 可選擇性產出 refactored patch。2026-04 對 6 種語言的 HTTP retry client 做 n=6 benchmark，Claude 每次的 findings 廣度是 Gemini 的 2.3–5.0 倍，且 0/6 出現需修正的 hallucination。
-- **`code-review-gemini`（選配）**：Gemini CLI 外部 review，適合想要完整可套用的 refactored patch、或在 claude review 之後再來一次外部第二意見。不是預設，但保留下來作為 patch 生成器與 cross-check 工具。
+- **Claude Code → `code-review-claude`**：Claude 原生 review，包含 syntax 驗證、adversarial 檢查與 assumptions 清單。
+- **Codex → `code-review-codex`**：Codex 原生 review，同樣先列 findings，再做本機驗證。
+- **`code-review-gemini`**：已退役，只保留遷移參考；router、workflow 與 pre-commit 都不會執行它。
 
-> **pre-commit auto-review** 也預設走 `code-review-claude`。pre-commit 是 hallucination 成本最高的場景，所以用 benchmark 上最可靠的 reviewer。
+> **pre-commit auto-review** 依目前 runtime 選原生 reviewer。未來 RDSec endpoint reviewer 必須由你明確選擇模型，並確認可送出的 diff／資料範圍，才會向外送出。
 
 ---
 
@@ -134,7 +135,7 @@ ln -s ~/.claude/skills/commands/sos.md ~/.claude/commands/sos.md
 
 ### 設定 Gemini CLI（選配）
 
-預設 reviewer `code-review-claude` 是原生 Claude，不需要 Gemini。Gemini CLI 僅在以下 skills 使用：`code-review-gemini`（選配深度 reviewer / refactored patch 生成器）、`pr-review-assistant` 的 keyword-triggered Gemini 路徑（選配，詳見該 skill 文件）。如果你只跑預設流程，可以跳過本節。
+任何 code review 流程都不會用 Gemini CLI：`code-review-gemini` 已退役。其他不相關的選配 skill 可能仍會使用它；除非那些 skill 提示需要，否則可跳過本節。
 
 ```bash
 # 安裝 Gemini CLI
@@ -161,7 +162,7 @@ gemini "Hello, test"
 
 ## 使用範例
 
-### Code Review（預設：Claude）
+### Code Review（依目前 runtime）
 
 ```bash
 # 1. Stage 你的改動
@@ -173,19 +174,14 @@ git add src/app.js
 > check code quality before commit
 ```
 
-預設會觸發 `code-review-claude`，< 30 秒完成，產出包含以下面向的結構化報告：
+預設會在 Claude Code 觸發 `code-review-claude`，在 Codex 觸發 `code-review-codex`，產出包含以下面向的結構化報告：
 - 🔴 High / 🟡 Medium / 🟢 Low 優先級 findings
 - 語言別 checklist（Python / Shell / JS / TS / Java / PHP）命中
 - **Adversarial quick check**：Assumption exposed / Mirror test / Suppression / What breaks this?
 - **Assumptions Identified**：未驗證的契約清單
 - **Refactored Patch**（選配，diff ≤ 200 行時自動產出）
 
-想要更深度的外部視角或完整 refactored patch？在 claude review 之後追加：
-
-```
-> gemini review 這次的改動，給我 refactored patch
-> detailed review with gemini
-```
+`code-review-gemini` 已退役。未來若要用 RDSec endpoint reviewer，必須先選擇模型，並確認送出的 diff／資料範圍。
 
 ### Activity Logger
 
@@ -223,10 +219,10 @@ Activity records 可與 `work-log-analyzer` 搭配使用，跨專案和 session 
 
 | Skill | 依賴 |
 |-------|------|
-| code-review-gemini | [Gemini CLI](https://github.com/google-gemini/gemini-cli)、Git |
+| code-review-gemini | 已退役的遷移參考，不是支援中的 review 路徑 |
 | code-review-claude | 無外部依賴 |
 | code-story-teller | Git |
-| pr-review-assistant | [GitHub CLI](https://cli.github.com/)、Git；[Gemini CLI](https://github.com/google-gemini/gemini-cli)（僅選配深度路徑） |
+| pr-review-assistant | [GitHub CLI](https://cli.github.com/)、Git |
 | ui-design-analyzer | 無外部依賴（使用 Claude 原生多模態能力） |
 | interactive-presentation-generator | 無外部依賴（內建 20 種樣式模板） |
 | activity-logger | `jq`、Git |

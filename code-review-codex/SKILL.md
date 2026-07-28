@@ -26,11 +26,13 @@ Use for:
 
 Do not use as a replacement for:
 
-- `code-review-gemini` when the user explicitly wants a deep second opinion or
-  fully worked refactored patch.
 - `codex:review` when the user explicitly wants plugin-level Codex review or
-  implementation-level patch review after the first reviewer.
+  implementation-level patch review after this native review.
 - `codebase-audit` for docs-vs-code claim verification.
+
+`code-review-gemini` is deprecated. Do not route to it or send a diff to
+Gemini. Future external reviewers require an explicit user-selected model and
+approval of the diff or data scope before any external request.
 
 ## Workflow
 

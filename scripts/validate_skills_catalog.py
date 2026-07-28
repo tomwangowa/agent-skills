@@ -24,7 +24,7 @@ VALID_CATEGORIES = frozenset(
         "tools-meta",
     }
 )
-VALID_LIFECYCLES = frozenset({"promoted", "experimental", "personal"})
+VALID_LIFECYCLES = frozenset({"promoted", "experimental", "personal", "deprecated"})
 VALID_INVOCATION_INTENTS = frozenset({"model", "user"})
 
 CATALOG_PATH = Path("skills-catalog.json")
@@ -135,6 +135,19 @@ def validate_inventory(entries: Iterable[Mapping[str, Any]], tracked_ids: set[st
         errors.append(f"catalog ids absent from Git inventory: {', '.join(unexpected)}")
     if errors:
         fail("; ".join(errors))
+
+
+def validate_lifecycle_surfaces(entries: Iterable[Mapping[str, Any]]) -> None:
+    """Keep deprecated skills available for migration but off promoted surfaces."""
+    for entry in entries:
+        if entry["lifecycle"] != "deprecated":
+            continue
+        surfaces = entry["surfaces"]
+        if surfaces["routable"] or surfaces["listed_in_readme"]:
+            fail(
+                f"{CATALOG_PATH}: deprecated skill {entry['id']} must not be "
+                "routable or listed in a README core set"
+            )
 
 
 def read_router_ids(root: Path) -> list[str]:
@@ -270,6 +283,7 @@ def render_index(entries: Iterable[Mapping[str, Any]]) -> str:
 def validate(root: Path) -> tuple[list[dict[str, Any]], str]:
     entries = read_json_catalog(root)
     validate_inventory(entries, discover_tracked_skill_ids(root))
+    validate_lifecycle_surfaces(entries)
     validate_router(entries, root)
     validate_readmes(entries, root)
     validate_sync(entries, root)

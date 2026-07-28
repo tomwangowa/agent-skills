@@ -1,6 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
+echo "code-review-gemini is retired; no diff was sent to Gemini." >&2
+echo "Use code-review-claude in Claude Code or code-review-codex in Codex." >&2
+exit 1
+
 ############################
 # Configuration
 ############################
