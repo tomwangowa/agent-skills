@@ -11,14 +11,18 @@ IGNORE_FILE="$SKILLS_DIR/.skill-sync-ignore"
 # are preserved (never removed). delete_args stays empty in additive
 # mode and is expanded with the set -u-safe ${arr[@]+"${arr[@]}"} idiom.
 delete_args=("--delete")
+dry_run=false
 for arg in "$@"; do
     case "$arg" in
         --no-delete)
             delete_args=()
             ;;
+        --dry-run)
+            dry_run=true
+            ;;
         -h|--help)
             cat <<'EOF'
-Usage: sync.sh [--no-delete]
+Usage: sync.sh [--dry-run] [--no-delete]
 
 Mirror ~/.claude/skills/ to configured agent skill folders.
 
@@ -26,6 +30,8 @@ Mirror ~/.claude/skills/ to configured agent skill folders.
                 that are not present in the source.
   --no-delete   Additive mode: sync source skills into targets but
                 PRESERVE target-only files (no deletion).
+  --dry-run     Read-only preview: never creates target directories,
+                prompts, or writes files. Missing targets are skipped.
 
 Targets:  .skill-sync-targets  (falls back to built-in defaults)
 Excludes: .skill-sync-ignore   (falls back to built-in defaults)
@@ -98,29 +104,64 @@ for skill in "${ignores[@]}"; do
 done
 
 # ── Pre-flight ─────────────────────────────────────────────────
-for target in "${targets[@]}"; do
-    if [[ ! -d "$target" ]]; then
-        echo "📁  Creating $target"
-        mkdir -p "$target"
-    fi
-done
+if [[ "$dry_run" == false ]]; then
+    for target in "${targets[@]}"; do
+        if [[ ! -d "$target" ]]; then
+            echo "📁  Creating $target"
+            mkdir -p "$target"
+        fi
+    done
+fi
 
 # ── Dry-run ────────────────────────────────────────────────────
 echo ""
 if [[ ${#delete_args[@]} -gt 0 ]]; then
-    echo "🔍  Dry-run preview — mode: mirror"
+    if [[ "$dry_run" == true ]]; then
+        echo "🔍  Read-only dry-run — mode: mirror"
+    else
+        echo "🔍  Dry-run preview — mode: mirror"
+    fi
     echo "    ⚠️  --delete is active: files in target not in source WILL be removed."
 else
-    echo "🔍  Dry-run preview — mode: additive (--no-delete)"
+    if [[ "$dry_run" == true ]]; then
+        echo "🔍  Read-only dry-run — mode: additive (--no-delete)"
+    else
+        echo "🔍  Dry-run preview — mode: additive (--no-delete)"
+    fi
     echo "    ✅  target-only files are preserved; nothing in targets will be deleted."
+fi
+if [[ "$dry_run" == true ]]; then
+    echo "    ✅  No directories or files will be created, changed, or removed."
 fi
 echo "─────────────────────────────────────────"
 
 all_dry_output=""
-tmp_err="$(mktemp)"
-trap 'rm -f "$tmp_err"' EXIT
+preview_failures=0
+tmp_err=""
+if [[ "$dry_run" == false ]]; then
+    tmp_err="$(mktemp)"
+    trap 'rm -f "$tmp_err"' EXIT
+fi
 for target in "${targets[@]}"; do
-    if ! dry=$(rsync -avL ${delete_args[@]+"${delete_args[@]}"} --dry-run "${exclude_args[@]}" "$SKILLS_DIR/" "$target/" 2>"$tmp_err"); then
+    if [[ "$dry_run" == true && ! -e "$target" ]]; then
+        echo "→ $target  skipped (target directory does not exist; read-only preview will not create it)"
+        continue
+    fi
+    if [[ -e "$target" && ! -d "$target" ]]; then
+        if [[ "$dry_run" == true ]]; then
+            echo "→ $target  ⚠️  target error: path exists but is not a directory"
+            preview_failures=$((preview_failures + 1))
+            continue
+        fi
+    fi
+    if [[ "$dry_run" == true ]]; then
+        if ! dry=$(rsync -avL ${delete_args[@]+"${delete_args[@]}"} --dry-run "${exclude_args[@]}" "$SKILLS_DIR/" "$target/" 2>&1); then
+            echo "→ $target  ⚠️  rsync error:"
+            printf '%s\n' "$dry" | sed 's/^/    /'
+            preview_failures=$((preview_failures + 1))
+            continue
+        fi
+    elif ! dry=$(rsync -avL ${delete_args[@]+"${delete_args[@]}"} --dry-run "${exclude_args[@]}" "$SKILLS_DIR/" "$target/" 2>"$tmp_err"); then
         echo "→ $target  ⚠️  rsync error:"
         sed 's/^/    /' "$tmp_err"
         continue
@@ -137,6 +178,17 @@ for target in "${targets[@]}"; do
         all_dry_output+="$dry"
     fi
 done
+
+if [[ "$dry_run" == true ]]; then
+    if (( preview_failures > 0 )); then
+        echo "Dry-run preview failed for $preview_failures target(s)."
+        exit 1
+    fi
+    if [[ -z "$all_dry_output" ]]; then
+        echo "All existing targets already up to date."
+    fi
+    exit 0
+fi
 
 if [[ -z "$all_dry_output" ]]; then
     echo "All targets already up to date."

@@ -16,84 +16,23 @@ These principles don't require you to agree with my approach — they're indepen
 
 ---
 
-## Skills Overview
+## Skills Catalog
 
-Currently **38 custom skills** organized into 7 categories.
+The complete, generated inventory and its lifecycle/surface policy live in [SKILLS_CATALOG.md](./SKILLS_CATALOG.md). Use `skill-router` when you want a recommendation rather than a list.
 
-### Quality Gates (5)
+### Core Skills
 
-Embed review and verification into the development workflow, not as an afterthought.
-
-| Skill | Description |
-|-------|-------------|
-| [code-review-claude](./code-review-claude/) | Native code review by Claude (< 30s). Adversarial pass + assumptions list + optional refactored patch. **Default reviewer** (2026-04 benchmark: broader coverage, 0/6 verified hallucinations). |
-| [code-review-gemini](./code-review-gemini/) | Deep code review using Gemini CLI. Use for final validation, or when a fully worked refactored patch is required. Also the reviewer required by the pre-commit auto-review rule in CLAUDE.md. |
-| [pr-review-assistant](./pr-review-assistant/) | Structured pull request review. Analyzes diffs, assesses risk, provides improvement suggestions. |
-| [codebase-audit](./codebase-audit/) | Claims-first codebase audit: extracts claims from documentation, verifies each against source code. Confirms whether docs and code are consistent. |
-| [completion-gate](./completion-gate/) | Evidence gate before completion. Forces running verification commands and confirming output before claiming "done" or "passing". |
-
-### Research & Critical Thinking (9)
-
-When AI does research for you, don't just collect evidence that supports your ideas.
-
-| Skill | Description |
-|-------|-------------|
-| [tech-research-pipeline](./tech-research-pipeline/) | **Full research pipeline orchestrator**. Chains 8 skills with 2 gates, triggering a complete workflow from scoping to decision document. For major technical decisions. |
-| [deep-reading](./deep-reading/) | Systematic knowledge extraction from document sets. Identifies core mental models, expert disagreements, knowledge gaps, and teachable frameworks. For understanding, not just summarizing. |
-| [tech-feasibility](./tech-feasibility/) | Technical feasibility assessment. 8-step structured process answering "can technology X solve problem Y?" before committing to a POC. |
-| [assumption-extractor](./assumption-extractor/) | Systematically extracts explicit and implicit assumptions from technical documents. Classifies risk levels (CRITICAL → LOW), produces an Assumption Registry with dependency graphs. |
-| [micro-poc-validator](./micro-poc-validator/) | Empirically validates technical assumptions with minimal code (≤ 30 lines). Time-boxed 5-30 minute experiments producing PASS/FAIL/PARTIAL results. |
-| [critical-research](./critical-research/) | Falsification-first research: searches for counter-evidence before supporting evidence. Systematically eliminates confirmation bias. |
-| [narrative-auditor](./narrative-auditor/) | Narrative audit: cross-references articles, marketing copy, and technical claims against primary sources. Can also act as your AI proxy. |
-| [research-cross-validator](./research-cross-validator/) | Cross-validates technical claims using 2-3 independent strategies (official docs, counter-evidence search, source code inspection) to prevent single-source bias. |
-| [research-synthesis](./research-synthesis/) | Multi-source research synthesis. After running 2+ research skills, consolidates findings into an ADR-style decision document. |
-
-### Multi-Agent Roles (3)
-
-Simulate team-based collaboration with isolated PM and RD roles, each running in its own subagent.
-
-| Skill | Description |
-|-------|-------------|
-| [role-orchestrator](./role-orchestrator/) | **Pipeline coordinator.** Dispatches PM → RD subagents with approval gates between phases. Reads `project-profile.yaml` to calibrate output depth by project size (small/medium/large). For medium and large projects. |
-| [role-pm](./role-pm/) | PM role: translates goals into size-calibrated requirements artifacts (bullet + AC → user stories → full PRD). |
-| [role-rd](./role-rd/) | RD role: translates PM requirements into size-calibrated design artifacts (code plan → design doc → architecture doc). |
-
-### Design & Planning (3)
-
-Think before you build.
-
-| Skill | Description |
-|-------|-------------|
-| [brainstorming](./brainstorming/) | Socratic design dialogue. Explores requirements one question at a time, proposes 2-3 approaches with trade-offs, produces a design document. Auto-escalates to `role-orchestrator` for medium/large projects. |
-| [spec-gap-finder](./spec-gap-finder/) | Pre-dev spec/wireframe review from an RD perspective. Runs a 10-category, 60+ item checklist to find gaps, ambiguities, and undefined edge cases. Outputs a prioritized question list for a single alignment meeting with PM/Designer. |
-| [ui-design-analyzer](./ui-design-analyzer/) | UI/UX screenshot analysis. Evaluates interface design across 6 dimensions including usability, accessibility, and visual design. |
-
-### Content Generation (10)
-
-Standardize repetitive documentation, presentation, and note-taking work.
-
-| Skill | Description |
-|-------|-------------|
-| [presentation-planner](./presentation-planner/) | Presentation narrative strategy planning. Completes audience analysis, storyline design, and per-slide content planning before creating slides. |
-| [interactive-presentation-generator](./interactive-presentation-generator/) | Interactive presentation generator. Supports reveal.js / Marp / Slidev with 20 built-in professional themes. |
-| [qa-to-notes](./qa-to-notes/) | Save Claude Code conversations as Obsidian notes (Standard / Direct write), or rewrite fact-checks into a shareable "extended analysis" format for Teams (Teams publish). Three modes, unified note management. |
-| [report-generator](./report-generator/) | Generate structured reports from activity logs and git history. Supports weekly, monthly, project summary, retrospective, and more. |
-| [ai-weekly-insight](./ai-weekly-insight/) | Weekly or daily AI news deep-analysis for TrendLife AI Taskforce. Weekly: top 5 news; Daily: top 3 news. Three-dimension analysis (tech/business/competitive), outputs to Obsidian + Confluence or ai_news repo. Supports `--dest` and `daily` mode. |
-| [arxiv-digest](./arxiv-digest/) | Digest arXiv AI papers into engineer-friendly shareable formats for Taskforce meetings. Supports URL, search, and multi-paper comparison modes. |
-| [newsletter-digest](./newsletter-digest/) | Batch newsletter digestion. Reads all `.eml` files from a folder, auto-clusters by topic, and produces a structured digest with topic summaries, per-article overviews, and deep-read recommendations. Supports recursive subfolders and date filtering. |
-| [md-translate](./md-translate/) | Translate markdown files to English and Traditional Chinese. Auto-detects source language; generates `-en.md` and `-zh.md` with overwrite guard. Supports single file, batch glob, and `--lang` / `--force` flags. |
-| [pptx-to-md](./pptx-to-md/) | Convert PPTX, DOCX, XLSX, PDF, and images to Markdown via Microsoft markitdown. Consent-gated install, space-safe batch mode, per-file overwrite guard. |
-| [repo-sync](./repo-sync/) | Pull latest + optional submodule sync for any repo. Generates a What's New digest grouped by top-level directory (or custom `.claude/repo-sync-roles.yaml`). Safety backup branch before any `reset --hard`. |
-
-### Productivity & Tracking (3)
-
-Cross-session work logging and historical analysis.
-
-| Skill | Description |
-|-------|-------------|
-| [activity-logger](./activity-logger/) | Log work activities from the current session for cross-session aggregation and report generation. |
-| [work-log-analyzer](./work-log-analyzer/) | Analyze work logs. Track task progress, query project history, understand decision evolution. Supports activity aggregation, timeline, TODO, decision tracing, and general search. |
-| [code-story-teller](./code-story-teller/) | Analyze git history to tell the story of code evolution. Understand the context behind design decisions. |
+<!-- core-skills:start -->
+- [brainstorming](./brainstorming/SKILL.md) — explore a change before implementation.
+- [code-review-claude](./code-review-claude/SKILL.md) — default code review.
+- [code-review-codex](./code-review-codex/SKILL.md) — Codex-specific review path.
+- [completion-gate](./completion-gate/SKILL.md) — verify before claiming completion.
+- [handoff](./handoff/SKILL.md) — preserve a session handoff.
+- [role-orchestrator](./role-orchestrator/SKILL.md) — coordinate PM → RD work.
+- [skill-router](./skill-router/SKILL.md) — discover the right skill or workflow.
+- [skill-sync](./skill-sync/SKILL.md) — sync skills to other agent surfaces.
+- [tech-research-pipeline](./tech-research-pipeline/SKILL.md) — run a rigorous research workflow.
+<!-- core-skills:end -->
 
 ### MCP Server
 
@@ -111,19 +50,6 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 ```
 
 See [skills-query-server/README.md](./skills-query-server/README.md) for details.
-
-### Tools & Meta-skills (5)
-
-Tools for managing skills and workflows themselves.
-
-| Skill | Description |
-|-------|-------------|
-| [skill-auditor](./skill-auditor/) | Audit skills for quality, security, and best practices. Use after creating or modifying a skill. |
-| [skill-router](./skill-router/) | **Skill discovery and routing hub.** Three modes: smart routing (describe your need, get a recommendation), category browse (list all skills), and workflow browse (view predefined multi-skill chains). Your first stop when unsure which skill to use. |
-| [claude-workflow-designer](./claude-workflow-designer/) | Design Claude Code workflows. Helps you choose between mechanisms (hook / skill / subagent / MCP / CLAUDE.md) and package automation for team distribution. Backs the `/sos` slash command. |
-| [skill-sync](./skill-sync/) | One-way mirror of `~/.claude/skills/` to other agent skill folders (codex, gemini, cursor, antigravity). Uses `rsync --delete` — target-side files not in source are **removed**, shown explicitly in the dry-run preview before the `y/N` confirmation (defaults to N). Pass `--no-delete` for additive mode that preserves target-only files (no deletion). Configurable targets and exclude list; sensible defaults include symlink protection for `spec-generator`. No external dependencies. |
-
----
 
 ## About the Layered Code Review Design
 

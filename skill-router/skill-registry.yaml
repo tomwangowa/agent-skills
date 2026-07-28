@@ -166,6 +166,17 @@ categories:
           - "check PR"
           - "PR 審查"
 
+      - id: review-convergence-gate
+        triggers:
+          - "review 收斂"
+          - "停止 review"
+          - "review loop"
+          - "over-review"
+          - "reviewer drift"
+          - "可以開始實作嗎"
+          - "convergence review"
+          - "final review gate"
+
       # Note: superpowers:requesting-code-review is intentionally NOT registered.
       # It dispatches a `superpowers:code-reviewer` subagent, which conflicts
       # with the CLAUDE.md rule "MUST 先走 code-review-claude" for any review
@@ -222,6 +233,25 @@ categories:
           - "what questions should I ask PM"
           - "spec 有什麼沒寫"
 
+      - id: claude-workflow-designer
+        triggers:
+          - "Claude workflow"
+          - "設計工作流"
+          - "hook 還是 skill"
+          - "skill 還是 MCP"
+          - "要不要做成 plugin"
+          - "automation design"
+          - "/sos"
+
+      - id: ui-design-analyzer
+        triggers:
+          - "analyze this UI"
+          - "review this screenshot"
+          - "UI/UX 分析"
+          - "介面設計"
+          - "設計好不好"
+          - "accessibility review"
+
       # Note: superpowers:test-driven-development is intentionally NOT registered.
       # Its Iron Law ("no production code without failing test first") is too rigid
       # for ad-hoc work, and it's auto-invoked inside writing-plans task templates
@@ -277,6 +307,24 @@ categories:
           - "double check result"
           - "確認結果"
           - "before commit"
+
+      - id: git-status-tui
+        triggers:
+          - "git status"
+          - "git 狀態"
+          - "gst"
+          - "掃一下 git"
+          - "repo 狀態"
+          - "哪個 repo 還沒乾淨"
+
+      - id: handoff
+        triggers:
+          - "/handoff"
+          - "收工"
+          - "交接"
+          - "留交接"
+          - "hand off"
+          - "下班"
 
       - id: superpowers:using-git-worktrees
         triggers:
@@ -477,6 +525,22 @@ categories:
           - "整理信件"
           - "newsletter 摘要"
 
+      - id: pptx-to-md
+        triggers:
+          - "convert pptx to markdown"
+          - "extract text from slides"
+          - "turn this presentation into md"
+          - "簡報轉 markdown"
+          - "markitdown"
+
+      - id: md-translate
+        triggers:
+          - "translate markdown"
+          - "翻譯 markdown"
+          - "markdown 翻譯"
+          - "轉成英文"
+          - "轉成繁中"
+
   # ── 9. 內容策展 ────────────────────────────────────────────
   content:
     label: 內容策展
@@ -504,6 +568,16 @@ categories:
           - "AI 分析"
           - "sharing session"
           - "ai weekly"
+
+      - id: deai-voice-rewrite
+        triggers:
+          - "去 AI 味"
+          - "去AI味"
+          - "白話化"
+          - "改成我的口吻"
+          - "潤成我的語氣"
+          - "de-AI this"
+          - "rewrite in my voice"
 
   # ── 10. 工具與維護 ─────────────────────────────────────────
   meta:
