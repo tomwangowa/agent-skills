@@ -1,13 +1,14 @@
 ---
 name: skill-sync
-description: >-
-  Use when syncing ~/.claude/skills/ to other agent skill folders (codex, gemini, cursor, antigravity). One-way mirror with --delete (target-side files not in source are removed) — always shown in a dry-run preview before any write. Pass --no-delete for additive mode that preserves target-only files (sync in source skills without removing anything). Configure targets via .skill-sync-targets and excludes via .skill-sync-ignore; sensible defaults when files are absent. Triggers: "sync skills", "skill-sync", "同步 skills", "push skills to other agents", "更新其他 agent 的 skills".
+description: Use when syncing ~/.claude/skills to Codex, Gemini, Cursor, or Antigravity; previewing syncs without writes; or when target-only skills must be preserved. Matches "sync skills", "skill-sync", "同步 skills", "push skills to other agents", and "更新其他 agent 的 skills".
 ---
 
 # Skill Sync
 
 One-way mirror of `~/.claude/skills/` to configured agent skill folders.
 Always runs a dry-run preview first, then asks for confirmation before writing any files.
+
+`--dry-run` is different: it is a genuinely read-only command for inspecting a proposed sync. It never creates a missing target directory, prompts for confirmation, or runs a non-dry-run (mutating) `rsync`; missing targets are reported as skipped. The regular command's preview is followed by an interactive sync after confirmation, so it may create missing target directories before showing that preview.
 
 By default this is a **mirror** (`rsync --delete`). Pass `--no-delete` to run in **additive** mode, which syncs source skills into the targets but never removes target-only files — use it when targets hold agent-specific skills you want to keep.
 
@@ -41,13 +42,34 @@ To preserve target-only skills (additive sync, no deletion), pass `--no-delete`:
 bash ~/.claude/skills/skill-sync/scripts/sync.sh --no-delete
 ```
 
-If the user says anything like "don't delete the target's existing skills" / "不要刪除目標既有的 skills" / "additive sync", use `--no-delete`. `--help` prints usage; an unknown argument exits with code 2.
+To inspect either mode without any filesystem changes, pass `--dry-run`:
 
-Present the dry-run output to the user. The script will prompt for confirmation — wait for the user's response (`y`/`yes` to proceed, anything else cancels; default is `N`). After sync completes, display the result summary table from the script output.
+```bash
+bash ~/.claude/skills/skill-sync/scripts/sync.sh --dry-run
+bash ~/.claude/skills/skill-sync/scripts/sync.sh --dry-run --no-delete
+```
+
+If the user says anything like "don't delete the target's existing skills" / "不要刪除目標既有的 skills" / "additive sync", use `--no-delete`. If they ask to preview, inspect, or dry-run without making any change, use `--dry-run`; combine it with `--no-delete` when target-only files must be preserved. `--help` prints usage; an unknown argument exits with code 2.
+
+Present the dry-run output to the user. A regular sync then prompts for confirmation — wait for the user's response (`y`/`yes` to proceed, anything else cancels; default is `N`). With `--dry-run`, the script stops after showing the preview and does not prompt. After a confirmed regular sync completes, display the result summary table from the script output.
 
 ## Examples
 
-### Example 1: First-time sync with defaults
+### Example 1: Read-only preview
+
+```
+User: "preview the skill sync, but do not change anything"
+```
+
+Run:
+
+```bash
+bash ~/.claude/skills/skill-sync/scripts/sync.sh --dry-run
+```
+
+The command invokes `rsync --dry-run` only for target directories that already exist. A missing target is printed as `skipped`; it is not created. The command exits after the preview without a confirmation prompt or real sync. Add `--no-delete` to inspect additive mode.
+
+### Example 2: First-time sync with defaults
 
 ```
 User: "sync skills"
@@ -61,7 +83,7 @@ Expected behavior:
 4. Prompt: `Proceed with sync? (y/N)` — typing `y` or `yes` proceeds; any other input cancels.
 5. After sync, the summary table reports `✅ synced` or `❌ <error>` per target.
 
-### Example 2: Selective sync via custom targets
+### Example 3: Selective sync via custom targets
 
 ```
 User: "sync skills to codex only"
@@ -75,7 +97,7 @@ The user (or assistant) writes a temporary `.skill-sync-targets`:
 
 Then runs the same `sync.sh`. Only the listed target is synced. The file is gitignored so the customization is local-only.
 
-### Example 3: Cancelling on unexpected deletions
+### Example 4: Cancelling on unexpected deletions
 
 ```
 User: "sync skills"
@@ -93,7 +115,7 @@ deleting legacy-skill.md
 
 The user spots that `my-codex-experiment` is something they want to keep. They type `n` to cancel, then either (a) copy `my-codex-experiment/` into `~/.claude/skills/` so future syncs preserve it, or (b) add `my-codex-experiment` to `.skill-sync-ignore`.
 
-### Example 4: Additive sync that preserves target-only skills
+### Example 5: Additive sync that preserves target-only skills
 
 ```
 User: "sync skills, but don't delete the target's existing skills"
@@ -155,9 +177,11 @@ Other failure modes the script handles cleanly:
 | `.skill-sync-ignore` exists but is empty or comments-only | Falls back to defaults with a `ℹ️` notice |
 | Config file lacks a trailing newline | Last line is still captured (`read \|\| [[ -n "$line" ]]` pattern) |
 | Target directory does not exist | Created via `mkdir -p` in pre-flight |
+| `--dry-run` with a missing target | Reports the path as `skipped`; does not create it, prompt, or run a real sync |
 | User answers anything other than `y`/`yes`/`Y`/`Yes` at the prompt | Script exits with `Sync cancelled.` and zero changes |
 | `mktemp` for stderr capture leaks | Cleaned up via `trap … EXIT` |
 | `--no-delete` flag passed | Additive mode: `rsync` runs without `--delete`, target-only files are preserved, and the dry-run header reflects the mode |
+| `--dry-run` flag passed | Genuinely read-only preview: uses `rsync --dry-run` for existing targets and exits without confirmation or writes |
 | Unknown argument passed | Prints `Unknown argument: <arg>` to stderr and exits with code 2 (no sync) |
 
 What the script does **not** do: it does not roll back a partially completed sync. If `rsync` aborts halfway through a single target (rare with `--delete`), that target may be in a mixed state. Re-run after fixing the underlying issue.
@@ -202,6 +226,7 @@ What the script does **not** do: it does not roll back a partially completed syn
 - It will not modify the source folder.
 - It will not write outside the user-configured target paths.
 - It will not bypass the dry-run preview — every run shows the preview before the prompt.
+- With `--dry-run`, it will not create missing target directories, prompt for confirmation, or run a real sync.
 
 ### Non-Applicable Threats
 

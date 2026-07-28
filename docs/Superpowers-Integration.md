@@ -62,7 +62,7 @@ SessionStart (matcher: startup|clear|compact) → run-hook.cmd session-start
 |------|-----------|------------------------|----------------|
 | Brainstorming | **自製 `brainstorming`** | ❌ 不用 `superpowers:brainstorming` | 自製版是 superset：scope escalation（可 route 到 role-orchestrator）、pre-mortem、REQUIRED 串 tech-feasibility / critical-research、rationalization prevention 表、worked examples |
 | 完成驗證 | **自製 `completion-gate`** | ❌ 不用 `superpowers:verification-before-completion` | 功能等價，已登記於 registry；保持 user-skill-first 一致性 |
-| Code review | **自製 `code-review-claude`**（→ 可追加 `code-review-gemini` / `codex:review`） | ❌ 不用 `superpowers:requesting-code-review`、`receiving-code-review`、`code-reviewer` agent | 2026-04 benchmark（n=6）顯示廣度更高 + 0 hallucination；pre-commit auto-review 亦走此條 |
+| Code review | **依 runtime 的原生 reviewer**（Claude Code → `code-review-claude`；Codex → `code-review-codex`） | ❌ 不用 `superpowers:requesting-code-review`、`receiving-code-review`、`code-reviewer` agent | `code-review-gemini` 已退役；未來外部 reviewer 須明確選模型與確認 diff 範圍 |
 
 > 為何不直接卸載 superpowers 的重複 skill？因為 `superpowers:brainstorming` 等**無法單獨卸載**（屬整包 plugin bundle）。對策是「不卸 plugin、用路由規則把 trigger 永遠導向自製版」。
 
@@ -84,7 +84,7 @@ SessionStart (matcher: startup|clear|compact) → run-hook.cmd session-start
 | 實作完成、要決定如何整合（merge/PR/cleanup） | `superpowers:finishing-a-development-branch` |
 | 建立 / 編輯 / 驗證 skill | `superpowers:writing-skills` |
 
-> 註：`requesting-code-review` / `receiving-code-review` 雖屬此類「無自製版」，但 code review 意圖一律先走 `code-review-claude`（見 §4），故實務上不主動調用。
+> 註：`requesting-code-review` / `receiving-code-review` 雖屬此類「無自製版」，但 generic code review 一律先走目前 runtime 的原生 reviewer（Claude Code → `code-review-claude`；Codex → `code-review-codex`），故實務上不主動調用。
 
 ---
 

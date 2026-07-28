@@ -13,7 +13,7 @@ A visual presentation showcasing the complete developer workflow powered by Clau
 **Contents**:
 - The Challenge: Traditional 3-day workflow pain points
 - Phase I: The Blueprint (specification writing per CLAUDE.md guidelines)
-- Phase II: The Craft (ui-design-analyzer, code-review-claude as default reviewer, code-review-gemini as optional depth/patch reviewer, code-story-teller)
+- Phase II: The Craft (ui-design-analyzer, runtime-native code review, code-story-teller; `code-review-gemini` is retired)
 - Phase III: The Delivery (pr-review-assistant)
 - Knowledge That Persists (work-log-analyzer)
 - The Core Insight: Dual-AI Pair Programmer

@@ -1,5 +1,9 @@
 # UI Design Analyzer
 
+> **Review policy update:** Use `code-review-claude` in Claude Code or
+> `code-review-codex` in Codex. Any older `code-review-gemini` referral below
+> is historical; the Gemini reviewer is retired.
+
 A Claude Code Skill for analyzing UI/UX design from screenshots using Claude's native multimodal capabilities.
 
 ## Overview

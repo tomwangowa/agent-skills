@@ -21,6 +21,27 @@ Determine the mode from ARGUMENTS:
 
 Use this mode when the user describes a need, problem, or goal and wants a skill recommendation.
 
+### Native review gate
+
+Before matching workflows or registry triggers, handle every code-review intent
+except an explicit GitHub PR review as follows:
+
+1. Treat generic review, `deep review`, `thorough review`, `detailed review`,
+   and `refactored patch` as requests for the current runtime's native review.
+2. A request for Gemini review is a request for a retired skill. Say that
+   `code-review-gemini` is deprecated and recommend the current runtime's
+   native reviewer instead. Do not run Gemini or send a diff to an external
+   endpoint.
+3. If a request names the other runtime's native reviewer, explain the runtime
+   boundary and route to the current runtime's native reviewer instead.
+4. Select the native reviewer before any
+   workflow match: Claude Code uses `code-review-claude`; Codex uses
+   `code-review-codex`.
+5. If the runtime is unknown, ask which runtime is active rather than guessing.
+6. A future external reviewer is never automatic: the user must explicitly
+   choose its model and approve the diff or data scope before anything leaves
+   the local environment.
+
 ### Steps
 
 1. Read the registry file at `~/.claude/skills/skill-router/skill-registry.yaml`.
@@ -55,11 +76,10 @@ Use the disambiguation groups below. If the matched skills span multiple groups,
 > 3. 想針對一個說法找反證 → `critical-research`
 > 4. 已經做了多項研究，需要整合結論 → `research-synthesis`
 
-**Review 類**（code-review-claude, code-review-gemini, pr-review-assistant）
+**Review 類**（code-review-codex, code-review-claude, pr-review-assistant）
 > **你要 review 什麼？**
-> 1. 預設 review：廣度掃描 + adversarial + 0 hallucination（< 30 秒） → `code-review-claude`
-> 2. 深度 / 最終驗證，或需要完整可複製的 refactored patch → `code-review-gemini`
-> 3. 審查一個 GitHub PR → `pr-review-assistant`
+> 1. 一般程式碼 review → 依目前 runtime：Claude Code 用 `code-review-claude`；Codex 用 `code-review-codex`
+> 2. 審查一個 GitHub PR → `pr-review-assistant`
 
 **設計類**（brainstorming, superpowers:writing-plans, role-pm, role-rd）
 > **你在哪個階段？**
@@ -167,6 +187,9 @@ Use this mode when the user wants to see predefined multi-skill workflows.
 ## Rules
 
 - **NEVER auto-invoke skills without explicit user confirmation.** Always present recommendations and wait.
+- Do not recommend or invoke `code-review-gemini`; it is deprecated. For a
+  future external reviewer, require an explicit model choice and approval of
+  the diff or data scope first.
 - If no match is found, say so honestly and suggest `/skill-router list` for browsing.
 - Keep descriptions concise — one line per skill, not paragraphs.
 - When presenting workflows, highlight the one most relevant to the query.

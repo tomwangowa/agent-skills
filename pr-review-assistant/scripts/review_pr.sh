@@ -1,6 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
+echo "Gemini PR review is retired; no PR diff was sent to Gemini." >&2
+echo "Use the runtime-native path in pr-review-assistant instead." >&2
+exit 1
+
 ############################
 # Configuration
 ############################

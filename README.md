@@ -8,7 +8,7 @@ These skills aren't about showcasing what AI can do — they solve a specific pr
 
 My approach is to embed engineering discipline into the AI workflow itself — using structured processes to counter cognitive blind spots shared by both AI and humans. Specifically:
 
-- **Structured code review**: Any model over-rationalizes when reviewing its own output, so review is a skill-triggered step — not a verbal assurance. As of 2026-04, `code-review-claude` is the default (broad coverage + adversarial + assumptions + syntax verification, 0/6 hallucinations in benchmark); `code-review-gemini` is optional when you want a fully applied refactored patch or an external second opinion.
+- **Structured code review**: Any model over-rationalizes when reviewing its own output, so review is a skill-triggered step — not a verbal assurance. Generic review uses the active runtime's native reviewer: `code-review-claude` in Claude Code and `code-review-codex` in Codex. `code-review-gemini` is deprecated and never runs automatically.
 - **Falsification-first**: Research skills require searching for counter-evidence before supporting evidence. This isn't pessimism — it's a systematic defense against confirmation bias.
 - **Evidence before assertion**: Before claiming any work is "done", you must run verification commands and confirm the output. Saying "tests pass" requires actually running the tests.
 
@@ -16,84 +16,29 @@ These principles don't require you to agree with my approach — they're indepen
 
 ---
 
-## Skills Overview
+## Skills Catalog
 
-Currently **38 custom skills** organized into 7 categories.
+The complete, generated inventory and its lifecycle/surface policy live in [SKILLS_CATALOG.md](./SKILLS_CATALOG.md). Use `skill-router` when you want a recommendation rather than a list.
 
-### Quality Gates (5)
+### Skills Maintenance
 
-Embed review and verification into the development workflow, not as an afterthought.
+`skills-catalog.json` is the governance source of truth for tracked top-level skills; `SKILLS_CATALOG.md` is generated from it. After changing the catalog, run `python3 scripts/validate_skills_catalog.py --write`; before committing, run `python3 scripts/validate_skills_catalog.py --check` to verify the catalog, router, both READMEs, sync excludes, and generated index agree.
 
-| Skill | Description |
-|-------|-------------|
-| [code-review-claude](./code-review-claude/) | Native code review by Claude (< 30s). Adversarial pass + assumptions list + optional refactored patch. **Default reviewer** (2026-04 benchmark: broader coverage, 0/6 verified hallucinations). |
-| [code-review-gemini](./code-review-gemini/) | Deep code review using Gemini CLI. Use for final validation, or when a fully worked refactored patch is required. Also the reviewer required by the pre-commit auto-review rule in CLAUDE.md. |
-| [pr-review-assistant](./pr-review-assistant/) | Structured pull request review. Analyzes diffs, assesses risk, provides improvement suggestions. |
-| [codebase-audit](./codebase-audit/) | Claims-first codebase audit: extracts claims from documentation, verifies each against source code. Confirms whether docs and code are consistent. |
-| [completion-gate](./completion-gate/) | Evidence gate before completion. Forces running verification commands and confirming output before claiming "done" or "passing". |
+For a sync preview that makes no filesystem changes, run `bash skill-sync/scripts/sync.sh --dry-run` (add `--no-delete` to preview additive mode). The regular sync command is interactive and may create configured target directories.
 
-### Research & Critical Thinking (9)
+### Core Skills
 
-When AI does research for you, don't just collect evidence that supports your ideas.
-
-| Skill | Description |
-|-------|-------------|
-| [tech-research-pipeline](./tech-research-pipeline/) | **Full research pipeline orchestrator**. Chains 8 skills with 2 gates, triggering a complete workflow from scoping to decision document. For major technical decisions. |
-| [deep-reading](./deep-reading/) | Systematic knowledge extraction from document sets. Identifies core mental models, expert disagreements, knowledge gaps, and teachable frameworks. For understanding, not just summarizing. |
-| [tech-feasibility](./tech-feasibility/) | Technical feasibility assessment. 8-step structured process answering "can technology X solve problem Y?" before committing to a POC. |
-| [assumption-extractor](./assumption-extractor/) | Systematically extracts explicit and implicit assumptions from technical documents. Classifies risk levels (CRITICAL → LOW), produces an Assumption Registry with dependency graphs. |
-| [micro-poc-validator](./micro-poc-validator/) | Empirically validates technical assumptions with minimal code (≤ 30 lines). Time-boxed 5-30 minute experiments producing PASS/FAIL/PARTIAL results. |
-| [critical-research](./critical-research/) | Falsification-first research: searches for counter-evidence before supporting evidence. Systematically eliminates confirmation bias. |
-| [narrative-auditor](./narrative-auditor/) | Narrative audit: cross-references articles, marketing copy, and technical claims against primary sources. Can also act as your AI proxy. |
-| [research-cross-validator](./research-cross-validator/) | Cross-validates technical claims using 2-3 independent strategies (official docs, counter-evidence search, source code inspection) to prevent single-source bias. |
-| [research-synthesis](./research-synthesis/) | Multi-source research synthesis. After running 2+ research skills, consolidates findings into an ADR-style decision document. |
-
-### Multi-Agent Roles (3)
-
-Simulate team-based collaboration with isolated PM and RD roles, each running in its own subagent.
-
-| Skill | Description |
-|-------|-------------|
-| [role-orchestrator](./role-orchestrator/) | **Pipeline coordinator.** Dispatches PM → RD subagents with approval gates between phases. Reads `project-profile.yaml` to calibrate output depth by project size (small/medium/large). For medium and large projects. |
-| [role-pm](./role-pm/) | PM role: translates goals into size-calibrated requirements artifacts (bullet + AC → user stories → full PRD). |
-| [role-rd](./role-rd/) | RD role: translates PM requirements into size-calibrated design artifacts (code plan → design doc → architecture doc). |
-
-### Design & Planning (3)
-
-Think before you build.
-
-| Skill | Description |
-|-------|-------------|
-| [brainstorming](./brainstorming/) | Socratic design dialogue. Explores requirements one question at a time, proposes 2-3 approaches with trade-offs, produces a design document. Auto-escalates to `role-orchestrator` for medium/large projects. |
-| [spec-gap-finder](./spec-gap-finder/) | Pre-dev spec/wireframe review from an RD perspective. Runs a 10-category, 60+ item checklist to find gaps, ambiguities, and undefined edge cases. Outputs a prioritized question list for a single alignment meeting with PM/Designer. |
-| [ui-design-analyzer](./ui-design-analyzer/) | UI/UX screenshot analysis. Evaluates interface design across 6 dimensions including usability, accessibility, and visual design. |
-
-### Content Generation (10)
-
-Standardize repetitive documentation, presentation, and note-taking work.
-
-| Skill | Description |
-|-------|-------------|
-| [presentation-planner](./presentation-planner/) | Presentation narrative strategy planning. Completes audience analysis, storyline design, and per-slide content planning before creating slides. |
-| [interactive-presentation-generator](./interactive-presentation-generator/) | Interactive presentation generator. Supports reveal.js / Marp / Slidev with 20 built-in professional themes. |
-| [qa-to-notes](./qa-to-notes/) | Save Claude Code conversations as Obsidian notes (Standard / Direct write), or rewrite fact-checks into a shareable "extended analysis" format for Teams (Teams publish). Three modes, unified note management. |
-| [report-generator](./report-generator/) | Generate structured reports from activity logs and git history. Supports weekly, monthly, project summary, retrospective, and more. |
-| [ai-weekly-insight](./ai-weekly-insight/) | Weekly or daily AI news deep-analysis for TrendLife AI Taskforce. Weekly: top 5 news; Daily: top 3 news. Three-dimension analysis (tech/business/competitive), outputs to Obsidian + Confluence or ai_news repo. Supports `--dest` and `daily` mode. |
-| [arxiv-digest](./arxiv-digest/) | Digest arXiv AI papers into engineer-friendly shareable formats for Taskforce meetings. Supports URL, search, and multi-paper comparison modes. |
-| [newsletter-digest](./newsletter-digest/) | Batch newsletter digestion. Reads all `.eml` files from a folder, auto-clusters by topic, and produces a structured digest with topic summaries, per-article overviews, and deep-read recommendations. Supports recursive subfolders and date filtering. |
-| [md-translate](./md-translate/) | Translate markdown files to English and Traditional Chinese. Auto-detects source language; generates `-en.md` and `-zh.md` with overwrite guard. Supports single file, batch glob, and `--lang` / `--force` flags. |
-| [pptx-to-md](./pptx-to-md/) | Convert PPTX, DOCX, XLSX, PDF, and images to Markdown via Microsoft markitdown. Consent-gated install, space-safe batch mode, per-file overwrite guard. |
-| [repo-sync](./repo-sync/) | Pull latest + optional submodule sync for any repo. Generates a What's New digest grouped by top-level directory (or custom `.claude/repo-sync-roles.yaml`). Safety backup branch before any `reset --hard`. |
-
-### Productivity & Tracking (3)
-
-Cross-session work logging and historical analysis.
-
-| Skill | Description |
-|-------|-------------|
-| [activity-logger](./activity-logger/) | Log work activities from the current session for cross-session aggregation and report generation. |
-| [work-log-analyzer](./work-log-analyzer/) | Analyze work logs. Track task progress, query project history, understand decision evolution. Supports activity aggregation, timeline, TODO, decision tracing, and general search. |
-| [code-story-teller](./code-story-teller/) | Analyze git history to tell the story of code evolution. Understand the context behind design decisions. |
+<!-- core-skills:start -->
+- [brainstorming](./brainstorming/SKILL.md) — explore a change before implementation.
+- [code-review-claude](./code-review-claude/SKILL.md) — default code review.
+- [code-review-codex](./code-review-codex/SKILL.md) — Codex-specific review path.
+- [completion-gate](./completion-gate/SKILL.md) — verify before claiming completion.
+- [handoff](./handoff/SKILL.md) — preserve a session handoff.
+- [role-orchestrator](./role-orchestrator/SKILL.md) — coordinate PM → RD work.
+- [skill-router](./skill-router/SKILL.md) — discover the right skill or workflow.
+- [skill-sync](./skill-sync/SKILL.md) — sync skills to other agent surfaces.
+- [tech-research-pipeline](./tech-research-pipeline/SKILL.md) — run a rigorous research workflow.
+<!-- core-skills:end -->
 
 ### MCP Server
 
@@ -112,29 +57,17 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 
 See [skills-query-server/README.md](./skills-query-server/README.md) for details.
 
-### Tools & Meta-skills (5)
-
-Tools for managing skills and workflows themselves.
-
-| Skill | Description |
-|-------|-------------|
-| [skill-auditor](./skill-auditor/) | Audit skills for quality, security, and best practices. Use after creating or modifying a skill. |
-| [skill-router](./skill-router/) | **Skill discovery and routing hub.** Three modes: smart routing (describe your need, get a recommendation), category browse (list all skills), and workflow browse (view predefined multi-skill chains). Your first stop when unsure which skill to use. |
-| [claude-workflow-designer](./claude-workflow-designer/) | Design Claude Code workflows. Helps you choose between mechanisms (hook / skill / subagent / MCP / CLAUDE.md) and package automation for team distribution. Backs the `/sos` slash command. |
-| [skill-sync](./skill-sync/) | One-way mirror of `~/.claude/skills/` to other agent skill folders (codex, gemini, cursor, antigravity). Uses `rsync --delete` — target-side files not in source are **removed**, shown explicitly in the dry-run preview before the `y/N` confirmation (defaults to N). Pass `--no-delete` for additive mode that preserves target-only files (no deletion). Configurable targets and exclude list; sensible defaults include symlink protection for `spec-generator`. No external dependencies. |
-
----
-
 ## About the Layered Code Review Design
 
 **Any model tends to over-rationalize existing structure when reviewing code it generated.** So this repo makes review an explicit, skill-triggered step — with an adversarial checklist and an assumptions list — instead of relying on "let Claude look it over."
 
-### Two reviewers, two roles (effective 2026-04)
+### Native reviewers by runtime
 
-- **`code-review-claude` (default)** — Native Claude review in under 30 s. Includes Step 3.3 syntax-checker verification (eliminates whitespace/regex/character-class hallucinations), Step 3.4 language-specific checklists, Step 3.5 adversarial quick check (Assumption exposed / Mirror test / Suppression / What breaks this?), Step 3.6 Assumptions Identified list, and an optional Step 4.5 Refactored Patch. In a 2026-04 n=6 benchmark across Java / Python / JS / TS / PHP / Shell HTTP retry clients, this skill's finding coverage was 2.3×–5.0× that of Gemini, with 0/6 verified hallucinations.
-- **`code-review-gemini` (optional)** — External Gemini CLI review. Useful when you want a fully applied refactored patch or an external second opinion after the claude review. Not the default anymore, but retained as a patch generator and cross-check tool.
+- **Claude Code → `code-review-claude`** — Native Claude review with syntax verification, adversarial checks, and an assumptions list.
+- **Codex → `code-review-codex`** — Native Codex review with the same local, findings-first discipline.
+- **`code-review-gemini`** — Deprecated migration reference. Router, workflow, and pre-commit flows never invoke it.
 
-> **Pre-commit auto-review** also defaults to `code-review-claude`. Pre-commit is the highest-cost scenario for hallucinations, so it uses the benchmark-most-reliable reviewer.
+> **Pre-commit auto-review** uses the native reviewer of the active runtime. Future RDSec endpoint reviewers require an explicit model choice and approval of the diff or data scope before anything is sent externally.
 
 ---
 
@@ -202,7 +135,7 @@ Without this step, typing `/sos` in Claude Code returns "command not found" even
 
 ### Set Up Gemini CLI (optional)
 
-The default reviewer `code-review-claude` is native Claude and requires no Gemini setup. Gemini CLI is only used by `code-review-gemini` (optional depth reviewer / refactored-patch generator) and the keyword-triggered Gemini path of `pr-review-assistant` (opt-in). You can skip this section if you only run the default flow.
+Gemini CLI is not used by any code-review flow: `code-review-gemini` is retired. Some unrelated opt-in skills may still use it; skip this section unless one of those skills asks for it.
 
 ```bash
 # Install Gemini CLI
@@ -229,7 +162,7 @@ gemini "Hello, test"
 
 ## Usage Examples
 
-### Code Review (default: Claude)
+### Code Review (native to the active runtime)
 
 ```bash
 # 1. Stage your changes
@@ -240,19 +173,14 @@ git add src/app.js
 > check code quality before commit
 ```
 
-The default trigger invokes `code-review-claude`, which returns a structured report in under 30 seconds:
+The default trigger invokes `code-review-claude` in Claude Code or `code-review-codex` in Codex. Both return a structured report with:
 - 🔴 High / 🟡 Medium / 🟢 Low priority findings
 - Language-specific checklist hits (Python / Shell / JS / TS / Java / PHP)
 - **Adversarial quick check** — Assumption exposed / Mirror test / Suppression / What breaks this?
 - **Assumptions Identified** — unvalidated contracts the code relies on
 - **Refactored Patch** (optional, emitted when the diff is ≤ ~200 lines)
 
-Want an external second opinion or a fully worked refactored patch? Chain a Gemini review afterwards:
-
-```
-> gemini review these changes and give me a refactored patch
-> detailed review with gemini
-```
+`code-review-gemini` is retired. A future RDSec endpoint reviewer will require you to choose the model and approve the exact diff or data scope first.
 
 ### Activity Logger
 
@@ -290,10 +218,10 @@ Activity records can be used with `work-log-analyzer` for cross-project and cros
 
 | Skill | Dependencies |
 |-------|-------------|
-| code-review-gemini | [Gemini CLI](https://github.com/google-gemini/gemini-cli), Git |
+| code-review-gemini | Deprecated migration reference; not a supported review path |
 | code-review-claude | No external dependencies |
 | code-story-teller | Git |
-| pr-review-assistant | [GitHub CLI](https://cli.github.com/), Git; [Gemini CLI](https://github.com/google-gemini/gemini-cli) (opt-in deep path only) |
+| pr-review-assistant | [GitHub CLI](https://cli.github.com/), Git |
 | ui-design-analyzer | No external dependencies (uses Claude's native multimodal capabilities) |
 | interactive-presentation-generator | No external dependencies (20 built-in theme templates) |
 | activity-logger | `jq`, Git |

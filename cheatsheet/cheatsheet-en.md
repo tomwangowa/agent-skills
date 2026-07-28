@@ -171,13 +171,12 @@ presentation-planner → interactive-presentation-generator → Slide Files
 
 | Scenario | Skill to Use | Example |
 |----------|-------------|---------|
-| Any code review (default) | `code-review-claude` | "Review the changes in src/auth/" |
-| Deep review / need a refactored patch / pre-commit validation | `code-review-gemini` | "Gemini review this module, give me a refactored patch" |
+| Generic code review | Native reviewer: `code-review-claude` in Claude Code, `code-review-codex` in Codex | "Review the changes in src/auth/" |
 | Review a pull request | `pr-review-assistant` | "Review PR #42" |
 
 > **Review skill routing guide (effective 2026-04):**
-> - **During daily development (default):** Use `/code-review-claude` — broad coverage + adversarial + assumptions + syntax verification, 0 hallucinations (benchmark n=6)
-> - **Want a second opinion or a fully applied refactored patch:** Chain `/code-review-gemini` after the claude review
+> - **During daily development:** Use the current runtime's native reviewer.
+> - **Gemini review:** `code-review-gemini` is retired. Future external reviewers require an explicit model choice and diff-scope approval.
 > - **Before merging major features:** Use `/superpowers:requesting-code-review` for dual-layer review (auto-dispatches subagents, merges results)
 > - **When receiving review feedback:** `/superpowers:receiving-code-review` prevents blind agreement — requires technical verification before implementing changes
 

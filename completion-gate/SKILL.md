@@ -32,7 +32,7 @@ The skill activates when any of these conditions are met:
 
 - Runs **after** implementation work (coding, debugging, test writing)
 - Runs **before** `superpowers:requesting-code-review` and `superpowers:finishing-a-development-branch`
-- Complements `code-review-gemini` / `code-review-claude` (those review code quality; this verifies completion claims)
+- Complements runtime-native code review (those review code quality; this verifies completion claims)
 - Shares adversarial philosophy with `codebase-audit` and `critical-research`
 
 ### What It Is NOT
@@ -344,7 +344,7 @@ This skill requires running verification commands. Safety rules:
 
 ## Related Skills
 
-- **code-review-gemini** / **code-review-claude** — Review code quality; this skill verifies completion claims
+- **code-review-claude** / **code-review-codex** — Review code quality in their native runtimes; this skill verifies completion claims
 - **codebase-audit** — Audits documentation claims against code; shares the falsification-first approach
 - **critical-research** — Applies falsification to research; this skill applies it to work claims
 - **superpowers:test-driven-development** — TDD produces the tests; this skill verifies you actually ran them

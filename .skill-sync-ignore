@@ -8,3 +8,5 @@ output-styles
 .system
 .superpowers
 .claude
+__pycache__/
+/*-audit-report.md

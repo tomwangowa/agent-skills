@@ -127,8 +127,9 @@ categories:
   code-review:
     label: 程式碼審查
     skills:
-      - id: code-review-claude
-        # Default reviewer (2026-04): broader coverage, adversarial pass, zero hallucination
+      - id: code-review-codex
+        # The native reviewer for Codex. skill-router selects it for generic
+        # review only when the active runtime is Codex.
         triggers:
           - "code review"
           - "review 一下"
@@ -141,19 +142,13 @@ categories:
           - "掃一眼"
           - "glance review"
 
-      - id: code-review-gemini
-        # Optional depth / second-opinion reviewer; produces a fully worked refactored patch.
-        # As of 2026-04, pre-commit auto-review defaults to code-review-claude (broader coverage + 0 hallucination).
+      - id: code-review-claude
+        # The native reviewer for Claude Code. skill-router selects it for
+        # generic review only when the active runtime is Claude Code.
         triggers:
-          - "deep review"
-          - "thorough review"
-          - "detailed review"
-          - "gemini review"
-          - "完整 review"
-          - "仔細看看"
-          - "深度 review"
-          - "最終驗證"
-          - "refactored patch"
+          - "code-review-claude"
+          - "claude review"
+          - "review with claude"
 
       - id: pr-review-assistant
         triggers:
@@ -167,10 +162,8 @@ categories:
           - "PR 審查"
 
       # Note: superpowers:requesting-code-review is intentionally NOT registered.
-      # It dispatches a `superpowers:code-reviewer` subagent, which conflicts
-      # with the CLAUDE.md rule "MUST 先走 code-review-claude" for any review
-      # intent. Users who specifically want the superpowers flow can invoke
-      # by full name.
+      # It bypasses skill-router's runtime-native reviewer selection. Users who
+      # specifically want that process can invoke it by full name.
 
       - id: superpowers:receiving-code-review
         # Process skill: how to technically engage with review feedback
@@ -580,7 +573,7 @@ workflows:
       - superpowers:writing-plans
       - superpowers:executing-plans
       - completion-gate
-      - code-review-claude  # default reviewer (2026-04); add code-review-gemini afterwards for depth / patch
+      # Review is selected by skill-router from the active runtime.
 
   - id: presentation
     label: 簡報製作
@@ -594,7 +587,7 @@ workflows:
     when: 代碼寫完，準備 review 和合併
     steps:
       - completion-gate
-      - code-review-claude  # default reviewer (2026-04); chain code-review-gemini afterwards only for depth / refactored patch
+      # Review is selected by skill-router from the active runtime.
       - superpowers:finishing-a-development-branch
 
   - id: role-pipeline

@@ -19,6 +19,10 @@ pr_review_result.txt
 *.tmp
 *.log
 
+# Python bytecode
+__pycache__/
+*.py[cod]
+
 # Migration backups and logs
 backup_*/
 migration_*.log

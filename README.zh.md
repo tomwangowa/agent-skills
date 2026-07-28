@@ -8,7 +8,7 @@
 
 我的做法是把工程紀律嵌入 AI 工作流程本身——用結構化流程對抗 AI 和人類共有的認知盲點。具體來說：
 
-- **結構化 Code Review**：任何模型在檢視自己的產出時都會過度合理化——所以 review 是 skill 觸發的明確步驟，不是口頭承諾。2026-04 起預設使用 `code-review-claude`（廣度 + adversarial + assumptions + syntax 驗證，0/6 hallucination）；需要完整 refactored patch 或外部第二意見時，追加 `code-review-gemini`。
+- **結構化 Code Review**：任何模型在檢視自己的產出時都會過度合理化——所以 review 是 skill 觸發的明確步驟，不是口頭承諾。一般 review 依目前 runtime 選原生 reviewer：Claude Code 用 `code-review-claude`，Codex 用 `code-review-codex`。`code-review-gemini` 已退役，不會自動執行。
 - **Falsification-first**：研究類 skills 要求先搜尋反面證據，再搜尋支持證據。這不是悲觀，而是對確認偏誤的系統性防禦。
 - **Evidence before assertion**：在宣稱任何工作「完成」之前，必須先執行驗證命令並確認輸出。說「通過測試」的前提是真的跑過測試。
 
@@ -16,84 +16,29 @@
 
 ---
 
-## Skills 總覽
+## Skills Catalog
 
-目前共 **38 個自製 skills**，按用途分為 7 類。
+完整、生成式的 inventory，以及 lifecycle／surface 政策，都在 [SKILLS_CATALOG.md](./SKILLS_CATALOG.md)。若想依需求取得推薦，請用 `skill-router`。
 
-### 品質守門 (5)
+### Skills 維護
 
-把 review 和驗證嵌入開發流程，而不是留到最後。
+`skills-catalog.json` 是已追蹤 top-level skills 的治理來源，`SKILLS_CATALOG.md` 由它產生。改 catalog 後，執行 `python3 scripts/validate_skills_catalog.py --write`；commit 前執行 `python3 scripts/validate_skills_catalog.py --check`，確認 catalog、router、兩份 README、sync excludes 與生成的 index 一致。
 
-| Skill | 說明 |
-|-------|------|
-| [code-review-claude](./code-review-claude/) | Claude 原生 code review（< 30 秒）。具備 adversarial pass、assumptions 清單、optional refactored patch。**預設 reviewer**（2026-04 benchmark：廣度更高、0/6 hallucination）。 |
-| [code-review-gemini](./code-review-gemini/) | 使用 Gemini CLI 的深度 code review。用於最終驗證、或需要完整可複製 refactored patch 時。亦為 CLAUDE.md pre-commit auto-review 規則指定的 reviewer。 |
-| [pr-review-assistant](./pr-review-assistant/) | Pull request 結構化審查。分析 diff、評估風險、提供改善建議。 |
-| [codebase-audit](./codebase-audit/) | Claims-first 程式碼庫審計：從文件中提取宣稱，逐一對照原始碼驗證。用來確認文件和程式碼是否一致。 |
-| [completion-gate](./completion-gate/) | 完成前的證據關卡。在宣稱「完成」或「通過」之前，強制執行驗證命令並確認輸出。 |
+若只想預覽同步且不改任何檔案系統內容，執行 `bash skill-sync/scripts/sync.sh --dry-run`；要預覽 additive mode，再加 `--no-delete`。一般 sync 仍是互動式操作，也可能建立設定的 target directories。
 
-### 研究與批判思考 (9)
+### Core Skills
 
-讓 AI 幫你做研究時，不只是蒐集支持你想法的資料。
-
-| Skill | 說明 |
-|-------|------|
-| [tech-research-pipeline](./tech-research-pipeline/) | **完整研究管線調度器**。串接 8 個 skill、2 個閘門，一鍵觸發從範圍界定到決策文件的全流程。適合重大技術決策。 |
-| [deep-reading](./deep-reading/) | 系統性文件深讀與知識萃取。從文件集中提取核心心智模型、專家分歧、知識缺口與可教框架。重點是理解，不只是摘要。 |
-| [tech-feasibility](./tech-feasibility/) | 技術可行性評估。8 步結構化流程，在投入 POC 之前回答「技術 X 能否解決問題 Y？」 |
-| [assumption-extractor](./assumption-extractor/) | 從技術文件中系統性提取顯性與隱性假設。分類風險等級（CRITICAL → LOW），產出含依賴圖的 Assumption Registry。 |
-| [micro-poc-validator](./micro-poc-validator/) | 用最小量代碼（≤ 30 行）實證驗證技術假設。5-30 分鐘的 time-boxed 實驗，產出 PASS/FAIL/PARTIAL 結果。 |
-| [critical-research](./critical-research/) | Falsification-first 研究：先搜尋反面證據，再搜尋支持證據。系統性消除確認偏誤。 |
-| [narrative-auditor](./narrative-auditor/) | 敘事審計：將文章、行銷文案、技術宣稱與一手資料對照查證。也可以作為你的 AI proxy 代為發言。 |
-| [research-cross-validator](./research-cross-validator/) | 用 2-3 種獨立策略（官方文件、反證搜尋、原始碼檢查等）交叉驗證技術主張，防止單一來源偏見。 |
-| [research-synthesis](./research-synthesis/) | 多源研究綜合。在跑完 2+ 個研究類 skills 後，將發現整合為 ADR 風格的決策文件。 |
-
-### 多 Agent 角色 (3)
-
-以獨立 subagent 模擬團隊中 PM 和 RD 的分工合作。
-
-| Skill | 說明 |
-|-------|------|
-| [role-orchestrator](./role-orchestrator/) | **管線協調者。** 以 subagent dispatch 串接 PM → RD，每階段都有使用者審核閘門。讀取 `project-profile.yaml` 依專案規模（small/medium/large）校準產出深度。適用中大型專案。 |
-| [role-pm](./role-pm/) | PM 角色：將目標轉化為按規模校準的需求 artifact（Bullet + AC → User stories → 完整 PRD）。 |
-| [role-rd](./role-rd/) | RD 角色：將 PM 需求轉化為按規模校準的設計 artifact（Code plan → Design doc → Architecture doc）。 |
-
-### 設計與規劃 (3)
-
-在動手之前先想清楚。
-
-| Skill | 說明 |
-|-------|------|
-| [brainstorming](./brainstorming/) | 蘇格拉底式設計對話。透過一次一個問題探索需求，提出 2-3 個方案及其取捨，產出設計文件。偵測到中大型專案時自動建議切換至 `role-orchestrator`。 |
-| [spec-gap-finder](./spec-gap-finder/) | 開發前 spec/wireframe 審查。用 RD 視角跑 10 類、60+ 項 checklist，找出 spec 缺口和未定義的 edge case。產出分優先級的問題清單，帶進一次對齊會議就能搞定。 |
-| [ui-design-analyzer](./ui-design-analyzer/) | UI/UX 截圖分析。從可用性、無障礙、視覺設計等 6 個維度評估介面設計。 |
-
-### 內容生成 (10)
-
-把重複性的文件、簡報、筆記工作標準化。
-
-| Skill | 說明 |
-|-------|------|
-| [presentation-planner](./presentation-planner/) | 簡報敘事策略規劃。在製作投影片之前，先完成受眾分析、故事線設計、逐頁內容規劃。 |
-| [interactive-presentation-generator](./interactive-presentation-generator/) | 互動式簡報生成。支援 reveal.js / Marp / Slidev，內建 20 種專業樣式。 |
-| [qa-to-notes](./qa-to-notes/) | 將 Claude Code 對話存為 Obsidian 筆記（Standard / Direct write），或改寫 fact-check 為公司群組可分享的「延伸分析」格式（Teams publish）。三種模式，同一份 note 統一管理。 |
-| [report-generator](./report-generator/) | 從活動紀錄和 git 歷史生成結構化報告。支援週報、月報、專案總結、回顧等格式。 |
-| [ai-weekly-insight](./ai-weekly-insight/) | TrendLife AI Taskforce 專用的每週/每日 AI 新聞深度分析。Weekly: Top 5；Daily: Top 3。三維分析（技術/業務/競爭），輸出至 Obsidian + Confluence 或 ai_news repo。支援 `--dest` 和 `daily` 模式。 |
-| [arxiv-digest](./arxiv-digest/) | 將 arXiv AI 論文消化為工程師友善的分享格式，供 Taskforce 會議使用。支援 URL、搜尋、多篇比較三種模式。 |
-| [newsletter-digest](./newsletter-digest/) | 電子報批次消化。讀取整個資料夾的 `.eml` 檔，自動分群歸類，產出含主題摘要、逐篇速覽、深讀推薦的結構化 digest。支援遞迴子資料夾與日期篩選。 |
-| [md-translate](./md-translate/) | 翻譯 markdown 文件為英文與繁體中文。自動偵測來源語言，產出 `-en.md`、`-zh.md`，含覆寫確認保護。支援單檔、批次 glob、`--lang` / `--force` 旗標。 |
-| [pptx-to-md](./pptx-to-md/) | 將 PPTX、DOCX、XLSX、PDF、圖片轉為 Markdown，透過 Microsoft markitdown。安裝前需使用者確認、批次模式支援含空格路徑、逐檔覆寫保護。 |
-| [repo-sync](./repo-sync/) | 任意 repo 的 pull + submodule sync（有 `.gitmodules` 才執行）。依頂層目錄自動分組產出 What's New 摘要，可用 `.claude/repo-sync-roles.yaml` 自訂分組。`reset --hard` 前自動建 backup branch。 |
-
-### 生產力與追蹤 (3)
-
-跨 session 的工作記錄和歷史分析。
-
-| Skill | 說明 |
-|-------|------|
-| [activity-logger](./activity-logger/) | 記錄當次 session 的工作活動，供跨 session 聚合與報告生成使用。 |
-| [work-log-analyzer](./work-log-analyzer/) | 分析工作日誌。追蹤任務進度、查詢專案歷史、理解決策演變。支援活動聚合、時間軸、TODO、決策追溯、通用搜尋等查詢模式。 |
-| [code-story-teller](./code-story-teller/) | 分析 git 歷史，講述程式碼的演化故事。理解設計決策的來龍去脈。 |
+<!-- core-skills:start -->
+- [brainstorming](./brainstorming/SKILL.md) — 動手前先探索變更。
+- [code-review-claude](./code-review-claude/SKILL.md) — 預設 code review。
+- [code-review-codex](./code-review-codex/SKILL.md) — Codex 專用 review 路徑。
+- [completion-gate](./completion-gate/SKILL.md) — 宣稱完成前先驗證。
+- [handoff](./handoff/SKILL.md) — 留下可接手的 session 交接。
+- [role-orchestrator](./role-orchestrator/SKILL.md) — 協調 PM → RD 工作。
+- [skill-router](./skill-router/SKILL.md) — 找到適合的 skill 或 workflow。
+- [skill-sync](./skill-sync/SKILL.md) — 同步 skills 到其他 agent surface。
+- [tech-research-pipeline](./tech-research-pipeline/SKILL.md) — 跑一條嚴謹的研究流程。
+<!-- core-skills:end -->
 
 ### MCP Server
 
@@ -112,29 +57,17 @@ claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-ser
 
 詳見 [skills-query-server/README.md](./skills-query-server/README.md)。
 
-### 工具與元技能 (5)
-
-管理 skills 與 workflows 本身的工具。
-
-| Skill | 說明 |
-|-------|------|
-| [skill-auditor](./skill-auditor/) | 審計 skills 的品質、安全性與最佳實踐。建立或修改 skill 後用來驗證。 |
-| [skill-router](./skill-router/) | **技能發現與路由中心。** 三種模式：智慧推薦（描述需求自動匹配 skill）、分類瀏覽（列出所有 skill）、工作流瀏覽（查看預設多 skill 組合流程）。不確定該用什麼 skill 時的第一站。 |
-| [claude-workflow-designer](./claude-workflow-designer/) | 設計 Claude Code 工作流。協助選擇實作機制（hook / skill / subagent / MCP / CLAUDE.md），並把自動化打包給團隊使用。`/sos` slash command 的後端 skill。 |
-| [skill-sync](./skill-sync/) | 將 `~/.claude/skills/` 單向**鏡射**到其他 agent skill 資料夾（codex、gemini、cursor、antigravity）。使用 `rsync --delete`：target 端有但 source 端沒有的檔案**會被刪除**，會在 dry-run 預覽明確列出，之後再透過 `y/N` 確認（預設 N）。可加 `--no-delete` 切換成 additive 模式，保留 target 端獨有檔案（不刪除）。支援自訂 target 和 exclude 清單，預設值含 `spec-generator` 的 symlink 保護。無外部依賴。 |
-
----
-
 ## 關於 Code Review 的分層設計
 
 **任何模型在檢視自己產生的程式碼時，都傾向對既有結構過度合理化。** 所以這個 repo 把 review 切成一個獨立步驟——以 skill 觸發、有 adversarial checklist、有 assumptions 清單——而不是靠「Claude 檢查一下自己寫的」這種同步審視。
 
-### 兩個 reviewer，兩個角色（2026-04 起）
+### 依 runtime 分流的原生 reviewer
 
-- **`code-review-claude`（預設 reviewer）**：原生 Claude < 30 秒完成。流程包含 Step 3.3 syntax-checker 驗證（消除 whitespace / regex / 字元類別這類 hallucination）、Step 3.4 語言別 checklist、Step 3.5 adversarial quick check（Assumption / Mirror test / Suppression / What breaks this?）、Step 3.6 Assumptions Identified。Step 4.5 可選擇性產出 refactored patch。2026-04 對 6 種語言的 HTTP retry client 做 n=6 benchmark，Claude 每次的 findings 廣度是 Gemini 的 2.3–5.0 倍，且 0/6 出現需修正的 hallucination。
-- **`code-review-gemini`（選配）**：Gemini CLI 外部 review，適合想要完整可套用的 refactored patch、或在 claude review 之後再來一次外部第二意見。不是預設，但保留下來作為 patch 生成器與 cross-check 工具。
+- **Claude Code → `code-review-claude`**：Claude 原生 review，包含 syntax 驗證、adversarial 檢查與 assumptions 清單。
+- **Codex → `code-review-codex`**：Codex 原生 review，同樣先列 findings，再做本機驗證。
+- **`code-review-gemini`**：已退役，只保留遷移參考；router、workflow 與 pre-commit 都不會執行它。
 
-> **pre-commit auto-review** 也預設走 `code-review-claude`。pre-commit 是 hallucination 成本最高的場景，所以用 benchmark 上最可靠的 reviewer。
+> **pre-commit auto-review** 依目前 runtime 選原生 reviewer。未來 RDSec endpoint reviewer 必須由你明確選擇模型，並確認可送出的 diff／資料範圍，才會向外送出。
 
 ---
 
@@ -202,7 +135,7 @@ ln -s ~/.claude/skills/commands/sos.md ~/.claude/commands/sos.md
 
 ### 設定 Gemini CLI（選配）
 
-預設 reviewer `code-review-claude` 是原生 Claude，不需要 Gemini。Gemini CLI 僅在以下 skills 使用：`code-review-gemini`（選配深度 reviewer / refactored patch 生成器）、`pr-review-assistant` 的 keyword-triggered Gemini 路徑（選配，詳見該 skill 文件）。如果你只跑預設流程，可以跳過本節。
+任何 code review 流程都不會用 Gemini CLI：`code-review-gemini` 已退役。其他不相關的選配 skill 可能仍會使用它；除非那些 skill 提示需要，否則可跳過本節。
 
 ```bash
 # 安裝 Gemini CLI
@@ -229,7 +162,7 @@ gemini "Hello, test"
 
 ## 使用範例
 
-### Code Review（預設：Claude）
+### Code Review（依目前 runtime）
 
 ```bash
 # 1. Stage 你的改動
@@ -241,19 +174,14 @@ git add src/app.js
 > check code quality before commit
 ```
 
-預設會觸發 `code-review-claude`，< 30 秒完成，產出包含以下面向的結構化報告：
+預設會在 Claude Code 觸發 `code-review-claude`，在 Codex 觸發 `code-review-codex`，產出包含以下面向的結構化報告：
 - 🔴 High / 🟡 Medium / 🟢 Low 優先級 findings
 - 語言別 checklist（Python / Shell / JS / TS / Java / PHP）命中
 - **Adversarial quick check**：Assumption exposed / Mirror test / Suppression / What breaks this?
 - **Assumptions Identified**：未驗證的契約清單
 - **Refactored Patch**（選配，diff ≤ 200 行時自動產出）
 
-想要更深度的外部視角或完整 refactored patch？在 claude review 之後追加：
-
-```
-> gemini review 這次的改動，給我 refactored patch
-> detailed review with gemini
-```
+`code-review-gemini` 已退役。未來若要用 RDSec endpoint reviewer，必須先選擇模型，並確認送出的 diff／資料範圍。
 
 ### Activity Logger
 
@@ -291,10 +219,10 @@ Activity records 可與 `work-log-analyzer` 搭配使用，跨專案和 session 
 
 | Skill | 依賴 |
 |-------|------|
-| code-review-gemini | [Gemini CLI](https://github.com/google-gemini/gemini-cli)、Git |
+| code-review-gemini | 已退役的遷移參考，不是支援中的 review 路徑 |
 | code-review-claude | 無外部依賴 |
 | code-story-teller | Git |
-| pr-review-assistant | [GitHub CLI](https://cli.github.com/)、Git；[Gemini CLI](https://github.com/google-gemini/gemini-cli)（僅選配深度路徑） |
+| pr-review-assistant | [GitHub CLI](https://cli.github.com/)、Git |
 | ui-design-analyzer | 無外部依賴（使用 Claude 原生多模態能力） |
 | interactive-presentation-generator | 無外部依賴（內建 20 種樣式模板） |
 | activity-logger | `jq`、Git |

@@ -727,8 +727,8 @@ Expected behavior:
 ## Integration Points
 
 ### With Other Skills
-- **code-review-claude** (default): Review skill's scripts (if any) with adversarial + assumptions pass
-- **code-review-gemini**: Optional second-opinion pass when a refactored patch is desired
+- **code-review-claude**: Review skill scripts in Claude Code with adversarial + assumptions pass
+- **code-review-codex**: Review skill scripts in Codex with adversarial + assumptions pass
 
 ### With Git Workflow
 ```bash

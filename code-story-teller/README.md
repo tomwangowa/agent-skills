@@ -1,5 +1,9 @@
 # Code Story Teller
 
+> **Review policy update:** Generic code review uses the active runtime's
+> native reviewer. Any older `code-review-gemini` referral below is historical;
+> the Gemini reviewer is retired.
+
 Analyze git history to tell the evolutionary story of your code. Understand why code exists, how it evolved, and what design decisions shaped it.
 
 ## Features
