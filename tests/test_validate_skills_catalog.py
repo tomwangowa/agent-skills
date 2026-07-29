@@ -783,5 +783,23 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
         self.assertEqual(generated_path.read_text(encoding="utf-8"), original)
 
 
+class SkillRouterListModeContractTests(unittest.TestCase):
+    """Keep skill discovery distinct from automatic routing."""
+
+    def test_list_mode_includes_non_routable_catalog_skills(self) -> None:
+        router_skill = (SOURCE_ROOT / "skill-router" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        list_mode = router_skill.split("## Mode 2 — Category Browse (`list`)", 1)[1].split(
+            "## Mode 3 — Workflow Browse", 1
+        )[0]
+
+        self.assertIn("skills-catalog.json", list_mode)
+        self.assertIn("routable: false", list_mode)
+        self.assertIn("deprecated", list_mode)
+        self.assertIn("catalog entries", list_mode)
+        self.assertIn("its `SKILL.md`", list_mode)
+
+
 if __name__ == "__main__":
     unittest.main()

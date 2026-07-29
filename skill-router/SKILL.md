@@ -142,8 +142,11 @@ Use this mode when the user wants to see all available skills organized by categ
 
 ### Steps
 
-1. Read the registry file at `~/.claude/skills/skill-router/skill-registry.yaml`.
-2. For each category in the registry, print a compact table:
+1. Read both sources:
+   - `~/.claude/skills/skill-router/skill-registry.yaml` for skills that can be automatically routed and their router categories.
+   - `~/.claude/skills/skills-catalog.json` for the complete local skill inventory and its lifecycle/surface policy.
+2. List every non-deprecated local catalog entry. Keep the router categories as the main tables, including the active external skills already registered there. Then add a separate table for catalog entries with `routable: false` that are not already shown. These skills are available when named directly, but must not be recommended by smart routing.
+3. For each table, print a compact table:
 
 ```
 ## [category label]（N 個）
@@ -153,7 +156,21 @@ Use this mode when the user wants to see all available skills organized by categ
 | skill-id | one-line description derived from triggers and context |
 ```
 
-3. End the listing with:
+For the non-routable table, include `Invocation` so user-invoked and model-invoked skills are not conflated:
+
+```
+## 未納入自動 routing（N 個）
+
+| Skill | Invocation | 說明 |
+|-------|------------|------|
+| skill-id | user / model | one-line description |
+```
+
+Derive a non-routable skill's description from its `SKILL.md` frontmatter or opening context, not from the router registry that intentionally omits it.
+
+Do not list lifecycle `deprecated` skills as available. If relevant, mention that a named deprecated skill is retained only as a migration reference.
+
+4. End the listing with:
 
 ```
 想深入了解哪個分類，或直接告訴我你的需求？
