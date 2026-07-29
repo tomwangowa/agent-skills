@@ -3,6 +3,7 @@ name: git-status-tui
 description: Use when you want a clear, at-a-glance view of git state in the Agent CLI — "git status" (enhanced), "git 狀態", "gst", "掃一下 git", "repo 狀態", "哪個 repo 還沒乾淨". Renders a box-drawing panel of the current repo (branch, ahead/behind, staged/modified/untracked, stash, in-progress ops) or, from a parent directory, a one-line-per-repo overview. Read-only; never fetches.
 compatibility: Designed for Claude Code. Requires git and perl.
 allowed-tools: Bash
+disable-model-invocation: true
 ---
 
 ## git status TUI

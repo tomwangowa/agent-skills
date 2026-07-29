@@ -9,6 +9,7 @@ description: >-
   technical decision that warrants rigorous multi-angle analysis.
   Triggered by "full research pipeline", "rigorous tech evaluation",
   "research pipeline", or "evaluate [tech] thoroughly".
+disable-model-invocation: true
 ---
 
 # Tech Research Pipeline

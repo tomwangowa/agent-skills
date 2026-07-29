@@ -7,6 +7,7 @@ description: >-
   Includes gate checks for user approval between phases. Triggered by
   "role orchestrator", "multi-role pipeline", "PM then RD", "start role
   pipeline", or "orchestrate roles".
+disable-model-invocation: true
 ---
 
 # Role Orchestrator

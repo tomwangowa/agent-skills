@@ -1,6 +1,7 @@
 ---
 name: "skill-router"
 description: "Use when unsure which skill to use, want to browse available skills, or need workflow recommendations. Unified skill discovery and routing with disambiguation for ambiguous queries. Triggers: '有哪些 skill', 'skill 列表', '我的 skills', '不知道用什麼', 'which skill', 'find skill', 'skill-router list', 'skill-router workflows'"
+disable-model-invocation: true
 ---
 
 # Skill Router
@@ -44,7 +45,9 @@ except an explicit GitHub PR review as follows:
 
 ### Steps
 
-1. Read the registry file at `~/.claude/skills/skill-router/skill-registry.yaml`.
+1. Read the registry file at `~/.claude/skills/skill-router/skill-registry.yaml` and
+   `~/.claude/skills/skills-catalog.json`. The catalog is authoritative for a local
+   skill's `invocation_intent`; registry membership only makes it discoverable.
 2. Take the user's ARGUMENTS as the search query.
 3. **Prefer workflow matches first**: compare the query against each workflow's `when` field. If the query aligns with a workflow scenario, recommend that workflow.
 4. **Fall back to individual skill matches**: if no workflow matches, compare the query against each skill's `triggers` list and `description`.
@@ -118,7 +121,11 @@ Based on the user's selection, list the skills in that category and ask which on
 
 ### Step 6 — Present recommendation
 
-6. Present the recommendation in this format:
+6. For every local recommended skill, look up its `invocation_intent` in the
+   catalog before presenting it. A registry match never overrides this value.
+   An external namespaced skill has no local catalog row and keeps the normal
+   confirmation flow.
+7. For a `model` skill, present the recommendation in this format:
 
 ```
 🔍 建議路徑：
@@ -131,8 +138,29 @@ Based on the user's selection, list the skills in that category and ask which on
 要啟動嗎？或者想調整？
 ```
 
-7. **WAIT for user confirmation** — do NOT auto-invoke any skill.
-8. On confirmation, invoke the first recommended skill via the Skill tool. If it is part of a workflow, after that skill completes, prompt the user: "下一步是 **next-skill-name**，要繼續嗎？"
+8. **WAIT for user confirmation** — do NOT auto-invoke any skill. For a model
+   skill, confirmation permits invoking the first recommended skill. If it is
+   part of a workflow, after that skill completes, prompt the user: "下一步是
+   **next-skill-name**，要繼續嗎？"
+9. For a `user` skill, present it as a manual checkpoint instead:
+
+```
+🔍 建議路徑：
+
+1. **$skill-name** — what it does for this specific need
+
+> manual checkpoint：這是 user-only skill。請直接輸入 `$skill-name` 或
+> `/skill-name` 才會啟動。
+```
+
+   This requires an explicit user invocation. A reply such as「好」、「開始」or
+   「繼續」does not invoke the skill; do not invoke it on that reply. Stop after
+   presenting this checkpoint.
+10. For a workflow, inspect every local step's catalog entry before presenting
+    the chain. Render every `user` step as `$skill-name（manual checkpoint）`.
+    Confirmation can start a leading `model` step only. When execution reaches a
+    user step, stop and require that explicit user invocation; never convert a
+    general workflow confirmation into permission for that step.
 
 ---
 
@@ -151,20 +179,15 @@ Use this mode when the user wants to see all available skills organized by categ
 ```
 ## [category label]（N 個）
 
-| Skill | 說明 |
-|-------|------|
-| skill-id | one-line description derived from triggers and context |
-```
-
-For the non-routable table, include `Invocation` so user-invoked and model-invoked skills are not conflated:
-
-```
-## 未納入自動 routing（N 個）
-
 | Skill | Invocation | 說明 |
 |-------|------------|------|
-| skill-id | user / model | one-line description |
+| skill-id | model / user / external | one-line description derived from triggers and context |
 ```
+
+Use the catalog `invocation_intent` for local skills. Mark namespaced skills as
+`external`. For `user`, show the display name as `$skill-name` and add a short
+note below the table: it is discoverable, but requires explicit user invocation.
+Use the same table shape for the non-routable table.
 
 Derive a non-routable skill's description from its `SKILL.md` frontmatter or opening context, not from the router registry that intentionally omits it.
 
@@ -184,8 +207,14 @@ Use this mode when the user wants to see predefined multi-skill workflows.
 
 ### Steps
 
-1. Read the registry file at `~/.claude/skills/skill-router/skill-registry.yaml`.
-2. For each workflow in the registry, print:
+1. Read the registry file at `~/.claude/skills/skill-router/skill-registry.yaml`
+   and `~/.claude/skills/skills-catalog.json`.
+2. For each workflow in the registry, look up every local step's
+   `invocation_intent`. Print a user-only step as `$skill-name`（manual
+   checkpoint；需 explicit user invocation）; retain a model step as its normal
+   skill name. For example, `full-research` and `role-pipeline` stay visible as
+   discovery entry points, but their user-only first steps remain manual.
+3. For each workflow in the registry, print:
 
 ```
 ### [workflow label]
@@ -193,7 +222,7 @@ Use this mode when the user wants to see predefined multi-skill workflows.
 **流程：** step1 → step2 → step3
 ```
 
-3. End the listing with:
+4. End the listing with:
 
 ```
 想啟動哪個 workflow？或描述你的需求讓我推薦。
@@ -210,7 +239,10 @@ Use this mode when the user wants to see predefined multi-skill workflows.
 - If no match is found, say so honestly and suggest `/skill-router list` for browsing.
 - Keep descriptions concise — one line per skill, not paragraphs.
 - When presenting workflows, highlight the one most relevant to the query.
-- If the user confirms a workflow, invoke the **first** skill in the chain via the Skill tool. After it completes, prompt whether to continue to the next step. Do NOT invoke the entire chain at once.
+- If the user confirms a workflow, invoke only its first `model` skill. A
+  `user` step is a manual checkpoint: show `$skill-name` and wait for that
+  explicit user invocation. Do NOT invoke the entire chain at once, and do not
+  treat a general confirmation as authorization for a user-only skill.
 - All output should be in Traditional Chinese (per global CLAUDE.md guidelines), except skill names and technical terms which remain in English.
 
 ---

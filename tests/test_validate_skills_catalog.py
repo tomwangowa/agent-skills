@@ -31,14 +31,22 @@ class SkillsCatalogFixture(unittest.TestCase):
         self.git("init", "-q")
 
         self.write_skill("alpha")
-        self.write_skill("beta")
-        self.git("add", "alpha/SKILL.md", "beta/SKILL.md")
+        self.write_skill("beta", user_only=True)
+        self.write_openai_metadata("beta")
+        self.write_skill("skill-router", user_only=True)
+        self.write_openai_metadata("skill-router")
+        self.git(
+            "add",
+            "alpha/SKILL.md",
+            "beta/SKILL.md",
+            "skill-router/SKILL.md",
+        )
 
         # These look like skills on disk, but must not enter Git-based discovery.
         self.write_skill("untracked")
         self.write_skill("nested/example")
 
-        self.write_router({"alpha"})
+        self.write_router({"alpha", "beta"})
         self.write_readmes({"alpha"})
         (self.root / ".skill-sync-ignore").write_text(
             "# Infrastructure patterns are not catalog entries.\nnested/*\n",
@@ -62,6 +70,15 @@ class SkillsCatalogFixture(unittest.TestCase):
                         category="productivity-tracking",
                         lifecycle="experimental",
                         invocation_intent="user",
+                        routable=True,
+                        listed_in_readme=False,
+                        sync=True,
+                    ),
+                    self.catalog_entry(
+                        "skill-router",
+                        category="tools-meta",
+                        lifecycle="promoted",
+                        invocation_intent="user",
                         routable=False,
                         listed_in_readme=False,
                         sync=True,
@@ -82,10 +99,22 @@ class SkillsCatalogFixture(unittest.TestCase):
             text=True,
         )
 
-    def write_skill(self, relative_directory: str) -> None:
+    def write_skill(self, relative_directory: str, *, user_only: bool = False) -> None:
         skill = self.root / relative_directory / "SKILL.md"
         skill.parent.mkdir(parents=True, exist_ok=True)
-        skill.write_text("---\nname: fixture\n---\n", encoding="utf-8")
+        user_only_field = "disable-model-invocation: true\n" if user_only else ""
+        skill.write_text(
+            f"---\nname: fixture\n{user_only_field}---\n",
+            encoding="utf-8",
+        )
+
+    def write_openai_metadata(self, relative_directory: str) -> None:
+        metadata = self.root / relative_directory / "agents" / "openai.yaml"
+        metadata.parent.mkdir(parents=True, exist_ok=True)
+        metadata.write_text(
+            "policy:\n  allow_implicit_invocation: false\n",
+            encoding="utf-8",
+        )
 
     def write_router(self, local_ids: set[str]) -> None:
         entries = "\n".join(
@@ -346,7 +375,11 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
         assert isinstance(skills, list)
         beta = next(entry for entry in skills if entry["id"] == "beta")
         beta["lifecycle"] = "deprecated"
+        surfaces = beta["surfaces"]
+        assert isinstance(surfaces, dict)
+        surfaces["routable"] = False
         self.write_catalog(catalog)
+        self.write_router({"alpha"})
         self.run_validator("--write")
 
         result = self.run_check_read_only()
@@ -364,6 +397,69 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
 
         self.assert_validator_rejects("deprecated skill alpha")
 
+    def test_validation_rejects_user_skill_without_claude_hard_gate(self) -> None:
+        self.generate_valid_catalog()
+        (self.root / "beta" / "SKILL.md").write_text(
+            "---\nname: fixture\n---\n",
+            encoding="utf-8",
+        )
+
+        self.assert_validator_rejects("beta", "disable-model-invocation")
+
+    def test_validation_rejects_user_skill_without_codex_hard_gate(self) -> None:
+        self.generate_valid_catalog()
+        (self.root / "beta" / "agents" / "openai.yaml").unlink()
+
+        self.assert_validator_rejects("beta", "allow_implicit_invocation")
+
+    def test_validation_rejects_model_skill_with_user_only_claude_gate(self) -> None:
+        self.generate_valid_catalog()
+        self.write_skill("alpha", user_only=True)
+
+        self.assert_validator_rejects("alpha", "disable-model-invocation")
+
+    def test_validation_rejects_model_skill_with_user_only_codex_gate(self) -> None:
+        self.generate_valid_catalog()
+        self.write_openai_metadata("alpha")
+
+        self.assert_validator_rejects("alpha", "allow_implicit_invocation")
+
+    def test_validation_rejects_user_skill_that_is_not_routable(self) -> None:
+        self.generate_valid_catalog()
+        catalog = self.catalog()
+        skills = catalog["skills"]
+        assert isinstance(skills, list)
+        beta = next(entry for entry in skills if entry["id"] == "beta")
+        surfaces = beta["surfaces"]
+        assert isinstance(surfaces, dict)
+        surfaces["routable"] = False
+        self.write_catalog(catalog)
+
+        self.assert_validator_rejects("user skill beta must be routable")
+
+    def test_validation_rejects_routable_skill_router(self) -> None:
+        self.generate_valid_catalog()
+        catalog = self.catalog()
+        skills = catalog["skills"]
+        assert isinstance(skills, list)
+        router = next(entry for entry in skills if entry["id"] == "skill-router")
+        surfaces = router["surfaces"]
+        assert isinstance(surfaces, dict)
+        surfaces["routable"] = True
+        self.write_catalog(catalog)
+
+        self.assert_validator_rejects("skill-router must not be routable")
+
+    def test_source_tree_enforces_user_only_runtime_gates(self) -> None:
+        result = subprocess.run(
+            [sys.executable, str(VALIDATOR), "--check"],
+            cwd=SOURCE_ROOT,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_validation_rejects_routable_skill_missing_from_router_categories(self) -> None:
         self.generate_valid_catalog()
         self.write_router(set())
@@ -372,6 +468,15 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
 
     def test_validation_rejects_non_routable_skill_still_present_in_router_categories(self) -> None:
         self.generate_valid_catalog()
+        catalog = self.catalog()
+        skills = catalog["skills"]
+        assert isinstance(skills, list)
+        beta = next(entry for entry in skills if entry["id"] == "beta")
+        beta["lifecycle"] = "deprecated"
+        surfaces = beta["surfaces"]
+        assert isinstance(surfaces, dict)
+        surfaces["routable"] = False
+        self.write_catalog(catalog)
         self.write_router({"alpha", "beta"})
 
         self.assert_validator_rejects("beta")
@@ -576,7 +681,11 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
         assert isinstance(skills, list)
         beta = next(entry for entry in skills if entry["id"] == "beta")
         beta["lifecycle"] = "deprecated"
+        surfaces = beta["surfaces"]
+        assert isinstance(surfaces, dict)
+        surfaces["routable"] = False
         self.write_catalog(catalog)
+        self.write_router({"alpha"})
         router_path = self.root / "skill-router" / "skill-registry.yaml"
         router_path.write_text(
             router_path.read_text(encoding="utf-8").replace(
@@ -596,7 +705,11 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
         assert isinstance(skills, list)
         beta = next(entry for entry in skills if entry["id"] == "beta")
         beta["lifecycle"] = "deprecated"
+        surfaces = beta["surfaces"]
+        assert isinstance(surfaces, dict)
+        surfaces["routable"] = False
         self.write_catalog(catalog)
+        self.write_router({"alpha"})
         router_path = self.root / "skill-router" / "skill-registry.yaml"
         router_path.write_text(
             router_path.read_text(encoding="utf-8")
@@ -692,7 +805,11 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
         assert isinstance(skills, list)
         beta = next(entry for entry in skills if entry["id"] == "beta")
         beta["lifecycle"] = "deprecated"
+        surfaces = beta["surfaces"]
+        assert isinstance(surfaces, dict)
+        surfaces["routable"] = False
         self.write_catalog(catalog)
+        self.write_router({"alpha"})
         router_path = self.root / "skill-router" / "skill-registry.yaml"
         router_path.write_text(
             router_path.read_text(encoding="utf-8").replace(
@@ -721,30 +838,42 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
         assert isinstance(skills, list)
         beta = next(entry for entry in skills if entry["id"] == "beta")
         beta["lifecycle"] = "deprecated"
+        surfaces = beta["surfaces"]
+        assert isinstance(surfaces, dict)
+        surfaces["routable"] = False
         self.write_catalog(catalog)
+        router_path.write_text(
+            router_path.read_text(encoding="utf-8").replace(
+                "      - id: beta\n        triggers: []\n", ""
+            ),
+            encoding="utf-8",
+        )
 
         self.assert_validator_rejects("deprecated skill", "beta", "workflow steps")
 
     def test_renderer_sorts_rows_by_category_then_id(self) -> None:
-        self.write_skill("gamma")
+        self.write_skill("gamma", user_only=True)
+        self.write_openai_metadata("gamma")
         self.git("add", "gamma/SKILL.md")
+        self.write_router({"alpha", "beta", "gamma"})
         catalog = self.catalog()
         skills = catalog["skills"]
         assert isinstance(skills, list)
         alpha = next(entry for entry in skills if entry["id"] == "alpha")
         beta = next(entry for entry in skills if entry["id"] == "beta")
+        router = next(entry for entry in skills if entry["id"] == "skill-router")
         gamma = self.catalog_entry(
             "gamma",
             category="productivity-tracking",
             lifecycle="experimental",
             invocation_intent="user",
-            routable=False,
+            routable=True,
             listed_in_readme=False,
             sync=True,
         )
         alpha["category"] = "tools-meta"
         beta["category"] = "productivity-tracking"
-        catalog["skills"] = [alpha, gamma, beta]
+        catalog["skills"] = [alpha, gamma, beta, router]
         self.write_catalog(catalog)
 
         self.assert_validator_succeeds("--write")
@@ -786,19 +915,42 @@ class ValidateSkillsCatalogTests(SkillsCatalogFixture):
 class SkillRouterListModeContractTests(unittest.TestCase):
     """Keep skill discovery distinct from automatic routing."""
 
-    def test_list_mode_includes_non_routable_catalog_skills(self) -> None:
+    @staticmethod
+    def section(start: str, end: str) -> str:
         router_skill = (SOURCE_ROOT / "skill-router" / "SKILL.md").read_text(
             encoding="utf-8"
         )
-        list_mode = router_skill.split("## Mode 2 — Category Browse (`list`)", 1)[1].split(
-            "## Mode 3 — Workflow Browse", 1
-        )[0]
+        return router_skill.split(start, 1)[1].split(end, 1)[0]
+
+    def test_list_mode_includes_non_routable_catalog_skills(self) -> None:
+        list_mode = self.section(
+            "## Mode 2 — Category Browse (`list`)", "## Mode 3 — Workflow Browse"
+        )
 
         self.assertIn("skills-catalog.json", list_mode)
         self.assertIn("routable: false", list_mode)
         self.assertIn("deprecated", list_mode)
         self.assertIn("catalog entries", list_mode)
         self.assertIn("its `SKILL.md`", list_mode)
+        self.assertIn("| Skill | Invocation | 說明 |", list_mode)
+
+    def test_smart_routing_makes_user_only_recommendations_manual_checkpoints(self) -> None:
+        smart_routing = self.section(
+            "## Mode 1 — Smart Routing (default)", "## Mode 2 — Category Browse (`list`)"
+        )
+
+        self.assertIn("skills-catalog.json", smart_routing)
+        self.assertIn("manual checkpoint", smart_routing)
+        self.assertIn("`$skill-name`", smart_routing)
+        self.assertIn("explicit user invocation", smart_routing)
+        self.assertIn("do not invoke", smart_routing)
+
+    def test_workflow_browse_marks_user_only_steps_as_manual_checkpoints(self) -> None:
+        workflow_mode = self.section("## Mode 3 — Workflow Browse", "## Rules")
+
+        self.assertIn("skills-catalog.json", workflow_mode)
+        self.assertRegex(workflow_mode, r"manual\s+checkpoint")
+        self.assertIn("`$skill-name`", workflow_mode)
 
 
 if __name__ == "__main__":

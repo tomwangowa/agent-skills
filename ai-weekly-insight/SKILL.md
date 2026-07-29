@@ -1,6 +1,7 @@
 ---
 name: ai-weekly-insight
 description: Produce weekly, daily, or monthly sharing-prep AI news deep-analysis reports for TrendLife AI Taskforce. Use when asked for "AI 週報", "AI 日報", "weekly insight", "daily insight", "AI sharing prep", "sharing session", or AI news analysis.
+disable-model-invocation: true
 ---
 
 # AI Tech Insight

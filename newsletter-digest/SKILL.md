@@ -4,6 +4,7 @@ description: |
   Use when user asks to organize newsletters, digest emails, summarize subscriptions,
   or mentions .eml files, newsletter folder, or email digest.
   Reads all .eml files from a folder, groups by topic, and produces a structured digest.
+disable-model-invocation: true
 ---
 
 # Newsletter Digest

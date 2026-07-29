@@ -1,6 +1,7 @@
 ---
 name: skill-sync
 description: Use when syncing ~/.claude/skills to Codex, Gemini, Cursor, or Antigravity; previewing syncs without writes; or when target-only skills must be preserved. Matches "sync skills", "skill-sync", "同步 skills", "push skills to other agents", and "更新其他 agent 的 skills".
+disable-model-invocation: true
 ---
 
 # Skill Sync

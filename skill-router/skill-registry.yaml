@@ -201,6 +201,15 @@ categories:
           - "challenge my plan"
           - "壓力測試"
 
+      - id: claude-workflow-designer
+        triggers:
+          - "Claude Code workflow"
+          - "設計 Claude workflow"
+          - "workflow 機制"
+          - "hook skill MCP"
+          - "hook 或 skill"
+          - "/sos"
+
       - id: spec-gap-finder
         triggers:
           - "review spec"
@@ -290,6 +299,15 @@ categories:
           - "分支完工"
           - "開始整合"
           - "how to merge"
+
+      - id: handoff
+        triggers:
+          - "/handoff"
+          - "收工"
+          - "交接"
+          - "留交接"
+          - "hand off"
+          - "下班"
 
   # ── 4. 角色協作 ────────────────────────────────────────────
   roles:
@@ -498,6 +516,15 @@ categories:
           - "sharing session"
           - "ai weekly"
 
+      - id: deai-voice-rewrite
+        triggers:
+          - "去 AI 味"
+          - "去AI味"
+          - "白話化"
+          - "改成我的口吻"
+          - "潤成我的語氣"
+          - "rewrite in my voice"
+
   # ── 10. 工具與維護 ─────────────────────────────────────────
   meta:
     label: 工具與維護
@@ -538,6 +565,15 @@ categories:
           - "submodule sync"
           - "同步 submodule"
           - "repo digest"
+
+      - id: git-status-tui
+        triggers:
+          - "git status"
+          - "git 狀態"
+          - "gst"
+          - "掃一下 git"
+          - "repo 狀態"
+          - "哪個 repo 還沒乾淨"
 
 # Note: skill authoring is handled by Claude Code's built-in `/skill-creator`.
 # `superpowers:writing-skills` is intentionally NOT registered here to avoid

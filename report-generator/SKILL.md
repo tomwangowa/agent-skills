@@ -5,6 +5,7 @@ description: >-
   or any structured report from work logs, git history, and activity
   records. Supports weekly, monthly, project, sprint, incident, and
   retrospective report types.
+disable-model-invocation: true
 ---
 
 # Report Generator

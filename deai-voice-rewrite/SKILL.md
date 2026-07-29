@@ -2,6 +2,7 @@
 name: deai-voice-rewrite
 description: Use when Tom wants to rewrite HIS OWN outward-facing content (簡報稿 / blog / newsletter / 貼文 / sharing slides) to strip AI-flavored writing, make it plainer (白話), and match his personal voice. Triggers — "去 AI 味", "去AI味", "幫我去 AI 味", "白話化", "改成我的口吻", "潤成我的語氣", "這篇 AI 味很重", "de-AI this", "rewrite in my voice", "make this sound like me". On-demand only: Tom must explicitly invoke it; never auto-run, never wire as a hook. TWO HARD GUARDS — (1) facts are frozen: numbers, ports, filenames, identifiers, table/schema names, code spans, English API terms NEVER change; (2) meaning is never silently "corrected": suspicious or odd-looking terms get FLAGGED for Tom, not edited (a weird word is often deliberate). Output is always: rewritten draft + fact-freeze checklist + flagged-terms list.
 compatibility: Designed for Claude Code / Codex. No external dependencies.
+disable-model-invocation: true
 ---
 
 # 去 AI 味 ＋ 白話 ＋ 貼 Tom 口吻 改寫

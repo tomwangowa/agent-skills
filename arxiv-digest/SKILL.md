@@ -6,6 +6,7 @@ description: >-
   導讀", "論文導讀", "paper digest", "arxiv digest", or given an arXiv URL to
   analyze. Supports single paper deep-dive, topic search with candidate
   selection, and multi-paper comparison.
+disable-model-invocation: true
 ---
 
 # arXiv Digest

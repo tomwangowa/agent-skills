@@ -1,6 +1,7 @@
 ---
 name: qa-to-notes
 description: Save Claude Code Q&A conversations as structured Obsidian-compatible knowledge notes, or rewrite fact-checks into corporate-friendly Teams publish format. Use when user wants to persist conversation content as a markdown file, or rewrite analysis for team sharing.
+disable-model-invocation: true
 ---
 
 # QA to Notes

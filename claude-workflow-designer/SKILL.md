@@ -1,6 +1,7 @@
 ---
 name: claude-workflow-designer
 description: Use this skill when the user is designing a Claude Code workflow, choosing between mechanisms (hook/skill/subagent/MCP/CLAUDE.md), or packaging automation for team distribution. Also triggered by the /sos slash command.
+disable-model-invocation: true
 ---
 
 # Claude Code Workflow Designer

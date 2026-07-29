@@ -37,6 +37,11 @@ WORKFLOWS_HEADER = re.compile(r"^workflows:\s*(?P<value>.*)$")
 WORKFLOW_ITEM = re.compile(r"^(?P<indent>\s*)-\s+(?P<key>[^\s#:]+):")
 WORKFLOW_STEP_ID = re.compile(r"^\s*-\s+([^\s#:]+(?::[^\s#:]+)?)\s*(?:#.*)?$")
 WORKFLOW_STEPS = re.compile(r"^(?P<indent>\s*)steps:\s*(?P<value>.*)$")
+CLAUDE_USER_ONLY = re.compile(r"^disable-model-invocation:\s*true\s*$", re.MULTILINE)
+CODEX_USER_ONLY = re.compile(
+    r"^policy:\s*\n\s+allow_implicit_invocation:\s*false\s*$",
+    re.MULTILINE,
+)
 CORE_START = "<!-- core-skills:start -->"
 CORE_END = "<!-- core-skills:end -->"
 
@@ -287,6 +292,58 @@ def validate_router(entries: Iterable[Mapping[str, Any]], root: Path) -> None:
             )
 
 
+def has_user_only_metadata(path: Path, pattern: re.Pattern[str]) -> bool:
+    try:
+        return pattern.search(path.read_text(encoding="utf-8")) is not None
+    except FileNotFoundError:
+        return False
+
+
+def validate_invocation_policy(entries: Iterable[Mapping[str, Any]], root: Path) -> None:
+    for entry in entries:
+        skill_id = entry["id"]
+        routable = entry["surfaces"]["routable"]
+        skill_path = root / skill_id / "SKILL.md"
+        codex_path = root / skill_id / "agents" / "openai.yaml"
+        has_claude_gate = has_user_only_metadata(skill_path, CLAUDE_USER_ONLY)
+        has_codex_gate = has_user_only_metadata(codex_path, CODEX_USER_ONLY)
+
+        if skill_id == "skill-router" and routable:
+            fail("skill-router must not be routable to avoid self-recommendation")
+
+        if entry["invocation_intent"] == "user":
+            if (
+                skill_id != "skill-router"
+                and entry["lifecycle"] != "deprecated"
+                and not routable
+            ):
+                fail(
+                    f"user skill {skill_id} must be routable so skill-router "
+                    "can recommend its explicit invocation"
+                )
+            if not has_claude_gate:
+                fail(
+                    f"{skill_path}: user skill {skill_id} requires "
+                    "disable-model-invocation: true"
+                )
+            if not has_codex_gate:
+                fail(
+                    f"{codex_path}: user skill {skill_id} requires "
+                    "policy.allow_implicit_invocation: false"
+                )
+        else:
+            if has_claude_gate:
+                fail(
+                    f"{skill_path}: model skill {skill_id} must not set "
+                    "disable-model-invocation: true"
+                )
+            if has_codex_gate:
+                fail(
+                    f"{codex_path}: model skill {skill_id} must not set "
+                    "policy.allow_implicit_invocation: false"
+                )
+
+
 def core_region(path: Path) -> str:
     try:
         content = path.read_text(encoding="utf-8")
@@ -381,6 +438,7 @@ def validate(root: Path) -> tuple[list[dict[str, Any]], str]:
     entries = read_json_catalog(root)
     validate_inventory(entries, discover_tracked_skill_ids(root))
     validate_lifecycle_surfaces(entries)
+    validate_invocation_policy(entries, root)
     validate_router(entries, root)
     validate_readmes(entries, root)
     validate_sync(entries, root)

@@ -9,6 +9,7 @@ description: >
   `.claude/handoffs/` (gitignored; filename uses a sanitized branch). Pairs
   with a session-start read-back (in repos that have one) at the start of the
   next session.
+disable-model-invocation: true
 ---
 
 # handoff
