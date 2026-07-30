@@ -21,6 +21,12 @@ On `$session-preferences` or `/session-preferences`:
 Do not apply rules retroactively or in a new session. The policy is an
 instruction carried by the current conversation, not a hard runtime state.
 
+An active module may direct conditional reading of a reference intentionally
+absent from `INDEX.md`. Read that reference before producing the matching
+content. If it cannot be read, name the missing path and do not claim that its
+rules were applied. `INDEX.md` remains the complete list of always-loaded
+modules.
+
 ## Maintain Rules
 
 Accept these explicit forms:
@@ -31,9 +37,16 @@ $session-preferences add-rule <observation or proposed rule>
 $session-preferences add-rule <category>: <observation or proposed rule>
 ```
 
-`add-deai` always proposes `deai-voice`. For `add-rule` without a category,
-choose the best existing module; propose a new kebab-case module and an
-`INDEX.md` row only when none fits.
+For `add-deai`, choose and propose the best destination:
+
+- `deai-voice`: every new Traditional Chinese reply and reference-loading
+  decisions.
+- `deai-longform`: requested drafts or prose longer than two paragraphs.
+- `deai-translation`: source-to-target translation behavior.
+- `taiwan-zh`: Taiwan terminology or Chinese punctuation judgment.
+
+For `add-rule` without a category, choose the best existing module; propose a
+new kebab-case module and an `INDEX.md` row only when none fits.
 
 Before writing, show the user:
 
@@ -43,9 +56,9 @@ Before writing, show the user:
 - that confirmation makes it effective immediately for this session.
 
 Write only after explicit confirmation. Then update the module and, if needed,
-`INDEX.md`; state that the rule is now active for the rest of the session.
-Run `skill-auditor` after any such change. Never infer and save a rule from
-ordinary conversation.
+`INDEX.md`; reread the modified reference; and state that the rule is now
+active for the rest of the session. Run `skill-auditor` after any such change.
+Never infer and save a rule from ordinary conversation.
 
 ## Conflicts and limits
 
@@ -70,7 +83,15 @@ Assistant: 我建議加到 `deai-voice`：避免把「痛點」當泛稱；改�
            確認後我才會寫入，且會立刻套用到本 session。
 ```
 
-### Example 2: Target an existing module
+### Example 2: Place a de-AI rule by its scope
+
+```text
+User: $session-preferences add-deai 翻譯時不要為了自然就改掉原文刻意的排比
+Assistant: 我建議寫入 `deai-translation`。它只約束翻譯時的忠實性判斷；
+           確認後我才會寫入，且會立刻套用到本 session。
+```
+
+### Example 3: Target an existing module
 
 ```text
 User: $session-preferences add-rule control-return: 沒有三個真實選項時，不要列下一步
