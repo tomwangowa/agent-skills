@@ -1,0 +1,6 @@
+interface:
+  display_name: "Session Preferences"
+  short_description: "Manually enable reusable session response rules"
+  default_prompt: "Use $session-preferences to enable my session response preferences."
+policy:
+  allow_implicit_invocation: false

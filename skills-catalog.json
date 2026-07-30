@@ -35,6 +35,7 @@
     {"id":"role-orchestrator","category":"multi-agent-roles","lifecycle":"promoted","invocation_intent":"user","surfaces":{"routable":true,"listed_in_readme":true,"sync":true}},
     {"id":"role-pm","category":"multi-agent-roles","lifecycle":"promoted","invocation_intent":"model","surfaces":{"routable":true,"listed_in_readme":false,"sync":true}},
     {"id":"role-rd","category":"multi-agent-roles","lifecycle":"promoted","invocation_intent":"model","surfaces":{"routable":true,"listed_in_readme":false,"sync":true}},
+    {"id":"session-preferences","category":"tools-meta","lifecycle":"experimental","invocation_intent":"user","surfaces":{"routable":true,"listed_in_readme":false,"sync":true}},
     {"id":"skill-auditor","category":"tools-meta","lifecycle":"promoted","invocation_intent":"model","surfaces":{"routable":true,"listed_in_readme":false,"sync":true}},
     {"id":"skill-router","category":"tools-meta","lifecycle":"promoted","invocation_intent":"user","surfaces":{"routable":false,"listed_in_readme":true,"sync":true}},
     {"id":"skill-sync","category":"tools-meta","lifecycle":"promoted","invocation_intent":"user","surfaces":{"routable":true,"listed_in_readme":true,"sync":true}},
