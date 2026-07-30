@@ -538,6 +538,14 @@ categories:
           - "validate skill"
           - "skill audit"
 
+      - id: session-preferences
+        triggers:
+          - "session preferences"
+          - "response preferences"
+          - "回應規則"
+          - "session 規則"
+          - "互動偏好"
+
       - id: skill-sync
         triggers:
           - "sync skills"
