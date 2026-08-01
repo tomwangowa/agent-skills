@@ -105,7 +105,44 @@ aggregate_activities.sh -r this-month -m json > report.json
 
 ---
 
-### 1. Timeline Queries (演進分析)
+### 1. Referenced Documents Audit (參考文件盤點)
+
+Find documents explicitly consulted during the last 30 days that are not yet
+in the current checkout's `session-start/repos.yaml`:
+
+```text
+「最近做過的案子，有哪些參考文件還沒加入 repos.yaml？」
+「盤點我最近參考過的 REI-Project、hie-rei 文件」
+```
+
+Run the deterministic local audit directly when needed:
+
+```bash
+python <skill_base_directory>/scripts/find_referenced_documents.py \
+  --format markdown
+
+python <skill_base_directory>/scripts/find_referenced_documents.py \
+  --since 2026-07-01 --until 2026-07-31 --format json
+```
+
+The audit reads `activities[*].references` first and uses a conservative legacy
+fallback for explicit paths in `files_changed`, `description`, and `context`.
+It does not infer paths from project names, branches, commit subjects, or task
+keywords, and it does not scan or fetch repositories. It reports:
+
+- `active`: local document still exists;
+- `stale-worktree`: a deleted clean tracked worktree was recovered as a
+  commit-pinned GitHub/GitLab URL;
+- `unresolved`: evidence exists but cannot be safely restored;
+- `already-mapped`: exact normalized path or URL is already in the map.
+
+The script requires PyYAML and is read-only. Review the candidate list, then
+select entries for the separate `session-start-repo-entry` preview/apply flow;
+this audit never writes `repos.yaml`.
+
+---
+
+### 2. Timeline Queries (演進分析)
 
 Track how implementations, features, or decisions evolved:
 
@@ -138,7 +175,7 @@ Response:
 - Refresh token: 7天，存於 Redis
 ```
 
-### 2. TODO Management (任務管理)
+### 3. TODO Management (任務管理)
 
 Find pending, overdue, and completed tasks:
 
@@ -170,7 +207,7 @@ Response:
 建議：這些任務已經過期，請評估是否仍需完成或調整優先級。
 ```
 
-### 3. Decision Queries (決策追蹤)
+### 4. Decision Queries (決策追蹤)
 
 Understand when and why decisions were made:
 
@@ -215,7 +252,7 @@ Response:
 **結論**: 長期收益大於短期成本，決定使用 TypeScript。
 ```
 
-### 4. General Search (關鍵字搜尋)
+### 5. General Search (關鍵字搜尋)
 
 Find all mentions of a topic:
 

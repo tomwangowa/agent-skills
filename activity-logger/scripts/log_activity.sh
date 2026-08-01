@@ -194,12 +194,172 @@ json_escape() {
     echo -n "$1" | jq -Rs .
 }
 
+# Normalize a path lexically without requiring a platform-specific realpath
+# implementation. This also preserves a useful absolute locator for a file
+# that has already disappeared from a worktree.
+normalize_absolute_path() {
+    local input="$1"
+    local path="$input"
+    local component
+    local normalized=()
+
+    if [[ "$path" != /* ]]; then
+        path="$PWD/$path"
+    fi
+
+    local old_ifs="$IFS"
+    IFS='/'
+    read -r -a components <<< "${path#/}"
+    IFS="$old_ifs"
+
+    for component in "${components[@]}"; do
+        case "$component" in
+            ""|.)
+                ;;
+            ..)
+                if [[ ${#normalized[@]} -gt 0 ]]; then
+                    unset 'normalized[${#normalized[@]}-1]'
+                fi
+                ;;
+            *)
+                normalized+=("$component")
+                ;;
+        esac
+    done
+
+    local result="/"
+    if [[ ${#normalized[@]} -gt 0 ]]; then
+        local joined
+        old_ifs="$IFS"
+        IFS='/'
+        joined="${normalized[*]}"
+        IFS="$old_ifs"
+        result="/$joined"
+    fi
+    printf '%s\n' "$result"
+}
+
+# Collect a locator without reading the referenced document. Git failures are
+# deliberately converted into null/unknown metadata so logging still works
+# for non-Git files and deleted worktrees.
+collect_reference() {
+    local raw_reference="$1"
+    local absolute_path
+    local repo_root=""
+    local relative_path=""
+    local branch=""
+    local commit=""
+    local remote=""
+    local tracked_json="null"
+    local working_tree_status="unknown"
+    local path_status="unknown"
+
+    if [[ "$raw_reference" == https://* ]]; then
+        jq -n \
+            --arg path "$raw_reference" \
+            '{path: $path, relative_path: null, repo_root: null,
+              branch: null, commit: null, remote: $path,
+              tracked_at_log_time: null, working_tree_status: "unknown",
+              path_status: "url"}'
+        return 0
+    fi
+
+    absolute_path=$(normalize_absolute_path "$raw_reference")
+    local reference_dir
+    reference_dir=$(dirname "$absolute_path")
+
+    # macOS exposes /var as a symlink to /private/var. Use the physical
+    # existing parent so its spelling matches Git's repository root output.
+    if [[ -d "$reference_dir" ]]; then
+        local physical_reference_dir
+        physical_reference_dir=$(cd "$reference_dir" && pwd -P)
+        absolute_path="$physical_reference_dir/$(basename "$absolute_path")"
+        reference_dir="$physical_reference_dir"
+    fi
+
+    if [[ -d "$reference_dir" ]]; then
+        repo_root=$(git -C "$reference_dir" rev-parse --show-toplevel 2>/dev/null || true)
+    fi
+
+    if [[ -n "$repo_root" ]]; then
+        if [[ "$absolute_path" == "$repo_root" ]]; then
+            relative_path="."
+        elif [[ "$absolute_path" == "$repo_root"/* ]]; then
+            relative_path="${absolute_path#"$repo_root"/}"
+        fi
+
+        branch=$(git -C "$repo_root" branch --show-current 2>/dev/null || true)
+        commit=$(git -C "$repo_root" rev-parse HEAD 2>/dev/null || true)
+        remote=$(git -C "$repo_root" config --get remote.origin.url 2>/dev/null || true)
+        if [[ -n "$remote" ]]; then
+            remote=$(echo "$remote" | sed -E 's|^(https?://)[^@]+@|\1|')
+        fi
+
+        if [[ -n "$relative_path" ]] && \
+            git -C "$repo_root" ls-files --error-unmatch -- "$relative_path" >/dev/null 2>&1; then
+            tracked_json="true"
+        else
+            tracked_json="false"
+        fi
+
+        local status_line=""
+        if [[ -n "$relative_path" ]]; then
+            status_line=$(git -C "$repo_root" status --porcelain --untracked-files=all -- "$relative_path" 2>/dev/null || true)
+        fi
+        if [[ ! -e "$absolute_path" && ! -L "$absolute_path" ]]; then
+            working_tree_status="missing"
+            path_status="missing"
+        elif [[ "$status_line" == "??"* ]]; then
+            working_tree_status="untracked"
+            path_status="untracked"
+        elif [[ -n "$status_line" ]]; then
+            working_tree_status="modified"
+            path_status="tracked"
+        else
+            working_tree_status="clean"
+            if [[ "$tracked_json" == "true" ]]; then
+                path_status="tracked"
+            else
+                path_status="untracked"
+            fi
+        fi
+    elif [[ -e "$absolute_path" || -L "$absolute_path" ]]; then
+        working_tree_status="not-git"
+        path_status="not-git"
+    else
+        working_tree_status="missing"
+        path_status="missing"
+    fi
+
+    jq -n \
+        --arg path "$absolute_path" \
+        --arg relative_path "$relative_path" \
+        --arg repo_root "$repo_root" \
+        --arg branch "$branch" \
+        --arg commit "$commit" \
+        --arg remote "$remote" \
+        --argjson tracked_at_log_time "$tracked_json" \
+        --arg working_tree_status "$working_tree_status" \
+        --arg path_status "$path_status" \
+        '{path: $path,
+          relative_path: (if $relative_path == "" then null else $relative_path end),
+          repo_root: (if $repo_root == "" then null else $repo_root end),
+          branch: (if $branch == "" then null else $branch end),
+          commit: (if $commit == "" then null else $commit end),
+          remote: (if $remote == "" then null else $remote end),
+          tracked_at_log_time: $tracked_at_log_time,
+          working_tree_status: $working_tree_status,
+          path_status: $path_status}'
+}
+
 # Main logging function
 log_activity() {
     local description="$1"
     local activity_type="${2:-task_completed}"
     local context="${3:-}"
     local tags="${4:-}"
+    shift 4
+    local reference_list=("$@")
 
     init_dirs
 
@@ -220,6 +380,17 @@ log_activity() {
 
     local commits_json
     commits_json=$(get_recent_commits)
+
+    local references_json='[]'
+    local reference
+    if [[ ${#reference_list[@]} -gt 0 ]]; then
+        for reference in "${reference_list[@]}"; do
+            local reference_json
+            reference_json=$(collect_reference "$reference")
+            references_json=$(jq -c --argjson item "$reference_json" \
+                '. + [$item]' <<< "$references_json")
+        done
+    fi
 
     # Parse tags into JSON array
     local tags_json="[]"
@@ -249,7 +420,8 @@ log_activity() {
       "type": $(json_escape "$activity_type"),
       "description": $(json_escape "$description"),
       "files_changed": $files_json,
-      "commits": $commits_json
+      "commits": $commits_json,
+      "references": $references_json
     }
   ],
   "context": $(json_escape "$context"),
@@ -277,6 +449,7 @@ main() {
     local activity_type="task_completed"
     local context=""
     local tags=""
+    local -a references=()
 
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -312,6 +485,14 @@ main() {
                 tags="$2"
                 shift 2
                 ;;
+            --reference)
+                if [[ $# -lt 2 ]] || [[ -z "${2:-}" ]]; then
+                    log_error "Missing value for $1"
+                    exit 1
+                fi
+                references+=("$2")
+                shift 2
+                ;;
             -h|--help)
                 cat <<HELP
 Usage: log_activity.sh [OPTIONS]
@@ -323,6 +504,8 @@ Options:
                                 research, documentation, review
   -c, --context TEXT      Additional context
   --tags TEXT             Comma-separated tags
+  --reference PATH        Document path to record; may be repeated. The
+                          document content is never copied into the record.
   -h, --help              Show this help message
 
 Environment Variables:
@@ -351,7 +534,11 @@ HELP
         exit 1
     fi
 
-    log_activity "$description" "$activity_type" "$context" "$tags"
+    if [[ ${#references[@]} -gt 0 ]]; then
+        log_activity "$description" "$activity_type" "$context" "$tags" "${references[@]}"
+    else
+        log_activity "$description" "$activity_type" "$context" "$tags"
+    fi
 }
 
 # Run main function
