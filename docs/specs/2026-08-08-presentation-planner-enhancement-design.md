@@ -31,8 +31,23 @@ Generator Handoff
 Record these values at the beginning of every Slide Plan:
 
 - `Input Mode`: `From-scratch` or `Optimize`
-- `Source Type`: `Topic`, `Brief`, `PPT`, `PDF`, `Markdown`, or `Report`
+- `Source Type`: `Topic`, `Brief`, `Outline`, `PPT`, `PDF`, `Markdown`, or `Report`
 - `Source of Truth`: the primary source explicitly selected by the user
+- `Cover Image`: user-provided URL/path, generator style default, or explicit `none`
+- `Ending Image`: user-provided URL/path, generator style default, or explicit `none`
+- `Logo`: user-provided URL/path or explicit `none`
+- `Company Name`: explicit value, documented generator default, or `none/not applicable`
+- `Author Name`: explicit value, documented generator default, or `none/not applicable`
+- `Custom Footer Text`: explicit value, documented generator default, or `none/not applicable`
+- `Footer Enabled`: `enabled`, `disabled`, or documented generator default
+
+When `Footer Enabled` is `enabled`, all footer text fields must resolve to an
+explicit value or documented default. When disabled, they resolve to
+`none/not applicable`. Do not claim the generator's Step 1 can be skipped while
+any required value remains unresolved.
+
+`Outline` is an existing outline supplied for optimization; it is distinct from
+an unstructured From-scratch rough direction or brief.
 
 When multiple sources conflict, use the declared source of truth, record the conflict, and do not silently merge or infer a winner. A single conflict does not block the whole plan. If no primary source is clear, ask before continuing.
 
@@ -40,7 +55,7 @@ When multiple sources conflict, use the declared source of truth, record the con
 
 **From-scratch** applies to a topic, brief, or rough direction. `Visible Elements` describes the planned content structure, and `Visual Constraints` provides guidance for the eventual slide generation.
 
-**Optimize** applies to an existing outline, PPT, PDF, Markdown file, or report. For existing slides, `Visible Elements` records elements actually present in the source. For reports or long-form Markdown, it records planned elements derived from the source and must not pretend that the original source already had that layout.
+**Optimize** applies to an existing outline, PPT, PDF, Markdown file, or report. When `Source Type` is `Outline`, the supplied outline is treated as existing structured content for optimization, not as a From-scratch rough direction. For existing slides, `Visible Elements` records elements actually present in the source. For reports or long-form Markdown, it records planned elements derived from the source and must not pretend that the original source already had that layout.
 
 `Speaker Note` remains a spoken supplement. Source speaker notes must not be copied into `Visible Elements` unless the user explicitly requests that behavior.
 
@@ -56,7 +71,15 @@ The Research Checkpoint occurs after audience/framework analysis and before narr
 
 The stop condition is sufficient evidence for this presentation, not exhaustive background research. Preserve unresolved gaps in the Slide Plan rather than filling them with guesses.
 
-After the checkpoint, do not silently restart research, rename locked concepts, or change the source-of-truth content. Perform consistency checks only. If new evidence would change the core narrative or source decision, pause handoff and return to the Research Checkpoint explicitly.
+After the checkpoint, do not silently restart research, rename locked concepts,
+add, remove, or materially rewrite the locked Core Message or Supporting
+Messages, materially add, remove, rewrite, or strengthen a visible-slide claim
+or required data element, or change the source-of-truth content. Perform
+consistency checks only. If new evidence would change the core narrative or
+source decision, pause handoff and return to the Research Checkpoint explicitly.
+Record material-gap acceptance as `not applicable` when no unresolved material
+gap is carried forward, `accepted by user` only when the user explicitly accepts
+a preserved gap, or `pending` when that decision is still required.
 
 ## 4. Slide Plan schema
 
@@ -64,8 +87,15 @@ The existing narrative fields remain. Add the following metadata and per-slide f
 
 ```markdown
 **Input Mode**: From-scratch | Optimize
-**Source Type**: Topic / Brief / PPT / PDF / Markdown / Report
+**Source Type**: Topic / Brief / Outline / PPT / PDF / Markdown / Report
 **Source of Truth**: [primary source]
+**Cover Image**: [user-provided URL/path | generator style default | none]
+**Ending Image**: [user-provided URL/path | generator style default | none]
+**Logo**: [user-provided URL/path | none]
+**Company Name**: [value | generator default | none/not applicable]
+**Author Name**: [value | generator default | none/not applicable]
+**Custom Footer Text**: [value | generator default | none/not applicable]
+**Footer Enabled**: [enabled | disabled | generator default]
 
 ### Slide N: [Slide Title]
 - **Title**: [slide title]
