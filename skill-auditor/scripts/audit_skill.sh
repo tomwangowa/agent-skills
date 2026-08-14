@@ -474,6 +474,9 @@ check_ambiguous_terms() {
     # phrase used as a section title or accepted technical term, it's not a
     # vague descriptor. Keyed by term, value is an extended-regex alternation.
     local quick_whitelist='quick[- ]?(start|rules|reference|references|fix|fixes|check|checks|win|wins|guide|tour|notes|recap|summary|tip|tips|look|peek|review|sort|sand|action|actions)'
+    # Score-table labels are controlled taxonomy, not unmeasured prose. Keep
+    # the ambiguous-term check focused on descriptive language.
+    local score_label_whitelist=':[[:space:]]*-[[:space:]]*[0-9]+[–-][0-9]+:[[:space:]]*good([[:space:][:punct:]]|$)'
 
     for term in "${ambiguous_terms[@]}"; do
         # Word-boundary, case-insensitive match. Use explicit boundaries
@@ -490,6 +493,11 @@ check_ambiguous_terms() {
         # Exclude idiomatic compound terms.
         if [[ -n "$matches" ]] && [[ "$term" == "quick" ]]; then
             matches=$(echo "$matches" | grep -viE "$quick_whitelist" || true)
+        fi
+
+        # Exclude controlled score labels such as "75–89: Good".
+        if [[ -n "$matches" ]] && [[ "$term" == "good" ]]; then
+            matches=$(echo "$matches" | grep -viE "$score_label_whitelist" || true)
         fi
 
         # Cap displayed matches.

@@ -1,6 +1,6 @@
 ---
 name: skill-auditor
-description: Audit Claude Code skills for quality, security, and best practices. Use when reviewing SKILL.md files, ensuring skill quality standards, or before sharing skills with team.
+description: Use when reviewing SKILL.md files, checking skill quality standards, or deciding whether to share a skill with a team.
 ---
 
 # Skill Auditor
@@ -587,8 +587,8 @@ Test each check function independently:
    - 4+ keywords → Pass
 
 4. **Ambiguous Terms**
-   - Contains "simple" → Warning with line number
-   - Contains "fast" → Warning with line number
+   - Contains an unmeasured descriptor → Warning with line number
+   - Contains a speed claim without a metric → Warning with line number
    - No ambiguous terms → Pass
 
 ### Integration Tests
