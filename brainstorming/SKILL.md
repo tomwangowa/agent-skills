@@ -1,12 +1,6 @@
 ---
 name: brainstorming
-description: >-
-  Use before any creative or implementation work — new features, architecture
-  changes, refactoring, or workflow design. Also use when the user wants to
-  grill / stress-test a plan or idea (triggers: grill, 烤, stress-test).
-  Relentlessly interviews one decision at a time with a recommended answer
-  each round, then proposes approaches with trade-offs and produces an
-  approved design before any code is written.
+description: "Use when Codex needs to turn a vague idea into an approved design before implementation, or when a user wants to grill / stress-test a plan or idea (triggers: grill, 烤, stress-test). Apply to new features, architecture changes, refactoring, and workflow design. Interview one decision at a time with a recommendation each round, then propose trade-offs and require approval before implementation."
 ---
 
 # Brainstorming Ideas Into Designs
@@ -14,9 +8,8 @@ description: >-
 Turn vague ideas into validated designs through structured dialogue,
 before a single line of code exists.
 
-**Core principle:** Design is not overhead — it is the fastest path to
-correct implementation. Every hour of brainstorming saves ten hours of
-rework.
+**Core principle:** Do not advance because the conversation feels complete.
+Advance only when the current phase's completion criterion is observable.
 
 **Grilling is not optional.** Phase 3 relentlessly pressure-tests every
 decision branch until shared understanding. Soft, agreement-seeking Q&A
@@ -30,10 +23,21 @@ requirements, and explores alternatives the user hasn't considered.
 
 <HARD-GATE>
 Do NOT invoke any implementation skill, write any code, scaffold any project,
-or take any implementation action until you have presented a design and the
-user has approved it. This applies to EVERY project regardless of perceived
-simplicity.
+or take any implementation action until a design has been presented and
+approved. This applies to EVERY project regardless of perceived simplicity.
 </HARD-GATE>
+
+## Context and Information Budget
+
+- **Context load** is the instruction cost paid whenever this skill is loaded.
+- **Cognitive load** is the effort required to find, interpret, and apply a
+  rule; shorter is not automatically clearer if it hides a needed gate.
+- **Progressive disclosure:** keep universal gates here; load branch-specific
+  detail only when that branch is entered (for example, read
+  `visual-companion.md` only after the user accepts the companion).
+- Invoke related skills only when the current branch requires them. Before
+  adding guidance, find its source of truth and prune duplicate, stale, or
+  no-op rules; preserve changed behavior with a precise replacement or pointer.
 
 **Announce at start:**
 > "Activating brainstorming — I'll grill the decisions one at a time
@@ -65,15 +69,17 @@ three sentences for a small task, but it MUST exist and be approved.
 
 ## Checklist
 
-You MUST create a task for each of these items and complete them in order:
+Create a task for each of these items and complete them in order.
+Keep a compact `Resolved`, `Open`, and `Next gate` record for each phase; do
+not turn it into a transcript.
 
 1. **Explore project context** — check files, docs, recent commits
 2. **Scope escalation check** — assess if project needs role-orchestrator
 3. **Offer visual companion** (if topic will involve visual questions) — this is its own message, not combined with a clarifying question
 4. **Grill decisions** — one at a time, relentlessly, with a recommended answer each round, until shared understanding
-5. **Propose 2-3 approaches** — with trade-offs, pre-mortem, and your recommendation
+5. **Propose 2-3 approaches** — with trade-offs, pre-mortem, and the recommendation
 6. **Present design** — in sections scaled to complexity, get user approval after each section
-7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` and commit
+7. **Write design doc** — save to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`; commit separately only with explicit approval
 8. **Spec self-review** — inline check for placeholders, contradictions, ambiguity, scope
 9. **User reviews written spec** — ask user to review before proceeding
 10. **Transition to implementation** — invoke writing-plans skill
@@ -117,7 +123,9 @@ digraph brainstorming {
 }
 ```
 
-**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+**The terminal state is invoking writing-plans.** After brainstorming, invoke
+only `writing-plans`; do NOT invoke frontend-design, mcp-builder, or another
+implementation skill.
 
 ## Workflow
 
@@ -138,6 +146,10 @@ immediately. Don't spend questions refining details of a project that
 needs to be decomposed first. Help the user break it into sub-projects,
 then brainstorm the first one through the normal flow.
 
+**Completion criterion:** Inspect relevant entry points, constraints, and
+history; separate facts from decisions and queue or mark unknown facts
+`NOT VERIFIED`.
+
 ### Phase 1.5: Scope Escalation Check
 
 After gathering context, quickly assess project scale:
@@ -150,7 +162,7 @@ Suggest switching to `role-orchestrator`:
 
 > "This looks like a medium/large-scale project — multiple components,
 > significant scope. The `role-orchestrator` pipeline (PM → RD with
-> structured artifacts and approval gates) would give you better
+> structured artifacts and approval gates) would provide better
 > requirements and design at this scale. Want to switch?"
 
 If the user agrees, invoke `role-orchestrator` and stop brainstorming.
@@ -159,15 +171,18 @@ If the user declines, continue with brainstorming as normal.
 **Skip this check if** the user explicitly asked for brainstorming or
 the task is clearly a single-feature addition within an existing project.
 
+**Completion criterion:** Record the scope classification and escalation
+outcome, including why escalation was skipped when applicable.
+
 ### Phase 2: Visual Companion Offer
 
-When you anticipate that upcoming questions will involve visual content
+When upcoming questions are expected to involve visual content
 (mockups, layouts, diagrams), offer it once for consent:
 
-> "Some of what we're working on might be easier to explain if I can
-> show it to you in a web browser. I can put together mockups, diagrams,
-> comparisons, and other visuals as we go. This feature is still new and
-> can be token-intensive. Want to try it? (Requires opening a local URL)"
+> "Some of what we're working on might be easier to explain with mockups,
+> diagrams, comparisons, and other visuals in a web browser. This feature is
+> still new and can be token-intensive. Want to try it? (Requires opening a
+> local URL)"
 
 **This offer MUST be its own message.** Do not combine it with clarifying
 questions, context summaries, or any other content. Wait for response.
@@ -178,10 +193,13 @@ If they agree, read the detailed guide: `skills/brainstorming/visual-companion.m
 **Skip this phase** if the topic is purely non-visual (API design,
 data modeling, backend logic, CLI tools).
 
+**Completion criterion:** Decide the visual need; if accepted, load its guide,
+otherwise proceed text-only.
+
 ### Phase 3: Grill Decisions (relentless)
 
-Interview the user relentlessly about every aspect of the idea until you
-reach a **shared understanding**. Walk down each branch of the decision
+Interview relentlessly about every aspect of the idea until a **shared
+understanding** is reached. Walk down each branch of the decision
 tree, resolving dependencies between decisions one-by-one.
 
 Ask questions **one at a time**. After each answer, ask the next
@@ -190,28 +208,37 @@ bewildering — never batch.
 
 **Fact vs decision (HARD):**
 - If a *fact* can be found by exploring the environment (filesystem, git,
-  docs, tools, runtime), look it up — do **not** ask the user.
-- The *decisions* are the user's. Put each one to them and wait for
-  their answer before continuing.
+  docs, tools, runtime), look it up and attach the path or source — do **not**
+  ask the user to supply it.
+- If a fact cannot be verified, mark it `NOT VERIFIED` and carry it as an
+  explicit assumption or blocker; never silently turn it into a decision.
+- The *decisions* are the user's. Put each one to them and wait for their
+  answer before continuing.
 
 **Decision-tree discipline:**
 - Order questions by dependency: close blocker decisions before
   dependent ones (e.g. "who is this for?" before "what auth model?").
-- After each answer, briefly note which branch closed and which opens
-  next (one sentence), then ask the next question.
+- After each answer, update the frontier with the branch that closed, the
+  branch that opens next, and the next question.
 - Do not skip a branch because it feels awkward or the user seems sure —
-  certainty without interrogation is where bad designs hide.
+  certainty without interrogation leaves failure modes undiscovered.
+
+**Decision frontier:** After each answer, update `Closed` (user-confirmed
+decisions), `Open` (design-changing branches), `Facts to verify` (a source or
+`NOT VERIFIED` status), and `Assumptions` (facts the user agrees to carry).
+Ask the highest-impact open decision next. An empty fact list does not prove
+that all decisions are closed.
 
 **Recommended answer on EVERY decision question (HARD):**
-- For each decision, state your recommended answer *in the same message*
+- For each decision, state the recommended answer *in the same message*
   as the question (or mark the recommended select option).
 - Keep the recommendation brief and opinionated. Do not hide behind
-  "it depends" unless you name the single fact that would change it.
+  "it depends" unless the single fact that would change it is named.
 - The user may reject the recommendation — that is fine. The point is
   to surface a concrete stance so they can agree or push back.
 
 **Question strategy (cover each; order by dependency):**
-1. **Purpose** — "What problem does this solve?" / "Who is this for?"
+1. **Purpose** — "What problem does this solve?" / "Who is the user?"
 2. **Scope** — "What's in scope? What's explicitly out of scope?"
 3. **Constraints** — "Any technical constraints, deadlines, or
    dependencies?"
@@ -220,22 +247,21 @@ bewildering — never batch.
 6. **Load-bearing assumptions** — anything the design collapses without;
    grill these until explicit
 
-**Default to structured select options (2-4 choices)** whenever you can
-anticipate the likely answers. Mark the recommended option. Select
-options have lower answer cost than open-ended prose — the user can tap
-instead of type. Reserve open-ended format only when you genuinely
-cannot predict the answer space (e.g., "what specific problem triggered
-this?") — and still give your recommended answer in one sentence.
+**Default to structured select options (2-4 choices)** whenever the answer
+space is predictable. Mark the recommended option. Select options have lower
+answer cost than open-ended prose. Reserve open-ended format for cases where
+the answer space cannot be predicted (e.g., "what specific problem
+triggered this?") — and still give the recommendation in one sentence.
 
-**Spoiler preview:** If the user's idea has an obvious issue you'll need
-to address later, hint at it in your first question rather than
+**Spoiler preview:** If the idea has an obvious issue requiring later
+attention, hint at it in the first question rather than
 surprising them after many rounds of Q&A:
 > "Let me grill a few decisions first. (Heads up: the caching approach
 > might have a consistency trade-off we'll need to address.)"
 
 **Stop asking only when shared understanding is explicit:**
-- You can describe the problem, constraints, and key decisions back to
-  the user.
+- The problem, constraints, and key decisions can be described back to the
+  user.
 - They confirm that description is correct.
 - No open decision-tree branches remain that would change the design.
 - Do **not** stop early just because 3–5 questions have passed. Keep
@@ -250,6 +276,10 @@ Confirm shared understanding in one short message, then wait:
 Do **not** propose approaches, write a design, or take any
 implementation action until they confirm. If they name an open branch,
 resume grilling that branch first.
+
+**Completion criterion:** The user confirms the shared understanding, `Open`
+contains no design-changing branch, and every unresolved fact is resolved or
+explicitly accepted as a `NOT VERIFIED` assumption.
 
 ### Phase 4: Explore Approaches
 
@@ -272,7 +302,7 @@ Propose **2-3 approaches** with trade-offs:
 - ...
 ```
 
-**Lead with your recommendation** and explain why. Don't present options
+**Lead with the recommendation** and explain why. Don't present options
 as equally valid if they aren't.
 
 **Pre-mortem check:** After drafting approaches, apply failure-first
@@ -288,11 +318,14 @@ to change the recommendation, say so.
 
 **REQUIRED:** When approaches involve technical decisions (choice of
 library, architecture pattern, protocol, data store, or any component
-the team hasn't used before), you MUST invoke `tech-feasibility` to
+the team hasn't used before), MUST invoke `tech-feasibility` to
 evaluate the candidates before presenting them. When approaches depend
-on factual claims about performance, scalability, or compatibility, you
-MUST invoke `critical-research` to verify those claims. Do not present
+on factual claims about performance, scalability, or compatibility, MUST
+invoke `critical-research` to verify those claims. Do not present
 unverified technical opinions as trade-off analysis.
+
+**Completion criterion:** Each approach has a mechanism, trade-offs, effort,
+and pre-mortem; verify technical claims or label them uncertain.
 
 ### Phase 5: Present Design
 
@@ -316,10 +349,10 @@ Sections (use as needed):
 - Break the system into smaller units that each have one clear purpose,
   communicate through well-defined interfaces, and can be understood and
   tested independently
-- For each unit, answer: what does it do, how do you use it, what does
+- For each unit, answer: what does it do, how is it used, what does
   it depend on?
-- Can someone understand what a unit does without reading its internals?
-  Can you change the internals without breaking consumers? If not, the
+- Can someone understand what a unit does without reading its internals? Can
+  its internals change without breaking consumers? If not, the
   boundaries need work.
 
 **Working in existing codebases:**
@@ -328,14 +361,23 @@ Sections (use as needed):
 - Where existing code has problems that affect the work, include targeted
   improvements as part of the design — don't propose unrelated refactoring.
 
+**Completion criterion:** The user has reviewed each necessary section; the
+design names out-of-scope boundaries and has no design-changing open branch.
+
 ### Phase 6: Document and Transition
 
 After user approval:
 
 1. **Write design doc** to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
    (User preferences for spec location override this default)
-2. **Commit** the design doc with message:
-   `docs(specs): add <topic> design`
+2. **Self-review** the written document before asking for review.
+3. **Show the path and change** and ask the user to review the document.
+   Writing the document and committing it are separate actions.
+4. **After the user approves the written spec**, invoke the next planning
+   step. Do not stage or commit as part of this workflow.
+
+Commit only after a separate, explicit user approval. If approved, use:
+`docs(specs): add <topic> design`.
 
 **Spec Self-Review:**
 After writing the spec, look at it with fresh eyes:
@@ -349,8 +391,8 @@ Fix issues inline. No need to re-review — just fix and move on.
 **User Review Gate:**
 After self-review, ask the user to review:
 
-> "Spec written and committed to `<path>`. Please review it and let me
-> know if you want to make any changes before we start writing out the
+> "Spec written at `<path>` and not committed yet. Please review it and
+> report any changes before we start writing the
 > implementation plan."
 
 Wait for response. If they request changes, make them and re-run
@@ -361,55 +403,28 @@ self-review. Only proceed once user approves.
 - For trivial tasks (user approved a 3-sentence design) → proceed
   directly with user's permission
 
+**Completion criterion:** The spec exists, passed self-review, and its review
+and commit status are reported separately; transition only after the written
+spec is approved.
+
+Keep the spec shorter than the implementation it describes; split the work if
+that cannot be true.
+
 **The default next step is `superpowers:writing-plans`.** Only skip it when the
 design is so small that a plan would be longer than the implementation.
 
-## Rationalization Prevention
-
-| Excuse | Reality |
-|--------|---------|
-| "The user already knows what they want" | Users know what they want at a high level. The details where bugs live are unexplored. |
-| "This is just a small change" | Small changes with wrong assumptions waste more time than large well-designed features. |
-| "I'll figure it out as I code" | That's called prototyping, not implementation. You'll throw it away. |
-| "The user seems impatient" | Spending 2 minutes on design saves 20 minutes of wrong-direction coding. Users prefer this. |
-| "I already know the best approach" | Then presenting it for approval takes 30 seconds. If you're right, no time lost. If wrong, disaster averted. |
-| "EnterPlanMode covers this" | Planning is HOW to build. Brainstorming is WHAT to build and WHY. Different stages. |
-| "3–5 questions is enough" | Stop when branches are closed and understanding is confirmed — not when a question quota is met. |
-| "I'll ask without recommending — stay neutral" | Neutrality hides your model. Every decision question needs a recommended answer so the user can agree or push back. |
-| "They're sure, so I won't push" | Certainty without interrogation is where bad designs hide. Grill the load-bearing assumption anyway. |
-
-## Red Flags — STOP
-
-- You're writing code and realize you never brainstormed → **STOP.
-  Revert. Brainstorm.**
-- You presented "one approach" instead of 2-3 → go back and explore
-  alternatives
-- You asked 3+ questions in a single message → slow down, one at a time
-- You're copy-pasting the user's request as the "design" → that's not
-  design, that's transcription
-- You skipped context gathering → you're guessing instead of designing
-- You asked a decision question without a recommended answer → add the
-  recommendation before waiting
-- You asked the user for a fact you could look up → go look it up
-- You jumped to Phase 4 without an explicit shared-understanding
-  confirmation → go back and confirm
-- You stopped grilling while open decision branches remain → keep going
-  (unless the user explicitly chose to proceed with those open branches
-  as assumptions — see Error Handling)
-
 ## Anti-patterns
 
-Watch for these common traps and push back when you see them.
+Watch for these common traps and push back when they appear.
 
 **"Just build it, I already know what I want."**
-Maybe. But if you can describe your design in 30 seconds and get
-approval, no time is lost. If you're wrong, disaster averted. Ask:
-"Can you walk me through the happy path in one sentence?" — if
-they can, the design is nearly done. If they can't, they need
-brainstorming more than they think. Either way, still grill the
-load-bearing decisions with recommended answers.
+Maybe. If the design can be described in 30 seconds and get approval, no
+time is lost. If the assumption is wrong, disaster is averted. Ask:
+"Can the happy path be stated in one sentence?" — if so, the design is
+nearly done. If not, more brainstorming is needed. Either way, still grill
+the load-bearing decisions with recommended answers.
 
-**"Can you add X, Y, and Z while you're at it?"**
+**"Also add X, Y, and Z while working on it?"**
 Scope creep during clarification. The user's *original* request is the
 real task; extras surfaced during Q&A are usually wishlist. Explicitly
 separate them: "Let's nail down X first. Y and Z can be Phase 2 — or
@@ -418,8 +433,8 @@ they might not be needed at all."
 **"Make it configurable / extensible / future-proof."**
 Premature abstraction. Design for the task at hand. Configurability is
 free to add later but expensive to remove. Ask: "What specific future
-change are you anticipating?" If they can't name one, skip it.
-Recommend against premature configurability unless they name the change.
+change is anticipated?" If none can be named, skip it. Recommend against
+premature configurability unless the change is concrete.
 
 **"Let's design the whole system before testing anything."**
 Build the smallest working version first. Validate the core assumption,
@@ -428,7 +443,7 @@ asks for the full system.
 
 **"Just ask neutrally — don't bias me with a recommendation."**
 A recommendation is a stake in the ground, not a command. Soft
-neutrality wastes rounds. State your pick; let them override.
+neutrality wastes rounds. State the pick; let the user override it.
 
 ---
 
@@ -457,7 +472,8 @@ neutrality wastes rounds. State your pick; let them override.
 >    A) localStorage (recommended)  B) User profile API  C) CSS only"
 > 5. Shared understanding check → user confirms
 > 6. [Presents 2 approaches with trade-offs, gets approval]
-> 7. Writes 5-sentence design doc → invokes superpowers:writing-plans
+> 7. Writes and self-reviews the 5-sentence design doc, gets spec approval,
+>    then invokes superpowers:writing-plans; commit remains a separate gate
 
 ### Example 2: Ambiguous Request
 
@@ -471,7 +487,8 @@ neutrality wastes rounds. State your pick; let them override.
 **RIGHT:**
 > "Activating brainstorming — 'faster' can mean many things. Grilling
 > the decision tree before approaches."
-> 1. "Which part feels slow? **Recommended: measure before guessing —
+> 1. "Which user-visible operation misses its latency target?
+>    **Recommended: measure before guessing —
 >    start by naming the user-visible symptom.**
 >    A) Initial load  B) Navigation  C) Specific actions like search"
 > 2. [User: "Search is unbearable"]
@@ -480,18 +497,6 @@ neutrality wastes rounds. State your pick; let them override.
 > 4. Shared understanding check on symptom + measured bottleneck
 > 5. Invokes tech-feasibility to evaluate indexing vs. search engine
 > 6. Proposes approaches with trade-offs
-
-## Constraints
-
-- **One question per message** — never batch questions
-- **Recommended answer on every decision question** — never ask neutrally
-- **Look up facts; ask only decisions** — do not interview the filesystem
-- **Never skip for small tasks** — scale the design down, don't skip it
-- **Never present a single approach** — minimum 2 options
-- **Never proceed without explicit approval** — including the Phase 3
-  shared-understanding gate before approaches
-- **YAGNI ruthlessly** — remove speculative features from every design
-- **Design docs are short** — shorter than the implementation they describe
 
 ## Error Handling
 
@@ -507,9 +512,9 @@ neutrality wastes rounds. State your pick; let them override.
 - Document known unknowns in the design doc's "Out of scope" section
 
 ### User Provides Contradictory Requirements
-- Surface the contradiction explicitly: "You mentioned X, but also Y —
-  these seem to conflict. Which takes priority?"
-  Include your recommended priority in the same message.
+- Surface the contradiction explicitly: "X was mentioned, but Y also
+  appears required — these seem to conflict. Which takes priority?"
+  Include the recommended priority in the same message.
 - Do not silently resolve contradictions by picking one side
 
 ### User Asks to Stop Grilling Mid-Phase
@@ -544,7 +549,8 @@ neutrality wastes rounds. State your pick; let them override.
 ### Scope Limitation
 - This skill is read-heavy and write-light (one design doc)
 - It does not execute code, install packages, or modify existing source files
-- The only file mutation is creating `docs/superpowers/specs/*.md` and committing it
+- Its file mutation is creating `docs/superpowers/specs/*.md`; a Git commit is
+  optional and requires a separate explicit approval
 
 ---
 
