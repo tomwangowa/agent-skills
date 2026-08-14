@@ -9,12 +9,13 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Audit score tracking
+# Audit score tracking. SCORE is raw; reports normalize it to 0-100.
 SCORE=0
 MAX_SCORE=125
 CRITICAL_ISSUES=0
 IMPORTANT_ISSUES=0
 SUGGESTIONS=0
+READINESS="Not ready"
 
 # Skill archetype — detected from SKILL_DIR layout. See detect_archetype().
 # Determines which checks apply and the score ceiling.
@@ -681,22 +682,24 @@ check_scripts() {
 generate_report() {
     log_check "Generating final report..."
 
-    # Calculate percentage and status
-    local percentage=$((SCORE * 100 / MAX_SCORE))
+    # Calculate normalized score and score rating separately from readiness.
+    local normalized_score=$((SCORE * 100 / MAX_SCORE))
     local status="❌ Critical Issues"
 
-    if [[ $percentage -ge 90 ]]; then
+    if [[ $normalized_score -ge 90 ]]; then
         status="✅ Excellent"
-    elif [[ $percentage -ge 75 ]]; then
+    elif [[ $normalized_score -ge 75 ]]; then
         status="⚠️  Good"
-    elif [[ $percentage -ge 60 ]]; then
+    elif [[ $normalized_score -ge 60 ]]; then
         status="⚠️  Needs Improvement"
     fi
 
-    # Production ready?
-    local prod_ready="❌ No - Fix critical issues first"
-    if [[ $CRITICAL_ISSUES -eq 0 ]]; then
-        prod_ready="✅ Yes"
+    # Readiness is independent from the normalized score.
+    READINESS="Not ready"
+    if [[ $CRITICAL_ISSUES -eq 0 && $IMPORTANT_ISSUES -eq 0 ]]; then
+        READINESS="Ready"
+    elif [[ $CRITICAL_ISSUES -eq 0 ]]; then
+        READINESS="Conditional"
     fi
 
     # Write complete report
@@ -711,7 +714,7 @@ generate_report() {
 
 ## Executive Summary
 
-**Overall Score**: $percentage/100 $status
+**Overall Score**: $normalized_score/100 $status
 
 | Severity | Count |
 |----------|-------|
@@ -719,7 +722,7 @@ generate_report() {
 | 🟡 Important | $IMPORTANT_ISSUES |
 | 🟢 Suggestions | $SUGGESTIONS |
 
-**Production Ready**: $prod_ready
+**Readiness**: $READINESS
 
 ---
 
@@ -750,18 +753,18 @@ EOF
 1. 🔴 Fix all $CRITICAL_ISSUES critical issue(s)
 2. Review $IMPORTANT_ISSUES important issue(s)
 3. Re-run audit to verify fixes
-4. Target score: 85+ for production quality
+4. Target normalized score: 90+ for an Excellent rating; readiness remains separate
 EOF
     elif [[ $IMPORTANT_ISSUES -gt 0 ]]; then
         cat >> "$REPORT_FILE" << EOF
-1. 🟡 Consider fixing $IMPORTANT_ISSUES important issue(s)
-2. Current score: $percentage% - Good for production
-3. Optional: Address suggestions for excellence
+1. 🟡 Address $IMPORTANT_ISSUES important issue(s) before declaring the skill Ready
+2. Current score rating: $normalized_score/100 - readiness is Conditional
+3. Optional: Address suggestions for further polish
 EOF
     else
         cat >> "$REPORT_FILE" << EOF
-1. ✅ Skill is production-ready!
-2. Score: $percentage% - Excellent quality
+1. ✅ Skill readiness is Ready
+2. Score: $normalized_score/100 - $status
 3. Optional: Consider suggestions for further polish
 EOF
     fi
@@ -784,7 +787,7 @@ main() {
     echo "Directory: $SKILL_DIR"
 
     detect_archetype
-    echo "Archetype: $SKILL_ARCHETYPE (max score ceiling: $MAX_SCORE)"
+    echo "Archetype: $SKILL_ARCHETYPE (raw score ceiling: $MAX_SCORE)"
     echo ""
 
     write_archetype_section
@@ -813,13 +816,17 @@ main() {
     echo "  Critical: $CRITICAL_ISSUES"
     echo "  Important: $IMPORTANT_ISSUES"
     echo "  Suggestions: $SUGGESTIONS"
+    echo "  Readiness: $READINESS"
     echo ""
 
     if [[ $CRITICAL_ISSUES -gt 0 ]]; then
         echo -e "${RED}⚠️  Critical issues found. Fix before sharing with team.${NC}"
         exit 1
+    elif [[ $IMPORTANT_ISSUES -gt 0 ]]; then
+        echo -e "${YELLOW}⚠️  No critical issues; readiness is Conditional until important issues are addressed.${NC}"
+        exit 0
     else
-        echo -e "${GREEN}✅ No critical issues. Skill is production-ready!${NC}"
+        echo -e "${GREEN}✅ Skill readiness is Ready.${NC}"
         exit 0
     fi
 }

@@ -89,7 +89,7 @@
    - Capture stderr output
    - Parse error message
    - Provide context-specific guidance
-   - Example: "Gemini CLI failed: [error]. Check API key is set."
+   - Example: "External tool failed: [error]. Check that the tool is installed and configured."
    ```
 
 ### Generation Errors

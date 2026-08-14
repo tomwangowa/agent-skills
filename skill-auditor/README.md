@@ -24,9 +24,9 @@ Skill Auditor is a meta-skill that reviews other skills for:
 - ✅ Script quality checks
 
 ### Scoring System
-- **100-point scale** (normalized from internal 130-point system)
+- **100-point scale** (normalized from archetype-specific raw ceilings: 125 for script-bearing, 65 for pure-instruction)
 - **Severity levels**: Critical, Important, Suggestions
-- **Production readiness** assessment
+- **Readiness** assessed independently from the score
 - **Actionable recommendations** for each issue
 
 ### Report Generation
@@ -34,7 +34,7 @@ Skill Auditor is a meta-skill that reviews other skills for:
 - Categorized findings
 - Line number references
 - Specific fix recommendations
-- Pass/fail determination
+- Score rating and Readiness determination
 
 ## Quick Start
 
@@ -106,12 +106,18 @@ Claude will:
 
 ## Scoring
 
-| Score | Rating | Status |
-|-------|--------|--------|
-| 90-100 | Excellent ✅ | Production-ready |
-| 75-89 | Good ⚠️ | Minor improvements recommended |
-| 60-74 | Needs Work ⚠️ | Address important issues |
-| <60 | Critical Issues ❌ | Not ready for production |
+| Score | Rating |
+|-------|--------|
+| 90-100 | Excellent ✅ |
+| 75-89 | Good ⚠️ |
+| 60-74 | Needs Improvement ⚠️ |
+| <60 | Critical Issues ❌ |
+
+Readiness is independent from the score:
+
+- **Ready**: 0 Critical and 0 Important findings
+- **Conditional**: 0 Critical and at least 1 Important finding
+- **Not ready**: at least 1 Critical finding
 
 Checks: Structure, Security, Error Handling, Portability, Quality & Clarity, Documentation, Script Quality, Description Voice, Writing Style.
 
@@ -129,7 +135,7 @@ Checks: Structure, Security, Error Handling, Portability, Quality & Clarity, Doc
 | 🟡 Important | 3 |
 | 🟢 Suggestions | 2 |
 
-**Production Ready**: ✅ Yes (with minor improvements)
+**Readiness**: Conditional
 
 ---
 
@@ -149,7 +155,7 @@ Checks: Structure, Security, Error Handling, Portability, Quality & Clarity, Doc
 ---
 
 ## Summary
-Fix hardcoded paths, then ready for team sharing.
+Fix the hardcoded path and Important findings before declaring the skill Ready.
 ```
 
 ## Common Issues & Fixes
@@ -265,7 +271,7 @@ Claude: [Runs skill-auditor]
 User: "Audit all my skills"
 Claude: [Audits each skill]
         "Summary:
-         - 5 skills production-ready ✅
+         - 5 skills Ready ✅
          - 2 skills need security improvements ⚠️
          - 1 skill has critical issues ❌"
 ```
@@ -281,10 +287,10 @@ Claude: [Compares with previous audit]
 
 ## Checklist Reference
 
-### Critical Checks (Must Pass)
+### Critical Checks (Must Pass when applicable)
 - [ ] No hardcoded absolute paths
-- [ ] Security Considerations section exists
-- [ ] Error Handling section exists
+- [ ] Security Considerations section exists (script-bearing only)
+- [ ] Error Handling section exists (script-bearing only)
 - [ ] YAML frontmatter valid
 - [ ] No credentials/secrets in files
 
@@ -305,7 +311,7 @@ Claude: [Compares with previous audit]
 
 - Cannot detect all security vulnerabilities (manual review still needed)
 - Pattern-based detection may have false positives/negatives
-- Semantic analysis depends on AI capabilities
+- Semantic review depends on the active agent's judgment
 - Some checks require human judgment
 
 ## Related Skills
@@ -337,10 +343,10 @@ Claude: [Compares with previous audit]
 - Proactively add required sections
 - Follow security/error handling templates
 
-### 5. Aim for 85+ Score
-- 85+ ensures production quality
-- Demonstrates professional standards
-- Safe for team collaboration
+### 5. Use Score and Readiness Together
+- 90+ is the Excellent score rating
+- `Ready` requires 0 Critical and 0 Important findings
+- `Conditional` or `Not ready` requires explicit follow-up before sharing
 
 ## Contributing
 

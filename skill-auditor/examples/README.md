@@ -54,6 +54,10 @@ Ready-to-use template for adding Error Handling section to your SKILL.md.
 
 ## Common Audit Failures & Quick Fixes
 
+The Security and Error Handling findings below are Critical for `script-bearing`
+skills. For `pure-instruction` skills, the auditor treats those sections as
+informational because the skill has no I/O surface of its own.
+
 ### 🔴 Critical: Missing Security Section
 
 **Quick Fix (2 minutes):**
@@ -175,11 +179,11 @@ bash skill-auditor/scripts/audit_skill.sh my-skill
 bash skill-auditor/scripts/audit_skill.sh my-skill
 ```
 
-**Target score:** 85+
+**Target score rating:** 90+ for Excellent; evaluate Readiness separately.
 
-### Step 5: Production Ready ✅
+### Step 5: Readiness Check ✅
 
-When score ≥ 85 and no critical issues:
+When Readiness is `Ready` (0 Critical and 0 Important findings):
 - Share with team
 - Commit to repository
 - Add to team's skill library
@@ -199,9 +203,9 @@ When score ≥ 85 and no critical issues:
 
 ### After Fixes
 
-**Score**: 88/100 ✅
-**Issues**: 0 critical, 1 minor suggestion
-**Status**: Production-ready
+**Score**: 88/100 ⚠️ Good
+**Issues**: 0 critical, 0 important, 1 suggestion
+**Readiness**: Ready
 
 **Changes made:**
 - Added Security Considerations (15 min)
@@ -211,15 +215,14 @@ When score ≥ 85 and no critical issues:
 
 ## Tips for High Scores
 
-### To reach 85+:
-1. ✅ Include all critical sections (Security, Error Handling)
-2. ✅ No hardcoded paths
-3. ✅ At least 3 usage examples
-4. ✅ README.md with quick start
-5. ✅ No ambiguous terminology
-6. ✅ Clear workflow documentation
+### To reach `Ready`:
+1. ✅ Resolve all Critical findings
+2. ✅ Resolve all Important findings
+3. ✅ Keep the score rating and Readiness as separate signals
+4. ✅ No hardcoded paths
+5. ✅ Clear workflow documentation
 
-### To reach 95+:
+### To reach 90+:
 1. All of the above, plus:
 2. ✅ QUICKSTART.md or detailed quick start section
 3. ✅ Troubleshooting section with 5+ scenarios
