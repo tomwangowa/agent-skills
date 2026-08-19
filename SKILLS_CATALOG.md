@@ -26,7 +26,7 @@
 | [git-status-tui](./git-status-tui/SKILL.md) | productivity-tracking | experimental | user | yes | no | yes |
 | [handoff](./handoff/SKILL.md) | productivity-tracking | promoted | user | yes | yes | yes |
 | [repo-sync](./repo-sync/SKILL.md) | productivity-tracking | promoted | model | yes | no | yes |
-| [work-log-analyzer](./work-log-analyzer/SKILL.md) | productivity-tracking | personal | user | yes | no | yes |
+| [work-log-analyzer](./work-log-analyzer/SKILL.md) | productivity-tracking | personal | model | yes | no | yes |
 | [code-review-claude](./code-review-claude/SKILL.md) | quality-gates | promoted | model | yes | yes | yes |
 | [code-review-codex](./code-review-codex/SKILL.md) | quality-gates | personal | model | yes | yes | yes |
 | [code-review-gemini](./code-review-gemini/SKILL.md) | quality-gates | deprecated | model | no | no | yes |
@@ -45,5 +45,5 @@
 | [tech-research-pipeline](./tech-research-pipeline/SKILL.md) | research-critical-thinking | promoted | user | yes | yes | yes |
 | [session-preferences](./session-preferences/SKILL.md) | tools-meta | experimental | user | yes | no | yes |
 | [skill-auditor](./skill-auditor/SKILL.md) | tools-meta | promoted | model | yes | no | yes |
-| [skill-router](./skill-router/SKILL.md) | tools-meta | promoted | user | no | yes | yes |
+| [skill-router](./skill-router/SKILL.md) | tools-meta | promoted | model | no | yes | yes |
 | [skill-sync](./skill-sync/SKILL.md) | tools-meta | promoted | user | yes | yes | yes |

@@ -922,6 +922,39 @@ class SkillRouterListModeContractTests(unittest.TestCase):
         )
         return router_skill.split(start, 1)[1].split(end, 1)[0]
 
+    def test_target_skills_are_model_invokable_with_router_non_routable(self) -> None:
+        catalog = json.loads(
+            (SOURCE_ROOT / "skills-catalog.json").read_text(encoding="utf-8")
+        )
+        entries = {entry["id"]: entry for entry in catalog["skills"]}
+
+        self.assertEqual(entries["skill-router"]["invocation_intent"], "model")
+        self.assertEqual(entries["work-log-analyzer"]["invocation_intent"], "model")
+        self.assertFalse(entries["skill-router"]["surfaces"]["routable"])
+        self.assertTrue(entries["work-log-analyzer"]["surfaces"]["routable"])
+
+    def test_target_skills_do_not_keep_user_only_runtime_gates(self) -> None:
+        for skill_id in ("work-log-analyzer", "skill-router"):
+            skill_text = (SOURCE_ROOT / skill_id / "SKILL.md").read_text(
+                encoding="utf-8"
+            )
+            openai_text = (SOURCE_ROOT / skill_id / "agents" / "openai.yaml").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertNotIn("disable-model-invocation: true", skill_text)
+            self.assertNotIn("allow_implicit_invocation: false", openai_text)
+
+    def test_smart_routing_separates_router_invocation_from_downstream_execution(self) -> None:
+        smart_routing = self.section(
+            "## Mode 1 — Smart Routing (default)", "## Mode 2 — Category Browse (`list`)"
+        )
+
+        self.assertIn("router itself may be invoked by the agent", smart_routing)
+        self.assertIn("downstream", smart_routing)
+        self.assertIn("user-only", smart_routing)
+        self.assertIn("manual checkpoint", smart_routing)
+
     def test_list_mode_includes_non_routable_catalog_skills(self) -> None:
         list_mode = self.section(
             "## Mode 2 — Category Browse (`list`)", "## Mode 3 — Workflow Browse"

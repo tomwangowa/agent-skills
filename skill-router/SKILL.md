@@ -1,7 +1,6 @@
 ---
 name: "skill-router"
 description: "Use when unsure which skill to use, want to browse available skills, or need workflow recommendations. Unified skill discovery and routing with disambiguation for ambiguous queries. Triggers: '有哪些 skill', 'skill 列表', '我的 skills', '不知道用什麼', 'which skill', 'find skill', 'skill-router list', 'skill-router workflows'"
-disable-model-invocation: true
 ---
 
 # Skill Router
@@ -44,6 +43,10 @@ except an explicit GitHub PR review as follows:
    the local environment.
 
 ### Steps
+
+The router itself may be invoked by the agent when the task needs skill discovery or routing. It is an internal routing helper, not a recommendation result; `surfaces.routable: false` keeps it from recommending itself. Routing selects a skill or workflow, but it does not grant permission to bypass the selected skill's invocation policy.
+
+For a model-invokable downstream skill, continue through the existing routing flow. For a user-only downstream skill, stop at a manual checkpoint and wait for the user to explicitly invoke `$skill-name` or `/skill-name`. A reply such as「好」、「開始」or「繼續」does not count as explicit invocation.
 
 1. Read the registry file at `~/.claude/skills/skill-router/skill-registry.yaml` and
    `~/.claude/skills/skills-catalog.json`. The catalog is authoritative for a local
@@ -232,7 +235,8 @@ Use this mode when the user wants to see predefined multi-skill workflows.
 
 ## Rules
 
-- **NEVER auto-invoke skills without explicit user confirmation.** Always present recommendations and wait.
+- The router may be invoked by the agent for skill discovery and routing. Do not treat router invocation as permission to bypass a downstream skill's invocation policy.
+- **NEVER auto-invoke a downstream skill without explicit user confirmation.** Always present recommendations and wait. A model-invokable downstream skill still requires confirmation before it starts; a user-only downstream skill requires `$skill-name` or `/skill-name`.
 - Do not recommend or invoke `code-review-gemini`; it is deprecated. For a
   future external reviewer, require an explicit model choice and approval of
   the diff or data scope first.

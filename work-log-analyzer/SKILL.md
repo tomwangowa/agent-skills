@@ -1,7 +1,6 @@
 ---
 name: work-log-analyzer
 description: Use when the user wants to query their work journal, track task progress, or understand how decisions evolved over time. Analyzes activity-logger records and work logs to answer questions about project history, decisions, TODOs, and timeline evolution.
-disable-model-invocation: true
 ---
 
 # Work Log Analyzer
