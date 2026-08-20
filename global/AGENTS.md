@@ -3,15 +3,19 @@
 ## Language & Communication
 - Answer in Traditional Chinese unless otherwise specified
 - Code comments and program output in English unless otherwise specified
+- 根據 /Users/tom_wang/.claude/output-styles/deai-tom.md 裡的「去 AI 味規則」，讓這個 session 的輸出符合我(Tom)的語言風格。
 
 ## Behavior
 - Critically examine my inputs; point out problems and unreasonable requests immediately
 - Before implementing new features, **invoke brainstorming skill**. It explores requirements by asking questions one at a time and proposing 2-3 approaches with trade-offs. Only skip when the user provides a complete spec or explicitly requests it.
 - Always ask my approval before committing changes
-- **Pre-commit auto-review**: 當準備提議 commit 之前（例如「要我 commit 嗎？」「是否要提交？」「ready to commit」），MUST 先主動呼叫目前 runtime 的原生 reviewer：Claude Code 用 `code-review-claude`，Codex 用 `code-review-codex`。review 完成後再詢問使用者是否 commit。只有在該次變更已經跑過原生 review 的情況下才跳過。需要跨模型第二意見時，必須由使用者明確選擇可用的 reviewer；不自動送出程式碼到外部 endpoint。
+- **Pre-commit auto-review**: 當準備提議 commit 之前（例如「要我 commit 嗎？」「是否要提交？」「ready to commit」），MUST 先主動呼叫 `code-review-codex`。review 完成後再詢問使用者是否 commit。只有在該次變更已經跑過 Codex native review 的情況下才跳過。`code-review-gemini` 已退役，不得被路由或呼叫、附加到 pre-commit，或接收 diff；未來 RDSec endpoint reviewer 必須由使用者明確選擇模型並確認可送出的 diff／資料範圍。
 - Use Context7 for up-to-date technical documentation
 - Always check for applicable skills before responding to any task
 - **Cognitive friction principle**: For tasks requiring deep thinking (architecture, strategy, complex debugging), default to challenging the user's reasoning before producing output. Ask "have you considered X?" or surface a counter-perspective. AI should be a brain gym, not a brain wheelchair — amplify thinking, don't replace it. Skip this for routine/mechanical tasks (formatting, boilerplate, data transformation).
+
+## Context discipline
+- Keep task context bounded: read only required policy files, avoid unrelated skills and tools, summarize applicable rules compactly, and preserve instruction hierarchy. Do not rely on instruction position to override higher-priority rules.
 
 ## Code Style
 - Follow Conventional Commits: type(scope): description
@@ -20,8 +24,8 @@
 ## Skill Routing
 - **Brainstorming**: 使用 `brainstorming`（user version），**不要**用 `superpowers:brainstorming`。user 版是 superset — 多出 scope escalation（可 route 到 role-orchestrator）、pre-mortem 失敗分析、REQUIRED 串 tech-feasibility / critical-research、rationalization prevention 表、worked examples。`superpowers:brainstorming` 無法單獨卸（屬 plugin bundle），因此 brainstorming trigger 絕不路由到它。
 - **Debug / error / bug**: MUST invoke `systematic-debugging` via Skill tool BEFORE any analysis. Triggers: user describes error, pastes logs, mentions server error, 500, exception, stack trace, or "不會動/壞了". Do NOT skip this even if the root cause seems obvious.
-- **Code review — runtime-native first pass**: 任何 generic review 意圖（"review", "code review", "quick review", "看一下 code", "check my changes", "幫我看 code", "掃一眼"）先走目前 runtime 的原生 reviewer：Claude Code → `code-review-claude`；Codex → `code-review-codex`。不得把另一個原生 skill 當成目前 runtime 的替代品。
-- **Code review — Gemini retired**: `code-review-gemini` 已退役；router、workflow 與 pre-commit 不得推薦或呼叫它。使用者明確要求 Gemini review 時，說明它已退役，改走目前 runtime 的原生 reviewer。
+- **Code review — Codex native first pass**: 任何 generic review 意圖（"review", "code review", "quick review", "看一下 code", "check my changes", "幫我看 code", "掃一眼"）一律先調用 `code-review-codex`。不得把其他 runtime 的原生 skill 當成 Codex review 的替代品。
+- **Code review — Gemini retired**: `code-review-gemini` 已退役；不得被路由或呼叫、附加到 pre-commit，或接收 diff。使用者明確要求 Gemini review 時，說明它已退役並走 Codex native review。
 - **Code review — external reviewers**: 未來 RDSec AI Endpoint reviewer 必須由使用者明確選擇模型，並確認可送出的 diff／資料範圍；不得自動送出。`codex:review` 只可在 Codex runtime、且 `code-review-codex` 完成後，作為明確要求的 implementation-level 追加檢視。
 - **Codebase/docs audit**: codebase-audit (NOT skill-auditor)
 - Before any completion claim, apply `completion-gate` (user skill), **not** `superpowers:verification-before-completion`. 兩者功能等價，user 版已登記於 registry；保持 user-skill-first 一致性。
