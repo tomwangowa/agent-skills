@@ -6,6 +6,10 @@ disable-model-invocation: true
 
 # Session Preferences
 
+## Visualization
+
+Use ASCII to visualize content when explaining concepts.
+
 Load and apply the user's active interaction rules from `references/` for the
 remainder of this session. This is a manual, session-scoped policy bundle; it
 is not a global runtime setting.
