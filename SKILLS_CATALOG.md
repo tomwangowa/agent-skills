@@ -14,6 +14,7 @@
 | [presentation-planner](./presentation-planner/SKILL.md) | content-generation | promoted | model | yes | no | yes |
 | [qa-to-notes](./qa-to-notes/SKILL.md) | content-generation | personal | user | yes | no | yes |
 | [report-generator](./report-generator/SKILL.md) | content-generation | personal | user | yes | no | yes |
+| [sepia](./sepia/SKILL.md) | content-generation | promoted | model | yes | no | yes |
 | [brainstorming](./brainstorming/SKILL.md) | design-planning | promoted | model | yes | yes | yes |
 | [claude-workflow-designer](./claude-workflow-designer/SKILL.md) | design-planning | promoted | user | yes | no | yes |
 | [spec-gap-finder](./spec-gap-finder/SKILL.md) | design-planning | promoted | model | yes | no | yes |

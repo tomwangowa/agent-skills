@@ -1,6 +1,6 @@
 # ============================================================
 # Skill Registry — single source of truth for skill routing
-# 46 skills · 10 categories · 6 workflows
+# 47 skills · 10 categories · 6 workflows
 # ============================================================
 
 categories:
@@ -541,6 +541,19 @@ categories:
           - "改成我的口吻"
           - "潤成我的語氣"
           - "rewrite in my voice"
+
+      - id: sepia
+        # Make AI-generated writing read as human-written; four operations:
+        # write / review / refactor / recreate, routed by document type.
+        triggers:
+          - "de-AI"
+          - "humanize"
+          - "unslop"
+          - "AI 味"
+          - "AI 感"
+          - "改得自然"
+          - "不要有 ChatGPT 感"
+          - "read as human-written"
 
   # ── 10. 工具與維護 ─────────────────────────────────────────
   meta:
