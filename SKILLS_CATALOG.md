@@ -17,6 +17,7 @@
 | [brainstorming](./brainstorming/SKILL.md) | design-planning | promoted | model | yes | yes | yes |
 | [claude-workflow-designer](./claude-workflow-designer/SKILL.md) | design-planning | promoted | user | yes | no | yes |
 | [spec-gap-finder](./spec-gap-finder/SKILL.md) | design-planning | promoted | model | yes | no | yes |
+| [technical-proposal-review](./technical-proposal-review/SKILL.md) | design-planning | promoted | model | yes | no | yes |
 | [ui-design-analyzer](./ui-design-analyzer/SKILL.md) | design-planning | promoted | model | no | no | yes |
 | [role-orchestrator](./role-orchestrator/SKILL.md) | multi-agent-roles | promoted | user | yes | yes | yes |
 | [role-pm](./role-pm/SKILL.md) | multi-agent-roles | promoted | model | yes | no | yes |

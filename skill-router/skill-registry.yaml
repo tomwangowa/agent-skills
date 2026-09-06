@@ -224,6 +224,23 @@ categories:
           - "what questions should I ask PM"
           - "spec 有什麼沒寫"
 
+      - id: technical-proposal-review
+        triggers:
+          - "technical proposal review"
+          - "review enhancement proposal"
+          - "enhancement proposal"
+          - "review RFC"
+          - "RFC review"
+          - "technical wiki review"
+          - "幫我看技術 wiki"
+          - "審查技術提案"
+          - "review 技術提案"
+          - "我不懂這個專案"
+          - "先幫我理解這個 proposal"
+          - "幫我理解 enhancement"
+          - "看懂這份設計"
+          - "對這個 proposal 提 feedback"
+
       # Note: superpowers:test-driven-development is intentionally NOT registered.
       # Its Iron Law ("no production code without failing test first") is too rigid
       # for ad-hoc work, and it's auto-invoked inside writing-plans task templates
