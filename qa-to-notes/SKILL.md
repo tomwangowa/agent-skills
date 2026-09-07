@@ -1,12 +1,12 @@
 ---
 name: qa-to-notes
-description: Save Claude Code Q&A conversations as structured Obsidian-compatible knowledge notes, or rewrite fact-checks into corporate-friendly Teams publish format. Use when user wants to persist conversation content as a markdown file, or rewrite analysis for team sharing.
+description: Save coding-agent Q&A conversations (Claude Code, Codex, omp, ...) as structured Obsidian-compatible knowledge notes, or rewrite fact-checks into corporate-friendly Teams publish format. Use when user wants to persist conversation content as a markdown file, or rewrite analysis for team sharing.
 disable-model-invocation: true
 ---
 
 # QA to Notes
 
-Save Claude Code conversations as structured Obsidian-compatible knowledge notes. Supports three modes: **Standard** (reorganizes Q&A into encyclopedia-style articles with tables, Mermaid diagrams, and source links), **Direct write** (preserves source content verbatim without restructuring), and **Teams publish** (rewrites fact-checks into a corporate-friendly "extended analysis" format for group sharing — displayed in conversation and appended to the same note file).
+Save coding-agent conversations as structured Obsidian-compatible knowledge notes. Supports three modes: **Standard** (reorganizes Q&A into encyclopedia-style articles with tables, Mermaid diagrams, and source links), **Direct write** (preserves source content verbatim without restructuring), and **Teams publish** (rewrites fact-checks into a corporate-friendly "extended analysis" format for group sharing — displayed in conversation and appended to the same note file).
 
 ## Trigger
 
@@ -80,7 +80,7 @@ Otherwise continue below.
 ---
 tags: [tag1, tag2, tag3]
 date: YYYY-MM-DD
-source: claude-code
+source: <harness>
 ---
 
 # Topic Title
@@ -134,7 +134,7 @@ Preserve the source content **verbatim**. Do not restructure, reword, summarize,
 ---
 tags: [tag1, tag2]
 date: YYYY-MM-DD
-source: claude-code
+source: <harness>
 ---
 
 # Topic Title
@@ -161,7 +161,7 @@ When appending, the final note structure becomes:
 ---
 tags: [...]
 date: YYYY-MM-DD
-source: claude-code
+source: <harness>
 ---
 
 # [Topic] — Fact-Check
@@ -325,9 +325,14 @@ Required YAML frontmatter fields:
 |-------|-------|-------|
 | `tags` | Array of relevant tags | Propose based on content; user can override |
 | `date` | `YYYY-MM-DD` | Date of the conversation |
-| `source` | `claude-code` | Fixed value |
+| `source` | harness-detected value | Detection rule below |
 
 The user may request additional frontmatter fields — include them if asked.
+
+**`source` detection** (check env vars in this order):
+1. `OMPCODE` set → `oh-my-pi`  (FIRST — omp sessions may also expose `CLAUDECODE`)
+2. else `CLAUDECODE` set → `claude-code`
+3. neither → omit the `source` field (do not guess)
 
 ### Step 5: Determine File Path and Name
 
@@ -375,7 +380,7 @@ After writing, confirm to the user:
 ---
 tags: [AI, agent, social-network, OpenClaw]
 date: 2026-02-16
-source: claude-code
+source: claude-code  # example assumes a Claude Code session
 ---
 
 # Moltbook 是什麼
