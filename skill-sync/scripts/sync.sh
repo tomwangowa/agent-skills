@@ -61,6 +61,7 @@ DEFAULT_TARGETS=(
     "$HOME/.gemini/skills"
     "$HOME/.cursor/skills"
     "$HOME/.gemini/antigravity/skills"
+    "$HOME/.omp/agent/skills"
 )
 DEFAULT_IGNORES=("blog" "cheatsheet" "skills-query-server" "spec-generator")
 

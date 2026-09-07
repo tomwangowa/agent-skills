@@ -585,6 +585,7 @@ categories:
           - "更新其他 agent"
           - "sync to codex"
           - "sync to gemini"
+          - "sync to omp"
 
       - id: repo-sync
         # Pull latest + submodule sync for any repo; generates What's New digest.

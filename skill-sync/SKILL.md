@@ -1,6 +1,6 @@
 ---
 name: skill-sync
-description: Use when syncing ~/.claude/skills to Codex, Gemini, Cursor, or Antigravity; previewing syncs without writes; or when target-only skills must be preserved. Matches "sync skills", "skill-sync", "同步 skills", "push skills to other agents", and "更新其他 agent 的 skills".
+description: Use when syncing ~/.claude/skills to Codex, Gemini, Cursor, Antigravity, or omp (on-my-pi); previewing syncs without writes; or when target-only skills must be preserved. Matches "sync skills", "skill-sync", "同步 skills", "push skills to other agents", "sync to omp", and "更新其他 agent 的 skills".
 disable-model-invocation: true
 ---
 
@@ -27,7 +27,7 @@ By default this is a **mirror** (`rsync --delete`). Pass `--no-delete` to run in
 - "同步 skills"
 - "push skills to other agents"
 - "更新其他 agent 的 skills"
-- "sync to codex / gemini / cursor"
+- "sync to codex / gemini / cursor / omp"
 
 ## Instructions
 
@@ -78,7 +78,7 @@ User: "sync skills"
 
 Expected behavior:
 
-1. Script reads `.skill-sync-ignore` (committed file) and falls back to default targets (`~/.codex/skills`, `~/.gemini/skills`, `~/.cursor/skills`, `~/.gemini/antigravity/skills`) because no `.skill-sync-targets` exists yet.
+1. Script reads `.skill-sync-ignore` (committed file) and falls back to default targets (`~/.codex/skills`, `~/.gemini/skills`, `~/.cursor/skills`, `~/.gemini/antigravity/skills`, `~/.omp/agent/skills`) because no `.skill-sync-targets` exists yet.
 2. Pre-flight: any missing target directories are created.
 3. Dry-run preview shows the file list per target with a `⚠️  Will DELETE N item(s)` count if any target-side files would be removed.
 4. Prompt: `Proceed with sync? (y/N)` — typing `y` or `yes` proceeds; any other input cancels.
@@ -147,6 +147,7 @@ Both files live in `~/.claude/skills/`. If absent **or empty/comments-only**, de
 ~/.gemini/skills
 ~/.cursor/skills
 ~/.gemini/antigravity/skills
+~/.omp/agent/skills
 ```
 
 **`.skill-sync-ignore`** — one skill directory name per line to exclude:
@@ -158,8 +159,7 @@ spec-generator
 ```
 
 **Defaults (when files are absent or empty):**
-- Targets: `~/.codex/skills`, `~/.gemini/skills`, `~/.cursor/skills`, `~/.gemini/antigravity/skills`
-- Ignore: `blog`, `cheatsheet`, `skills-query-server`, `spec-generator`
+- Targets: `~/.codex/skills`, `~/.gemini/skills`, `~/.cursor/skills`, `~/.gemini/antigravity/skills`, `~/.omp/agent/skills`
 
 Note: `.skill-sync-targets` is gitignored (contains personal local paths). `.skill-sync-ignore` is committed because the defaults (including the symlink protection for `spec-generator`) should be the same for everyone.
 
