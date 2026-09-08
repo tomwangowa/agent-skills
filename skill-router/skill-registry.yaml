@@ -1,6 +1,6 @@
 # ============================================================
 # Skill Registry — single source of truth for skill routing
-# 47 skills · 10 categories · 6 workflows
+# 48 skills · 10 categories · 6 workflows
 # ============================================================
 
 categories:
@@ -325,6 +325,21 @@ categories:
           - "留交接"
           - "hand off"
           - "下班"
+
+      - id: secure-ai-development-gate
+        # Safety gate for secrets, customer data, sensitive internal info,
+        # risky AI output, and commit boundaries.
+        triggers:
+          - "secure-ai-development-gate"
+          - "commit the skill"
+          - "is it safe to send to AI"
+          - "secret detection"
+          - "sanitize customer data"
+          - "sensitive data check"
+          - "before commit"
+          - "安全閘門"
+          - "敏感資料"
+          - "secret scan"
 
   # ── 4. 角色協作 ────────────────────────────────────────────
   roles:

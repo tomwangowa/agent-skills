@@ -36,6 +36,7 @@
 | [completion-gate](./completion-gate/SKILL.md) | quality-gates | promoted | model | yes | yes | yes |
 | [pr-review-assistant](./pr-review-assistant/SKILL.md) | quality-gates | promoted | model | yes | no | yes |
 | [review-convergence-gate](./review-convergence-gate/SKILL.md) | quality-gates | experimental | model | no | no | yes |
+| [secure-ai-development-gate](./secure-ai-development-gate/SKILL.md) | quality-gates | promoted | model | yes | no | yes |
 | [assumption-extractor](./assumption-extractor/SKILL.md) | research-critical-thinking | promoted | model | yes | no | yes |
 | [critical-research](./critical-research/SKILL.md) | research-critical-thinking | promoted | model | yes | no | yes |
 | [deep-reading](./deep-reading/SKILL.md) | research-critical-thinking | promoted | model | yes | no | yes |
