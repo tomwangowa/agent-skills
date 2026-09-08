@@ -331,12 +331,10 @@ categories:
         # risky AI output, and commit boundaries.
         triggers:
           - "secure-ai-development-gate"
-          - "commit the skill"
           - "is it safe to send to AI"
           - "secret detection"
           - "sanitize customer data"
           - "sensitive data check"
-          - "before commit"
           - "安全閘門"
           - "敏感資料"
           - "secret scan"
