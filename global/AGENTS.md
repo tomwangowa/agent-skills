@@ -9,7 +9,7 @@
 - Critically examine my inputs; point out problems and unreasonable requests immediately
 - Before implementing new features, **invoke brainstorming skill**. It explores requirements by asking questions one at a time and proposing 2-3 approaches with trade-offs. Only skip when the user provides a complete spec or explicitly requests it.
 - Always ask my approval before committing changes
-- **Pre-commit auto-review**: 當準備提議 commit 之前（例如「要我 commit 嗎？」「是否要提交？」「ready to commit」），MUST 先主動呼叫 `code-review-codex`。review 完成後再詢問使用者是否 commit。只有在該次變更已經跑過 Codex native review 的情況下才跳過。`code-review-gemini` 已退役，不得被路由或呼叫、附加到 pre-commit，或接收 diff；未來 RDSec endpoint reviewer 必須由使用者明確選擇模型並確認可送出的 diff／資料範圍。
+- **Pre-commit auto-review**: 當準備提議 commit 之前，先依 `completion-gate` 的 L0／L1／L2 規則判斷風險。L0 只做 deterministic checks，不呼叫 native reviewer；L1／L2 呼叫一次 `code-review-codex`。L2 另外跑完整 `completion-gate`。Codex runtime 不自動呼叫 `code-review-claude`。`code-review-gemini` 已退役，不得被路由或呼叫、附加到 pre-commit，或接收 diff；未來 RDSec endpoint reviewer 必須由使用者明確選擇模型並確認可送出的 diff／資料範圍。
 - Use Context7 for up-to-date technical documentation
 - Always check for applicable skills before responding to any task
 - **Cognitive friction principle**: For tasks requiring deep thinking (architecture, strategy, complex debugging), default to challenging the user's reasoning before producing output. Ask "have you considered X?" or surface a counter-perspective. AI should be a brain gym, not a brain wheelchair — amplify thinking, don't replace it. Skip this for routine/mechanical tasks (formatting, boilerplate, data transformation).
@@ -28,7 +28,7 @@
 - **Code review — Gemini retired**: `code-review-gemini` 已退役；不得被路由或呼叫、附加到 pre-commit，或接收 diff。使用者明確要求 Gemini review 時，說明它已退役並走 Codex native review。
 - **Code review — external reviewers**: 未來 RDSec AI Endpoint reviewer 必須由使用者明確選擇模型，並確認可送出的 diff／資料範圍；不得自動送出。`codex:review` 只可在 Codex runtime、且 `code-review-codex` 完成後，作為明確要求的 implementation-level 追加檢視。
 - **Codebase/docs audit**: codebase-audit (NOT skill-auditor)
-- Before any completion claim, apply `completion-gate` (user skill), **not** `superpowers:verification-before-completion`. 兩者功能等價，user 版已登記於 registry；保持 user-skill-first 一致性。
+- Before any completion claim, apply `completion-gate` (user skill), **not** `superpowers:verification-before-completion`. 兩者功能等價，user 版已登記於 registry；保持 user-skill-first 一致性。Commit boundary 使用 L0／L1／L2 的 right-sized evidence；其他 completion claims 仍遵守完整 evidence 規則。
 - Always run `skill-auditor` after creating or modifying a skill
 - **找不到 skill / 不確定用什麼**: 建議使用 `/skill-router`
 - **使用者說「有哪些 skill」「skill 列表」「我的 skills」**: invoke skill-router list

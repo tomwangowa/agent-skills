@@ -25,7 +25,7 @@ The skill activates when any of these conditions are met:
 
 1. **Completion claims** — About to say "done", "fixed", "tests pass", "build succeeds", or any synonym
 2. **Satisfaction expressions** — About to say "Great!", "Perfect!", "Looks good!", or any positive assessment of work state
-3. **Transition points** — About to commit, push, create a PR, mark a task complete, or move to the next task
+3. **Transition points** — About to commit, push, create a PR, mark a task complete, or move to the next task. At a commit boundary, select the smallest verification tier that matches the change before running review.
 4. **Delegation trust** — About to accept an agent's self-reported success without independent verification
 
 ### Relationship to Other Skills
@@ -40,6 +40,69 @@ The skill activates when any of these conditions are met:
 - NOT a code review tool (use `code-review-*` skills)
 - NOT a testing framework (it verifies that you ran the tests, not the tests themselves)
 - NOT optional when the agent is "confident" — confidence is not evidence
+
+## Right-Sized Commit Verification
+
+At a commit boundary, classify the change before selecting verification work.
+This section changes the depth of commit-boundary evidence; it does not remove
+the Iron Law for completion claims outside that boundary.
+
+### Tier selection
+
+Use the first matching rule:
+
+1. **L2** if the change touches authentication, session state, permissions,
+   data-loss or data-corruption paths, production configuration, deployment or
+   rollback, or a known production incident or major regression.
+2. **L0** if the change is limited to documentation text, formatting, comments,
+   or other non-executable assets.
+3. **L1** for other executable or user-visible behavior changes.
+
+When the tier is unclear, escalate one tier, capped at L2. Diff size, file
+extension, and directory name are not sufficient evidence by themselves.
+
+### Minimum evidence by tier
+
+| Tier | Minimum evidence | Native review | Completion depth |
+|------|------------------|---------------|------------------|
+| L0 | Expected diff plus applicable format, render, spelling, or link checks | None | Lightweight evidence summary |
+| L1 | Affected-scope tests, lint, or type checks plus expected diff | One active-runtime reviewer | Evidence summary; escalate when evidence is missing or review uncertainty remains |
+| L2 | Targeted tests plus relevant regression or smoke checks | One active-runtime reviewer | Full Gate Function and Adversarial Self-Verification |
+
+Runtime reviewer mapping is fixed: Codex uses `code-review-codex`; Claude Code
+and OMP use `code-review-claude`. Do not automatically run both reviewers.
+
+### Escalation rules
+
+- An L1 change without a relevant test or checker escalates to L2.
+- An unresolved native-review concern escalates to L2.
+- A required check that fails blocks the commit transition.
+- An unavailable optional check is recorded as `NOT VERIFIED` and does not
+  block an otherwise low-risk change.
+- An unavailable required reviewer or L2 check is a blocker; do not silently
+  substitute another runtime's reviewer.
+
+### Commit-boundary report
+
+Use this compact report shape:
+
+```text
+RISK: L1
+REASON: changed executable behavior
+
+CHECKS:
+- targeted tests: passed
+- native review: code-review-codex
+
+ESCALATED: no
+
+NOT VERIFIED:
+- concurrency behavior
+- production deployment behavior
+```
+
+L0 reports must identify the deterministic checks that ran. L2 reports must
+include the full `VERIFIED` and `NOT VERIFIED` evidence required by this skill.
 
 ## The Iron Law
 
