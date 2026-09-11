@@ -93,11 +93,11 @@ Wait for user confirmation. If **n** or cancel → stop. Nothing changes.
 For each repo **in order**, apply the full **Operation 1** logic (Steps 1–6) using `git -C <repo-dir>` for all git commands. That means:
 - Step 1 — Check branch → if non-main, present Options A/B/Cancel **for that repo**, wait for response, then continue to next repo
 - Step 2 — Snapshot pre-sync HEAD into `.memory/last-sync.txt` (BEFORE any pull, so whats-new knows what was brought in)
-- Step 3 — Preflight: if tracked changes are dirty, present Options A/B/Cancel **for that repo**, wait for response, then continue to next repo (untracked-only does not block)
+- Step 3 — Preflight: if tracked changes are dirty, present Options A/B/Cancel **for that repo**, wait for response, then continue to next repo (untracked-only does not block preflight; pull collisions are handled in Operation 1 Step 4)
 - Step 4 — Fetch and pull (`--ff-only`; if diverged → present Options A/B/Cancel for that repo)
 - Step 5 — Sync submodules if present
 
-**Pause behavior:** Any problem with a repo (non-main branch, dirty tree, diverged commits) pauses execution for that repo only. Describe the issue clearly, wait for the user's instruction, then continue to the next repo regardless of what the user chose.
+**Pause behavior:** Any problem with a repo (non-main branch, dirty tree, untracked-file collision, diverged commits) pauses execution for that repo only. Describe the issue clearly, wait for the user's instruction, then continue to the next repo regardless of what the user chose.
 
 **Never abort the entire batch** due to a single repo's problem.
 
@@ -183,7 +183,7 @@ git status --porcelain
 
 Examine each status line's two-character prefix:
 
-- Lines starting with `??` (untracked) → **do NOT block.** Untracked files are not affected by `git pull --ff-only`. Proceed silently.
+- Lines starting with `??` (untracked) → normally **do NOT block preflight.** They are safe unless the incoming branch adds a tracked file at the same path; handle that collision in Step 4 instead of assuming the pull is safe.
 - Any other status code in either column (`M`, `A`, `D`, `R`, `C`, `U`) → tracked changes exist; stop and present:
 
   > **Uncommitted changes to tracked files detected.** Pulling may conflict or `reset --hard` will discard them.
@@ -196,7 +196,7 @@ Examine each status line's two-character prefix:
   - **A**: run `git stash`, proceed with pull, then offer `git stash pop` at the end.
   - **B / Cancel**: stop. Nothing changes.
 
-If working tree has no tracked changes (clean or untracked-only), proceed silently.
+If working tree has no tracked changes (clean or untracked-only), proceed silently and let Step 4 handle any collision reported by Git.
 
 ### Step 4 — Fetch and pull
 
@@ -212,7 +212,19 @@ Resolve the pull target:
 git pull --ff-only origin <branch>
 ```
 
-**If `--ff-only` fails (local branch has diverged)** — collect diverged commits silently:
+**If `git pull --ff-only` reports that untracked working tree files would be overwritten** — this is an untracked-file collision, not branch divergence. Stop and list the affected paths. For each path, compare the local file with the incoming version (for example, inspect `git show origin/<branch>:<path>` and diff it against the local file) before presenting:
+
+> **Untracked files would be overwritten by the incoming pull.**
+> The remote branch adds tracked files at paths that already exist locally as untracked files.
+>
+> **Options:**
+> - **A** — Move the affected local files to a unique, recoverable backup under the platform temp directory, then retry `git pull --ff-only`.
+> - **B / Cancel** — Abort and leave the local files and repository unchanged.
+
+- **A**: preserve the files before retrying; do not overwrite an existing backup or silently delete a file. If local and incoming contents are identical, still preserve the local copy unless the user explicitly authorizes removal.
+- **B / Cancel**: stop. Nothing changes.
+
+**If `--ff-only` fails because the local branch has diverged** — collect diverged commits silently:
 
 ```bash
 git log origin/<branch>..HEAD --oneline
