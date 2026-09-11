@@ -44,7 +44,7 @@ Arguments:
   skill-directory    Path to the skill directory to audit
 
 Options:
-  -o, --output FILE  Save report to file (default: skill-audit-report.md)
+  -o, --output FILE  Save report to file (default: ~/.claude/audits/<skill>-audit-report.md)
   -v, --verbose      Show detailed progress
   -h, --help         Show this help message
 
@@ -100,7 +100,9 @@ SKILL_NAME=$(basename "$SKILL_DIR")
 
 # Set default report file
 if [[ -z "$REPORT_FILE" ]]; then
-    REPORT_FILE="$SKILL_NAME-audit-report.md"
+    REPORT_DIR="$HOME/.claude/audits"
+    mkdir -p "$REPORT_DIR"
+    REPORT_FILE="$REPORT_DIR/$SKILL_NAME-audit-report.md"
 fi
 
 # Create temp file for body
