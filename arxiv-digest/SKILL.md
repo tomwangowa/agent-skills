@@ -1,11 +1,6 @@
 ---
 name: arxiv-digest
-description: >-
-  Find, deeply understand, and produce engineer-friendly digests of arXiv AI
-  papers for TrendLife AI Taskforce meeting sharing. Use when asked for "arXiv
-  導讀", "論文導讀", "paper digest", "arxiv digest", or given an arXiv URL to
-  analyze. Supports single paper deep-dive, topic search with candidate
-  selection, and multi-paper comparison.
+description: Use when find, deeply understand, and produce engineer-friendly digests of arXiv AI papers for TrendLife AI Taskforce meeting sharing. Use when asked for "arXiv 導讀", "論文導讀", "paper digest", "arxiv digest", or given an arXiv URL to analyze. Supports single paper deep-dive, topic search with candidate selection, and multi-paper comparison.
 disable-model-invocation: true
 ---
 
@@ -13,7 +8,7 @@ disable-model-invocation: true
 
 ## Overview
 
-Deeply digest arXiv AI papers and produce shareable material for TrendLife AI Taskforce meetings. Not a summary — a full understanding translated into engineer-friendly language, with a mandatory "one-slide version" for quick meeting sharing.
+Deeply digest arXiv AI papers and produce shareable material for TrendLife AI Taskforce meetings. Not a summary — a full understanding translated into engineer-friendly language, with a mandatory "one-slide version" for 60-second meeting sharing.
 
 **Role**: Senior AI Research Analyst (資深 AI 研究分析師)
 **Language**: Traditional Chinese (technical terms in English)
@@ -137,14 +132,19 @@ If confirmed:
 
 **Step 5c — Deep dive (ask):**
 
+Integration details: `references/deep-reading-handoff.md`.
+
 > 「要深入消化嗎？我可以用 deep-reading 方法論做完整分析。」
 
 If confirmed:
-- Run deep-reading methodology on the same paper (no time limit)
-- Extract: complete mental models, expert disagreements, knowledge gaps, teachable frameworks, cross-domain connections
-- **Append** the deep-dive output to the same Obsidian file under a new `## 🔬 Deep Dive` section (below the digest)
-- The digest (top half) stays concise for meeting sharing; the deep dive (bottom half) is for self-study
-- If repo destination was already confirmed, ask whether to update the repo file too
+- Hand off to the standalone `deep-reading` skill with `mode: Deep`.
+- Reuse verified metadata already collected by arxiv-digest: title, authors, date, arXiv ID/version, original URL, and source status.
+- Tell deep-reading which work is already complete: core digest, method summary, key evidence, limitations, TrendLife connection, community perspectives, and one-slide version.
+- Request these additional capabilities when supported by the paper/evidence: complete mental models, reasoning depth, evidence boundaries, hidden assumptions, derived insights, knowledge gaps, knowledge stress test, teachable framework, and cross-domain connections.
+- Do **not** repeat digest material merely to satisfy the deep-reading output template. Deep reading should add the depth intentionally omitted by the digest.
+- **Append** the result to the same Obsidian file under a new `## 🔬 Deep Dive` section (below the digest). Preserve the existing digest unchanged.
+- If the Document Profile is already present and verified in the digest, deep-reading may reference/reuse it instead of duplicating it.
+- If repo destination was already confirmed, ask whether to update the repo file too.
 
 **Step 5d — Slides (ask):**
 
@@ -200,32 +200,14 @@ If confirmed: hand off to presentation-planner with the digest content as input.
 
 ### Deep Dive Appendix (appended when user confirms Step 5c)
 
+The appendix is produced by `deep-reading`, not by duplicating a second deep-dive template here. The handoff contract above is authoritative. The appended section starts with:
+
 ```markdown
 ---
 
 ## 🔬 Deep Dive — [同標題]
 
-### 核心心智模型
-（讀完這篇後，你應該用什麼框架思考這個問題？
-不是「這篇說了什麼」，而是「我的思考方式應該怎麼改變」）
-
-### 方法論深探
-（完整的技術流程，包含數學直覺解釋——
-用工程師能理解的語言解釋公式背後的 intuition，
-而非直接貼 LaTeX）
-
-### 實驗設計的隱含假設
-（作者做了哪些設計選擇？如果改變這些選擇，結論會不同嗎？）
-
-### 與相關工作的定位圖
-（這篇在該領域的 landscape 中處於什麼位置？
-誰是前置工作？誰會是後續工作？）
-
-### 知識缺口
-（讀完後你仍然不知道什麼？需要再讀哪些論文才能補齊？）
-
-### 可教框架
-（如果你要在 10 分鐘內教會同事這篇的核心，你會用什麼類比或故事？）
+[deep-reading adds only material depth beyond the digest: reasoning, evidence boundaries, assumptions, derived insights, knowledge gaps, stress test, teachable framework, and other requested capabilities when supported.]
 ```
 
 ### Multi-Paper Comparison
@@ -334,5 +316,5 @@ User: /arxiv-digest https://arxiv.org/abs/2603.11111 https://arxiv.org/abs/2603.
 
 - **ai-weekly-insight** — May recommend papers via 📄 推薦深讀 block
 - **presentation-planner** — Convert digest into slides for formal presentation
-- **deep-reading** — For even deeper analysis of complex papers (longer time budget)
+- **deep-reading** — Standalone progressive-reading/synthesis skill. Invoke only after Step 5c user confirmation, using the handoff contract above.
 - **narrative-auditor** — For fact-checking specific claims in a paper
