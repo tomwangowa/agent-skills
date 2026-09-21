@@ -68,7 +68,7 @@ tech-research-pipeline（一鍵觸發完整流程）:
 | 查核外部文章/行銷文案的真實性 | `narrative-auditor` | 「幫我查核這篇 Redis vs Memcached 的文章」 |
 | 用多策略交叉驗證技術主張 | `research-cross-validator` | 「交叉驗證這份可行性報告中的關鍵主張」 |
 | 驗證文件是否與程式碼一致 | `codebase-audit` | 「檢查 README 裡的 API 說明跟實際程式碼是否一致」 |
-| 深讀文件集，萃取心智模型／知識缺口／可教框架 | `deep-reading` | 「幫我深讀這 3 篇 RAG 論文」 |
+| 漸進式讀懂陌生文章／論文；支援 Quick → Deep → Deep Dive，並可按需進行多來源整合 | `deep-reading` | 「幫我讀懂這篇論文」／「幫我深讀這 3 篇 RAG 論文」 |
 | 跑完 2+ 研究技能，要整合結論 | `research-synthesis` | 「把資料庫選型的研究結果整合成決策文件」 |
 
 ### Narrative Auditor 完整工作流
@@ -159,7 +159,7 @@ presentation-planner → interactive-presentation-generator → 投影片檔案
 | 產出每週 AI 新聞深度分析 | `ai-weekly-insight` | 「AI 週報」或 `/ai-weekly-insight` |
 | 產出每日 AI 新聞深度分析 | `ai-weekly-insight` (daily mode) | 「AI 日報」或 `/ai-weekly-insight daily` |
 | 指定發布目的地（Confluence 或 repo） | `ai-weekly-insight --dest` | `/ai-weekly-insight --dest repo` |
-| 消化 arXiv 論文並產出分享材料 | `arxiv-digest` | 「arXiv 導讀」或 `/arxiv-digest <url>` |
+| 消化 arXiv 論文並產出分享材料；使用者確認後可交接 `deep-reading` 做深入分析 | `arxiv-digest` | 「arXiv 導讀」或 `/arxiv-digest <url>` |
 | 產出週報/月報/專案摘要 | `report-generator` | 「產出這個 sprint 的週報」 |
 | 查詢工作日誌、追蹤 TODO | `work-log-analyzer` | 「上週還有哪些 TODO 沒完成？」 |
 | 記錄當前工作活動（跨 session） | `activity-logger` | 「記錄今天的工作：重構 auth 模組、修了 3 個 bug」 |

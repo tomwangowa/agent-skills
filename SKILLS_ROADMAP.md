@@ -22,7 +22,7 @@ The current implemented-skill inventory, lifecycle, and publication surfaces are
 - **88/100** - brainstorming (production-ready ✅)
 - **88/100** - code-review-gemini (production-ready ✅)
 - **85/100** - assumption-extractor (production-ready ✅)
-- **78/100** - deep-reading (production-ready ✅)
+- **89/100** - deep-reading (production-ready ✅; 1 accepted lexical false positive: `Quick`)
 - **78/100** - micro-poc-validator (production-ready ✅)
 - **78/100** - research-cross-validator (production-ready ✅)
 - **76/100** - tech-research-pipeline (production-ready ✅)
@@ -464,36 +464,41 @@ RD role that produces size-calibrated design artifacts from PM requirements.
 ### 🟢 deep-reading
 **Status:** Implemented
 **Category:** Research & Analysis
-**Trigger:** "deep read", "help me understand this", "extract insights", "what are the key mental models", or when given 2+ documents for analysis
+**Trigger:** "deep read", "help me understand this", "quick read", "extract insights", "what are the key mental models"
 
-Systematic knowledge extraction from document sets — not summaries, but the cognitive scaffolding experts use to think about a domain.
+Progressive reading for unfamiliar articles, papers, and document sets. Works inward from material already provided: first reconstruct the document faithfully, then evaluate evidence, derive insights, and only later connect it to the user's context.
 
 **Features:**
-- MIT Three Questions method: core mental models, expert disagreements, knowledge stress test
-- Knowledge gap analysis and blind spot detection
-- Teachable framework construction (repackage insights into reusable mental tools)
-- Multi-audience adaptation (technical peers, decision-makers, learners)
-- Learning path design with prerequisite sequencing
-- Source attribution for all extracted models and disagreements
+- Progressive modes: Auto → Quick → Deep → Deep Dive
+- Document Profile with source provenance before analysis
+- Single-document pipeline: ORIENT → READ → UNDERSTAND → DISTILL → CHALLENGE → DERIVE → CONNECT → APPLY → RETAIN
+- Evidence boundary with support classification and concise Evidence Verdict
+- Anti-drift rule: Document-centric → Knowledge-centric → User-centric
+- Multi-source synthesis: mental models, expert disagreements, knowledge gaps, stress tests, and teachable frameworks
+- Information-value-based depth: sections expand only when they add useful understanding
+- Reuses verified upstream metadata and prior analysis when invoked by another skill
 
-**Dependencies:** None - uses Claude Code's native capabilities
+**Dependencies:** None - uses the active agent's native reading/reasoning capabilities and available source tools
 
 **Complexity:** Medium
 
-**Quality Score:** 78/100 (audited by skill-auditor, production-ready ✅)
+**Quality Score:** 89/100 (audited by skill-auditor; production-ready after accepting one lexical false positive for the explicitly defined `Quick` mode)
 
 **Use Cases:**
-- Deep domain understanding before designing solutions
-- Preparing for technical presentations or interviews
-- Building knowledge frameworks from research papers
-- Decision preparation with structured multi-source analysis
-- Teaching material creation from expert documents
+- Quickly decide what an unfamiliar article or paper is worth knowing
+- Deeply understand a single paper without reading the English original first
+- Drill into one difficult concept without rerunning the whole document
+- Build cross-source mental models, disagreements, gaps, and reusable frameworks
+- Prepare durable knowledge before design, research, or presentation work
 
 **Integration Points:**
+- Standalone skill for direct reading requests
+- Optional downstream step from `arxiv-digest` after explicit user confirmation
+- Reuses `arxiv-digest` metadata and completed digest analysis instead of repeating it
 - Complementary to narrative-auditor (understand vs. verify)
-- Complementary to critical-research (inward vs. outward)
+- Complementary to critical-research (inward understanding vs. outward evidence search)
 - Upstream to brainstorming (domain understanding → design)
-- Downstream to qa-to-notes (save as Obsidian notes)
+- Downstream to qa-to-notes (save durable knowledge as notes)
 
 ---
 

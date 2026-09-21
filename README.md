@@ -266,14 +266,17 @@ mkdir my-skill/scripts
 > audit my-skill
 ```
 
+After the audit, review every finding, fix it or record an explicit disposition, and re-audit when needed. Package only the clean runtime skill after review. Audit reports and other validation artifacts are development records and should stay outside the production skill unless the skill explicitly needs them at runtime.
+
 ### Skill Directory Structure
 
 ```
 skill-name/
 ├── SKILL.md           # Required: skill definition and instructions
+├── references/        # Optional: on-demand runtime guidance
 ├── scripts/           # Optional: helper shell scripts
 │   └── my_script.sh
-└── other_files/       # Optional: other resources
+└── other_files/       # Optional: runtime resources only
 ```
 
 ---

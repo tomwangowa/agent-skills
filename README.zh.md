@@ -267,14 +267,17 @@ mkdir my-skill/scripts
 > audit my-skill
 ```
 
+Audit 完成後，逐項檢視 findings：修正問題，或留下明確的 disposition；必要時重新 audit。完成審查後才打包乾淨的 runtime skill。Audit report 與其他驗證 artifact 屬於開發紀錄，除非 skill 在執行時明確需要，否則不要放進 production skill。
+
 ### Skill 目錄結構
 
 ```
 skill-name/
 ├── SKILL.md           # 必要：skill 定義與指令
+├── references/        # 選用：按需載入的 runtime 指引
 ├── scripts/           # 選用：輔助 shell 腳本
 │   └── my_script.sh
-└── other_files/       # 選用：其他資源
+└── other_files/       # 選用：僅限 runtime 需要的資源
 ```
 
 ---

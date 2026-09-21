@@ -68,7 +68,7 @@ tech-research-pipeline (one-shot trigger for full workflow):
 | Fact-check external articles or marketing copy | `narrative-auditor` | "Fact-check this blog post about Redis vs Memcached" |
 | Cross-validate technical claims via multiple strategies | `research-cross-validator` | "Cross-validate the key claims in this feasibility report" |
 | Verify documentation matches actual code | `codebase-audit` | "Audit whether the README claims match the actual API" |
-| Deeply understand a document set (mental models, gaps, frameworks) | `deep-reading` | "Deep-read these 3 papers on retrieval-augmented generation" |
+| Progressively understand unfamiliar articles or papers; Quick → Deep → Deep Dive, with multi-source synthesis when needed | `deep-reading` | "Help me understand this paper" / "Deep-read these 3 RAG papers" |
 | Ran 2+ research skills, need unified conclusion | `research-synthesis` | "Synthesize the database options research into a decision doc" |
 
 ### Narrative Auditor Full Workflow
@@ -159,7 +159,7 @@ presentation-planner → interactive-presentation-generator → Slide Files
 | Produce weekly AI news deep-analysis | `ai-weekly-insight` | "AI 週報" or `/ai-weekly-insight` |
 | Produce daily AI news deep-analysis | `ai-weekly-insight` (daily mode) | "AI 日報" or `/ai-weekly-insight daily` |
 | Specify publish destination (Confluence or repo) | `ai-weekly-insight --dest` | `/ai-weekly-insight --dest repo` |
-| Digest arXiv papers for meeting sharing | `arxiv-digest` | "paper digest" or `/arxiv-digest <url>` |
+| Digest arXiv papers for meeting sharing; after user confirmation, hand off to `deep-reading` for deeper analysis | `arxiv-digest` | "paper digest" or `/arxiv-digest <url>` |
 | Generate weekly/monthly/project reports | `report-generator` | "Generate a weekly report for this sprint" |
 | Query work logs, track TODOs | `work-log-analyzer` | "What TODOs are still open from last week?" |
 | Record current session activities (cross-session) | `activity-logger` | "Log today's work: refactored auth module, fixed 3 bugs" |
