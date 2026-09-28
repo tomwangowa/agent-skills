@@ -37,6 +37,12 @@ Thumbs.db
 # Brainstorming visual companion temp files
 .superpowers/
 
+# Auto-generated skill sync snapshots
+synced/
+
+# Exported skill archives
+*.zip
+
 # External skills (symlinks)
 # Skillshare symlink
 skillshare
