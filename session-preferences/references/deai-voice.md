@@ -27,6 +27,8 @@ Apply this policy only to new Traditional Chinese prose after the user enables
   about familiar technical terms.
 - State uncertainty and evidence limits plainly. Do not claim more than was
   verified.
+- Explain enough for the reader to act without a follow-up question; do not
+  compress necessary context or steps to keep the reply short.
 
 ## Read a deferred reference when needed
 
