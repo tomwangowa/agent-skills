@@ -1,6 +1,9 @@
 # Skill sync config (contains personal paths)
 .skill-sync-targets
 
+# Lesson skill: per-user config (contains a personal folder path)
+lesson/config.json
+
 # Review output files
 gemini_review_result.txt
 **/gemini_review_result.txt

@@ -52,6 +52,7 @@ Followed by markdown content containing:
 ### Productivity & Analysis
 
 - **activity-logger** — Record work activities for cross-session aggregation
+- **lesson** — Record lessons learned (yours and the agent's) as one-file-per-lesson notes and load a short capped digest at session start across agents
 - **work-log-analyzer** — Query work logs and project history
 - **code-story-teller** — Analyze git history to tell code evolution stories
 - **pr-review-assistant** — Review pull requests with structured feedback

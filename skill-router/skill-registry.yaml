@@ -1,6 +1,6 @@
 # ============================================================
 # Skill Registry — single source of truth for skill routing
-# 48 skills · 10 categories · 6 workflows
+# 50 skills · 10 categories · 6 workflows
 # ============================================================
 
 categories:
@@ -472,6 +472,14 @@ categories:
           - "work log"
           - "紀錄"
 
+      - id: lesson
+        triggers:
+          - "lesson"
+          - "記下這個教訓"
+          - "lesson learned"
+          - "記錄經驗"
+          - "踩坑記錄"
+
       - id: work-log-analyzer
         triggers:
           - "查工作紀錄"
@@ -580,6 +588,12 @@ categories:
           - "skill 品質"
           - "validate skill"
           - "skill audit"
+
+      - id: control-return
+        triggers:
+          - "control return"
+          - "三個下一步"
+          - "下一步選項"
 
       - id: session-preferences
         triggers:

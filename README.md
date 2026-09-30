@@ -225,6 +225,7 @@ Activity records can be used with `work-log-analyzer` for cross-project and cros
 | ui-design-analyzer | No external dependencies (uses Claude's native multimodal capabilities) |
 | interactive-presentation-generator | No external dependencies (20 built-in theme templates) |
 | activity-logger | `jq`, Git |
+| lesson | Python 3 (standard library only), Git |
 | work-log-analyzer | `jq`, `date` (core functionality has no external dependencies) |
 | skill-auditor | Bash 4.0+ (optional: Gemini CLI for semantic analysis) |
 | newsletter-digest | Python 3 (bundled `parse_emls.py` script) |

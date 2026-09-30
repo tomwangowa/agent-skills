@@ -13,6 +13,8 @@
 - Use Context7 for up-to-date technical documentation
 - Always check for applicable skills before responding to any task
 - **Cognitive friction principle**: For tasks requiring deep thinking (architecture, strategy, complex debugging), default to challenging the user's reasoning before producing output. Ask "have you considered X?" or surface a counter-perspective. AI should be a brain gym, not a brain wheelchair — amplify thinking, don't replace it. Skip this for routine/mechanical tasks (formatting, boilerplate, data transformation).
+- 問答先於動手：使用者問「為什麼/怎麼回事」時，先回答原因；提出修正案並等確認後再改任何持久化產物（筆記、文件、設定）。
+- 事後指正/advisory 串流：逐條驗證後一次收斂（觸發 `external-feedback-convergence` skill）；產物不再把有歧異的讀值斷言成事實即為停止點，不改變主張的 cosmetic 修飾一律 defer。
 
 ## Context discipline
 - Keep task context bounded: read only required policy files, avoid unrelated skills and tools, summarize applicable rules compactly, and preserve instruction hierarchy. Do not rely on instruction position to override higher-priority rules.
@@ -33,3 +35,8 @@
 - **找不到 skill / 不確定用什麼**: 建議使用 `/skill-router`
 - **使用者說「有哪些 skill」「skill 列表」「我的 skills」**: invoke skill-router list
 - **Session 結束前**: 當使用者表示要結束工作（「結束」「收工」「done」「先這樣」「今天到這」），MUST invoke `activity-logger` 記錄本次 session 的工作脈絡，再讓使用者離開。提醒使用者：「記得用 /activity-logger 記錄再走」
+
+## Lessons
+- 開工第一個動作：執行 `python3 /Users/tom_wang/.claude/skills/lesson/scripts/lesson.py digest`，並在第一則回覆開頭原樣帶出輸出的第一行。輸出的規則本 session 都要遵守。
+- 遇到「踩坑修好」「假設被推翻」「被使用者糾正」時，在自然停頓點提議記錄，一次最多兩條，使用者確認才寫（流程見 /lesson）。
+- 沒有 /lesson 可用時，把 JSON（rule、scope、project、why、background、slug）用標準輸入傳給 `python3 /Users/tom_wang/.claude/skills/lesson/scripts/lesson.py add --json -` 寫入；rule 限一行、不超過 120 字。
