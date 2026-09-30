@@ -1,0 +1,10 @@
+{
+  "sources": {
+    "activities": "~/.claude/activities",
+    "notes": {
+      "paths": ["~/path/to/your/notes"],
+      "recursive": true,
+      "exclude_hidden": true
+    }
+  }
+}

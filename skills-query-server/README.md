@@ -18,16 +18,26 @@ A TypeScript MCP server that provides structured query tools for activity logs, 
 
 ### 1. Configure data sources
 
-Edit `config.json`:
+Copy the template and edit it. `config.json` holds your own folder paths, so it is gitignored and never committed:
+
+```bash
+cp config.example.json config.json
+```
 
 ```json
 {
   "sources": {
     "activities": "~/.claude/activities",
-    "notes": "~/path/to/QA-TO-NOTES"
+    "notes": {
+      "paths": ["~/path/to/your/notes"],
+      "recursive": true,
+      "exclude_hidden": true
+    }
   }
 }
 ```
+
+`sources.activities` and a non-empty `sources.notes.paths` are required; `recursive` and `exclude_hidden` default to `true`.
 
 ### 2. Install dependencies
 
