@@ -29,10 +29,12 @@ If you cannot sharpen the draft into a rule, do not record it. Suggest keeping i
 
 ## `/lesson add`, or a proposal from the agent
 
+If `/lesson add` comes with no content, propose from the current session instead: draft at most two lessons that meet the conditions in "When to propose" and put them in one message. If nothing qualifies, say so and stop.
+
 1. Draft in one message: `rule`, scope (`global` or `project` plus which project), and one or two sentences of why.
 2. Check it: `<script> add --json - --dry-run` with the entry JSON on stdin. Fix anything it rejects.
 3. Wait for the user: 好 / 改 / 不記. Only after "好":
-4. Write: `<script> add --json - <<'EOF'` … `EOF` with the entry JSON. Fields: `rule`, `scope`, `project` (only for project scope), `why`, `background`, `slug` (short English, `[a-z0-9-]`), `by` (`claude`, `codex`, `gemini` or `user`). Report the file name it prints.
+4. Write: `<script> add --json - <<'EOF'` … `EOF` with the entry JSON. Fields: `rule`, `scope`, `project` (only for project scope), `why`, `background`, `slug` (short English, `[a-z0-9-]`), `by` (`claude`, `codex`, `gemini` or `user`). The script prints the full path; report only the file name, because the path can contain an account or vault name.
 
 Use the current project name from `git rev-parse --show-toplevel` (folder name), or the current folder name outside git.
 
