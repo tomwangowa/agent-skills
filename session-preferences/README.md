@@ -15,7 +15,7 @@ $session-preferences
 ```text
 $session-preferences add-deai 不要用「痛點」當成泛稱
 $session-preferences add-deai 翻譯時保留原文刻意的排比
-$session-preferences add-rule 不要在簡單回答後硬給下一步
+$session-preferences add-rule socratic-dialogue: 每個問題都附一個具體例子
 $session-preferences add-rule deai-voice: 避免重複同一種句尾
 ```
 
@@ -25,8 +25,10 @@ $session-preferences add-rule deai-voice: 避免重複同一種句尾
 
 `references/INDEX.md` 列出啟用時一定會讀取的 modules：
 
-- `control-return.md`：有真正需要時才提出三個可行下一步。
 - `deai-voice.md`：通用、可分享的日常去 AI 味規則、優先序與按需載入判斷。
+- `socratic-dialogue.md`：brainstorming 這類一問一答時，把問題講清楚並附例子。
+
+「每則回覆附三個下一步」已獨立成另一個手動 skill：`$control-return`。它不會隨 `$session-preferences` 一起啟用。
 
 去 AI 味規則會依情境讀取以下 reference，不會在每次啟用時全部載入：
 

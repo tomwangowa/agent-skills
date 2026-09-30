@@ -1,0 +1,6 @@
+interface:
+  display_name: "Control Return"
+  short_description: "Manually make each reply end with three next steps"
+  default_prompt: "Use $control-return to add three next steps to my replies."
+policy:
+  allow_implicit_invocation: false

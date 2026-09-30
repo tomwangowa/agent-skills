@@ -98,7 +98,7 @@ Assistant: 我建議寫入 `deai-translation`。它只約束翻譯時的忠實�
 ### Example 3: Target an existing module
 
 ```text
-User: $session-preferences add-rule control-return: 沒有三個真實選項時，不要列下一步
-Assistant: 我建議寫入 `control-return`。它只改「交還控制權」的情境，
+User: $session-preferences add-rule socratic-dialogue: 每個問題都附一個具體例子
+Assistant: 我建議寫入 `socratic-dialogue`。它只改 brainstorming 這類一問一答的情境，
            確認後立即套用到本 session；要現在寫入嗎？
 ```
