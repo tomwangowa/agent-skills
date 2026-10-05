@@ -103,3 +103,20 @@ NOT VERIFIED（待實機）：
 - 面板高度：程式碼審查估算 inline 時 5 筆加上摘要附註至少 19 列，`rows:18` 會溢出，「收起」按鈕最先被擠出；需實機確認並由 Tom 決定調整方式。
 - 面板文字中的控制字元與 ANSI 色碼如何顯示（節錄只處理 CRLF）。
 - session 中途修改 CLAUDE.md 時，附件種類是 `instructions`（已進黑名單，會被藏起來）還是 `nested_memory`（會顯示）。
+
+## 面板配色（0.3.0）
+
+2026-10-05 micro-PoC（scratchpad 的 color-poc Mod，Tom 實機截圖）：
+- 寬終端機全螢幕（`tui: fullscreen`）是 `placement=dock`、`bodyColumns=48`；窄終端機是 `placement=inline`、`bodyColumns=96`。
+- `borderStyle:'round'`、`single`、具名色 blue／green／yellow／red／magenta 的框線和文字、`dimColor`、標題列 `justifyContent:'space-between'`、粗體都正常。
+- inline 只畫得下約三個框，證實 inline 不加框的決定。
+- 主題 `dark`（預設）時 dock 是灰底，具名色 `gray` 在灰底上看不見；改成 `theme: dark-ansi` 後 dock 是深色底、`gray` 看得到。灰底是 Claude Code 主題本身的底色，Mod 不處理。
+- theme key（`inactive`、`subtle`、`success`、`warning`、`error`）當成 `color`／`borderColor` 都不會上色，所以只用具名色；閒置（`muted`）用終端機預設色，次要文字用 `dimColor`。
+
+自動化：`tests/theme.test.ts`、`view.test.ts`、`integration.test.ts` 覆蓋色調對應、即時區塊的色調優先序（等待 > 執行中 > 閒置）、動作的點（執行中 > 最後失敗 > 閒置）、需要你的點、dock 三個圓角框和框色、inline 無框且行數維持 0.2.0、兩種版面內容一致、狀態點與 notes 的顏色、muted 附註加 dimColor、依 id 取區塊。
+
+- 2026-10-05 實機（0.3.0，`--plugin-dir`，`theme: dark-ansi`，全螢幕）：
+  - dock 閒置：三個圓角框，摘要藍、即時用預設色、外部輸入洋紅；標題列右側 meta（「1 筆」「脈絡與證據更新」「距離最近事件」）對齊在右邊。
+  - AskUserQuestion 等待中：即時框變黃，「需要你」的點和標籤黃色；同時「動作：正在執行 AskUserQuestion」的點是綠色、標籤跟著框是黃色（即時框的標籤一律用框的色調），證實等待優先於執行中。
+  - inline：「外部輸入：」洋紅，footer 的 meta 和「有新活動，摘要待更新」以 dimColor 顯示。
+- NOT VERIFIED：只有工具在跑、沒有等待時的綠框（sleep 10 的截圖時機沒抓到工具執行中，綠框只由整合測試覆蓋）；inline 完整行數（截圖只有下半部）；Claude Desktop 的繪製。

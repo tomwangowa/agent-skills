@@ -2,7 +2,8 @@ import {createState, reduceState, boundedText, UNKNOWN_SESSION, BETWEEN_SESSIONS
 import {buildSnapshot} from './snapshot.js';
 import {parseSummary, summarySystemPrompt, unwrapSummaryJson} from './summary.js';
 import {createSchedule, claimSnapshot, settleRequest} from './scheduler.js';
-import {paneRows} from './view.js';
+import {paneRows, inlineFields, footerNotes, sectionById} from './view.js';
+import {colorFor} from './theme.js';
 import {entryFromAppend} from './inputs.js';
 
 let state = createState(UNKNOWN_SESSION);
@@ -230,21 +231,53 @@ export function register(on) {
     return next(e);
   });
   on('ui.render', {component:'Pane', requestId:'attention-mod'}, ($, e) => {
-    const {Box, Text, Button} = $.ui.resolve(e);
-    const {title, fields, notes, inputs} = paneRows(state, now);
-    // Box borders draw all four sides, so the rule is a line of box-drawing cells sized to the body.
-    const rule = '─'.repeat(Math.max(1, e.props.bodyColumns));
-    return Box({flexDirection:'column', children:[
-      Text({bold:true, wrap:'truncate', children:title}),
-      Text({dimColor:true, wrap:'truncate', children:rule}),
-      ...fields.map(f => Text({wrap:'wrap', children:[Text({bold:true, children:`${f.label}：`}), f.text]})),
-      Text({wrap:'truncate', children:[Text({bold:true, children:`${inputs.label}：`}), inputs.empty ?? '']}),
-      ...inputs.items.flatMap(i => [Text({wrap:'truncate', children:`  ${i.text}`}), ...(i.excerpt ? [Text({dimColor:true, wrap:'truncate', children:`    「${i.excerpt}」`})] : [])]),
-      Text({wrap:'wrap', children:''}),
-      ...notes.map(line => Text({wrap:'wrap', children:line})),
-      Button({key:'close-attention', label:'收起', onPress:() => $.ui.close({id:'attention-mod'})}),
+    const els = $.ui.resolve(e);
+    const view = paneRows(state, now);
+    // Only the dock reliably has the height for bordered sections; any other placement keeps the compact layout.
+    const body = e.props.placement === 'dock' ? drawDock(view, els) : drawInline(view, els, e.props.bodyColumns);
+    return els.Box({flexDirection:'column', children:[
+      ...body,
+      els.Button({key:'close-attention', label:'收起', onPress:() => $.ui.close({id:'attention-mod'})}),
     ]});
   });
+}
+
+/** A dot then a coloured bold label, shared by both layouts so "● 動作：正在執行" reads the same. */
+function labelled(Text, row, tone) {
+  return Text({wrap:'wrap', children:[
+    ...(row.dot ? [Text({color:colorFor(row.dot), children:'● '})] : []),
+    Text({bold:true, color:colorFor(tone), children:`${row.label}：`}),
+    row.text,
+  ]});
+}
+
+/** Bordered sections for the dock, which has the height for them. */
+function drawDock(view, {Box, Text}) {
+  return view.sections.map(section => Box({flexDirection:'column', borderStyle:'round', borderColor:colorFor(section.tone), paddingX:1, children:[
+    Box({flexDirection:'row', justifyContent:'space-between', children:[
+      Text({bold:true, wrap:'truncate', children:`[ ${section.label} ]`}),
+      ...(section.meta ? [Text({dimColor:true, wrap:'truncate', children:section.meta})] : []),
+    ]}),
+    ...(section.id === 'inputs'
+      ? (section.empty ? [Text({dimColor:true, wrap:'truncate', children:section.empty})] : section.rows.flatMap(i => [Text({wrap:'truncate', children:i.text}), ...(i.excerpt ? [Text({dimColor:true, wrap:'truncate', children:`  「${i.excerpt}」`})] : [])]))
+      : section.rows.map(row => labelled(Text, row, section.tone))),
+    ...section.notes.map(note => Text({wrap:'wrap', color:colorFor(note.tone), dimColor:note.tone === 'muted', children:note.text})),
+  ]}));
+}
+
+/** The 0.2.0 flat rows with colour added; used wherever height is scarce. */
+function drawInline(view, {Text}, bodyColumns) {
+  const inputs = sectionById(view, 'inputs');
+  return [
+    Text({bold:true, wrap:'truncate', children:view.title}),
+    // Box borders draw all four sides, so the rule is a line of box-drawing cells sized to the body.
+    Text({dimColor:true, wrap:'truncate', children:'─'.repeat(Math.max(1, bodyColumns))}),
+    ...inlineFields(view).map(field => labelled(Text, field, field.tone)),
+    Text({wrap:'truncate', children:[Text({bold:true, color:colorFor(inputs.tone), children:`${inputs.label}：`}), inputs.empty ?? '']}),
+    ...inputs.rows.flatMap(i => [Text({wrap:'truncate', children:`  ${i.text}`}), ...(i.excerpt ? [Text({dimColor:true, wrap:'truncate', children:`    「${i.excerpt}」`})] : [])]),
+    Text({wrap:'wrap', children:''}),
+    ...footerNotes(view).map(note => Text({wrap:'wrap', color:colorFor(note.tone), dimColor:note.tone === 'muted', children:note.text})),
+  ];
 }
 
 /** Serialize an excerpt, never retain full tool arguments or outputs. */
