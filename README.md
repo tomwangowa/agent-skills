@@ -20,6 +20,18 @@ These principles don't require you to agree with my approach — they're indepen
 
 The complete, generated inventory and its lifecycle/surface policy live in [SKILLS_CATALOG.md](./SKILLS_CATALOG.md). Use `skill-router` when you want a recommendation rather than a list.
 
+### Manual Code Comprehension Skills
+
+`understand-repo`, `understand-file`, and `understand-function` run only when explicitly invoked. Automatic invocation is disabled in both Claude Code and Codex; router recommendations do not invoke them.
+
+| Scope | Claude Code | Codex |
+|-------|-------------|-------|
+| Repository | `/understand-repo` | `$understand-repo` |
+| Source file | `/understand-file` | `$understand-file` |
+| Function or method | `/understand-function` | `$understand-function` |
+
+Include the repository path, file path, or function name after the command. For example: `/understand-file path/to/models.py` in Claude Code or `$understand-file path/to/models.py` in Codex.
+
 ### Skills Maintenance
 
 `skills-catalog.json` is the governance source of truth for tracked top-level skills; `SKILLS_CATALOG.md` is generated from it. After changing the catalog, run `python3 scripts/validate_skills_catalog.py --write`; before committing, run `python3 scripts/validate_skills_catalog.py --check` to verify the catalog, router, both READMEs, sync excludes, and generated index agree.

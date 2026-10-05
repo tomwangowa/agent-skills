@@ -1,9 +1,17 @@
 ---
 name: understand-function
 description: Use when explaining one function or method in repository context, including its caller, contract, transformations, side effects, branches, tests, and modification constraints.
+disable-model-invocation: true
 ---
 
 # Skill: understand-function
+
+## Invocation Policy
+
+Run this skill only when the user explicitly invokes `understand-function`, such as
+`/understand-function` in Claude Code or `$understand-function` in Codex. A matching task,
+a router recommendation, or another skill's suggested reading path does not
+authorize invocation. Keep the skill available for manual use.
 
 ## Purpose
 

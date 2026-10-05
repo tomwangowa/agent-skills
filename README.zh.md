@@ -20,6 +20,18 @@
 
 完整、生成式的 inventory，以及 lifecycle／surface 政策，都在 [SKILLS_CATALOG.md](./SKILLS_CATALOG.md)。若想依需求取得推薦，請用 `skill-router`。
 
+### 手動研讀程式碼
+
+`understand-repo`、`understand-file`、`understand-function` 都需要手動呼叫。Claude Code 與 Codex 已停用自動呼叫；路由器推薦也不會直接啟動它們。
+
+| 研讀範圍 | Claude Code | Codex |
+|----------|-------------|-------|
+| 整個 repository | `/understand-repo` | `$understand-repo` |
+| 單一程式檔案 | `/understand-file` | `$understand-file` |
+| 函式或方法 | `/understand-function` | `$understand-function` |
+
+在指令後加上 repository 路徑、檔案路徑或函式名稱。例如，Claude Code 使用 `/understand-file path/to/models.py`，Codex 使用 `$understand-file path/to/models.py`。
+
 ### Skills 維護
 
 `skills-catalog.json` 是已追蹤 top-level skills 的治理來源，`SKILLS_CATALOG.md` 由它產生。改 catalog 後，執行 `python3 scripts/validate_skills_catalog.py --write`；commit 前執行 `python3 scripts/validate_skills_catalog.py --check`，確認 catalog、router、兩份 README、sync excludes 與生成的 index 一致。

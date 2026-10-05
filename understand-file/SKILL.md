@@ -1,9 +1,17 @@
 ---
 name: understand-file
 description: Use when explaining a source file in repository context, including its architectural role, callers, data flow, tests, and modification constraints.
+disable-model-invocation: true
 ---
 
 # Skill: understand-file
+
+## Invocation Policy
+
+Run this skill only when the user explicitly invokes `understand-file`, such as
+`/understand-file` in Claude Code or `$understand-file` in Codex. A matching task,
+a router recommendation, or another skill's suggested reading path does not
+authorize invocation. Keep the skill available for manual use.
 
 ## Purpose
 

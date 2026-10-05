@@ -1,9 +1,17 @@
 ---
 name: understand-repo
 description: Use when understanding a repository or subsystem before reading individual files, including its purpose, runtime boundaries, entry points, representative flows, configuration, tests, and reading path.
+disable-model-invocation: true
 ---
 
 # Understand Repo
+
+## Invocation Policy
+
+Run this skill only when the user explicitly invokes `understand-repo`, such as
+`/understand-repo` in Claude Code or `$understand-repo` in Codex. A matching task,
+a router recommendation, or another skill's suggested reading path does not
+authorize invocation. Keep the skill available for manual use.
 
 ## Purpose
 
