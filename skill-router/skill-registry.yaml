@@ -66,6 +66,14 @@ categories:
           - "解釋這個函式"
           - "函式在流程中的角色"
 
+      - id: understand-repo
+        triggers:
+          - "understand-repo"
+          - "understand a repository"
+          - "研讀這個專案"
+          - "理解 repository 架構"
+          - "專案的整體流程"
+
       - id: research-cross-validator
         triggers:
           - "交叉驗證"

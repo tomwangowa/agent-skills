@@ -49,6 +49,7 @@
 | [tech-research-pipeline](./tech-research-pipeline/SKILL.md) | research-critical-thinking | promoted | user | yes | yes | yes |
 | [understand-file](./understand-file/SKILL.md) | research-critical-thinking | personal | model | yes | no | yes |
 | [understand-function](./understand-function/SKILL.md) | research-critical-thinking | personal | model | yes | no | yes |
+| [understand-repo](./understand-repo/SKILL.md) | research-critical-thinking | personal | model | yes | no | yes |
 | [control-return](./control-return/SKILL.md) | tools-meta | experimental | user | yes | no | yes |
 | [session-preferences](./session-preferences/SKILL.md) | tools-meta | experimental | user | yes | no | yes |
 | [skill-auditor](./skill-auditor/SKILL.md) | tools-meta | promoted | model | yes | no | yes |
