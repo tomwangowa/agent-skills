@@ -2,13 +2,37 @@
 
 Claude Code Attention Mod 的本機原型。回到目前工作階段時，面板顯示目標、Claude 的工作脈絡、正在執行的工具、最近證據與待回答訊號。
 
-## 開啟
+## 安裝
 
-在 Claude Code 2.1.288 執行：
+需要 Claude Code 2.1.288 以上。在終端機執行：
+
+```sh
+claude plugin marketplace add tomwangowa/agent-skills
+claude plugin install attention-mod@tomwangowa --scope user
+```
+
+裝好之後，新開的 session 都會載入這個 Mod。不想用時可以停用或移除：
+
+```sh
+claude plugin disable attention-mod@tomwangowa
+claude plugin uninstall attention-mod@tomwangowa
+```
+
+要更新到新版本，執行 `claude plugin update attention-mod@tomwangowa`，重新啟動 Claude Code 後生效。
+
+Mod 不在 sandbox 裡執行，會以你的使用者權限跑在 Claude Code 裡，安裝前請先看過 `hooks/` 的程式碼。
+
+## 開發時載入
+
+不安裝、只在這次 session 載入：
 
 ```sh
 claude --plugin-dir "<這個資料夾的路徑>"
 ```
+
+如果已經安裝過，開發時請先停用已安裝的版本，不然同一個 session 會有兩個面板。
+
+## 開啟
 
 面板預設開啟，不搶輸入焦點；若啟動時未放置，輸入 `/attention`。寬終端機的原生全螢幕模式使用側邊面板，窄終端機則放在輸入框上方。使用「收起」或原生關閉功能後，更新不會重新打開；`/attention` 可重開，不送出主 Claude 的新工作提示。
 
@@ -37,4 +61,4 @@ claude plugin test .
 
 原生測試包含有界素材、來源與格式驗證、並行工具、慢模型、失敗、重設、節流、面板與本機指令；不會真的呼叫模型或執行 Bash。
 
-[原型結果與尚未驗證項目](docs/prototype-results.md)、[設計](docs/superpowers/specs/2026-10-03-attention-mod-design.md)、[本機 API 契約](docs/runtime-api.md)。尚未安裝到全域；Git repository 已建立，但還沒有任何 commit。
+[原型結果與尚未驗證項目](docs/prototype-results.md)、[設計](docs/superpowers/specs/2026-10-03-attention-mod-design.md)、[本機 API 契約](docs/runtime-api.md)。
