@@ -1,10 +1,11 @@
-import {createState, reduceState, boundedText} from './state.js';
+import {createState, reduceState, boundedText, UNKNOWN_SESSION, BETWEEN_SESSIONS} from './state.js';
 import {buildSnapshot} from './snapshot.js';
 import {parseSummary, summarySystemPrompt, unwrapSummaryJson} from './summary.js';
 import {createSchedule, claimSnapshot, settleRequest} from './scheduler.js';
 import {paneRows} from './view.js';
+import {entryFromAppend} from './inputs.js';
 
-let state = createState('unknown');
+let state = createState(UNKNOWN_SESSION);
 const schedule = createSchedule();
 let sequence = 0;
 let timer = null;
@@ -102,10 +103,11 @@ export function register(on) {
       state = {...state, sessionId:await $.session.id(), enabled:true};
       endingSessionId = null;
       now = await $.clock.now();
+      if (state.inputsSince === null) state = {...state, inputsSince:now};
       await $.command.register({name:'attention', description:'開啟目前工作脈絡面板', immediate:true});
       startTimer($);
       void restore($);
-      if (!closed && e.isInteractive) await $.ui.open({id:'attention-mod', title:'你到底在忙什麼', rows:12, columns:48});
+      if (!closed && e.isInteractive) await $.ui.open({id:'attention-mod', title:'你到底在忙什麼', rows:18, columns:48});
     } catch { /* Panel setup cannot block the main session. */ }
     return result;
   });
@@ -124,7 +126,7 @@ export function register(on) {
   });
   on('session.end', async ($, e, next) => {
     // Invalidate before awaiting downstream work, so late responses cannot land.
-    apply({type:'session-reset', sessionId:'between-sessions', at:now});
+    apply({type:'session-reset', sessionId:BETWEEN_SESSIONS, at:now});
     state = {...state, enabled:false};
     endingSessionId = ['clear','resume'].includes(e.reason) ? e.sessionId : null;
     if (!['clear','resume'].includes(e.reason)) { timer?.cancel(); timer = null; }
@@ -144,6 +146,19 @@ export function register(on) {
   on('session.append', async ($, e, next) => {
     const epoch = state.epoch;
     const result = await next(e);
+    try {
+      // Display-only record of rows Tom did not type; kept apart from summary sources.
+      const entry = entryFromAppend(e, result);
+      if (entry) {
+        const stampSession = state.sessionId, stampEpoch = state.epoch;
+        const at = await $.clock.now();
+        // A row from a session that ended during the clock read must not reappear after the reset;
+        // an unbound row (startup or the /clear gap) belongs to whichever session got bound meanwhile.
+        const unbound = stampSession === UNKNOWN_SESSION || stampSession === BETWEEN_SESSIONS;
+        if (state.sessionId === stampSession) { apply({type:'external-input', entry, sessionId:stampSession, epoch:stampEpoch, at}); redraw($); }
+        else if (unbound) { apply({type:'external-input', entry, sessionId:state.sessionId, epoch:state.epoch, at}); redraw($); }
+      }
+    } catch { /* Classification failures must not change the stored row or the caller's result. */ }
     if (e.agentId || e.message.isMeta || !['response','tool-result'].includes(e.door)) return result;
     try {
       const content = result.message?.content ?? e.message.content;
@@ -206,7 +221,7 @@ export function register(on) {
   });
   on('command.run', {command:'attention'}, async ($, e) => {
     closed = false;
-    await $.ui.open({id:'attention-mod', title:'你到底在忙什麼', rows:12, columns:48});
+    await $.ui.open({id:'attention-mod', title:'你到底在忙什麼', rows:18, columns:48});
     return {};
   });
   on('ui.close', {id:'attention-mod'}, ($, e, next) => { closed = true; return next(e); });
@@ -216,13 +231,15 @@ export function register(on) {
   });
   on('ui.render', {component:'Pane', requestId:'attention-mod'}, ($, e) => {
     const {Box, Text, Button} = $.ui.resolve(e);
-    const {title, fields, notes} = paneRows(state, now);
+    const {title, fields, notes, inputs} = paneRows(state, now);
     // Box borders draw all four sides, so the rule is a line of box-drawing cells sized to the body.
     const rule = '─'.repeat(Math.max(1, e.props.bodyColumns));
     return Box({flexDirection:'column', children:[
       Text({bold:true, wrap:'truncate', children:title}),
       Text({dimColor:true, wrap:'truncate', children:rule}),
       ...fields.map(f => Text({wrap:'wrap', children:[Text({bold:true, children:`${f.label}：`}), f.text]})),
+      Text({wrap:'truncate', children:[Text({bold:true, children:`${inputs.label}：`}), inputs.empty ?? '']}),
+      ...inputs.items.flatMap(i => [Text({wrap:'truncate', children:`  ${i.text}`}), ...(i.excerpt ? [Text({dimColor:true, wrap:'truncate', children:`    「${i.excerpt}」`})] : [])]),
       Text({wrap:'wrap', children:''}),
       ...notes.map(line => Text({wrap:'wrap', children:line})),
       Button({key:'close-attention', label:'收起', onPress:() => $.ui.close({id:'attention-mod'})}),

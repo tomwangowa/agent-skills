@@ -41,6 +41,7 @@ test('slow background model does not block tools, or overwrite current action wi
   expect(h.record.models[0].request.timeoutMs).toBe(15000);
   expect(h.record.prompts.length).toBe(1);
   expect(h.record.opens[0].focus).toBe(undefined);
+  expect(h.record.opens[0].rows).toBe(18);
 });
 test('pane closes permanently across updates; attention command opens without a main prompt',async($,on)=>{
   const h=host(on);
@@ -71,6 +72,7 @@ test('pane draws a bold question title, a rule sized to the body, and bold field
   expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？']});
   expect(rule.children).toEqual(['─'.repeat(40)]);
   const labels=rest.filter(row=>row.type==='Text' && row.children[0]?.props?.bold).map(row=>row.children[0].children[0]);
-  expect(labels).toEqual(['目標：','脈絡：','動作：','證據：','需要你：']);
+  expect(labels).toEqual(['目標：','脈絡：','動作：','證據：','需要你：','外部輸入：']);
   expect(await renderedText(pane)).toContain('目標：目的尚不清楚');
+  expect(await renderedText(pane)).toContain('外部輸入：尚無');
 });

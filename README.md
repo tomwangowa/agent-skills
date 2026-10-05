@@ -7,7 +7,7 @@ Claude Code Attention Mod 的本機原型。回到目前工作階段時，面板
 在 Claude Code 2.1.288 執行：
 
 ```sh
-claude --plugin-dir "/Users/tom_wang/Development/tools/CC-MODs/你在忙什麼"
+claude --plugin-dir "<這個資料夾的路徑>"
 ```
 
 面板預設開啟，不搶輸入焦點；若啟動時未放置，輸入 `/attention`。寬終端機的原生全螢幕模式使用側邊面板，窄終端機則放在輸入框上方。使用「收起」或原生關閉功能後，更新不會重新打開；`/attention` 可重開，不送出主 Claude 的新工作提示。
@@ -15,6 +15,8 @@ claude --plugin-dir "/Users/tom_wang/Development/tools/CC-MODs/你在忙什麼"
 ## 資訊怎麼來
 
 「動作」「需要你」來自原生事件。「目標」「脈絡」「證據」由獨立的 `haiku` 呼叫整理既有對話與工具節錄，摘要保留來源識別。資料只存在 Mod 記憶體，不使用 store、不另讀工作區檔案。Claude Code 本身仍依其設定保存原本的對話。
+
+「外部輸入」列出最近 5 筆不是你打、但進了 Claude context 或顯示在對話裡的內容，例如 hook 注入、附件、工具帶進來的內容；背景工作回報、排程或其他 session 送進來的訊息會不會列出，還沒實機確認。notice 也會列出，不過它只顯示在畫面上，model 不會讀到。附時間、種類、來源，最新 2 筆另外附單行節錄。它只顯示，不會成為摘要素材；資料只在記憶體，`/clear`、resume、重載後清空。已知的系統附件（token 提醒、環境、工具清單等）由 `hooks/inputs.js` 的黑名單濾掉，沒見過的種類照樣顯示。事後追查請看對話紀錄 JSONL，每一列都有時間。
 
 有新素材才呼叫模型，開始時間至少相隔 60 秒，同時最多一個；素材含 JSON 和省略標記最多 8,000 個 Unicode 字元，回應最多 512 tokens，15 秒逾時。模型呼叫會使用你的 Claude 用量，實際金額或方案消耗沒有固定估計值。
 

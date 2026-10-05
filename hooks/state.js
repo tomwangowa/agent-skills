@@ -1,6 +1,7 @@
 /** @typedef {{id:string, role:string, phase?:string, text:string, at:number}} Source */
 /** @typedef {{id:string, epoch:number, agentId:string|null, tool:string, label:string, startedAt:number, status:string}} Activity */
-/** @typedef {{sessionId:string, epoch:number, revision:number, sources:Source[], goalId:string|null, goalContextIds:string[], activities:Activity[], waits:object[], summary:object|null, summaryRevision:number|null, summaryError:string|null, snapshotAt:number|null, turnStatus:string, enabled:boolean, lastTool:object|null, lastEventAt:number|null, waitUnknown:boolean}} State */
+/** @typedef {{id:string, kind:string, origin:string, excerpt:string, sessionId:string, epoch:number, at:number}} Input */
+/** @typedef {{sessionId:string, epoch:number, revision:number, sources:Source[], goalId:string|null, goalContextIds:string[], activities:Activity[], waits:object[], summary:object|null, summaryRevision:number|null, summaryError:string|null, snapshotAt:number|null, turnStatus:string, enabled:boolean, lastTool:object|null, lastEventAt:number|null, waitUnknown:boolean, inputs:Input[], inputsSince:number|null}} State */
 
 /** Bound retained text by Unicode code points, marking omitted content. */
 export function boundedText(text, limit = 8000) {
@@ -13,13 +14,35 @@ export function boundedText(text, limit = 8000) {
 
 /** Create an isolated, memory-only session state. @returns {State} */
 export function createState(sessionId) {
-  return {sessionId, epoch:0, revision:0, sources:[], goalId:null, goalContextIds:[], activities:[], waits:[], summary:null, summaryRevision:null, summaryError:null, snapshotAt:null, turnStatus:'unknown', enabled:true, lastTool:null, lastEventAt:null, waitUnknown:false};
+  return {sessionId, epoch:0, revision:0, sources:[], goalId:null, goalContextIds:[], activities:[], waits:[], summary:null, summaryRevision:null, summaryError:null, snapshotAt:null, turnStatus:'unknown', enabled:true, lastTool:null, lastEventAt:null, waitUnknown:false, inputs:[], inputsSince:null};
 }
+
+/** Session ID before session.start reports one. */
+export const UNKNOWN_SESSION = 'unknown';
+/** Session ID held between session.end and the next session. */
+export const BETWEEN_SESSIONS = 'between-sessions';
+/** Session IDs held before a real session is known: startup and the gap after session.end. */
+const UNBOUND_SESSIONS = [UNKNOWN_SESSION, BETWEEN_SESSIONS];
 
 /** Apply an observation immutably; activity generations survive a new prompt. */
 export function reduceState(state, event) {
   if (event.type === 'session-reset') {
-    return {...createState(event.sessionId), epoch:state.epoch + 1, enabled:state.enabled, lastEventAt:event.at};
+    const epoch = state.epoch + 1;
+    // Carry forward only current-epoch rows that are either still unbound (the gap after session.end,
+    // or startup before session.start) or already stamped with this reset's target session — the latter
+    // covers reconnect() rebinding state.sessionId to the new real id (without a reset event) before
+    // classic.SessionStart's own reset arrives, which would otherwise stamp the row with the new id and
+    // have today's reset drop it for "not unbound". The epoch check is what keeps this safe: reconnect()
+    // never bumps the epoch and no prompt can land in that gap, so a row's epoch still matching state.epoch
+    // means it was stamped during the current gap/startup window, not left over from an earlier session.
+    const inputs = event.sessionId === BETWEEN_SESSIONS ? [] : state.inputs.filter(i => i.epoch === state.epoch && (UNBOUND_SESSIONS.includes(i.sessionId) || i.sessionId === event.sessionId)).map(i => ({...i, epoch}));
+    const inputsSince = inputs.length && state.inputsSince !== null ? state.inputsSince : event.at;
+    return {...createState(event.sessionId), epoch, enabled:state.enabled, lastEventAt:event.at, inputs, inputsSince};
+  }
+  if (event.type === 'external-input') {
+    // Display-only: never a source, so the summary snapshot cannot read it. Accepted while disabled on purpose.
+    if (state.inputs.some(i => i.id === event.entry.id)) return state;
+    return {...state, inputs:[...state.inputs, {...event.entry, sessionId:event.sessionId, epoch:event.epoch, at:event.at}].slice(-5)};
   }
   if (event.type === 'new-prompt') {
     const goalContextIds = (state.summary?.goal?.sources ?? (state.goalContextIds.length ? state.goalContextIds : state.goalId ? [state.goalId] : [])).slice(0,4);

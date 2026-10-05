@@ -24,11 +24,12 @@ claude --plugin-dir "$PWD"          # 實際載入 Mod 試用，面板沒出現�
 
 `hooks/hooks.json` 只載入 `hooks/register.js`。它持有所有可變狀態並接上事件；其他模組都是純函式，方便單獨測試：
 
-- `state.js`：`reduceState(state, event)`，immutable reducer。處理 source、tool-start/end、wait、turn、new-prompt、session-reset。`boundedText` 以 Unicode code point 截斷並插入 `[truncated]` 標記。
+- `state.js`：`reduceState(state, event)`，immutable reducer。處理 source、tool-start/end、wait、turn、new-prompt、session-reset、external-input；外部輸入放在 `inputs`／`inputsSince`，跟 `sources` 分開。`session-reset` 換到新 session 時，只保留目前 epoch、而且 sessionId 是 `UNKNOWN_SESSION`／`BETWEEN_SESSIONS` 或已是新 id 的列（`reconnect()` 可能先換 id 再 reset）。`boundedText` 以 Unicode code point 截斷並插入 `[truncated]` 標記。
 - `snapshot.js`：從 sources 挑出目標來源、goal context、近期 user 提示，再補其他新素材，序列化後整份 prompt 不超過 8,000 code points（JSON escaping 也算在內）。
 - `summary.js`：固定的 system prompt，加上 `parseSummary` 嚴格驗證。只接受 `goal/context/evidence` 三個 key，每欄 null 或 `{text, sources}`，text 最多 160 code points，引用的來源必須存在於快照。`context` 只能引用 `assistant`，`evidence` 只能引用 `tool`／`tool-success`／`tool-error`／`tool-denied`／`tool-cancelled`。`unwrapSummaryJson` 只拆掉完整、單一的 ```` ```json ```` 外框。
 - `scheduler.js`：同一份 `sessionId:epoch:revision` 只試一次（失敗不重試），開始時間相隔至少 60 秒，同時最多一個呼叫。
-- `view.js`：`paneLines` 把狀態轉成面板文字，不呼叫模型。
+- `view.js`：`paneLines` 把狀態轉成面板文字，不呼叫模型；也透過 `inputRows` 組出外部輸入區塊。
+- `inputs.js`：`entryFromAppend(e, result)` 把 `session.append` 的列分類成外部輸入或 null；`NOISE` 黑名單每項附原因，沒列的種類照樣顯示；被拒絕的 append（`result.deny`）不算。外部輸入只進 `state.inputs`，不進 `sources`，所以不會進摘要快照。測試 kit 無法端到端觸發 `session.append`，分類邏輯要放在這個純函式裡測。
 
 資料流：事件 hook 先 `await next(e)` 拿原結果，再把觀察寫進 state，最後原樣回傳。`clock.every(1000)` 背景計時器負責 redraw 並呼叫 `summarize()`，後者建快照、claim 排程，再呼叫 `$.model.complete({model:'haiku', maxTokens:512, timeoutMs:15000})`。
 

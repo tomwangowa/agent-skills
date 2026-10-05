@@ -6,7 +6,7 @@
 
 ## 目的
 
-主 Claude 突然轉彎時，讓 Tom 在面板上一眼看到「最近有哪些不是他打的內容進了 context」。對話紀錄 JSONL 本來就保存每一列的時間，所以本欄位只負責即時顯示，事後追查仍然看 JSONL。
+主 Claude 突然轉彎時，讓 Tom 在面板上一眼看到「最近有哪些不是他打的內容進了 context」。notice 也一併列出，雖然它只顯示在畫面上、model 讀不到，但可以幫忙對照時間。對話紀錄 JSONL 本來就保存每一列的時間，所以本欄位只負責即時顯示，事後追查仍然看 JSONL。
 
 ## 已確認的決定
 
@@ -14,7 +14,7 @@
 2. 黑名單篩選：非 Tom 輸入的列都顯示，只濾掉已知的系統雜訊；沒見過的種類照樣顯示。漏掉一筆輸入比多一行雜訊嚴重。
 3. 只顯示，不餵給背景摘要。外部輸入不得進入 `sources` 或摘要快照。
 4. 每筆記錄時間、種類、來源，以及單行節錄。
-5. 跨回合保留最近 5 筆，標「本回合／前幾回合」；`/clear`、resume、重載才清空。
+5. 跨回合保留最近 5 筆；`/clear`、resume、重載才清空。原本每筆標「本回合／前幾回合」，2026-10-05 第二次實機發現提示邊界會標錯、行尾也常被截掉，Tom 決定拿掉，只靠時間與排序對照。
 6. 重載後不補舊資料，從空白開始，並顯示起算時間。
 7. 最新 2 筆顯示節錄，較舊的 3 筆只顯示一行；面板 `rows` 從 12 調到 18。
 
@@ -23,9 +23,10 @@
 `session.append` 中符合下列條件的列：
 
 - 沒有 `agentId`。子代理內部的列不會進主 context，回報會經由主對話的 delivery 或工具結果另外出現。
-- door 是 `delivery`、`attachment`、`hook-context`、`notice`、`note`、`compaction`、`tool-message` 其中之一。
+- door 是 `delivery`、`attachment`、`hook-context`、`notice`、`note`、`compaction`、`tool-message` 其中之一。其中 `notice`（`type:'system'`）只顯示在畫面上，model 不會讀到；slash command 的輸出（subtype `local_command`）也會以 notice 出現，要不要排除，等實機看過再決定。
 - 不收 `prompt`、`response`、`tool-result`，因為面板已經有對應欄位；也不收 `command`，那是 Tom 自己觸發的。
 - door 是 `attachment` 時，`message.name` 不在黑名單中。
+- 內容不是空的。content 是空陣列、或全部都是空白文字的列，model 讀不到任何東西，不可能讓 Claude 轉彎，一律不列；只要有其他區塊（文字、媒體、`tool_result`、沒見過的區塊類型）就照常顯示。這是依內容判斷，不是依種類；畸形列（沒有 message、content 不是陣列）也視為空的。2026-10-05 Tom 依實機結果確認：Warp 的終端機通知 hook 在每次工具呼叫都會經 `hook-context` door 留下一列內容為空的 `hook_success`，會把 5 個位子洗掉。
 
 ### 黑名單初始內容
 
@@ -43,37 +44,37 @@
 | `prompt_snapshot` | 系統提示快照 |
 | `command_permissions` | 指令允許的工具清單 |
 | `remote_session_change` | 遠端 session 與 commit 署名設定 |
+| `instructions`、`session_context` | 每個 session 第一個提示都會附上的 CLAUDE.md 與固定脈絡（2026-10-05 實機後加入） |
 
-刻意**不**列入、會照常顯示的種類：`hook_additional_context`（hook 注入）、`file`（`@` 附檔）、`edited_text_file`（Tom 在磁碟上改了檔案）、`mcp_instructions_delta`（MCP 伺服器帶進來的說明文字）、`instructions`（CLAUDE.md 內容）、`session_context`、`silent_turn_reminder`、`hook_success`。後四項可能偏吵，實機用過一陣子後再決定要不要移進黑名單。
+刻意**不**列入、會照常顯示的種類：`hook_additional_context`（hook 注入）、`file`（`@` 附檔）、`edited_text_file`（Tom 在磁碟上改了檔案）、`mcp_instructions_delta`（MCP 伺服器帶進來的說明文字，中途連上的伺服器會帶進新的外部文字）、`silent_turn_reminder`、`hook_success`。`hook_success` 沒有輸出時會被上面的「內容是空的就不列」規則擋掉；其餘可能偏吵的，實機用過一陣子後再決定要不要移進黑名單。
 
 ## 元件與資料流
 
 ```text
 session.append
   ├─ await next(e)                 原樣放行，不改寫
-  ├─ classifyRow(e, result)        hooks/inputs.js，純函式，不依賴 $
+  ├─ entryFromAppend(e, result)    hooks/inputs.js，純函式，不依賴 $
   │     → null 或 {id, kind, origin, excerpt}
   ├─ apply({type:'external-input', entry, sessionId, epoch, at})
-  └─ 既有的摘要素材流程（register.js:147）不動
+  └─ 既有的摘要素材流程（register.js 的 response／tool-result 過濾）不動
 ```
 
-- `kind`：`message.name`，沒有的話用 door。
+- `kind`：hook 注入顯示「hook 注入」，附件顯示「附件 `message.name`」，其他 door 用 `message.name`，沒有的話用 door 名稱。
 - `origin`：依 `origin.kind` 轉成中文標籤，沒見過的種類直接顯示原字串。
-- `excerpt`：取自 `result.message.content`（model 實際讀到的版本），第一段文字的第一行；只有媒體時顯示「[圖片]」，沒有文字時顯示「[無文字內容]」。
+- `excerpt`：取自 `result.message.content`（model 實際讀到的版本），依序找第一個非空白、而且不只是單一包裝標籤（例如 `<system-reminder>`）的行；全部都是標籤時退回第一個非空白行。只有媒體時顯示「[圖片]」，沒有文字時顯示「[無文字內容]」。
 - 長度上限：種類、來源各 24 字，節錄 40 字，都按 Unicode code point 計算。
 - `state.inputs` 保留最近 5 筆，同一個 uuid 只記第一次；`state.inputsSince` 記錄起算時間。
-- 「本回合」的判斷：該筆的 epoch 等於目前的 epoch。
 
 面板範例：
 
 ```text
-外部輸入：14:05 附件 file · 引擎             （本回合）
+外部輸入：14:05 附件 file · 引擎
             「Claude Code Mods.md」
-          13:40 hook 注入 · settings hook   （前幾回合）
+          13:40 hook 注入 · hook（SessionStart）
             「Run lesson.py digest first…」
-          13:12 附件 edited_text_file       （前幾回合）
-          11:02 notice                      （前幾回合）
-          09:58 hook 注入 · settings hook   （前幾回合）
+          13:12 附件 edited_text_file · 引擎
+          11:02 local_command · 引擎
+          09:58 hook 注入 · hook（SessionStart）
 ```
 
 沒有資料時顯示：`外部輸入：尚無（14:20 起記錄）`。
@@ -85,30 +86,31 @@ session.append
 處理方式：每筆記下收到時的 `state.sessionId`。
 
 - 重設成 `'between-sessions'`：清空 `inputs`。
-- 重設成實際的新 session id：保留 sessionId 為 `'between-sessions'` 或初始值的幾筆，並把它們的 epoch 改成新值。
+- 重設成實際的新 session id：只保留目前 epoch 的列，而且 sessionId 是 `'between-sessions'`、初始值，或已經是這個新 id（`reconnect()` 可能先把 id 換成新的、還沒重設），並把它們的 epoch 改成新值。epoch 條件讓空窗期留下的舊列，不會在之後被帶進不相干的 session。
 - `external-input` 不檢查 `state.enabled`，空窗期也照收。
 
 注入那一列實際在 `next(e)` 之前、之中還是之後 append，目前是 **NOT VERIFIED**；上面的規則三種順序都適用。
 
-`classifyRow` 或節錄出錯時，在 try/catch 裡跳過該列，`next` 的結果照常回傳。
+`entryFromAppend` 或節錄出錯時，在 try/catch 裡跳過該列，`next` 的結果照常回傳。
 
 ## 測試
 
 自動化（`claude plugin test`）：
 
-- `inputs.test.ts`：排除的 door 與 `agentId`；黑名單附件回傳 null；**沒見過的附件種類必須回傳一筆**；來源標籤、節錄長度、只有媒體、沒有文字、沒見過的 origin 種類。
+- `inputs.test.ts`：排除的 door 與 `agentId`；黑名單附件回傳 null；**沒見過的附件種類必須回傳一筆**；來源標籤、節錄長度、只有媒體、沒有文字、沒見過的 origin 種類；只有空內容才不列；開場的 `instructions`／`session_context` 不列而 `mcp_instructions_delta` 照列；節錄跳過包裝標籤行。
 - `state.test.ts`：最多 5 筆、uuid 不重複、`new-prompt` 後保留、`'between-sessions'` 重設時清空、新 session 重設時保留空窗期的幾筆並改 epoch、`enabled:false` 時照收。
-- `integration.test.ts`：外部輸入列的 `next` 結果原樣回傳；**摘要快照中找不到任何外部輸入的文字**；`classifyRow` 丟出例外時主流程不受影響。
-- `view.test.ts`：起算時間、本回合／前幾回合、最新 2 筆有節錄而較舊 3 筆沒有。
+- `state.test.ts` 另外鎖住：**摘要快照中找不到任何外部輸入的文字**；`reconnect()` 先換 id 時注入列仍保留；空窗期的舊列不會被帶進之後的 session。
+- `integration.test.ts`：面板標籤、`rows:18`、空白狀態。測試 kit 無法端到端觸發 `session.append`（2026-10-04 實測回報 `no implementation for session.append`），所以「`next` 結果原樣回傳」與「分類出錯不影響主流程」由程式碼審查與實機驗證確認。
+- `view.test.ts`：起算時間、時間格式、最新 2 筆有節錄而較舊 3 筆沒有。
 
 實機驗證，結果記入 [原型結果](../../prototype-results.md)：
 
 1. 設定會注入文字的 SessionStart hook，執行 `/clear` 後確認該筆留在面板上。
 2. 用 `@` 帶入檔案，記錄 door 與 `name`。
-3. 執行背景工作，確認回報是否走 `delivery`。
+3. 執行背景工作，確認回報是否走 `delivery`；同時在 Claude 工作中途打字，確認 Tom 自己輸入的內容是否被誤列為外部輸入（可能走 `delivery`，origin 為 `composer`，或附件 `queued_command`）。
 4. 窄終端機下 `rows:18` 的面板不搶輸入焦點。
 
-**前置阻礙**：2026-10-04 執行 `claude plugin test .` 時回報 hooks modules 已關閉。這個問題排除之前，自動化測試和實機驗證都無法進行。
+2026-10-04 一度因 hooks modules 開關未更新而無法執行 `claude plugin test .`；Tom 重新啟動一次 `claude` 後已恢復。
 
 ## 不做的事
 

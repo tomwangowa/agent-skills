@@ -74,3 +74,32 @@
 - 精確效能 overhead、主工作與摘要的完整方案成本比較；foreground 持續執行不等於量出零額外負擔。
 - `tsc` 型別編譯（本機未提供）、其他版本、Linux／Windows。
 - 最後的原型補強未經第二位獨立 reviewer；原生檢查與作者逐項核對已執行。
+
+## 外部輸入欄位（2026-10-04）
+
+自動化：`tests/inputs.test.ts`、`state.test.ts`、`view.test.ts`、`integration.test.ts` 覆蓋分類、黑名單、被拒絕的 append、保留 5 筆、跨回合、`/clear` 空窗期與 `reconnect()` 先換 id 時的保留、舊列不帶進之後的 session、不進摘要快照、時間格式、面板繪製。`session.append` 無法在測試 kit 端到端觸發，`register.js` 的接線只由程式碼審查與實機驗證確認。
+
+2026-10-05 第一次實機（Tom 的截圖與該 session 的 JSONL）：
+- 面板在 dock 畫出「外部輸入」區塊，「收起」按鈕仍在畫面內。
+- Warp 的 PreToolUse／PostToolUse／Stop 通知 hook 每次工具呼叫都經 `hook-context` door 留下內容為空的 `hook_success`，5 個位子很快被「[無文字內容]」佔滿。之後改成內容是空的列不列（空陣列或全是空白文字；其他區塊照常顯示）。
+- SessionStart 探針有寫進 JSONL（`hook_additional_context`，內容含 `EXTERNAL-INPUT-PROBE`），但在面板上被上述空列擠出，所以「面板顯示探針」這一項仍待重測。
+- 這個寬度下，較長的行（`hook（PostToolUse）`）行尾被截成「（本回合..」，回合標記會被切掉。
+
+2026-10-05 第二次實機（改成空列不列之後；全新啟動，一個提示，沒有 `/clear`）：
+- SessionStart 探針顯示為 `hook 注入 · hook（SessionStart）`；Warp 的空 `hook_success` 不再出現。
+- 回合標記在提示邊界不可靠：探針在提示前注入，送出後顯示「前幾回合」；同一秒隨提示附上的附件，`mcp_instructions_delta` 顯示「前幾回合」，`instructions`、`session_context` 卻顯示「本回合」。原因是 `prompt.submit` 在 `next(e)` 回來後才加 epoch，部分附件在那之前就 append 了。
+- 第一個提示會帶出 `instructions`、`session_context`、`mcp_instructions_delta` 三列，開場就佔掉 5 個位子中的 3 個。
+- `session_context` 的節錄是「<system-reminder>」，第一行是包裝標籤，看不出內容。
+- Skill 工具載入的內容以 `tool-message · 工具 Skill` 出現，節錄是 skill 的開頭。
+- dock 下 5 筆加 2 行節錄放得下，「收起」在畫面內；較長的行尾回合標記被截成「（前幾…」。
+
+之後的處理（程式已改，尚未實機重測）：拿掉回合標記；`instructions`、`session_context` 加進黑名單（`mcp_instructions_delta` 保留）；節錄跳過只有包裝標籤的行。
+
+NOT VERIFIED（待實機）：
+- SessionStart hook 注入在 `/clear` 後是否留在面板（啟動時已確認會顯示）。
+- `@` 附檔的 door 與 name；背景工作回報是否走 `delivery`。
+- 不是 Tom 送出的提示（背景工作、排程、其他 session、channel、plugin）如果自成一個回合、走 `prompt`／`command` door：`inputs.js` 不收這兩個 door，`register.js` 的 `prompt.submit` 也只把 composer／bridge／sdk 當目標，這些列會兩邊都不出現。要不要收、`unclassified` 怎麼算，待實機看到 door 後由 Tom 決定。
+- Claude 工作中途 Tom 打的字，是否被誤列為外部輸入（`delivery` 加 `composer` origin，或附件 `queued_command`）。
+- 面板高度：程式碼審查估算 inline 時 5 筆加上摘要附註至少 19 列，`rows:18` 會溢出，「收起」按鈕最先被擠出；需實機確認並由 Tom 決定調整方式。
+- 面板文字中的控制字元與 ANSI 色碼如何顯示（節錄只處理 CRLF）。
+- session 中途修改 CLAUDE.md 時，附件種類是 `instructions`（已進黑名單，會被藏起來）還是 `nested_memory`（會顯示）。

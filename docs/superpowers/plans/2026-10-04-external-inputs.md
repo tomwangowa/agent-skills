@@ -163,6 +163,8 @@ export function entryFromAppend(e, result) {
 Run: `claude plugin test .` and `node --check hooks/inputs.js`
 Expected: 46 pass, 0 fail; `node --check` prints nothing.
 
+> **Post-review deviation (2026-10-04):** code-quality review added to `entryFromAppend` a guard `if (result?.deny !== undefined) return null;` (a refused plugin `note` append is never stored, so it must not show), changed the excerpt split to `/\r?\n/`, reworded the `DOORS` docstring (notices reach the screen, not the model), and added 4 tests (refused append, CRLF excerpt, malformed rows return an entry, label and 24-point clip coverage). Task 1 ends at **50 pass, 0 fail**; later task counts below include these.
+
 ---
 
 ### Task 2: State slice
@@ -267,7 +269,9 @@ Replace the `session-reset` branch at the top of `reduceState` with:
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `claude plugin test .` and `node --check hooks/state.js`
-Expected: 50 pass, 0 fail.
+Expected: 54 pass, 0 fail.
+
+> **Post-review deviation (2026-10-04):** the carry filter became `i.epoch === state.epoch && (UNBOUND_SESSIONS.includes(i.sessionId) || i.sessionId === event.sessionId)`, because `register.js` `reconnect()` can rebind `sessionId` to the new id before the SessionStart reset (those rows were being dropped), and stale gap rows must not be dragged into a later session. `state.js` now exports `UNKNOWN_SESSION` and `BETWEEN_SESSIONS`; Task 4 must use them in `register.js` instead of the `'unknown'` / `'between-sessions'` literals. Two regression tests were added and the summary-material test now asserts the row was recorded. Task 2 ends at **56 pass, 0 fail**; Task 3 ends at **58**, Task 4 at **58**.
 
 ---
 
@@ -357,7 +361,9 @@ export function paneLines(state, now) {
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `claude plugin test .` and `node --check hooks/view.js`
-Expected: 52 pass, 0 fail. The existing `pane rows expose ... each field label` test still expects five `fields`, because inputs are a separate section.
+Expected: 58 pass, 0 fail. The existing `pane rows expose ... each field label` test still expects five `fields`, because inputs are a separate section.
+
+> **Post-review deviation (2026-10-04):** review added a literal HH:MM format test, a carried-row 本回合→前幾回合 test, `inputs.empty === null` when items exist, and `excerpt ?? null`. Task 3 ends at **60 pass, 0 fail**; Task 4 ends at **60**.
 
 ---
 
@@ -418,6 +424,8 @@ Replace the start of the `session.append` handler, up to and including the exist
 
 The rest of the handler stays as it is.
 
+Change the state import to `import {createState, reduceState, boundedText, UNKNOWN_SESSION, BETWEEN_SESSIONS} from './state.js';`, then replace the literal in `let state = createState('unknown');` with `UNKNOWN_SESSION`, and the literal in the `session.end` handler's `apply({type:'session-reset', sessionId:'between-sessions', at:now});` with `BETWEEN_SESSIONS`. The reducer's carry rule depends on these exact values.
+
 Change both `$.ui.open({id:'attention-mod', title:'你到底在忙什麼', rows:12, columns:48})` calls (`session.start` and `command.run`) to use `rows:18`.
 
 In the `ui.render` Pane handler, replace `const {title, fields, notes} = paneRows(state, now);` with:
@@ -443,7 +451,7 @@ claude plugin validate --strict .
 for f in hooks/*.js; do node --check "$f"; done
 ```
 
-Expected: 52 pass, 0 fail; validate prints `✔ Validation passed`, and its `calls` list is unchanged (no new `$.` calls besides those already listed); `node --check` prints nothing.
+Expected: 60 pass, 0 fail; validate prints `✔ Validation passed`, and its `calls` list is unchanged (no new `$.` calls besides those already listed); `node --check` prints nothing.
 
 ---
 
@@ -505,15 +513,20 @@ Checks, in order:
 2. Run `/clear`. The probe row must appear again for the new session; rows from before the clear must be gone.
 3. Send a prompt that `@`-mentions `README.md`. Note the shown kind and origin.
 4. Ask Claude to run a short background task (e.g. a background `sleep 3`), and note whether its completion shows up and under which kind.
-5. In a terminal under 100 columns, confirm the pane with `rows:18` does not take input focus.
+5. In a terminal under 100 columns, confirm the pane with `rows:18` does not take input focus; with 5 inputs shown, check whether the 「收起」 button is still reachable. (The marker part is obsolete: the marker was removed on 2026-10-05.)
+6. While Claude is working, type a follow-up message. Note whether it appears as an external input and with which door / origin / name.
+7. Run `/attention` (or another local slash command). Note whether a `local_command` notice row appears.
+8. ~~Note whether a hook row injected just before a prompt is labelled 前幾回合.~~ Observed on 2026-10-05 (it was); obsolete after the marker was removed.
+
+> **Post-live deviation (2026-10-05):** after two live runs Tom approved: hide rows whose content is empty (empty array or only blank text; Warp's empty `hook_success` rows flooded the list), add `instructions` and `session_context` to `NOISE`, skip wrapper-tag-only lines in the excerpt, and remove the 本回合／前幾回合 marker (mislabelled at the prompt boundary and truncated at line end). Task 3 code above still shows the marker; the shipped `inputRows` text is `HH:MM kind · origin`. Suite: **63 pass, 0 fail**.
 
 - [ ] **Step 3: Record results**
 
-Replace the NOT VERIFIED line added in Task 5 Step 3 with the observed door/kind/origin for each check, keeping any check that could not be run under NOT VERIFIED.
+Update the NOT VERIFIED list added in Task 5 Step 3: move each item that was observed into a VERIFIED note with the observed door/kind/origin, and keep any item that could not be run under NOT VERIFIED. Then ask Tom to decide the open design questions (pane height, marker position, whether to exclude `local_command` notices and mid-turn typed input).
 
 - [ ] **Step 4: Completion gate**
 
-Apply `completion-gate` at L1: fresh `claude plugin test .`, `claude plugin validate --strict .`, `node --check` for every `hooks/*.js`, then one `code-review-claude` pass over the diff from `4f02ba8`.
+Apply `completion-gate` at L1: fresh `claude plugin test .`, `claude plugin validate --strict .`, `node --check` for every `hooks/*.js`, then one `code-review-claude` pass over the diff from `a5fcb21`. Before committing, `git add` the untracked `hooks/inputs.js` and `tests/inputs.test.ts` explicitly and confirm `git status --short` shows no `??`.
 
 - [ ] **Step 5: Ask Tom, then commit**
 

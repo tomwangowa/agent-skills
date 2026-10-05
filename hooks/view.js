@@ -1,3 +1,16 @@
+/** Local wall-clock HH:MM for a clock reading in milliseconds; follows the host time zone. */
+export function clockTime(ms) {
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+/** Newest first; only the two newest keep an excerpt to limit pane height. */
+export function inputRows(state) {
+  const items = [...state.inputs].reverse().map((i, index) => ({text:`${clockTime(i.at)} ${i.kind} · ${i.origin}`, excerpt:index < 2 ? (i.excerpt ?? null) : null}));
+  const empty = items.length ? null : state.inputsSince === null ? '尚無' : `尚無（${clockTime(state.inputsSince)} 起記錄）`;
+  return {label:'外部輸入', empty, items};
+}
+
 /** Render observed state without running a model; labels stay apart so the pane can style them. */
 export function paneRows(state, now) {
   const summary = state.summary;
@@ -18,11 +31,12 @@ export function paneRows(state, now) {
   if (summary && state.summaryRevision !== state.revision) notes.push('有新活動，摘要待更新');
   if (state.summaryError) notes.push('摘要更新失敗');
   if (state.lastEventAt !== null) notes.push(`距離最近事件：${Math.max(0,Math.floor((now-state.lastEventAt)/1000))} 秒`);
-  return {title:'你到底在忙什麼？', fields, notes};
+  return {title:'你到底在忙什麼？', fields, notes, inputs:inputRows(state)};
 }
 
 /** Plain-text form of the pane rows. */
 export function paneLines(state, now) {
-  const {title, fields, notes} = paneRows(state, now);
-  return [title, '', ...fields.map(f => `${f.label}：${f.text}`), '', ...notes];
+  const {title, fields, notes, inputs} = paneRows(state, now);
+  const inputLines = [`${inputs.label}：${inputs.empty ?? ''}`, ...inputs.items.flatMap(i => [`  ${i.text}`, ...(i.excerpt ? [`    「${i.excerpt}」`] : [])])];
+  return [title, '', ...fields.map(f => `${f.label}：${f.text}`), ...inputLines, '', ...notes];
 }
