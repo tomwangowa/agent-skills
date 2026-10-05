@@ -50,6 +50,14 @@ categories:
           - "完整調查"
           - "thorough research"
 
+      - id: understand-file
+        triggers:
+          - "understand-file"
+          - "understand a source file"
+          - "研讀這個檔案"
+          - "解釋這個程式檔案"
+          - "檔案在專案中的角色"
+
       - id: research-cross-validator
         triggers:
           - "交叉驗證"
