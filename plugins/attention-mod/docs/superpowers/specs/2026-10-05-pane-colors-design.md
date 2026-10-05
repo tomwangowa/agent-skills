@@ -51,7 +51,7 @@ Pane render 只負責分流：先 `paneRows`，再 `$.ui.resolve(e)`，然後依
 - **dock**：每個區塊是 `Box({borderStyle:'round', borderColor: colorFor(tone), paddingX:1, flexDirection:'column'})`。標題列是 `flexDirection:'row'` 加上 `justifyContent:'space-between'`，左邊是粗體 `[ label ]`，右邊是用 `dimColor` 畫的淡色 meta。
   - 摘要框：欄位名寫成「目標：」，用區塊色、粗體，內容可以換行。
   - 即時框：每列開頭是 `●`（顏色由 `dot` 決定），接著是「動作：」「需要你：」。
-  - 外部輸入：每筆截成一行，節錄用 `dimColor`。
+  - 外部輸入：每筆標題行與節錄行都換行顯示（2026-10-05 起不再截斷），節錄用 `dimColor`。
 - **inline**：保留標題、分隔線，以及「目標、脈絡、動作、證據、需要你、外部輸入」的順序。
   - 欄位名上色：目標、脈絡、證據用 `accent`；動作、需要你用即時區塊的色調；外部輸入用 `input`。
   - 動作和需要你的欄位名前面加 `●`（「● 動作：…」），跟 dock 一致，原本「動作：正在執行…」的文字仍然是連續的。

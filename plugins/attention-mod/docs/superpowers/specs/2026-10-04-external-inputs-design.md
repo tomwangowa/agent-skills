@@ -13,10 +13,10 @@
 1. 即時顯示，只存在 Mod 記憶體，不寫檔。
 2. 黑名單篩選：非 Tom 輸入的列都顯示，只濾掉已知的系統雜訊；沒見過的種類照樣顯示。漏掉一筆輸入比多一行雜訊嚴重。
 3. 只顯示，不餵給背景摘要。外部輸入不得進入 `sources` 或摘要快照。
-4. 每筆記錄時間、種類、來源，以及單行節錄。
+4. 每筆記錄時間、種類、來源，以及節錄（第一個有內容的行，換行顯示）。
 5. 跨回合保留最近 5 筆；`/clear`、resume、重載才清空。原本每筆標「本回合／前幾回合」，2026-10-05 第二次實機發現提示邊界會標錯、行尾也常被截掉，Tom 決定拿掉，只靠時間與排序對照。
 6. 重載後不補舊資料，從空白開始，並顯示起算時間。
-7. 最新 2 筆顯示節錄，較舊的 3 筆只顯示一行；面板 `rows` 從 12 調到 18。
+7. 最新 2 筆顯示節錄，較舊的 3 筆只顯示標題行，唯一例外是 door 為 `note` 的列：它的標籤只有 door 原名，看不出內容，所以任何位置都帶節錄（2026-10-05 Tom 選定）。面板 `rows` 從 12 調到 18。標題行和節錄行都換行顯示，不截斷。
 
 ## 收錄範圍
 
@@ -54,7 +54,7 @@
 session.append
   ├─ await next(e)                 原樣放行，不改寫
   ├─ entryFromAppend(e, result)    hooks/inputs.js，純函式，不依賴 $
-  │     → null 或 {id, kind, origin, excerpt}
+  │     → null 或 {id, door, kind, origin, excerpt}
   ├─ apply({type:'external-input', entry, sessionId, epoch, at})
   └─ 既有的摘要素材流程（register.js 的 response／tool-result 過濾）不動
 ```
@@ -62,7 +62,7 @@ session.append
 - `kind`：hook 注入顯示「hook 注入」，附件顯示「附件 `message.name`」，其他 door 用 `message.name`，沒有的話用 door 名稱。
 - `origin`：依 `origin.kind` 轉成中文標籤，沒見過的種類直接顯示原字串。
 - `excerpt`：取自 `result.message.content`（model 實際讀到的版本），依序找第一個非空白、而且不只是單一包裝標籤（例如 `<system-reminder>`）的行；全部都是標籤時退回第一個非空白行。只有媒體時顯示「[圖片]」，沒有文字時顯示「[無文字內容]」。
-- 長度上限：種類、來源各 24 字，節錄 40 字，都按 Unicode code point 計算。
+- 長度上限：種類、來源各 40 字，節錄 120 字，都按 Unicode code point 計算。2026-10-05 Tom 選定，原本是 24／24／40，面板窄所以兩行節錄與標題都改成換行顯示、不再截斷。
 - `state.inputs` 保留最近 5 筆，同一個 uuid 只記第一次；`state.inputsSince` 記錄起算時間。
 
 面板範例：
@@ -101,7 +101,7 @@ session.append
 - `state.test.ts`：最多 5 筆、uuid 不重複、`new-prompt` 後保留、`'between-sessions'` 重設時清空、新 session 重設時保留空窗期的幾筆並改 epoch、`enabled:false` 時照收。
 - `state.test.ts` 另外鎖住：**摘要快照中找不到任何外部輸入的文字**；`reconnect()` 先換 id 時注入列仍保留；空窗期的舊列不會被帶進之後的 session。
 - `integration.test.ts`：面板標籤、`rows:18`、空白狀態。測試 kit 無法端到端觸發 `session.append`（2026-10-04 實測回報 `no implementation for session.append`），所以「`next` 結果原樣回傳」與「分類出錯不影響主流程」由程式碼審查與實機驗證確認。
-- `view.test.ts`：起算時間、時間格式、最新 2 筆有節錄而較舊 3 筆沒有。
+- `view.test.ts`：起算時間、時間格式、最新 2 筆有節錄而較舊 3 筆沒有（`note` 例外，任何位置都有）；`inputRowNodes` 兩行都用 wrap，節錄縮排多 2 格。
 
 實機驗證，結果記入 [原型結果](../../prototype-results.md)：
 

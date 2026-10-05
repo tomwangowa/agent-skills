@@ -4,11 +4,23 @@ export function clockTime(ms) {
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 
-/** Newest first; only the two newest keep an excerpt to limit pane height. */
+/** A note's label is just its door name, so only its excerpt says what it is; it keeps one at any age. */
+const ALWAYS_EXCERPT_DOORS = new Set(['note']);
+
+/** Newest first; only the two newest keep an excerpt to limit pane height, plus any door that cannot name itself. */
 export function inputRows(state) {
-  const items = [...state.inputs].reverse().map((i, index) => ({text:`${clockTime(i.at)} ${i.kind} · ${i.origin}`, excerpt:index < 2 ? (i.excerpt ?? null) : null}));
+  const items = [...state.inputs].reverse().map((i, index) => ({text:`${clockTime(i.at)} ${i.kind} · ${i.origin}`, excerpt:index < 2 || ALWAYS_EXCERPT_DOORS.has(i.door) ? (i.excerpt ?? null) : null}));
   const empty = items.length ? null : state.inputsSince === null ? '尚無' : `尚無（${clockTime(state.inputsSince)} 起記錄）`;
   return {label:'外部輸入', empty, items};
+}
+
+/** Input rows as drawable nodes. Both lines wrap rather than truncate: the pane is narrow and the cut-off part is
+ * the useful part. A Box carries the indent because wrapped continuation lines would otherwise start flush left. */
+export function inputRowNodes(rows, {Box, Text}, indent) {
+  return rows.flatMap(i => [
+    Box({paddingLeft:indent, children:[Text({wrap:'wrap', children:i.text})]}),
+    ...(i.excerpt ? [Box({paddingLeft:indent + 2, children:[Text({dimColor:true, wrap:'wrap', children:`「${i.excerpt}」`})]})] : []),
+  ]);
 }
 
 const seconds = (now, at) => Math.max(0, Math.floor((now - at) / 1000));

@@ -1,6 +1,6 @@
 import {test,expect} from 'claude-code/testing';
 import {createState,reduceState,BETWEEN_SESSIONS} from '../hooks/state.js';
-import {paneLines,paneRows,clockTime,liveTone,actionDot,inlineFields,footerNotes} from '../hooks/view.js';
+import {paneLines,paneRows,clockTime,liveTone,actionDot,inlineFields,footerNotes,inputRowNodes} from '../hooks/view.js';
 test('pane uses snapshot age, marks newer data, and never claims task completion',()=>{
   const s={...createState('s'),revision:2,summaryRevision:1,snapshotAt:1000,summary:{goal:{text:'修正登入',sources:['s']},context:null,evidence:null},turnStatus:'ended'};
   const lines=paneLines(s,21000).join('\n');
@@ -108,4 +108,27 @@ test('inlineFields and footerNotes read sections by id, so a reordered sections 
   const reversed={...view, sections:[...view.sections].reverse()};
   expect(inlineFields(reversed).map(f=>({label:f.label,text:f.text}))).toEqual(inlineFields(view).map(f=>({label:f.label,text:f.text})));
   expect(footerNotes(reversed).map(n=>n.text)).toEqual(footerNotes(view).map(n=>n.text));
+});
+test('input rows wrap instead of truncating, and the excerpt keeps its indent on every line',()=>{
+  const mk=type=>(props={})=>({type,props,children:props.children??[]});
+  const els={Box:mk('Box'),Text:mk('Text')};
+  const nodes=inputRowNodes([{text:'14:29 附件 mcp_instructions_delta · 引擎',excerpt:'The user hasn\'t heard from you in a while'},{text:'14:28 note · 引擎',excerpt:null}],els,2);
+  const texts=[];
+  const walk=n=>{ if(n?.type==='Text') texts.push(n); (n?.props?.children??[]).forEach?.(walk); };
+  nodes.forEach(walk);
+  expect(texts.map(t=>t.props.wrap)).toEqual(['wrap','wrap','wrap']);
+  expect(texts.map(t=>t.props.children)).toEqual(['14:29 附件 mcp_instructions_delta · 引擎','「The user hasn\'t heard from you in a while」','14:28 note · 引擎']);
+  const excerptBox=nodes.find(n=>n.type==='Box' && n.props.paddingLeft===4);
+  expect(excerptBox).toBeTruthy();
+});
+test('a note row keeps its excerpt however old it is, since its label alone does not say what it is',()=>{
+  let s=createState('s');
+  const add=(id,door,at)=>{ s=reduceState(s,{type:'external-input',entry:{id,door,kind:door,origin:'引擎',excerpt:`text-${id}`},sessionId:'s',epoch:s.epoch,at}); };
+  add('old-note','note',0);
+  add('old-delivery','delivery',1000);
+  add('mid','attachment',2000);
+  add('new1','attachment',3000);
+  add('new2','attachment',4000);
+  const rows=paneRows(s,0).sections[2].rows;
+  expect(rows.map(i=>i.excerpt)).toEqual(['text-new2','text-new1',null,null,'text-old-note']);
 });

@@ -10,7 +10,7 @@ test('typed prompts, responses, tool results, commands and subagent rows are not
 test('known noise is dropped but an unseen attachment kind stays visible', () => {
   expect(NOISE.has('total_tokens_reminder')).toBe(true);
   expect(entryFromAppend(row('attachment', {name:'total_tokens_reminder'}), undefined)).toBe(null);
-  expect(entryFromAppend(row('attachment', {name:'some_new_kind'}), undefined)).toEqual({id:'u1', kind:'附件 some_new_kind', origin:'引擎', excerpt:'hello'});
+  expect(entryFromAppend(row('attachment', {name:'some_new_kind'}), undefined)).toEqual({id:'u1', door:'attachment', kind:'附件 some_new_kind', origin:'引擎', excerpt:'hello'});
 });
 test('every listed door produces an entry', () => {
   for (const door of ['delivery','hook-context','notice','note','compaction','tool-message']) expect(entryFromAppend(row(door, {type:'user'}), undefined)?.id).toBe('u1');
@@ -21,9 +21,9 @@ test('hook context is labelled with the settings hook event', () => {
   expect(entry.origin).toBe('hook（SessionStart）');
 });
 test('excerpt reads the stored row, first real line only, bounded by code points', () => {
-  const stored = {uuid:'u1', message:{type:'attachment', name:'file', content:[{type:'text', text:'😀'.repeat(50) + '\nsecond line'}]}};
+  const stored = {uuid:'u1', message:{type:'attachment', name:'file', content:[{type:'text', text:'😀'.repeat(200) + '\nsecond line'}]}};
   const entry = entryFromAppend(row('attachment', {name:'file', content:[{type:'text', text:'original'}]}), stored);
-  expect(Array.from(entry.excerpt).length).toBe(40);
+  expect(Array.from(entry.excerpt).length).toBe(120);
   expect(entry.excerpt.endsWith('…')).toBe(true);
   expect(entry.excerpt).not.toContain('second line');
   expect(excerptOf([{type:'image', source:{}}])).toBe('[圖片]');
@@ -90,9 +90,9 @@ test('origin and kind labels cover tool, plugin, system-only doors, and clipping
   expect(originLabel({kind:'plugin', event:'x'})).toBe('plugin（x）');
   expect(entryFromAppend(row('notice', {type:'system'}), undefined).kind).toBe('notice');
 
-  const longKind = entryFromAppend(row('attachment', {name:'x'.repeat(40)}), undefined);
-  expect(Array.from(longKind.kind).length).toBe(24);
+  const longKind = entryFromAppend(row('attachment', {name:'x'.repeat(60)}), undefined);
+  expect(Array.from(longKind.kind).length).toBe(40);
 
-  const longOrigin = entryFromAppend(row('attachment', {}, {origin:{kind:'tool', tool:'x'.repeat(40)}}), undefined);
-  expect(Array.from(longOrigin.origin).length).toBe(24);
+  const longOrigin = entryFromAppend(row('attachment', {}, {origin:{kind:'tool', tool:'x'.repeat(60)}}), undefined);
+  expect(Array.from(longOrigin.origin).length).toBe(40);
 });

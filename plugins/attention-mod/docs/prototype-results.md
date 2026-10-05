@@ -121,3 +121,7 @@ NOT VERIFIED（待實機）：
   - inline：「外部輸入：」洋紅，footer 的 meta 和「有新活動，摘要待更新」以 dimColor 顯示。
 - NOT VERIFIED：只有工具在跑、沒有等待時的綠框（sleep 10 的截圖時機沒抓到工具執行中，綠框只由整合測試覆蓋）；inline 完整行數（截圖只有下半部）；Claude Desktop 的繪製。
 - 0.3.1：dock 只有一個面板時沒有分頁列，外框不顯示 `ui.open` 的標題（多個面板時才有分頁列）。dock 第一行加回粗體標題「你到底在忙什麼？」，不加分隔線。
+- 0.3.2：外部輸入顯示更多內容。種類、來源上限 24 → 40 字，節錄 40 → 120 字；標題行與節錄行改成換行顯示（`inputRowNodes`），縮排用 `Box` 的 `paddingLeft`，續行才會對齊；door 為 `note` 的列任何位置都帶節錄（它的標籤只有 door 原名）。
+  - VERIFIED（2026-10-05 實機，`--plugin-dir`）：inline 的種類完整顯示 `附件 mcp_instructions_delta`（27 字，舊版會切在 24 字）、59 字的節錄完整顯示；dock 的節錄換行成兩行，第二行縮排對齊，沒有被切。
+  - 自動化：`tests/inputs.test.ts`（40／120 上限、entry 帶 `door`）、`tests/view.test.ts`（兩行都 wrap、縮排、`note` 在第 5 筆仍有節錄）。
+  - NOT VERIFIED：5 筆都帶長節錄時 dock 的 18 行會不會被撐爆（實機只有 2 筆）；`note` 節錄規則在真實 session 裡的表現（實機沒出現 `note` 列）；`drawDock`／`drawInline` 的接線只有實機截圖證實，沒有自動化測試（測試 kit 無法觸發 `session.append`）；Claude Desktop 的繪製。

@@ -22,6 +22,10 @@ export const NOISE = new Map([
 
 const ORIGINS = {engine:'引擎', model:'模型', 'task-notification':'背景工作', peer:'其他 session', 'peer-send-message':'其他 session', 'scheduled-trigger':'排程'};
 
+/** Code-point budgets: labels name a row, the excerpt says what it carries, so it gets the room. */
+export const LABEL_LIMIT = 40;
+export const EXCERPT_LIMIT = 120;
+
 /** Clip to a code-point budget with a visible ellipsis. */
 export function clip(text, limit) {
   const points = Array.from(String(text));
@@ -68,10 +72,10 @@ export function excerptOf(content) {
       const trimmed = line.trim();
       if (!trimmed) continue;
       if (firstNonBlank === null) firstNonBlank = trimmed;
-      if (!TAG_ONLY_LINE.test(trimmed)) return clip(trimmed, 40);
+      if (!TAG_ONLY_LINE.test(trimmed)) return clip(trimmed, EXCERPT_LIMIT);
     }
   }
-  if (firstNonBlank !== null) return clip(firstNonBlank, 40);
+  if (firstNonBlank !== null) return clip(firstNonBlank, EXCERPT_LIMIT);
   return blocks.some(isMedia) ? '[圖片]' : '[無文字內容]';
 }
 
@@ -85,5 +89,5 @@ export function entryFromAppend(e, result) {
   if (e.door === 'attachment' && NOISE.has(message.name)) return null;
   // Empty rows (e.g. hook runs with no output) give the model nothing to read.
   if (!hasContent(message.content)) return null;
-  return {id:String(result?.uuid ?? e.uuid), kind:clip(kindLabel(e.door, message.name), 24), origin:clip(originLabel(e.origin), 24), excerpt:excerptOf(message.content)};
+  return {id:String(result?.uuid ?? e.uuid), door:e.door, kind:clip(kindLabel(e.door, message.name), LABEL_LIMIT), origin:clip(originLabel(e.origin), LABEL_LIMIT), excerpt:excerptOf(message.content)};
 }

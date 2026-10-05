@@ -1,6 +1,6 @@
 {
   "name": "attention-mod",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "A source-backed attention panel for the current Claude Code session.",
   "author": { "name": "Tom" }
 }

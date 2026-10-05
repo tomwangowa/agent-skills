@@ -2,7 +2,7 @@ import {createState, reduceState, boundedText, UNKNOWN_SESSION, BETWEEN_SESSIONS
 import {buildSnapshot} from './snapshot.js';
 import {parseSummary, summarySystemPrompt, unwrapSummaryJson} from './summary.js';
 import {createSchedule, claimSnapshot, settleRequest} from './scheduler.js';
-import {paneRows, inlineFields, footerNotes, sectionById} from './view.js';
+import {paneRows, inlineFields, footerNotes, sectionById, inputRowNodes} from './view.js';
 import {colorFor} from './theme.js';
 import {entryFromAppend} from './inputs.js';
 
@@ -260,14 +260,15 @@ function drawDock(view, {Box, Text}) {
       ...(section.meta ? [Text({dimColor:true, wrap:'truncate', children:section.meta})] : []),
     ]}),
     ...(section.id === 'inputs'
-      ? (section.empty ? [Text({dimColor:true, wrap:'truncate', children:section.empty})] : section.rows.flatMap(i => [Text({wrap:'truncate', children:i.text}), ...(i.excerpt ? [Text({dimColor:true, wrap:'truncate', children:`  「${i.excerpt}」`})] : [])]))
+      ? (section.empty ? [Text({dimColor:true, wrap:'truncate', children:section.empty})] : inputRowNodes(section.rows, {Box, Text}, 0))
       : section.rows.map(row => labelled(Text, row, section.tone))),
     ...section.notes.map(note => Text({wrap:'wrap', color:colorFor(note.tone), dimColor:note.tone === 'muted', children:note.text})),
   ]}))];
 }
 
 /** The 0.2.0 flat rows with colour added; used wherever height is scarce. */
-function drawInline(view, {Text}, bodyColumns) {
+function drawInline(view, els, bodyColumns) {
+  const {Text} = els;
   const inputs = sectionById(view, 'inputs');
   return [
     Text({bold:true, wrap:'truncate', children:view.title}),
@@ -275,7 +276,7 @@ function drawInline(view, {Text}, bodyColumns) {
     Text({dimColor:true, wrap:'truncate', children:'─'.repeat(Math.max(1, bodyColumns))}),
     ...inlineFields(view).map(field => labelled(Text, field, field.tone)),
     Text({wrap:'truncate', children:[Text({bold:true, color:colorFor(inputs.tone), children:`${inputs.label}：`}), inputs.empty ?? '']}),
-    ...inputs.rows.flatMap(i => [Text({wrap:'truncate', children:`  ${i.text}`}), ...(i.excerpt ? [Text({dimColor:true, wrap:'truncate', children:`    「${i.excerpt}」`})] : [])]),
+    ...inputRowNodes(inputs.rows, els, 2),
     Text({wrap:'wrap', children:''}),
     ...footerNotes(view).map(note => Text({wrap:'wrap', color:colorFor(note.tone), dimColor:note.tone === 'muted', children:note.text})),
   ];
