@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Colour the attention pane: three round-bordered sections in the dock, coloured labels and status dots in the flat inline layout, with the live section turning green / yellow / gray by state.
+**Goal:** Colour the attention pane: three round-bordered sections in the dock, coloured labels and status dots in the flat inline layout, with the live section turning green / yellow / terminal default by state.
 
 **Architecture:** `hooks/view.js` returns semantic sections (tones, not colours). A new pure `hooks/theme.js` maps tones to named terminal colours. `hooks/register.js` picks `drawDock` or `drawInline` by `e.props.placement` and only adds the close button.
 
@@ -96,8 +96,8 @@ export function register(on) {
 import {test, expect} from 'claude-code/testing';
 import {colorFor} from '../hooks/theme.js';
 
-test('each semantic tone maps to a named terminal colour', () => {
-  expect(['accent','success','warning','danger','muted','input'].map(colorFor)).toEqual(['blue','green','yellow','red','gray','magenta']);
+test('each semantic tone maps to a named terminal colour, muted to the terminal default', () => {
+  expect(['accent','success','warning','danger','muted','input'].map(colorFor)).toEqual(['blue','green','yellow','red',undefined,'magenta']);
 });
 test('unknown tones fall back to the terminal default instead of throwing', () => {
   expect(colorFor('sparkly')).toBe(undefined);
@@ -109,7 +109,8 @@ test('unknown tones fall back to the terminal default instead of throwing', () =
 - [ ] **Step 3: Implement** `hooks/theme.js`:
 ```js
 /** Named terminal colours, so the pane follows the user's theme instead of fixed hex values. */
-const COLORS = {accent:'blue', success:'green', warning:'yellow', danger:'red', muted:'gray', input:'magenta'};
+// muted is left out on purpose: gray vanished on the dock's gray background in the 2026-10-05 PoC, so it uses the terminal default.
+const COLORS = {accent:'blue', success:'green', warning:'yellow', danger:'red', input:'magenta'};
 
 /** Colour for a semantic tone; unknown tones return undefined, which draws in the terminal default. */
 export function colorFor(tone) {
@@ -198,7 +199,7 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？']});
   expect(rule.children).toEqual(['─'.repeat(40)]);
   const labels=rest.filter(row=>row.type==='Text').flatMap(row=>(row.children??[]).filter(c=>c?.props?.bold)).map(c=>({text:c.children[0],color:c.props.color}));
-  expect(labels).toEqual([{text:'目標：',color:'blue'},{text:'脈絡：',color:'blue'},{text:'動作：',color:'gray'},{text:'證據：',color:'blue'},{text:'需要你：',color:'gray'},{text:'外部輸入：',color:'magenta'}]);
+  expect(labels).toEqual([{text:'目標：',color:'blue'},{text:'脈絡：',color:'blue'},{text:'動作：',color:undefined},{text:'證據：',color:'blue'},{text:'需要你：',color:undefined},{text:'外部輸入：',color:'magenta'}]);
   expect((await borderedBoxes(pane)).length).toBe(0);
   expect(await renderedText(pane)).toContain('目標：目的尚不清楚');
   expect(await renderedText(pane)).toContain('外部輸入：尚無');
@@ -212,12 +213,12 @@ test('dock pane draws three round sections coloured by meaning and no inner titl
   const pane=await $.ui.mount(paneTarget('terminal','dock'));
   const boxes=await borderedBoxes(pane);
   expect(boxes.map(b=>b.borderStyle)).toEqual(['round','round','round']);
-  expect(boxes.map(b=>b.borderColor)).toEqual(['blue','gray','magenta']);
+  expect(boxes.map(b=>b.borderColor)).toEqual(['blue',undefined,'magenta']);
   const text=await renderedText(pane);
   for(const header of ['[ 摘要 ]','[ 即時 ]','[ 外部輸入 ]']) expect(text).toContain(header);
   expect(text).not.toContain('你到底在忙什麼？');
 });
-test('dock live border is green while a tool runs, yellow while a question waits, gray after',async($,on)=>{
+test('dock live border is green while a tool runs, yellow while a question waits, default after',async($,on)=>{
   let finish;
   const h=host(on,{tool:()=>new Promise(r=>{finish=()=>r({result:'answer'});})});
   await begin($);
@@ -232,14 +233,17 @@ test('dock live border is green while a tool runs, yellow while a question waits
   finish();
   await pending;
   await h.clock.advance(1000);
-  expect(await liveColor()).toBe('gray');
+  expect(await liveColor()).toBe(undefined);
   await question.unmount();
 });
 test('dock and inline show the same field values',async($,on)=>{
   host(on);
   await begin($);
   await prompt($,'修正登入');
-  const dock=await renderedText(await $.ui.mount(paneTarget('terminal','dock')));
+  const dockPane=await $.ui.mount(paneTarget('terminal','dock'));
+  const dock=await renderedText(dockPane);
+  // The test kit allows one live mount per surface and requestId, so the dock goes before the inline mount.
+  await dockPane.unmount();
   const inline=await renderedText(await $.ui.mount(paneTarget('terminal','inline')));
   for(const value of ['目標：','脈絡：','動作：','證據：','需要你：','外部輸入','目的尚不清楚','尚無摘要','本回合進行中','目前沒有待回覆訊號']) {
     expect(dock).toContain(value);
@@ -398,7 +402,7 @@ claude plugin test .
 claude plugin validate --strict .
 for f in hooks/*.js; do node --check "$f"; done
 ```
-Expected: **71 pass, 0 fail**; validate passes with the same `calls:` list as before (no new `$.` calls); `node --check` silent. If an existing lifecycle/events test fails on pane text, report the exact assertion — do not change its expectation without asking.
+Expected: **71 pass, 0 fail** (post-review: 76 after adding dot/note colour tests, a reversed-sections test and a dim-footer test); validate passes with the same `calls:` list as before (no new `$.` calls); `node --check` silent. If an existing lifecycle/events test fails on pane text, report the exact assertion — do not change its expectation without asking.
 
 ---
 
@@ -409,7 +413,7 @@ Expected: **71 pass, 0 fail**; validate passes with the same `calls:` list as be
 - [ ] **Step 1:** Version `0.2.0` → `0.3.0` in `.claude-plugin/plugin.json` and `package.json`.
 - [ ] **Step 2: README.md** — in the 「開啟」 section, after the paragraph that starts `面板預設開啟`, add:
 ```markdown
-側邊面板（dock）用三個圓角框分區：摘要是藍色，外部輸入是洋紅，「即時」框依狀態變色——有工具在跑是綠色，有東西等你是黃色，閒置是灰色。放在輸入框上方時（inline）維持原本的版面，只把欄位名稱和狀態點上色。顏色用終端機的具名色，會跟著你的終端機主題走。
+側邊面板（dock）用三個圓角框分區：摘要是藍色，外部輸入是洋紅，「即時」框依狀態變色——有工具在跑是綠色，有東西等你是黃色，閒置時用終端機預設色。放在輸入框上方時（inline）維持原本的版面，只把欄位名稱和狀態點上色。顏色用終端機的具名色，會跟著你的終端機主題走。
 ```
 - [ ] **Step 3: .claude/CLAUDE.md** — replace the `view.js` bullet with:
 ```markdown
@@ -422,7 +426,7 @@ Expected: **71 pass, 0 fail**; validate passes with the same `calls:` list as be
 
 ### Task 4: Live check, gate, release (Tom approves each step)
 
-- [ ] **Step 1:** Tom disables the installed copy: `claude plugin disable attention-mod@tomwangowa`, then runs `claude --plugin-dir "/Users/tom_wang/Development/tools/CC-MODs/你在忙什麼"`:
+- [ ] **Step 1:** Tom disables the installed copy: `claude plugin disable attention-mod@tomwangowa`, then runs `claude --plugin-dir "<path to this mod>"`:
   1. Wide terminal (dock): three coloured round boxes; live box green while a tool runs, yellow while a question waits.
   2. Terminal under 100 columns (inline): same row count as 0.2.0, close button visible, coloured labels.
   3. Claude Desktop, if available: record what renders.
@@ -436,5 +440,5 @@ feat(attention): colour the pane by section and state
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 EOF
 ```
-- [ ] **Step 4:** Ask Tom, then `git -C ~/.claude/skills subtree pull --prefix=plugins/attention-mod "/Users/tom_wang/Development/tools/CC-MODs/你在忙什麼" main -m "chore(plugins): update attention-mod to 0.3.0 via subtree"`, validate, push.
+- [ ] **Step 4:** Ask Tom, then `git -C ~/.claude/skills subtree pull --prefix=plugins/attention-mod "<path to this mod>" main -m "chore(plugins): update attention-mod to 0.3.0 via subtree"`, validate, push.
 - [ ] **Step 5:** `claude plugin update attention-mod@tomwangowa`, `claude plugin enable attention-mod@tomwangowa`, restart Claude Code.
