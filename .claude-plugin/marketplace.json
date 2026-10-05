@@ -1,0 +1,12 @@
+{
+  "name": "agent-skills",
+  "description": "Tom's Claude Code plugins and mods",
+  "owner": { "name": "Tom Wang" },
+  "plugins": [
+    {
+      "name": "attention-mod",
+      "source": "./plugins/attention-mod",
+      "description": "A source-backed attention panel for the current Claude Code session."
+    }
+  ]
+}

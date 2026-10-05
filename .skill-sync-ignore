@@ -9,3 +9,5 @@ output-styles
 .claude
 __pycache__/
 /*-audit-report.md
+plugins
+.claude-plugin
