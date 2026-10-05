@@ -49,6 +49,7 @@
     {"id":"technical-proposal-review","category":"design-planning","lifecycle":"promoted","invocation_intent":"model","surfaces":{"routable":true,"listed_in_readme":false,"sync":true}},
     {"id":"ui-design-analyzer","category":"design-planning","lifecycle":"promoted","invocation_intent":"model","surfaces":{"routable":false,"listed_in_readme":false,"sync":true}},
     {"id":"understand-file","category":"research-critical-thinking","lifecycle":"personal","invocation_intent":"model","surfaces":{"routable":true,"listed_in_readme":false,"sync":true}},
+    {"id":"understand-function","category":"research-critical-thinking","lifecycle":"personal","invocation_intent":"model","surfaces":{"routable":true,"listed_in_readme":false,"sync":true}},
     {"id":"work-log-analyzer","category":"productivity-tracking","lifecycle":"personal","invocation_intent":"model","surfaces":{"routable":true,"listed_in_readme":false,"sync":true}}
   ]
 }

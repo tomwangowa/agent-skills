@@ -58,6 +58,14 @@ categories:
           - "解釋這個程式檔案"
           - "檔案在專案中的角色"
 
+      - id: understand-function
+        triggers:
+          - "understand-function"
+          - "understand a function"
+          - "研讀這個函式"
+          - "解釋這個函式"
+          - "函式在流程中的角色"
+
       - id: research-cross-validator
         triggers:
           - "交叉驗證"
