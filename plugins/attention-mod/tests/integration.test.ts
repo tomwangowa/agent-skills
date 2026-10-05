@@ -99,7 +99,7 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   // + blank line(1) + 0 notes (no snapshot/summary/error/lastEvent yet) + close button(1) = 10.
   expect((await pane.drawn()).children.length).toBe(10);
 });
-test('dock pane draws three round sections coloured by meaning and no inner title',async($,on)=>{
+test('dock pane draws a bold title above three round sections coloured by meaning',async($,on)=>{
   host(on);
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','dock'));
@@ -108,7 +108,9 @@ test('dock pane draws three round sections coloured by meaning and no inner titl
   expect(boxes.map(b=>b.borderColor)).toEqual(['blue',undefined,'magenta']);
   const text=await renderedText(pane);
   for(const header of ['[ 摘要 ]','[ 即時 ]','[ 外部輸入 ]']) expect(text).toContain(header);
-  expect(text).not.toContain('你到底在忙什麼？');
+  // A lone dock pane has no tab strip, so the pane frame shows no title; the body must carry it.
+  const [title]=(await pane.drawn()).children;
+  expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？']});
 });
 test('dock live border is green while a tool runs, yellow while a question waits, default after',async($,on)=>{
   let finish;
