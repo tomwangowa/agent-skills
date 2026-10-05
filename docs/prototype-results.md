@@ -120,3 +120,4 @@ NOT VERIFIED（待實機）：
   - AskUserQuestion 等待中：即時框變黃，「需要你」的點和標籤黃色；同時「動作：正在執行 AskUserQuestion」的點是綠色、標籤跟著框是黃色（即時框的標籤一律用框的色調），證實等待優先於執行中。
   - inline：「外部輸入：」洋紅，footer 的 meta 和「有新活動，摘要待更新」以 dimColor 顯示。
 - NOT VERIFIED：只有工具在跑、沒有等待時的綠框（sleep 10 的截圖時機沒抓到工具執行中，綠框只由整合測試覆蓋）；inline 完整行數（截圖只有下半部）；Claude Desktop 的繪製。
+- 0.3.1：dock 只有一個面板時沒有分頁列，外框不顯示 `ui.open` 的標題（多個面板時才有分頁列）。dock 第一行加回粗體標題「你到底在忙什麼？」，不加分隔線。

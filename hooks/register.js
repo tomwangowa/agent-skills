@@ -253,7 +253,8 @@ function labelled(Text, row, tone) {
 
 /** Bordered sections for the dock, which has the height for them. */
 function drawDock(view, {Box, Text}) {
-  return view.sections.map(section => Box({flexDirection:'column', borderStyle:'round', borderColor:colorFor(section.tone), paddingX:1, children:[
+  // A lone dock pane gets no tab strip, so the frame shows no title; the body carries it instead.
+  return [Text({bold:true, wrap:'truncate', children:view.title}), ...view.sections.map(section => Box({flexDirection:'column', borderStyle:'round', borderColor:colorFor(section.tone), paddingX:1, children:[
     Box({flexDirection:'row', justifyContent:'space-between', children:[
       Text({bold:true, wrap:'truncate', children:`[ ${section.label} ]`}),
       ...(section.meta ? [Text({dimColor:true, wrap:'truncate', children:section.meta})] : []),
@@ -262,7 +263,7 @@ function drawDock(view, {Box, Text}) {
       ? (section.empty ? [Text({dimColor:true, wrap:'truncate', children:section.empty})] : section.rows.flatMap(i => [Text({wrap:'truncate', children:i.text}), ...(i.excerpt ? [Text({dimColor:true, wrap:'truncate', children:`  「${i.excerpt}」`})] : [])]))
       : section.rows.map(row => labelled(Text, row, section.tone))),
     ...section.notes.map(note => Text({wrap:'wrap', color:colorFor(note.tone), dimColor:note.tone === 'muted', children:note.text})),
-  ]}));
+  ]}))];
 }
 
 /** The 0.2.0 flat rows with colour added; used wherever height is scarce. */
