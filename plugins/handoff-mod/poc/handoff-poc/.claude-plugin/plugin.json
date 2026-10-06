@@ -1,0 +1,6 @@
+{
+  "name": "handoff-poc",
+  "version": "0.0.1",
+  "description": "Throwaway probes for the handoff-mod design. Not shipped.",
+  "author": { "name": "Tom" }
+}
