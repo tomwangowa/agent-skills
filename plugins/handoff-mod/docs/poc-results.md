@@ -35,9 +35,9 @@
 | --- | --- | --- | --- |
 | L1 | 你的模型 window 與 `percent` 跟 `/context` 一致嗎？ | 做一段真實工作後 `/poc-usage`，對照 `/context` | 門檻的預設值（D1）。**已驗證（本機），見下一節** |
 | L2 | 用 `$.command.run` 啟動你自己的 `/handoff`（`disable-model-invocation: true`） | `/poc-submit cmd:handoff` | 「有使用者自己的 handoff 就用它」可不可行（D7）。**已驗證（本機），見下一節** |
-| L3 | band 的數字 hotkey 與 `AskUserQuestion` 的數字衝突嗎？ | `/poc-band`，再請 Claude 呼叫 AskUserQuestion，按 `1` | 提示要不要在等待時隱藏 |
-| L4 | Claude 工作中，計時器呼叫的 `$.ui.ask` 會怎樣？ | 先跑 `sleep 30` 的 Bash，再 `/poc-ask-timer` | 門檻提示只能在閒置時出現，還是可以插話 |
-| L5 | 真實對話的 `/compact`：`command.run compact` 與 `session.compact` 的先後 | 有內容的 session 內 `/compact` | 壓縮前能不能問交接 |
+| L3 | band 的數字 hotkey 與 `AskUserQuestion` 的數字衝突嗎？ | `/poc-band`，再請 Claude 呼叫 AskUserQuestion，按 `1` | 提示要不要在等待時隱藏。**對 `AskUserQuestion` 已驗證（本機），見下一節；權限提示未測** |
+| L4 | Claude 工作中，計時器呼叫的 `$.ui.ask` 會怎樣？ | 讓 Claude 長時間產出（例如寫 1500 字文章、不用工具），3 秒內 `/poc-ask-timer`；前景 `sleep 30` 在 Tom 的環境會被擋 | 門檻提示只能在閒置時出現，還是可以插話。**已驗證（本機），見下一節；「不回答」未測** |
+| L5 | 真實對話的 `/compact`：`command.run compact` 與 `session.compact` 的先後 | 有內容的 session 內 `/compact` | 壓縮前能不能問交接。**事件時序已驗證（本機），見下一節；在 hook 內提問未測** |
 | L6 | 真正結束：Ctrl-D、關掉分頁，`session.end` 有沒有跑 | 結束後看 log | 「結束時自動留事實筆記」（D4）可不可行 |
 | L7 | 非 git 目錄、子目錄啟動、worktree 的 `root()` 與 `repo().root` | 各處 `/poc-facts` | 範圍鍵（交接檔歸屬）的規則。**部分已驗證（本機 headless），見下一節；`/cd` 尚未測** |
 | L8 | 與 attention-mod 同時載入 | `--plugin-dir` 各載一次，開 band 與 ask | band 共用、等待訊號重複 |
@@ -91,6 +91,55 @@
 
 - 能啟動、有照格式寫出，所以 D7 **可以**在偵測到 `source:'user'` 的 `handoff` 時優先用，但仍要驗證寫出的 frontmatter。這只代表 Tom 的環境；同事沒有這個 skill，設計文件對 D7 的傾向（一律內建）不因此改變。
 - 「Review Gate」只擋使用者有看到並糾正的內容。這次草稿的 VERIFIED 有一句「我看過 diff」，收集步驟只跑了 2 個 shell 指令、沒有 `git diff`，這句沒有依據，使用者直接回「寫檔」，原句照樣寫進檔案。內建 `handoff-mod:handoff` 如果要擋這類錯，得在 skill 裡明確限制 VERIFIED 只能列這個回合實際跑過的指令。
+
+### L3 hotkey 與 `AskUserQuestion`（對 `AskUserQuestion` 已驗證，本機互動）
+
+band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項畫面出現後按數字 `1`。做了兩次，用 transcript 與 log 對時間：
+
+| 次數 | 呼叫 → 回答 | 結果 | 這段期間的 `band press` |
+| --- | --- | --- | --- |
+| 1 | 16:00:18 → 16:01:03（45 秒） | 第 1 個選項 | 無（計數仍是先前閒置時按的 3 次） |
+| 2（確定按的是數字 `1`） | 16:03:21 → 16:03:24（3 秒） | 第 1 個選項 | 無 |
+
+- 問題在等的時候，畫面上沒有 band，只有引擎的選項對話框；band 在回答完才重新出現。這一點只有畫面佐證，探針沒有記 render。
+- 數字鍵被對話框吃掉，band 沒有反應。依決策表，「L3：無衝突，只要閒置就顯示 band」成立。
+- `hasSurvey` 在問題等待時沒有觀察到（band 當時沒畫出來），回答後是 `false`；型別檔沒有 `survey`、`isWorking` 的說明，沒有證據它是等待訊號，設計不使用它。
+- **沒有測：工具權限提示**（`1. Yes　2. Yes, and don't ask again　3. No`，數字與 band 相同，也比 `AskUserQuestion` 常見）。結論只涵蓋 `AskUserQuestion`。
+- 閒置時在空白輸入框按 `1` 會立刻觸發按鈕、不需要 Enter，每按一次在 transcript 追加一行 `band press 1` 通知。
+
+### L4 工作中提問（已驗證，本機互動；「不回答」未測）
+
+第一次嘗試無效：前景 `sleep 30` 被環境擋掉（`Blocked: standalone sleep 30. … use Monitor with an until-loop`），Claude 改成背景執行，回合 7 秒就結束，30 秒內 Claude 其實是閒置的。第二次改成讓 Claude 長時間產出（不用工具）：
+
+| 時間 | 事件 |
+| --- | --- |
+| 16:09:29 | 送出任務，回合開始 |
+| 16:09:47 | `ask(timer) turns=16 answer=同意`（回答完才記，不是彈出時間） |
+| 16:10:09 | thinking 結束 |
+| 16:10:20 | 輸出完成（6003 個輸出 token） |
+| 16:10:21 | `turn.complete` |
+
+- 提問在回合進行中被回答，`ask(timer)` 排在 `turn.complete` 前 34 秒；彈出時間只知道在 16:09:32 到 16:09:47 之間，當時 Claude 在 thinking。
+- 回合沒被打斷，文章完整；回答只回到探針，沒有送進 Claude 的對話。
+- 沒有測：提問在等、使用者**不回答**時，回合會不會等它；提問期間輸入框能不能打字（沒有記錄）。
+- 對決策表：技術上「能彈出且不擋工作」成立，但不等於該在工作中彈出。第一版建議仍只在 `turn.complete` 後閒置時提示（尚未決定，待「不回答」的結果）。
+- 附帶：背景指令完成的通知會自己觸發一個回合（16:07:07，沒有使用者輸入），那種回合也會讓 `turn.complete` 觸發，T1 的「閒置」判斷要考慮。
+
+### L5 壓縮（事件時序已驗證，本機互動；手動壓縮）
+
+| 時間 | 事件 |
+| --- | --- |
+| 16:15:01.985 | 送出 `/compact` |
+| 16:15:02.061 | `command.run compact` |
+| 16:15:02.102 | `session.compact`，`trigger:"manual"`，帶著要壓縮的 `messages` |
+| 16:15:39.964 | transcript 的 `compact_boundary`，`durationMs: 37296`，`preTokens 98031 → postTokens 8562` |
+
+- `session.compact` 在壓縮開始前 41 ms 觸發，摘要在它之後花 37 秒產生。型別檔說明這個 hook 可以改寫 `instructions`／`messages`，或回 `{ skip: reason }` 讓對話維持原樣。
+- 壓縮後第一個回應之前 `usage().context` 只有 `window`；回一次話之後 `tokens 52346 / percent 5`。
+- 壓縮後引擎自動重新讀了最近寫的 handoff 檔，並還原兩個 skill。只有這一個點，不知道是否對所有最近碰過的檔案都這樣。
+- **沒有測：** 在 `session.compact` hook 裡呼叫 `$.ui.ask` 能不能彈出；自動壓縮的 `trigger` 值。所以第四個觸發點「壓縮前」現在只能寫「有機會」，不能寫「可行」。
+
+**對設計的影響：`percent` 會下降。** 壓縮前 `91454 tokens / 9%`，壓縮後 `52346 tokens / 5%`（`postTokens` 只有 8562，其餘約 4 萬應是固定底加上自動還原的內容，沒有逐項核對）。設計裡「再多 10% 再問」是把下一個門檻設成「目前 % ＋ 10」，「這個門檻沒問過」靠記住問過的值；壓縮或 `/clear`（新 session id）之後 `percent` 掉回去，舊的下一個門檻會讓提示在一大段區間都不出現。門檻狀態要在 `session.compact` 與 `/clear` 時重置，或在 `percent` 下降時重新起算。設計文件目前沒有寫這一點。
 
 ### D2 的觀察：worktree 的交接檔位置
 

@@ -52,7 +52,7 @@
 - [ ] **L1 用量對照。** 在一段真實工作後 `/poc-usage`，再 `/context`。記下 `tokens`、`window`、`percent` 與 `/context` 的數字，以及你預設模型的 `window`。**預期：** `percent = tokens / window`，已用百分比。
 - [ ] **L2 你自己的 handoff。** 先 `/poc-facts`，確認 log 的 `handoff-like` 有 `handoff[user]`。再 `/poc-submit cmd:handoff`。記下：skill 有沒有展開、有沒有走到「Review Gate」問你、有沒有真的寫出 `.claude/handoffs/` 檔案。
 - [ ] **L3 hotkey 衝突。** `/poc-band` 後，請 Claude 「用 AskUserQuestion 問我一個三選一」，在問題出現時按 `1`。記下按到的是 band 還是問題。
-- [ ] **L4 工作中提問。** 請 Claude 跑 `sleep 30` 的 Bash，同時輸入 `/poc-ask-timer`（指令已註冊 `immediate`）。記下 3 秒後的 `$.ui.ask` 是否彈出、是否擋住輸入、答完後 Claude 是否照常。
+- [ ] **L4 工作中提問。** 讓 Claude 長時間產出（例如「寫一篇 1500 字的文章，不要用工具」；前景 `sleep 30` 在 Tom 的環境會被擋，改成背景則回合只有幾秒），送出後 3 秒內輸入 `/poc-ask-timer`（指令已註冊 `immediate`）。記下 3 秒後的 `$.ui.ask` 是否彈出、是否擋住輸入、答完後 Claude 是否照常。
 - [ ] **L5 壓縮。** 在有內容的 session 內 `/compact`。記下 log 裡 `command.run compact`、`session.compact`、`session.measure` 的順序與時間。
 - [ ] **L6 真正結束。** 分別用 Ctrl-D、`/exit`、直接關分頁各結束一次，之後看 log 有沒有 `session.end` 及原因。
 - [ ] **L7 範圍。** 在下列位置各啟動一次並 `/poc-facts`：repo 根目錄、repo 子目錄、非 git 目錄、`git worktree add` 出來的 worktree、session 中途 `/cd` 之後。記下 `root`、`repo().root`、`repo()` 是否為 null。
