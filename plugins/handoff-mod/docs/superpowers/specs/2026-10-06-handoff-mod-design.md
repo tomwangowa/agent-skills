@@ -14,7 +14,7 @@ plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接�
 
 這不是活動日誌（「最近幾天做了什麼」），不是稽核證據，也不跨機器同步。
 
-**第一版包含：** 內建 skill、門檻觸發、`/clear` 攔截、啟動讀回、交接檔格式與新鮮度檢查、認領。  
+**第一版包含：** 內建 skill、門檻觸發、`/clear` 攔截、啟動讀回、交接檔格式與新鮮度檢查、認領、結束筆記（D4）。  
 **第一版不含：** 見最後「不做的事」。
 
 ## 使用者與前提
@@ -38,7 +38,7 @@ plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接�
 | `/clear` 順序：`command.run` → `session.end(reason=clear)` → `classic.SessionStart(source=clear，新 id)` | 啟動讀回要接 `classic.SessionStart`，不是 `session.start` |
 | band（`AbovePrompt`）在 80 欄畫得出來；空白輸入框單獨按數字會觸發 band 的 `hotkey`，不需 Enter（本機） | 門檻提示與啟動清單用 band |
 | 任何對話框（`AskUserQuestion`、權限提示、`$.ui.ask`）等待時，輸入框上方整區（band、attention-mod 的 inline 面板）都消失，數字鍵歸對話框，band 沒有搶到按鍵（本機） | band 只在閒置時畫，不需要為對話框特別隱藏 |
-| 與 attention-mod 同載入（本機）：寬視窗並排不遮蔽，band 收到的 `viewport` 是扣掉右側面板後的寬度（72 欄時 `bodyColumns=67`）；窄視窗 attention-mod 切成 inline，band 被擠到 `↓2 more` 之後看不到 | 寬視窗用 band，按鈕列要在 67 欄內放得下；窄視窗改用 toast＋指令（D9） |
+| 與 attention-mod 同載入（本機）：寬視窗並排不遮蔽，band 收到的 `viewport` 是扣掉右側面板後的寬度（72 欄時 `bodyColumns=67`）；窄視窗 attention-mod 切成 inline，band 被擠到 `↓2 more` 之後看不到 | 寬視窗用 band，按鈕列要在 67 欄內放得下；窄視窗改用 `$.ui.status` 常駐一行＋指令（D9） |
 | attention-mod 的「外部輸入」會列出 `$.ui.log` 的通知（本機） | 正式 mod 的 `$.ui.log` 要克制，只留對使用者有意義的訊息 |
 | mod 自己開 pane：80 欄 `isPlaced:false`，170 欄 `true`（門檻 144 欄） | 不用 pane |
 | `$.ui.ask` 彈出引擎的提問對話框，2–4 個選項，另附「Type something」與「Chat about this」，被關掉或 `-p` 時 reject。本機：對話框不能單獨按數字，要方向鍵加 Enter；使用者不回答不會卡住回合，對話框在 `turn.complete` 之後仍開著 | `/clear` 攔截用它；reject 一律視為取消；要處理過期的對話框 |
@@ -65,7 +65,7 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 
 | 觸發點 | 條件 | 介面 |
 | --- | --- | --- |
-| T1 門檻 | `percent` 有值且 ≥ 門檻；`turn.complete` 之後閒置、沒有等待；有未完成跡象；本 session 沒被抑制；這個門檻沒問過 | band，三個按鈕；窄視窗且有 attention-mod 時改 toast＋指令（D9） |
+| T1 門檻 | `percent` 有值且 ≥ 門檻（預設已用 60%，D1）；`turn.complete` 之後閒置、沒有等待；有未完成跡象；本 session 沒被抑制；這個門檻沒問過 | band，三個按鈕；窄視窗且有 attention-mod 時改 `$.ui.status` 常駐一行＋指令（D9） |
 | T2 `/clear` | 互動 session；`turns() > 0`；有未完成跡象 | `$.ui.ask`，三個選項 |
 | T3 手動 | 使用者自己下 `/handoff-mod:handoff` | 無，skill 直接執行 |
 | T4 壓縮前 | 有機會：`session.compact` 在壓縮前觸發且可否決；hook 內 `$.ui.ask` 未驗證 | 待驗 |
@@ -88,12 +88,12 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 
 **同意之後：** 從計時器呼叫 `$.command.run({command})`。`command` 是 `handoff-mod:handoff`，或在 D7 選用且偵測到時為使用者自己的 `handoff`。
 
-**不信任「已寫好」：** 之後的 `turn.complete`，mod 掃描交接目錄找 mtime 晚於開始時間的新檔並解析 frontmatter；成功才 toast 顯示路徑，並把目錄記進索引；否則顯示「未偵測到有效交接檔」。
+**不信任「已寫好」：** 之後的 `turn.complete`，mod 掃描交接目錄找 mtime 晚於開始時間的新檔並解析 frontmatter；成功才 toast 顯示路徑；否則顯示「未偵測到有效交接檔」。
 
 ### 3. 啟動讀回
 
 - **時機：** `classic.SessionStart`，`source` 為 `startup` 或 `clear`（`resume`、`fork`、`compact` 不顯示，對話已有脈絡）；互動 session；`turns() == 0`。
-- **來源：** 目前 worktree（`git rev-parse --show-toplevel`）的交接目錄；`repo().root` 不同時再加上主 checkout 的目錄；其他 worktree 的目錄靠索引（`$.store` 的目錄清單，最多 20 個，逐一確認存在）或 `git worktree list` 找到（D2）。
+- **來源：** 目前 worktree（`git rev-parse --show-toplevel`）的交接目錄；`repo().root` 不同時再加上主 checkout 的目錄；同 repo 其他 worktree 的目錄用 `git worktree list` 取得（D2 已決），不另做索引；非 git 目錄只看自己的 `root()`。
 - **排序：** 同 `root` 優先，其次同 `repo`，其餘依 `created` 由新到舊。預設展開 3 筆，其餘折疊成「還有 N 筆」。創建超過 14 天的預設折疊。
 - **每筆顯示：** 任務（≤80 字）、branch、多久以前、新鮮度事實、「下一步」第一行（≤120 字）。
 - **按鈕：** 接續、略過。「略過」只對這個 session 有效，不改狀態。
@@ -114,6 +114,7 @@ head: 781ac6b               # 沒有則省略
 created: 2026-10-06T18:30:00+08:00
 task: 修正登入逾時
 status: in-progress         # in-progress | blocked | ready-for-review
+source: auto                # 只有結束筆記（D4）有；省略表示使用者確認過的交接
 ---
 
 ## 任務
@@ -162,12 +163,30 @@ status: in-progress         # in-progress | blocked | ready-for-review
 
 **交接檔位置（待決 D2）：** 預設放 `<root>/.claude/handoffs/`，在 git repo 內檢查是否已被忽略，沒有就寫進 `$(git rev-parse --git-path info/exclude)`，避免弄髒同事的 `git status`。
 
+### 8. 結束筆記（D4，自動寫入，未經使用者審查）
+
+`session.end` 時自動寫一份只含事實的筆記，不呼叫模型。放同一個交接目錄，檔名 `<branch 淨化>--<時間>--auto.md`，frontmatter `source: auto`。
+
+**寫入條件：** 互動 session；`turns() > 0`；有未完成跡象（同 T2）；`reason` 不是 `clear`（`/clear` 由 T2 處理）。其他一律不寫。
+
+**內容：** `task` 用最後一個使用者要求（截斷）；本文只有「最後一個要求」「最後一段回應」「branch／HEAD」「有改動的檔案清單」。不寫工具輸出，不寫更早的對話。
+
+**緩解措施（我加的，待 Tom 確認）：** 因為沒有「先看過再寫」的關卡、又含對話原文，所以：
+
+1. 目錄已被 `.git/info/exclude` 擋掉（D2），檔案權限 `0600`。
+2. 兩段原文各截斷到 2000 字，去除控制字元與 ANSI 碼。
+3. 寫入前套一道祕密樣式遮蔽（金鑰、token、`Authorization`、`password=` 之類），規則明列並單元測試。這是減少風險，不是保證；仍可能漏掉。
+4. 啟動讀回時標「自動留下，未經審查」，超過 7 天不顯示；`HANDOFF_AUTO_NOTE=off` 可整個關掉。
+5. 在 `session.end` 的共用預算（約 1.5 秒）內做完，逾時就放棄，不留半個檔案。
+
+**未驗證：** `$.session.messages()` 能不能在 `session.end` 內讀；L6 的 10 ms 只量了寫一行，沒量讀訊息加遮蔽。
+
 ## 資料流
 
 ```text
 turn.complete / session.measure ─▶ usage ─▶ decideTrigger ─▶ band（1／2／3）
 /clear ─▶ command.run hook ─▶ ui.ask ─▶ 先交接（不 next）｜直接清除（next）｜取消
-同意 ─▶ clock.after ─▶ $.command.run(handoff) ─▶ 一個回合 ─▶ turn.complete ─▶ 驗證新檔 ─▶ toast＋索引
+同意 ─▶ clock.after ─▶ $.command.run(handoff) ─▶ 一個回合 ─▶ turn.complete ─▶ 驗證新檔 ─▶ toast
 classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮度 ─▶ 排序 ─▶ band（接續／略過）─▶ prompt.fill
 ```
 
@@ -188,16 +207,16 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 
 | 編號 | 問題 | 我的傾向 |
 | --- | --- | --- |
-| D1 | 門檻的語意與預設值。你原話是「剩餘低於 60%」，等於已用 > 40%；已用 40% 在 1M window 是 40 萬 token，在 200k 模型只有 8 萬 | 以「已用 %」定義、可設定（L1：`percent` 與 `/context` 一致，可用）；預設值仍待你定。測試階段用環境變數 `HANDOFF_THRESHOLD_PCT` 覆寫，測試時設 `10`（1M window 下新 session 約 4%，10% 約十萬 token，不會一開始就達標）；其他觸發條件不因測試而繞過 |
-| D2 | 交接檔放 repo 內 `.claude/handoffs/`（跟著 worktree、刪 repo 就沒了）還是使用者目錄（不污染 repo、換機不跟） | repo 內，加 `.git/info/exclude`。L2 實測：skill 寫進 worktree 自己的 `.claude/handoffs/`，各 worktree 各一份；要不要跨 worktree 聚合（`repo().root` 加 `git worktree list`）也請決定 |
+| D1 | 門檻的語意與預設值。你的原意是「剩餘低於 40%」（原文寫成 60%，是筆誤），等於已用 60%；在 1M window 是 60 萬 token，在 200k 模型約 12 萬 | **已決（Tom，2026-10-07）：** 預設已用 60%，純百分比、可設定，不加絕對 token 上限（L1：`percent` 與 `/context` 一致，可用）。測試階段用環境變數 `HANDOFF_THRESHOLD_PCT` 覆寫，測試時設 `10`（1M window 下新 session 約 4%，10% 約十萬 token，不會一開始就達標）；其他觸發條件不因測試而繞過 |
+| D2 | 交接檔放 repo 內 `.claude/handoffs/`（跟著 worktree、刪 repo 就沒了）還是使用者目錄（不污染 repo、換機不跟）；跨 worktree 看不看得到 | **已決（Tom，2026-10-07）：** repo 內 `<toplevel>/.claude/handoffs/`，加 `.git/info/exclude`；啟動讀回時用 `git worktree list` 把同 repo 其他 worktree 的交接列在下面並標來源；不做使用者目錄、不另做索引（L2：skill 寫進該 worktree 自己的目錄） |
 | D3 | `/clear` 在沒有未完成跡象時也要問嗎？取消 `/clear` 的做法（不呼叫 `next`）你能接受嗎？ | 沒有跡象就直接放行；取消可接受，文案要清楚 |
-| D4 | 結束時用 `session.end` 自動留一份只含事實的接續筆記（最後一個要求原文、最後一段話原文、branch、有改動的檔案），不呼叫模型 | L6 已確認 `/exit`、`Ctrl-C` 兩次、關分頁都觸發 `session.end`，技術上可行（寫檔約 10 ms）；`kill -9`、當機沒有。自動寫檔牽涉隱私邊界，要你拍板；我的傾向仍是第一版不做 |
+| D4 | 結束時用 `session.end` 自動留一份只含事實的接續筆記（最後一個要求原文、最後一段話原文、branch、有改動的檔案），不呼叫模型 | **已決（Tom，2026-10-07）：做，含對話原文。** 設計見元件 8；緩解措施是我加的，待 Tom 確認。L6：`/exit`、`Ctrl-C` 兩次、關分頁都觸發 `session.end`（`kill -9`、當機沒有）。**未驗證：** `session.end` 內能否讀 `$.session.messages()`、在約 1.5 秒預算內讀完並寫入 |
 | D5 | 要不要記錄「交接寫了幾次、最後接續了幾次」來判斷有沒有價值？這需要持久化 | 要，但只放 `$.store`，本機計數，不外傳 |
 | D6 | plugin 與 skill 的名稱（暫 `handoff-mod`、`handoff-mod:handoff`） | — |
 | D7 | 偵測到使用者自己的 `handoff` 時，優先用它還是一律用內建？ | 一律內建；你自己的 skill 格式只有 Tom 一個人保證相容。L2：你的 `handoff` 能由 `$.command.run` 啟動、Review Gate 與寫檔都成立，但不觸發 `skill.prompt`，理由不變 |
 | D8 | 同事是否都讀繁體中文？介面字串要不要預留抽出 | 先繁中，字串集中在一個檔 |
-| D9 | 窄視窗且有 attention-mod 時，band 被擠出可見範圍（L8），門檻提示怎麼辦：toast＋指令，還是只在寬視窗提示？ | toast＋指令（`/handoff-mod:handoff`）；寬視窗用 band |
-| D10 | 交接目錄的基準：git repo 內用 `git rev-parse --show-toplevel`（每個 worktree 一份），還是 `session.root()`（從子目錄啟動會各有一份，L7）？ | 用 toplevel；不在 git 內才用 `root()` |
+| D9 | 窄視窗且有 attention-mod 時，band 被擠出可見範圍（L8），門檻提示怎麼辦 | **已決（Tom，2026-10-07）：** 窄視窗用 `$.ui.status` 常駐一行＋指令（`/handoff-mod:handoff`），直到交接完成或選「不再問」才拆掉；寬視窗用 band。`$.ui.status` 與 `$.ui.toast` 只有型別檔說明，PoC 沒實測，實作前要先驗證在 attention-mod inline 模式下看得到 |
+| D10 | 交接目錄的基準：git repo 內用 `git rev-parse --show-toplevel`（每個 worktree 一份），還是 `session.root()`（從子目錄啟動會各有一份，L7）？ | **已決（Tom，2026-10-07）：** git repo 內用 toplevel；不在 git 內才用 `root()`；啟動目錄記在檔案的 `root` 欄當標籤 |
 
 ## 驗證與測試
 
@@ -205,11 +224,11 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 - **事件接線由實機驗證：** attention-mod 的經驗是測試 kit 無法端到端觸發部分事件，接線只能靠程式碼審查與實機。哪些事件在 `handoff-mod` 的測試 kit 可觸發，**沒有查證**。
 - **實機劇本：** 門檻提示三個選項各走一次；`/clear` 三條路；兩個終端機同時接續同一份；worktree；非 git 目錄；有交接檔與沒有交接檔的啟動；交接回合沒寫出檔案。
 - 交接內容的準確度要用真實 session 人工抽查，不在自動測試範圍。
-- **PoC 沒測到的：** `/cd` 之後的 `root()`、`session.compact` hook 內的 `$.ui.ask`、自動壓縮的 `trigger` 值、Warp 以外的終端機、同事的環境（版本、managed settings）。
+- **PoC 沒測到的：** `/cd` 之後的 `root()`、`session.compact` hook 內的 `$.ui.ask`、自動壓縮的 `trigger` 值、`$.ui.status` 與 `$.ui.toast` 的實際顯示、Warp 以外的終端機、同事的環境（版本、managed settings）。
 
 ## 不做的事
 
-活動日誌或「最近做了什麼」、跨機器同步、稽核用途的證據保證、不經使用者確認就寫檔（D4 除外且未決）、由 mod 修改交接檔、`model.fork` 起草交接（日後可選）、`/compact` 攔截（待 L5）、跨 agent、檔案內 `assertions` 的自動檢查。
+活動日誌或「最近做了什麼」、跨機器同步、稽核用途的證據保證、不經使用者確認就寫檔（D4 除外，已決）、由 mod 修改交接檔、`model.fork` 起草交接（日後可選）、`/compact` 攔截（待 L5）、跨 agent、檔案內 `assertions` 的自動檢查。
 
 ## 來源
 
