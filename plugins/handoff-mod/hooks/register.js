@@ -34,6 +34,7 @@ let USER_CONFIG = {};
 let config = resolveConfig({});
 let list = null; // {items, total} while the start-up list is showing
 let listing = false;
+let debugOn = false; // HANDOFF_DEBUG=1: trace the post-write detection through $.ui.log (Claude does not read it)
 
 /** Run git without a shell; resolves to {exitCode, stdout} and never throws. */
 async function git($, args) {
@@ -45,6 +46,12 @@ async function git($, args) {
   }
 }
 
+/** One diagnostic line, only when HANDOFF_DEBUG is set. Never throws. */
+function trace($, text) {
+  if (!debugOn) return;
+  try { $.ui.log(`[handoff-mod debug] ${text}`); } catch { /* ignore */ }
+}
+
 /** Test-only env overrides (literal names, so validate can list them), then userConfig, then defaults. */
 async function loadConfig($) {
   try {
@@ -53,6 +60,7 @@ async function loadConfig($) {
       HANDOFF_LANG: await $.env.get('HANDOFF_LANG'),
       HANDOFF_AUTO_NOTE: await $.env.get('HANDOFF_AUTO_NOTE'),
     };
+    debugOn = ['1', 'on', 'true'].includes(String((await $.env.get('HANDOFF_DEBUG')) ?? '').toLowerCase());
     return resolveConfig({env, userConfig: USER_CONFIG});
   } catch {
     return resolveConfig({userConfig: USER_CONFIG});
@@ -217,25 +225,42 @@ async function resume($, item) {
 
 /** A handoff run starts when the skill is expanded, however it was started (typed, or run by this mod). */
 async function markHandoffStarted($) {
-  if ((await read($, handoffStartedAt)) > 0) return;
+  const already = await read($, handoffStartedAt);
+  if (already > 0) {
+    trace($, `skill started again; a run is already pending since ${already}`);
+    return;
+  }
   const now = Math.max(1, await $.clock.now());
   await update($, handoffStartedAt, () => now);
   await update($, handoffTurns, () => 0);
+  trace($, `handoff run started at ${now}`);
 }
 
 /** The newest valid handoff file written since `since`, or null. Never trusts that the model wrote one. */
 async function findNewHandoff($, since) {
   const dir = `${await projectBase($)}/${DIR}`;
-  if (!(await $.fs.exists(dir))) return null;
+  const exists = await $.fs.exists(dir);
+  trace($, `looking in ${dir} (exists=${exists}), since=${since}`);
+  if (!exists) return null;
   let newest = null;
   for (const entry of await $.fs.list(dir)) {
-    if (entry.kind !== 'file' || !entry.name.endsWith('.md')) continue;
+    if (entry.kind !== 'file' || !entry.name.endsWith('.md')) {
+      trace($, `skip ${entry.name}: kind=${entry.kind}`);
+      continue;
+    }
     const path = `${dir}/${entry.name}`;
     try {
       const stat = await $.fs.stat(path);
-      if (stat.mtimeMs < since - 2000 || (newest && stat.mtimeMs <= newest.mtimeMs)) continue;
-      if (parseHandoff(await $.fs.read(path)).ok) newest = {path, mtimeMs: stat.mtimeMs};
-    } catch { /* Skip files that cannot be read. */ }
+      if (stat.mtimeMs < since - 2000 || (newest && stat.mtimeMs <= newest.mtimeMs)) {
+        trace($, `skip ${entry.name}: mtimeMs=${stat.mtimeMs}, older than the run or not newest`);
+        continue;
+      }
+      const parsed = parseHandoff(await $.fs.read(path));
+      trace($, `${entry.name}: mtimeMs=${stat.mtimeMs}, valid=${parsed.ok}${parsed.ok ? '' : `, reason=${String(parsed.reason ?? "?")}`}`);
+      if (parsed.ok) newest = {path, mtimeMs: stat.mtimeMs};
+    } catch (error) {
+      trace($, `${entry.name}: ${String(error?.message ?? error)}`); // Skip files that cannot be read.
+    }
   }
   return newest;
 }
@@ -251,6 +276,7 @@ async function checkHandoff($) {
   const turns = (await read($, handoffTurns)) + 1;
   await update($, handoffTurns, () => turns);
   const found = await findNewHandoff($, since);
+  trace($, `check after turn ${turns}: ${found ? `found ${found.path}` : 'nothing valid yet'}`);
   if (found) {
     await ensureExcluded({
       git: (args) => git($, args),
@@ -342,6 +368,12 @@ export function register(on, options) {
     return result;
   });
 
+  // Debug only: show which skill names arrive, to see whether the matcher below would have fired.
+  on('skill.prompt', async ($, e, next) => {
+    trace($, `skill.prompt skill=${String(e.skill)}`);
+    return next(e);
+  });
+
   on('skill.prompt', {skill: SKILL}, async ($, e, next) => {
     const result = await next(e);
     try { await markHandoffStarted($); } catch { /* ignore */ }
@@ -350,8 +382,9 @@ export function register(on, options) {
 
   on('turn.complete', async ($, e, next) => {
     const result = await next(e);
+    trace($, `turn.complete agentId=${e.agentId ?? '-'} aborted=${Boolean(e.isAborted)}`);
     if (e.agentId || e.isAborted) return result;
-    try { await checkHandoff($); } catch { /* ignore */ }
+    try { await checkHandoff($); } catch (error) { trace($, `checkHandoff failed: ${String(error?.message ?? error)}`); }
     return result;
   });
 

@@ -160,6 +160,29 @@ test('a handoff run is confirmed by the file it wrote, which is also kept out of
   await doneTurn($);
   expect(w.rec.toasts.length).toBe(1);
 });
+test('HANDOFF_DEBUG traces the detection, and without it nothing extra is logged', async ($, on) => {
+  const w = world(on, {env: {HANDOFF_DEBUG: '1'}});
+  await startSession($);
+  await $.skill.prompt(START_SKILL);
+  await doneTurn($);
+  w.files.set(`${HANDOFF_DIR}/feat-x--20261007-120500.md`, {text: handoffText(), mtimeMs: NOW + 5000});
+  await doneTurn($);
+  const traced = w.rec.logs.filter((line) => line.startsWith('[handoff-mod debug]'));
+  expect(traced.some((line) => line.includes('skill.prompt skill=handoff-mod:handoff'))).toBe(true);
+  expect(traced.some((line) => line.includes('handoff run started'))).toBe(true);
+  expect(traced.some((line) => line.includes('nothing valid yet'))).toBe(true);
+  expect(traced.some((line) => line.includes('valid=true'))).toBe(true);
+  expect(traced.some((line) => line.includes('found '))).toBe(true);
+});
+test('without HANDOFF_DEBUG no trace line is logged', async ($, on) => {
+  const w = world(on);
+  await startSession($);
+  await $.skill.prompt(START_SKILL);
+  await doneTurn($);
+  w.files.set(`${HANDOFF_DIR}/feat-x--20261007-120500.md`, {text: handoffText(), mtimeMs: NOW + 5000});
+  await doneTurn($);
+  expect(w.rec.logs.filter((line) => line.includes('[handoff-mod debug]')).length).toBe(0);
+});
 test('without a handoff run, turns do not touch the file system', async ($, on) => {
   const w = world(on);
   await startSession($);
