@@ -1,7 +1,7 @@
 # Handoff Mod 設計
 
 日期：2026-10-06  
-狀態：**草案。** 待決項目 D1 至 D11 已於 2026-10-07 全部決定，整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）。  
+狀態：**草案。** 待決項目 D1 至 D11 已於 2026-10-07 全部決定，整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）；同日 Cloud 補驗後再修訂（Tom 選 A，見文末「補驗後的修訂」），其中 3 項是我的建議，**待 Tom 逐項確認**。  
 plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接著做」。  
 證據：[micro-PoC 結果](../../poc-results.md)（Cloud 與 Tom 本機實測：macOS、Warp、Claude Code 2.1.291 至 2.1.292）；驗證計畫：[micro-PoC 計畫](../plans/2026-10-06-handoff-mod-poc.md)。
 
@@ -45,10 +45,15 @@ plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接�
 | `session.end`：本機 `/exit`、`Ctrl-C` 兩次、關分頁都會觸發（`reason` 分別是 `prompt_input_exit`、`prompt_input_exit`、`other`），hook 寫一行檔案 1–10 ms；`Ctrl-D` 在 Tom 的環境不是離開；`kill -9`、當機沒有 | 結束時留事實筆記技術上可行（D4） |
 | `session.compact` 在壓縮開始前約 41 ms 觸發（`trigger:"manual"`），帶著 messages，可回 `{skip}` 否決；在這個 hook 裡能否 `$.ui.ask` 未驗證（本機） | T4 有機會，待驗 |
 | `repo()` 回 `{root, remote, …}`，不在 git 內是 `null`；worktree 時 `repo().root` 是主 checkout，`session.root()` 是 worktree 自己；從 repo 子目錄啟動時 `session.root()` 就是子目錄，不會往上推（本機） | 範圍鍵見下；git repo 內以 `git rev-parse --show-toplevel` 為基準，不直接用 `session.root()`（D10） |
-| `$.ui.ask` 的選項只有 `options`、`header`、`multiSelect`，沒有取消或中止（型別檔） | mod 無法關掉已彈出的對話框；`$.ui.ask` 的使用規則見 T2 |
+| `$.ui.ask` 的選項只有 `options`、`header`、`multiSelect`，沒有取消或中止（型別檔）。Cloud 補驗：Esc → reject（`no answer …`）；對話框開著時打字再 Enter，文字**不會送出**、沒有回合，Enter 選到預設的第一項 | mod 無法關掉已彈出的對話框；`$.ui.ask` 的使用規則與選項順序見 T2 |
 | `$.command.register` 的指令名只允許字母、數字、`_`、`-`，最多 64 字元（型別檔、文件） | mod 註冊的指令不能叫 `handoff-mod:…`；啟動清單的指令用 `/handoff-resume` |
-| `$.ui.status(text)` 每個 plugin 只有一行，`undefined` 清除，最多 2000 字（型別檔）；文件說畫出時帶 `⚠` 與 mod 名稱 | 窄視窗降級的常駐一行會是警告外觀，文案要短、不用嚇人的字（見補充 6） |
-| `register(on, options)` 收到 manifest 的 `userConfig` 值，`/config` 會畫成 `<plugin>.<field>` 一列（型別檔；未實測） | 正式設定走 `userConfig`（元件 9） |
+| `$.ui.status(text)` 每個 plugin 只有一行，`undefined` 清除，最多 2000 字（型別檔）。Cloud 補驗：80、100 欄、attention-mod inline 面板開著時，畫在輸入框**下方**單獨一行，格式 `⚠ <plugin>: <text>`；`$.ui.toast` 也有畫出（位置未逐幀確認） | 窄視窗降級的常駐一行可用（D9）；是警告外觀，文案要短、不用嚇人的字（見補充 6） |
+| `register(on, options)` 收到 manifest 的 `userConfig` 值（依宣告的型別，預設值已補）；`/config` 畫成 `<plugin>.<field>` 一列（`options` 的字串欄位是選單）；`$.config.set` 有檢查 `min`／`max`，超出回 `{deny}`（Cloud 補驗） | 正式設定走 `userConfig`（元件 9） |
+| **改 `userConfig`（`$.config.set` 或 `/config`）會重載整個模組**：`session.start` 再觸發一次、計時器停掉、module 變數歸零，新值立刻生效（Cloud 補驗） | module 變數不能存要保留的狀態；啟動時的初始化要可重複執行；見元件 2 的狀態規則 |
+| `$.state` 的值在模組重載後保留，`/clear` 後重置（Cloud 補驗：計數器 2 → 重載後 2 → `/clear` 後 0；需 manifest `types` 與 `types/index.d.ts` 宣告，`atom`／`read`／`update` 從 `claude-code` 匯入） | 「這個 session 別再問」等 session 範圍的狀態放 `$.state` |
+| `$.prompt.fill` 可以在 `command.run` hook 內直接呼叫，回 `{isFilled:true}`（Cloud 補驗） | `/handoff-resume <編號>` 不需要經計時器 |
+| 指令回傳的 `{text}` 與 `context` Claude 讀得到；`$.ui.log` Claude 讀不到（Cloud 補驗：標記字串，Claude 只答得出前兩者） | 指令輸出選哪一個，見元件 3 |
+| `$.store` 的檔案：目錄 `0700`、檔案 `0600`、明文 JSON（Cloud／Linux 補驗；macOS 未驗） | D4 備案的 store 副本見元件 8 |
 
 ## 元件
 
@@ -82,13 +87,15 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 | --- | --- |
 | 1 同意 | 開始交接（見下） |
 | 2 再多 10% 再問 | 隱藏 band；下一個門檻 = 目前 % ＋ 10 個百分點 |
-| 3 這個 session 別再問 | 這個 session 不再提示；記在記憶體，`/clear` 後視為新對話，重新開始 |
+| 3 這個 session 別再問 | 這個 session 不再提示；存在 `$.state`（模組重載後保留，`/clear` 後重置，語意正好相符；module 變數會在使用者改任何設定時歸零，**不可用**）。**建議，待 Tom 確認。** |
 
 不操作等於暫緩：band 保持顯示，不重複彈出；`/clear`、新 session 時消失。
 
 **門檻狀態會重置：** `percent` 在壓縮與 `/clear` 後會下降（本機：9% → 5%），所以「下一個門檻」與「這個門檻沒問過」要在 `session.compact`、`/clear`（新 session id）時清掉；或在 `percent` 低於上次問過的值時重新起算。否則舊的下一個門檻會讓提示在一大段區間都不出現。
 
-**T2 的三個選項：** 先交接再清除／直接清除／取消。選「先交接」時 hook **不呼叫 `next`**，回 `{text}` 說明「已暫停清除，交接完成後請再下 `/clear`」，並從計時器開始交接。「直接清除」呼叫 `next(e)`；取消、關閉、reject 都回 `{text}` 不執行。`-p` 或非互動時不攔截。
+**哪裡存這些狀態（建議，待 Tom 確認）：** 「下一個門檻」「這個門檻問過沒有」「別再問」「有一個提問在等」這類 session 範圍的狀態放 `$.state`，不放 module 變數。原因：改設定會重載模組（Cloud 補驗），module 變數會被歸零；`$.state` 在重載後保留、在 `/clear`／`/resume`／`/branch` 後重置，和上面「`/clear` 時要清掉」的需求一致。`/clear` 不會重載模組，所以 module 變數也不會自己清掉，若有留在 module 的狀態，要在 `classic.SessionStart`（`source` 為 `clear`）明確重置。代價：`$.state` 要在 manifest 宣告 `types` 與型別檔；尚未在實作層面比較過用 `$.store`（以 session id 為鍵）的做法。
+
+**T2 的三個選項與順序（建議，待 Tom 確認）：** 取消／先交接再清除／直接清除。**預設標在第一項**（Cloud 補驗：直接按 Enter 一定選到第一項，對話框開著時打字不會被當成新提示、也不會送出），所以第一項要是「按錯也無害」的選項：把「取消」放第一，使用者必須明確選才會開始交接或清除。原本的順序（先交接再清除／直接清除／取消）會讓意外的 Enter 開始一個交接回合。選「先交接」時 hook **不呼叫 `next`**，回 `{text}` 說明「已暫停清除，交接完成後請再下 `/clear`」，並從計時器開始交接。「直接清除」呼叫 `next(e)`；取消、關閉、reject 都回 `{text}` 不執行。`-p` 或非互動時不攔截。
 
 **`$.ui.ask` 的使用規則（避免過期對話框）：** `AskOptions` 沒有取消或中止的欄位（型別檔），mod 無法自己關掉一個已經彈出的對話框；L4 也量到回合結束後對話框仍開著。所以第一版：
 
@@ -114,7 +121,8 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
   - `/handoff-resume`（無參數）：列出清單與編號；`/handoff-resume <編號>`：等同按「接續」（填入輸入框、認領）。寬視窗也可使用，不只限於降級。
   - 指令名不能含冒號（`$.command.register` 只允許字母、數字、`_`、`-`，型別檔與文件），所以不是 `/handoff-mod:…`；`handoff-mod:handoff` 是 plugin skill，命名空間由 plugin 提供，不是這個規則的例外。
   - **`$.ui.status` 每個 plugin 只有一行**（型別檔：`undefined` 清除）。啟動清單的那行在使用者送出第一個提示時移除（`turns() > 0`）；T1 的那行之後才可能出現，兩者不會同時存在。
-  - 清單輸出的呈現方式要在實作前選定：`{text}` 回傳會顯示在 transcript，文件寫 Claude 也讀得到（會進 context，且只含已淨化的短欄位）；`$.ui.log` Claude 讀不到，但會被 attention-mod 的外部輸入列出（L8）。`prompt.fill` 在 `command.run` hook 內呼叫是否被允許，沒有驗證，不行就改經計時器。
+  - **清單輸出（建議用 `$.ui.log`，待 Tom 確認）：** Cloud 補驗：`{text}` 與 `context` 的內容 Claude 讀得到，`$.ui.log` 讀不到。清單只是給使用者看，Claude 不需要讀到；用 `$.ui.log` 就不會讓檔案裡的文字（任務、下一步）在使用者選擇之前進入 context，也不花 token。代價：attention-mod 的「外部輸入」會列出這些行（L8），所以行數與內容要克制。
+  - `prompt.fill` 可以在 `command.run` hook 內直接呼叫（Cloud 補驗），所以 `/handoff-resume <編號>` 不需要經計時器。
 - **接續：** `$.prompt.fill({text})`，文字是「請先讀 `<路徑>`，驗證其中前提是否仍成立，再接續『下一步』」。只放路徑，不放整份內容。使用者按 Enter 才送出。
 
 ### 4. 交接檔格式（schema 1）
@@ -203,7 +211,7 @@ source: auto                # 只有結束筆記（D4）有；省略表示使用
 1. 寫進 `$.store` **之前**就先套用緩解措施 2 與 3（各截斷到 2000 字、去除控制字元與 ANSI 碼、祕密樣式遮蔽）；store 裡不放未遮蔽的原文。
 2. 每個 session 只留一組（key 含 session id，每回合覆寫，不累積歷史）；結束筆記寫完就刪除；session 重置（`/clear`、新 session id）時刪除舊的。
 3. `kill -9` 或當機會留下殘餘，所以每次啟動時清掉超過 7 天的 key（與緩解措施 4 的「超過 7 天不顯示」一致）。
-4. **`$.store` 檔案的權限未驗證**（文件只說存在 `~/.claude/plugins/store/` 底下的 JSON 檔）。實作前要先查；若不是 `0600`，要在 mod 能做到的範圍內處理，做不到就在文件寫明這個殘餘風險，並考慮備案是否仍值得做。
+4. **`$.store` 檔案的權限：Cloud（Linux）已驗證**，目錄 `~/.claude/plugins/store/` 為 `0700`、檔案為 `0600`，內容是**明文 JSON**（所以第 1 點的遮蔽仍然必要）。**macOS 未驗證**，實作前請 Tom 在本機看一次（`ls -l ~/.claude/plugins/store/`）；若不是 `0600`，要在 mod 能做到的範圍內處理，做不到就在文件寫明殘餘風險，並考慮備案是否仍值得做。store 檔在 key 超過 `cleanupPeriodDays` 沒被讀寫時由引擎清除，不等同「結束筆記寫完就刪」，兩者都要。
 
 ### 9. 設定
 
@@ -217,7 +225,20 @@ source: auto                # 只有結束筆記（D4）有；省略表示使用
 
 優先順序：環境變數 > `userConfig` > 預設。D1、D4、D11 決定的是預設值與行為，這裡只改「設定從哪裡來」。
 
-**未驗證：** `userConfig` 的欄位型別（數字、布林、有 `options` 的字串）在 manifest 怎麼宣告、在 mod 內實際收到什麼、在 `/config` 改值後要不要重新載入才生效，都沒有實測；manifest 欄位格式要先讀 plugin manifest reference。
+**manifest 宣告（Cloud 補驗，`claude plugin validate --strict` 通過）：**
+
+```json
+"userConfig": {
+  "thresholdPct": { "type": "number", "title": "…", "description": "…", "default": 60, "min": 1, "max": 99 },
+  "lang":         { "type": "string", "title": "…", "description": "…", "options": ["zh-TW", "en"], "default": "zh-TW" },
+  "autoNote":     { "type": "boolean", "title": "…", "description": "…", "default": true }
+}
+```
+
+- `title` 與 `description` 必填；`options` 讓 `/config` 畫成選單；`min`／`max` 由引擎檢查，超出時 `$.config.set` 回 `{deny}`。
+- 值存在 `settings.json` 的 `pluginConfigs`；`--plugin-dir` 載入時鍵是 `<name>@inline`。
+- **改任何一個設定都會重載模組**（`session.start` 再觸發、計時器停止、module 變數歸零）。後果：啟動時的初始化（例如清 7 天前的殘餘）必須可重複執行；進行中的計時器與 `await` 會被中斷；session 範圍的狀態放 `$.state`（元件 2）。
+- 測試覆寫仍用環境變數；以 `$.env.get` 在使用時讀取，不在重載後才生效的位置快取。
 
 ## 資料流
 
@@ -264,7 +285,8 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 - **實機劇本：** 門檻提示三個選項各走一次；`/clear` 三條路；兩個終端機同時接續同一份；worktree；非 git 目錄；有交接檔與沒有交接檔的啟動；交接回合沒寫出檔案。
 - 交接內容的準確度要用真實 session 人工抽查，不在自動測試範圍。
 - **PoC 沒測到的（Tom 於 2026-10-07 決定停止補測，列為實作前風險）：** `/cd` 之後的 `root()`、`session.compact` hook 內的 `$.ui.ask`、自動壓縮的 `trigger` 值、`$.ui.status` 與 `$.ui.toast` 的實際顯示、Warp 以外的終端機、同事的環境（版本、managed settings）。
-- **最後確認前核對新增的未驗證項目：** `$.store` 檔案的權限；`userConfig` 的欄位宣告、型別與改值後是否要重載；`prompt.fill` 能否在 `command.run` hook 內呼叫；`{text}` 與 `$.ui.log` 哪一個適合清單輸出（前者進 Claude 的 context，後者被 attention-mod 外部輸入列出）；`$.ui.ask` 開著時使用者直接輸入新提示會怎樣。
+- **最後確認前核對新增的項目，Cloud 已補驗（2026-10-07，見 poc-results.md「補驗」）：** `userConfig`（宣告、型別、`/config`、`min`／`max`、改值後重載）、`$.state` 在重載後保留與 `/clear` 後重置、`prompt.fill` 在 hook 內可用、`{text}`／`context`／`$.ui.log` 的可見性、`$.store` 檔案權限（Linux）、T2 四條路徑、`$.ui.status`／`toast` 與 attention-mod inline。
+- **仍待 Tom 本機：** macOS 的 `$.store` 檔案權限；T2 的行為在 Tom 的環境（`$.ui.ask` 不能單獨按數字，Cloud 沒有比對）。
 
 ## 不做的事
 
@@ -284,6 +306,20 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | 6 | `$.ui.status` 會帶 `⚠` 與 mod 名稱，常駐一行像警告 | 文案要短、不用嚇人的字；一個 plugin 只有一行，啟動清單與 T1 不同時出現 | 已查證表、元件 3 |
 
 D6（名稱）在這次一併記為已決。
+
+## 補驗後的修訂（2026-10-07，Cloud 補驗，Tom 選 A）
+
+Cloud 補驗（`poc-results.md` 的 W1 至 W10）後對設計做的修訂。D1 至 D11 已決定的內容沒有動。標「待 Tom 確認」的 3 項是我的建議，不是你已做的決定，可以逐項否決。
+
+| # | 內容 | 狀態 | 位置 |
+| --- | --- | --- | --- |
+| 1 | session 範圍的狀態（下一個門檻、別再問、有提問在等）放 `$.state`，不放 module 變數：改設定會重載模組、歸零 module 變數；`$.state` 重載後保留、`/clear` 後重置 | **建議，待 Tom 確認** | 元件 2 |
+| 2 | T2 的選項順序改成「取消／先交接再清除／直接清除」，因為 Enter 一定選到預設的第一項、打字不會送出 | **建議，待 Tom 確認** | 元件 2（T2） |
+| 3 | `/handoff-resume` 的清單輸出用 `$.ui.log`（Claude 讀不到），不用 `{text}`（Claude 讀得到） | **建議，待 Tom 確認** | 元件 3 |
+| 4 | `$.store` 檔案權限：Linux 為 `0700`／`0600`、明文；macOS 待 Tom 本機驗證 | 已改（事實） | 元件 8 |
+| 5 | `userConfig` 的宣告、型別、`/config`、`min`／`max` 已驗證；改設定會重載模組，啟動初始化要可重複執行 | 已改（事實） | 元件 9、已查證表 |
+| 6 | `prompt.fill` 可在 `command.run` hook 內直接呼叫，`/handoff-resume <編號>` 不需要計時器 | 已改（事實） | 元件 3 |
+| 7 | `$.ui.status`、`$.ui.toast` 在 attention-mod inline 面板開著時可見（status 在輸入框下方一行） | 已改（事實） | 已查證表 |
 
 ## 來源
 

@@ -2,7 +2,11 @@
 // Every probe writes a line to the transcript (dim) and to <TMPDIR>/handoff-poc.log, because /clear wipes the transcript.
 // Read-only toward Claude: nothing here changes a tool call, prompt or permission decision.
 
+import { atom, read, update } from 'claude-code';
+
 const LOG_NAME = 'handoff-poc.log';
+// $.state value: survives a module reload, reset by /clear, /resume and /branch (per the docs; this probe checks it).
+const counter = atom({ plugin: 'handoff-poc', key: 'counter' }, 0);
 const COMMANDS = [
   ['poc-usage', 'POC V1: log context usage'],
   ['poc-submit', 'POC V2: submit a skill call (plain | user | fill | cmd | cmd:<name>)'],
@@ -22,6 +26,8 @@ const COMMANDS = [
   ['poc-t2', 'POC: toggle the T2 flow (ask before /clear)'],
   ['poc-status', 'POC D9: $.ui.status <text> (no text clears)'],
   ['poc-toast', 'POC D9: $.ui.toast'],
+  ['poc-state-inc', 'POC: add one to the $.state counter'],
+  ['poc-state', 'POC: log the $.state counter'],
 ];
 
 let band = null; // {last} while the band probe is showing
@@ -260,6 +266,15 @@ export function register(on, options) {
   on('command.run', {command:'poc-toast'}, async ($) => {
     $.ui.toast('poc toast: hello', {timeoutMs:6000});
     await note($, 'toast shown');
+    return {};
+  });
+  on('command.run', {command:'poc-state-inc'}, async ($) => {
+    await update($, counter, (value) => value + 1);
+    await note($, `state counter=${await read($, counter)} (after +1)`);
+    return {};
+  });
+  on('command.run', {command:'poc-state'}, async ($) => {
+    await note($, `state counter=${await read($, counter)}`);
     return {};
   });
 }

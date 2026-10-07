@@ -211,7 +211,7 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 
 ### 補驗（Cloud，2026-10-07；Tom 選 C）
 
-針對設計「最後確認前的補充」新增的未驗證項目，加探針後在 **Cloud container** 驗證：Linux、Claude Code 2.1.292、互動 session 由 pty 驅動、版面用終端機模擬器（pyte）重繪最後一幀。**不是 Tom 的 macOS／Warp。** 探針新增指令：`/poc-store`、`/poc-config`、`/poc-config-set`、`/poc-fill-hook`、`/poc-text`、`/poc-log`、`/poc-context`、`/poc-t2`、`/poc-status`、`/poc-toast`；manifest 加 `userConfig` 三欄（`thresholdPct`、`lang`、`autoNote`）。`claude plugin validate --strict` 通過。
+針對設計「最後確認前的補充」新增的未驗證項目，加探針後在 **Cloud container** 驗證：Linux、Claude Code 2.1.292、互動 session 由 pty 驅動、版面用終端機模擬器（pyte）重繪最後一幀。**不是 Tom 的 macOS／Warp。** 探針新增指令：`/poc-state-inc`、`/poc-state`、`/poc-store`、`/poc-config`、`/poc-config-set`、`/poc-fill-hook`、`/poc-text`、`/poc-log`、`/poc-context`、`/poc-t2`、`/poc-status`、`/poc-toast`；manifest 加 `userConfig` 三欄（`thresholdPct`、`lang`、`autoNote`）。`claude plugin validate --strict` 通過。
 
 | 編號 | 問題 | 結果（Cloud） |
 | --- | --- | --- |
@@ -224,6 +224,7 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 | W7 | 指令輸出誰看得到 | `{text}` 裡的標記 **Claude 讀得到**（問「有沒有看到 POC-TEXT-MARKER-」，答 `7391`）；`$.ui.log` 的標記 **Claude 讀不到**（答「看不到」）；`{text, context}` 的 `context` 標記 **Claude 讀得到**（答 `3306`）。子 session 是全新的，看不到母 session 的紀錄（`cache_read` 為 0、`messages=0`），所以不是污染。 |
 | W8 | T2 流程（`/clear` hook 內 `await $.ui.ask`） | 四條路徑都實測：選「直接清除」（方向鍵 ↓ 加 Enter）→ `next(e)` → `session.end(reason=clear)`、新 session id；按 Esc → `$.ui.ask` reject（`no answer (The user doesn't want to proceed…)`）→ 視為取消，session 不變；直接 Enter（預設標在第一項）→ 選到第一項「先交接再清除」，指令被擋住；對話框開著時先打 `hello` 再 Enter → **文字沒有被送出、沒有任何回合**，Enter 仍選到第一項。四次 `/clear` 之間模組**沒有重載**（`LOAD_ID` 不變，module 變數保留）。 |
 | W9 | `$.ui.status`、`$.ui.toast` 與 attention-mod inline 面板 | 80、100 欄，先 `/attention` 叫出 inline 面板後：status 單獨一行畫在輸入框**下方**，格式 `⚠ handoff-poc: poc status: …`；toast 有畫出（出現在畫面流裡，最後一幀已過期，沒有逐幀確認位置）。先前 80 欄看不到 attention-mod 面板，是因為它在 `session.start` 自己開 pane，窄於 144 欄不會自動顯示，要使用者 `/attention`。 |
+| W10 | `$.state` 在模組重載與 `/clear` 後的行為 | 探針加 `types/index.d.ts`（manifest 的 `types` 欄位）與 `atom`／`read`／`update`。計數器加到 `2`，再 `$.config.set` 觸發重載（`LOAD_ID` 改變、`session.start` 再觸發）→ 讀到 `2`（**保留**）；`/clear` 後讀到 `0`（**重置**）。`claude plugin validate --strict` 通過，並列出 `state writes／reads: handoff-poc.counter`。 |
 
 限制：
 
