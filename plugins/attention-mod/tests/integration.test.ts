@@ -88,7 +88,7 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
   const [titleRow,rule,...rest]=(await pane.drawn()).children;
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.4']});
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.5']});
   expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
   expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
   expect(rule.children).toEqual(['─'.repeat(40)]);
@@ -118,7 +118,7 @@ test('dock pane draws a bold title above three round sections coloured by meanin
   for(const header of ['[ 摘要 ]','[ 即時 ]','[ 外部輸入 ]']) expect(text).toContain(header);
   // A lone dock pane has no tab strip, so the pane frame shows no title; the body must carry it.
   const [titleRow]=(await pane.drawn()).children;
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.4']});
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.5']});
   expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
   expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
 });
@@ -329,7 +329,7 @@ test('the inline toggle folds the pane to a title and one status line, and expan
   expect(await renderedText(pane)).toContain('目標：');
   await pane.press({key:'toggle-collapse'});
   const collapsed=await renderedText(pane);
-  expect(collapsed).toContain('你到底在忙什麼？ v0.4.4');
+  expect(collapsed).toContain('你到底在忙什麼？ v0.4.5');
   expect(collapsed).toContain('展開面板');
   expect(collapsed).toContain('動作：尚未觀測到工作動作');
   for(const hidden of ['目標：','外部輸入','需要你：']) expect(collapsed).not.toContain(hidden);
@@ -349,8 +349,8 @@ test('the dock cannot shrink, so its toggle closes the pane and pins a one-line 
   await pane.press({key:'toggle-collapse'});
   expect(h.record.closes).toEqual(['attention-mod']);
   const line=h.record.statuses.at(-1);
-  expect(line).toContain('動作：尚未觀測到工作動作');
-  expect(line).toContain('/attention');
+  // The host already prefixes the line with the plugin name, so repeating it only costs width.
+  expect(line).toBe('動作：尚未觀測到工作動作（輸入 /attention 展開）');
   // Closed like a native ×: later updates must not reopen it.
   await prompt($,'task');
   await h.clock.advance(1000);

@@ -1,7 +1,7 @@
 # 決策：面板收起改成標題列 toggle
 
 日期：2026-10-07  
-狀態：Tom 於 2026-10-07 選定；實作版本 0.4.3；dock 的處理在 0.4.4 修訂。設計見 `docs/superpowers/specs/2026-10-07-collapse-panel-design.md`。
+狀態：Tom 於 2026-10-07 選定；實作版本 0.4.3；dock 的處理在 0.4.4 修訂，狀態行文字在 0.4.5 精簡。設計見 `docs/superpowers/specs/2026-10-07-collapse-panel-design.md`。
 
 ## 決策
 
@@ -38,3 +38,11 @@ Tom 選擇：dock 的「收起面板」改成關閉面板，並用 `$.ui.status`
 
 - NOT VERIFIED：`$.ui.status` 的那一行在實機的位置與被截斷的寬度；`/clear` 後是否保留（程式在每次 redraw 都重新釘，不依賴它保留）；外掛重載後是否清掉。
 - 收起後想展開，dock 得打 `/attention`，沒有可點的按鈕（狀態行不能點）。
+
+## 修訂（0.4.5）
+
+Tom 實機截圖（2026-10-07）：
+
+- VERIFIED：dock 收起後，狀態行出現在輸入框下方，該寬度下沒有被截斷。
+- 觀察：Claude Code 自己在狀態行前加 `attention-mod:`，並用橘色與 ⚠ 呈現。這個樣式不是外掛能控制的；是不是所有 plugin 的狀態行都這樣，沒有查證。
+- 決定：拿掉外掛自己寫的 `你到底在忙什麼 · ` 前綴（與 host 加的重複），狀態行只留 `動作：…（輸入 /attention 展開）`。
