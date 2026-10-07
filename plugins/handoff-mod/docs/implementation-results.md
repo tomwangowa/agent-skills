@@ -127,6 +127,27 @@ macOS 特有的疑點：`/var` 是 `/private/var` 的符號連結，畫面上同
 - 窄視窗加 attention-mod 時 band 看不到、只剩 status（P2 已證明 status 看得到），所以 T1 在那種情況靠 status 與手動輸入指令。
 - 門檻預設 60%，這次測試用 1%；60% 的實際體驗（多久會被問到）還沒有人用過。
 
+### Tom 的本機實測：T1（macOS、Claude Code 2.1.292，2026-10-08，`cebb240`，`HANDOFF_THRESHOLD_PCT=1 HANDOFF_DEBUG=1`）
+
+結果是 Tom 回報加兩張截圖，我沒有親眼驗證。
+
+| 項目 | 結果 |
+| --- | --- |
+| T1-1 出現 | band「Context 已用 5%，要先交接嗎？」、三個按鈕，輸入框下方 `⚠ handoff-mod: Context 已用 5%。需要時輸入 /handoff-mod:handoff 交接`；追蹤 `percent=5 at=1 dirty=true -> ask` |
+| T1-2 不重複 | 再送提示沒有第二個 band |
+| T1-3 再多 10% | 按鈕可按，band 與 status 消失 |
+| T1-4 別再問 | 按鈕可按，band 與 status 消失 |
+| T1-5 同意 | 草稿有出現 |
+| T1-6 與 attention-mod 同載入 | 截圖：attention-mod 收合成一行（「展開面板」），band 與 status 都看得到，band 右上有 `[-]` |
+| T1-7 沒有未完成跡象 | 沒被問 |
+
+限制：
+
+- T1-6 的截圖是 attention-mod **收合**時，不是先前 P2 的「展開的 inline 面板」，所以不能證明展開時 band 看得到；P2 先前的結果（展開時 band 被遮、status 看得到）仍然成立。
+- 預設 60% 的實際體驗（多久被問到、是否太吵）沒有人用過；這次門檻是 1%。
+- 決定 9 到 12 Tom 沒有回應，目前視為沿用。
+- 窄視窗（約 80 欄）沒有單獨回報。
+
 ## 尚未做
 
 Task 13 的切片 f（結束筆記）、g（計數指令）、Task 14 的其餘驗收、Task 15（文件與 marketplace）。L1 已通過；`stats.written`、排除功能在無全域 gitignore 時的行為、P4 沒有確認。
