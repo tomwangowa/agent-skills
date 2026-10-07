@@ -97,7 +97,10 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   // 0.2.0 row count (commit ed1c236, hooks/register.js) for this idle state:
   // title(1) + rule(1) + 5 fields(5) + inputs label line(1) + 0 input rows (none yet)
   // + blank line(1) + 0 notes (no snapshot/summary/error/lastEvent yet) + close button(1) = 10.
-  expect((await pane.drawn()).children.length).toBe(10);
+  // 0.4.0 adds exactly one row: the closed feedback form's open button, just above the close button.
+  const rows=(await pane.drawn()).children;
+  expect(rows.length).toBe(11);
+  expect(rows.slice(-2).map(row=>row.props.key)).toEqual(['open-feedback','close-attention']);
 });
 test('dock pane draws a bold title above three round sections coloured by meaning',async($,on)=>{
   host(on);
@@ -199,3 +202,42 @@ test('inline footer meta is dim while a successful summary keeps its field colou
   expect(goalLabel.props.dimColor).toBe(undefined);
   expect(goalLabel.props.color).toBe('blue');
 });
+
+const findNode=(node,pred)=>{
+  if(!node || typeof node!=='object') return undefined;
+  if(pred(node)) return node;
+  for(const child of node.children??[]){ const hit=findNode(child,pred); if(hit) return hit; }
+  return undefined;
+};
+
+for(const surface of ['terminal','desktop'] as const){
+  test(`feedback form builds a prefilled issue link on ${surface}`,async($,on)=>{
+    const h=host(on);
+    await begin($);
+    const pane=await $.ui.mount(paneTarget(surface,'inline'));
+    expect(await renderedText(pane)).toContain('回饋');
+    expect(findNode(await pane.drawn(),n=>n.type==='Input')).toBeUndefined();
+
+    await pane.press({key:'open-feedback'});
+    expect(findNode(await pane.drawn(),n=>n.type==='Input')).toBeDefined();
+
+    // Empty submit warns and makes no link.
+    await pane.input({key:'attention-feedback',text:'   ',kind:'submit'});
+    expect(await renderedText(pane)).toContain('請先輸入內容');
+    expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+
+    await pane.input({key:'attention-feedback',text:'idea: 想要快捷鍵',kind:'submit'});
+    const link=findNode(await pane.drawn(),n=>n.type==='Link');
+    const url=new URL(link.props.href);
+    expect(url.pathname).toBe('/tomwangowa/agent-skills/issues/new');
+    expect(url.searchParams.get('title')).toBe('[attention-mod] 建議：想要快捷鍵');
+
+    // Editing drops the stale link; cancel closes the form without touching the session.
+    await pane.input({key:'attention-feedback',text:'idea: 想要快捷鍵，另外',kind:'change'});
+    expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+    await pane.press({key:'close-feedback'});
+    expect(findNode(await pane.drawn(),n=>n.type==='Input')).toBeUndefined();
+    expect(h.record.prompts).toEqual([]);
+    expect(h.record.models).toEqual([]);
+  });
+}

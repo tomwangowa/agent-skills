@@ -30,13 +30,14 @@ claude --plugin-dir "$PWD"          # 實際載入 Mod 試用，面板沒出現�
 - `scheduler.js`：同一份 `sessionId:epoch:revision` 只試一次（失敗不重試），開始時間相隔至少 60 秒，同時最多一個呼叫。
 - `view.js`：`paneRows` 把狀態轉成三個區塊（摘要、即時、外部輸入），只帶語意色調不帶顏色；`liveTone` 決定即時區塊色調、`actionDot` 決定「動作」的點（「需要你」的點在 `paneRows` 裡依有無等待決定）；`inlineFields`／`footerNotes` 還原 0.2.0 的平面順序；`paneLines` 是純文字版本。不呼叫模型。`sectionById(view, id)` 讓兩種版面都依 id 取區塊，不依位置。
 - `theme.js`：`colorFor(tone)` 把色調對應到終端機具名色，未知色調回傳 undefined。`register.js` 依 `e.props.placement` 呼叫 `drawDock`（圓角框）或 `drawInline`（平面）。
+- `feedback.js`：`buildIssueUrl(raw)` 把使用者輸入轉成預填的 GitHub new-issue 連結（只含輸入文字與固定說明，長度上限 `ISSUE_URL_LIMIT`，超過以 code point 截斷並標 `[truncated]`），`parseFeedback` 解析 `bug:`／`idea:` 前綴。表單狀態 `feedback` 是 `register.js` 的記憶體變數，`drawFeedback` 負責畫出。
 - `inputs.js`：`entryFromAppend(e, result)` 把 `session.append` 的列分類成外部輸入或 null；`NOISE` 黑名單每項附原因，沒列的種類照樣顯示；被拒絕的 append（`result.deny`）不算。外部輸入只進 `state.inputs`，不進 `sources`，所以不會進摘要快照。測試 kit 無法端到端觸發 `session.append`，分類邏輯要放在這個純函式裡測。
 
 資料流：事件 hook 先 `await next(e)` 拿原結果，再把觀察寫進 state，最後原樣回傳。`clock.every(1000)` 背景計時器負責 redraw 並呼叫 `summarize()`，後者建快照、claim 排程，再呼叫 `$.model.complete({model:'haiku', maxTokens:512, timeoutMs:15000})`。
 
 改程式時要守住的不變條件（設計理由見 spec）：
 
-- **被動觀察**：不改寫提示、工具結果或權限決定；觀察失敗包在 `try/catch` 裡，不能影響呼叫端。只用 clock、model.complete、session.id/messages、command.register、ui；不用 store、檔案、http、process，也不提交主對話提示。validate 的 calls inventory 會反映這點。
+- **被動觀察**：不改寫提示、工具結果或權限決定；觀察失敗包在 `try/catch` 裡，不能影響呼叫端。只用 clock、model.complete、session.id/messages、command.register、ui（含回饋表單的 `ui.copy`）；不用 store、檔案、http、process，也不提交主對話提示。validate 的 calls inventory 會反映這點。
 - **世代保護**：`epoch` 在 new-prompt 和 session-reset 時加一。模型回應寫回前要核對 `sessionId` 和 `epoch`，晚到的舊回應直接丟掉。排程鎖跨 reset 仍然有效，不能因為世代失效就提早釋放。
 - **事件與模型分工**：「動作」「需要你」只由事件產生；「目標」「脈絡」「證據」只來自摘要，不能互相覆寫。`tool.check` 的 `ask` 只算「等待狀態不明」；`AskUserQuestion` 實際 render 才算等你回答；`permission_prompt` 只有在剛好一個執行中工具時才對應成權限等待。
 - **clear／resume**：實測不會再觸發 `session.start`，也不保證有 `classic.SessionStart`。`session.end` 記下 `endingSessionId` 後停用，由計時器在 `reconnect()` 輪詢 `session.id()`，看到 ID 改變才恢復並 `restore()`。

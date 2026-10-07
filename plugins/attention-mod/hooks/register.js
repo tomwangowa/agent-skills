@@ -5,6 +5,7 @@ import {createSchedule, claimSnapshot, settleRequest} from './scheduler.js';
 import {paneRows, inlineFields, footerNotes, sectionById, inputRowNodes} from './view.js';
 import {colorFor} from './theme.js';
 import {entryFromAppend} from './inputs.js';
+import {buildIssueUrl} from './feedback.js';
 
 let state = createState(UNKNOWN_SESSION);
 const schedule = createSchedule();
@@ -15,6 +16,8 @@ let closed = false;
 let now = 0;
 let endingSessionId = null;
 let reconnecting = false;
+// Feedback form: memory-only, so a reload or /clear simply starts it closed again.
+let feedback = {open:false, draft:'', link:null, copied:null, empty:false};
 const sourceId = () => `e${state.epoch}-s${++sequence}`;
 const apply = event => { state = reduceState(state, event); };
 
@@ -237,9 +240,41 @@ export function register(on) {
     const body = e.props.placement === 'dock' ? drawDock(view, els) : drawInline(view, els, e.props.bodyColumns);
     return els.Box({flexDirection:'column', children:[
       ...body,
+      ...drawFeedback($, e, els),
       els.Button({key:'close-attention', label:'收起', onPress:() => $.ui.close({id:'attention-mod'})}),
     ]});
   });
+}
+
+/**
+ * Feedback form. Submitting only builds a prefilled GitHub issue link from the typed text;
+ * the person opens it and confirms there, so the mod sends nothing and reads no session data.
+ */
+function drawFeedback($, e, {Box, Text, Button, Input, Link}) {
+  const change = patch => { feedback = {...feedback, ...patch}; redraw($); };
+  if (!feedback.open) return [Button({key:'open-feedback', label:'回饋', onPress:() => change({open:true, empty:false})})];
+  return [Box({flexDirection:'column', children:[
+    Text({bold:true, children:'回饋'}),
+    Text({dimColor:true, wrap:'wrap', children:'描述問題或改善建議，可用 bug: 或 idea: 開頭分類，Enter 產生 GitHub issue 連結。'}),
+    Input({key:'attention-feedback', label:'內容', placeholder:'bug: ...', value:feedback.draft, submitLabel:'產生連結', autoFocus:true,
+      // Editing invalidates a link made from the older text, so redraw to drop it.
+      onInput:value => change({draft:value, link:null, copied:null, empty:false}),
+      onSubmit:value => {
+        const link = buildIssueUrl(value);
+        change({draft:value, link, copied:null, empty:!link});
+      }}),
+    ...(feedback.empty ? [Text({color:colorFor('warning'), children:'請先輸入內容。'})] : []),
+    ...(feedback.link ? [
+      Text({wrap:'wrap', children:'連結只含你輸入的文字，點開後請在 GitHub 確認內容再送出：'}),
+      Link({href:feedback.link.url, label:'開啟 GitHub issue'}),
+      ...(feedback.link.truncated ? [Text({dimColor:true, wrap:'wrap', children:'內容過長，已截斷；完整內容請在 GitHub 頁面補上。'})] : []),
+      Button({key:'copy-feedback-link', label:'複製連結', onPress:async press => {
+        try { const r = await $.ui.copy({text:feedback.link.url, surface:press.surface}); change({copied:r.isCopied}); } catch { change({copied:false}); }
+      }}),
+      ...(feedback.copied === true ? [Text({dimColor:true, children:'已複製。'})] : feedback.copied === false ? [Text({dimColor:true, children:'無法複製，請直接點上方連結。'})] : []),
+    ] : []),
+    Button({key:'close-feedback', label:'取消回饋', onPress:() => change({open:false, draft:'', link:null, copied:null, empty:false})}),
+  ]})];
 }
 
 /** A dot then a coloured bold label, shared by both layouts so "● 動作：正在執行" reads the same. */
