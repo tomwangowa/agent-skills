@@ -351,7 +351,8 @@ function drawDock(view, {Box, Text}, header) {
   // A lone dock pane gets no tab strip, so the frame shows no title; the body carries it instead.
   return [header, ...view.sections.map(section => Box({flexDirection:'column', borderStyle:'round', borderColor:colorFor(section.tone), paddingX:1, children:[
     Box({flexDirection:'row', justifyContent:'space-between', children:[
-      Text({bold:true, wrap:'truncate', children:`[ ${section.label} ]`}),
+      // No brackets: the host's Button draws "[ label ]", so only things you can press may wear them.
+      Text({bold:true, color:colorFor(section.tone), wrap:'truncate', children:section.label}),
       ...(section.meta ? [Text({dimColor:true, wrap:'truncate', children:section.meta})] : []),
     ]}),
     ...(section.id === 'inputs'
