@@ -13,6 +13,8 @@ declare module 'claude-code' {
       handoffStartedAt: number
       /** Turns completed since the handoff started; used to decide when to say that no file appeared. */
       handoffTurns: number
+      /** The percentage the open T1 prompt reports; 0 while no prompt is open. */
+      t1Percent: number
       /** The start-up list was skipped, resumed or dismissed in this session. */
       listDone: boolean
     }

@@ -364,3 +364,147 @@ test('an answer that arrives after the session has changed does nothing', async 
   expect(result).toEqual({});
   expect(w.rec.ran).toEqual([]);
 });
+
+// --- slice b: T1, the context threshold prompt ----------------------------------------------------------------------
+const DIRTY = {'status --porcelain': [0, ' M src/login.ts\n'] as [number, string]};
+const QUESTION = (percent: number) => `Context 已用 ${percent}%，要先交接嗎？`;
+const STATUS = (percent: number) => `Context 已用 ${percent}%。需要時輸入 /handoff-mod:handoff 交接`;
+const t1Keys = ['t1-agree', 't1-snooze', 't1-suppress'];
+const turnAt = async ($: any, w: any, percent: number | undefined) => { w.setPercent(percent); await doneTurn($); await w.flush(); };
+
+test('at the threshold with unfinished work, a status line and a band with three answers appear', async ($, on) => {
+  const w = world(on, {git: DIRTY, turns: 2});
+  await startSession($);
+  await turnAt($, w, 60);
+  expect(w.lastStatus()).toBe(STATUS(60));
+  const band = await mountBand($);
+  expect(await band.find({type: 'Text', text: QUESTION(60)})).toBeDefined();
+  for (const key of t1Keys) expect(await band.find({key})).toBeDefined();
+});
+test('nothing is asked below the threshold, without a percentage, on a clean tree, or outside git', async ($, on) => {
+  const below = world(on, {git: DIRTY});
+  await startSession($);
+  await turnAt($, below, 59);
+  await turnAt($, below, undefined);
+  expect(below.lastStatus()).toBe(undefined);
+});
+test('a clean working tree is not unfinished work', async ($, on) => {
+  const w = world(on, {git: {'status --porcelain': [0, '']}});
+  await startSession($);
+  await turnAt($, w, 80);
+  expect(w.lastStatus()).toBe(undefined);
+  expect(await (await mountBand($)).find({key: 't1-agree'})).toBeUndefined();
+});
+test('outside a git tree nothing is asked', async ($, on) => {
+  const w = world(on, {git: {'status --porcelain': [128, '']}});
+  await startSession($);
+  await turnAt($, w, 80);
+  expect(w.lastStatus()).toBe(undefined);
+});
+test('a threshold is asked once: later turns neither stack nor reopen it', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  await turnAt($, w, 61);
+  const statuses = w.rec.statuses.length;
+  await turnAt($, w, 63);
+  expect(w.rec.statuses.length).toBe(statuses);
+  expect(w.lastStatus()).toBe(STATUS(61));
+});
+test('agree takes the prompt down and starts the handoff skill from a timer', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  await turnAt($, w, 62);
+  const band = await mountBand($);
+  await band.press({key: 't1-agree'});
+  expect(w.lastStatus()).toBe(undefined);
+  expect(await band.find({key: 't1-agree'})).toBeUndefined();
+  expect(w.rec.ran).toEqual([]);
+  await w.clock.advance(500);
+  expect(w.rec.ran).toEqual(['handoff-mod:handoff']);
+});
+test('"ask again in 10%" hides the prompt and asks at ten points above where the person is', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  await turnAt($, w, 61);
+  await (await mountBand($)).press({key: 't1-snooze'});
+  expect(w.lastStatus()).toBe(undefined);
+  await turnAt($, w, 70);
+  expect(w.lastStatus()).toBe(undefined);
+  await turnAt($, w, 71);
+  expect(w.lastStatus()).toBe(STATUS(71));
+});
+test('"do not ask again" silences the session', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  await turnAt($, w, 61);
+  const band = await mountBand($);
+  await band.press({key: 't1-suppress'});
+  expect(w.lastStatus()).toBe(undefined);
+  await turnAt($, w, 95);
+  expect(w.lastStatus()).toBe(undefined);
+  expect(await band.find({key: 't1-agree'})).toBeUndefined();
+});
+test('"do not ask again" survives a compaction that makes the threshold askable again', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  await turnAt($, w, 61);
+  await (await mountBand($)).press({key: 't1-suppress'});
+  await turnAt($, w, 8);
+  await turnAt($, w, 75);
+  expect(w.lastStatus()).toBe(undefined);
+});
+test('after compaction the percentage falls, the prompt goes, and the threshold is asked again', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  await turnAt($, w, 65);
+  expect(w.lastStatus()).toBe(STATUS(65));
+  await turnAt($, w, 8);
+  expect(w.lastStatus()).toBe(undefined);
+  await turnAt($, w, 60);
+  expect(w.lastStatus()).toBe(STATUS(60));
+});
+test('no question while a handoff is running, and starting one takes an open prompt down', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  await turnAt($, w, 65);
+  await $.prompt.submit({text: '/handoff-mod:handoff', wait: false, origin: {kind: 'composer'}});
+  await w.flush();
+  expect(w.lastStatus()).toBe(undefined);
+  await turnAt($, w, 90);
+  expect(w.lastStatus()).toBe(undefined);
+});
+test('a new conversation after /clear starts without the old prompt', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  await turnAt($, w, 65);
+  await startSession($, 'clear');
+  await w.flush();
+  expect(w.lastStatus()).toBe(undefined);
+  expect(await (await mountBand($)).find({key: 't1-agree'})).toBeUndefined();
+});
+test('HANDOFF_THRESHOLD_PCT moves the threshold', async ($, on) => {
+  const w = world(on, {git: DIRTY, env: {HANDOFF_THRESHOLD_PCT: '10'}});
+  await startSession($);
+  await turnAt($, w, 9);
+  expect(w.lastStatus()).toBe(undefined);
+  await turnAt($, w, 10);
+  expect(w.lastStatus()).toBe(STATUS(10));
+});
+test('the start-up list keeps the status line while it shows, and the prompt takes it over after the list goes', async ($, on) => {
+  const w = world(on, {files: twoHandoffs, git: DIRTY});
+  await startSession($);
+  await w.flush();
+  await turnAt($, w, 70);
+  expect(w.lastStatus()).toBe('有 2 筆未完成交接，輸入 /handoff-resume 查看');
+  await (await mountBand($)).press({key: 'skip'});
+  expect(w.lastStatus()).toBe(STATUS(70));
+});
+test('sub-agent and aborted turns still go through the threshold check without breaking it', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  w.setPercent(70);
+  await doneTurn($, {agentId: 'sub'});
+  await doneTurn($, {isAborted: true});
+  await w.flush();
+  expect(w.lastStatus()).toBe(undefined);
+});

@@ -6,6 +6,7 @@ import {rankHandoffs} from './rank.js';
 import {freshnessFacts} from './freshness.js';
 import {tryClaim, claimView} from './claim.js';
 import {ensureExcluded} from './exclude.js';
+import {decideTrigger, effectiveThreshold, snooze, onPercentSeen, hasUnfinishedSign} from './trigger.js';
 
 /*
  * Wiring for the handoff mod. Every pure decision lives in its own module; this file only connects events to them.
@@ -29,6 +30,12 @@ const handoffStartedAt = atom({plugin: 'handoff-mod', key: 'handoffStartedAt'}, 
 const handoffTurns = atom({plugin: 'handoff-mod', key: 'handoffTurns'}, 0);
 const listDone = atom({plugin: 'handoff-mod', key: 'listDone'}, false);
 const askPending = atom({plugin: 'handoff-mod', key: 'askPending'}, false);
+// T1 (D12): the next threshold after "ask again in 10%", the threshold last asked about, "never ask again", and the
+// percentage the open prompt reports (0 while no prompt is open).
+const nextAt = atom({plugin: 'handoff-mod', key: 'nextAt'}, 0);
+const askedAt = atom({plugin: 'handoff-mod', key: 'askedAt'}, 0);
+const suppressed = atom({plugin: 'handoff-mod', key: 'suppressed'}, false);
+const t1Percent = atom({plugin: 'handoff-mod', key: 't1Percent'}, 0);
 
 // Rebuilt from userConfig and disk whenever the module (re)loads or a session starts.
 let USER_CONFIG = {};
@@ -174,16 +181,71 @@ async function buildList($) {
   return {items: views, total: ranked.shown.length + ranked.collapsed};
 }
 
-function showList($, built) {
-  list = built.items.length ? built : null;
-  $.ui.status(list ? t(config.lang, 'status.pending', {count: built.total}) : undefined);
+/** A plugin has one status line: the start-up list wins, else an open T1 prompt, else nothing. Redraws the band too. */
+async function syncStatus($) {
+  const open = await read($, t1Percent);
+  $.ui.status(list ? t(config.lang, 'status.pending', {count: list.total}) : open > 0 ? t(config.lang, 'status.threshold', {percent: open}) : undefined);
   $.ui.invalidate('ui.render');
 }
 
-function clearList($) {
+async function showList($, built) {
+  list = built.items.length ? built : null;
+  await syncStatus($);
+}
+
+async function clearList($) {
   list = null;
-  $.ui.status(undefined);
-  $.ui.invalidate('ui.render');
+  await syncStatus($);
+}
+
+async function closeT1($) {
+  await update($, t1Percent, () => 0);
+  await syncStatus($);
+}
+
+const readT1 = async ($) => ({
+  nextAt: await read($, nextAt), askedAt: await read($, askedAt), suppressed: await read($, suppressed), askPending: await read($, askPending),
+});
+
+/**
+ * T1: after a turn, ask once per threshold when the context is filling up and there is unfinished work (D1, design
+ * component 2). "Unfinished" is a dirty working tree; every unknown (no percentage, not a git tree) means do not ask.
+ */
+async function checkThreshold($) {
+  const percent = (await $.session.usage())?.context?.percent;
+  const state = await readT1($);
+  const seen = onPercentSeen(state, percent);
+  if (seen !== state) {
+    // Compaction or /clear made the percentage fall: forget which thresholds were asked, and take any open prompt down.
+    await update($, nextAt, () => seen.nextAt);
+    await update($, askedAt, () => seen.askedAt);
+    if ((await read($, t1Percent)) > 0) await closeT1($);
+  }
+  if (typeof percent !== 'number' || percent < effectiveThreshold(seen, config)) return;
+  const dirty = await git($, ['status', '--porcelain']);
+  const decision = decideTrigger({
+    percent, config, state: seen, idle: true,
+    hasUnfinishedSign: hasUnfinishedSign({gitDirty: dirty.exitCode === 0 && dirty.stdout.trim() !== ''}),
+    handoffRunning: (await read($, handoffStartedAt)) > 0,
+  });
+  trace($, `threshold: percent=${percent} at=${decision.at} dirty=${dirty.exitCode === 0 && dirty.stdout.trim() !== ''} -> ${decision.action}`);
+  if (decision.action !== 'ask') return;
+  await update($, askedAt, () => decision.at);
+  await update($, t1Percent, () => Math.max(1, percent));
+  await syncStatus($);
+}
+
+/** The prompt's three answers. Each takes it down; a press on a prompt that is already gone does nothing. */
+async function answerT1($, answer) {
+  const percent = await read($, t1Percent);
+  if (percent <= 0) return;
+  if (answer === 'snooze') {
+    const next = snooze({}, {percent, at: await read($, askedAt)}).nextAt;
+    await update($, nextAt, () => next);
+  }
+  if (answer === 'suppress') await update($, suppressed, () => true);
+  await closeT1($);
+  if (answer === 'agree') startHandoffLater($);
 }
 
 /** Compute the start-up list once per call; `force` ignores "already dismissed" (used by /handoff-resume). */
@@ -192,7 +254,7 @@ async function refreshList($, {force = false} = {}) {
   listing = true;
   try {
     if (!force && (await read($, listDone))) return;
-    showList($, await buildList($));
+    await showList($, await buildList($));
   } catch {
     /* The list is a convenience; never let it break the session. */
   } finally {
@@ -221,7 +283,7 @@ async function resume($, item) {
   await bumpStat($, 'resumed');
   await $.prompt.fill({text: t(lang, 'resume.prompt', {path: item.id})});
   await update($, listDone, () => true);
-  clearList($);
+  await clearList($);
 }
 
 /** A handoff run starts when the skill is expanded, however it was started (typed, or run by this mod). */
@@ -235,6 +297,7 @@ async function markHandoffStarted($) {
   await update($, handoffStartedAt, () => now);
   await update($, handoffTurns, () => 0);
   trace($, `handoff run started at ${now}`);
+  if ((await read($, t1Percent)) > 0) await closeT1($);
 }
 
 /** The newest valid handoff file written since `since`, or null. Never trusts that the model wrote one. */
@@ -350,6 +413,10 @@ export function register(on, options) {
       if (!['startup', 'clear'].includes(e.source)) return result;
       if ((await $.session.surfaces()).length === 0 || (await $.session.turns()) > 0) return result;
       config = await loadConfig($);
+      // A fresh conversation: $.state is already reset by the host, say so explicitly (design component 2), and redraw.
+      await update($, nextAt, () => 0);
+      await update($, askedAt, () => 0);
+      await update($, t1Percent, () => 0);
       void refreshList($);
     } catch { /* ignore */ }
     return result;
@@ -366,7 +433,7 @@ export function register(on, options) {
       // The first real prompt ends the start-up list; slash commands such as /handoff-resume do not.
       if (list && ['composer', 'bridge', 'sdk'].includes(e.origin?.kind) && !text.startsWith('/')) {
         await update($, listDone, () => true);
-        clearList($);
+        await clearList($);
       }
     } catch { /* ignore */ }
     return result;
@@ -399,6 +466,7 @@ export function register(on, options) {
     trace($, `turn.complete agentId=${e.agentId ?? '-'} aborted=${Boolean(e.isAborted)}`);
     if (e.agentId || e.isAborted) return result;
     try { await checkHandoff($); } catch (error) { trace($, `checkHandoff failed: ${String(error?.message ?? error)}`); }
+    try { await checkThreshold($); } catch (error) { trace($, `checkThreshold failed: ${String(error?.message ?? error)}`); }
     return result;
   });
 
@@ -450,26 +518,39 @@ export function register(on, options) {
   });
 
   on('ui.render', {component: 'AbovePrompt'}, async ($, e, next) => {
-    if (!list) return next(e);
+    const open = await read($, t1Percent);
+    if (!list && open <= 0) return next(e);
     const {Box, Text, Button} = $.ui.resolve(e);
     const theirs = await next(e);
     const lang = config.lang;
-    const rows = [];
-    list.items.forEach((item, i) => {
-      rows.push(Text({bold: true, wrap: 'wrap', children: [item.title]}));
-      if (item.next) rows.push(Text({wrap: 'wrap', children: [item.next]}));
-      for (const [j, fact] of item.facts.entries()) rows.push(Text({dimColor: true, wrap: 'wrap', children: [fact]}));
-      if (item.auto) rows.push(Text({dimColor: true, children: [t(lang, 'list.auto')]}));
-      rows.push(item.claimed
-        ? Text({dimColor: true, children: [t(lang, 'list.claimed')]})
-        : Button({key: `resume-${i}`, label: t(lang, 'list.resume'), plain: true, onPress: () => resume($, item)}));
-    });
-    return Box({flexDirection: 'column', children: [
-      theirs,
-      Text({bold: true, children: [t(lang, 'list.header', {count: list.total})]}),
-      ...rows,
-      ...(list.total > list.items.length ? [Text({dimColor: true, children: [t(lang, 'list.more', {count: list.total - list.items.length})]})] : []),
-      Button({key: 'skip', label: t(lang, 'list.skip'), plain: true, onPress: async () => { await update($, listDone, () => true); clearList($); }}),
-    ]});
+    const blocks = [theirs];
+    if (list) {
+      const rows = [];
+      list.items.forEach((item, i) => {
+        rows.push(Text({bold: true, wrap: 'wrap', children: [item.title]}));
+        if (item.next) rows.push(Text({wrap: 'wrap', children: [item.next]}));
+        for (const [j, fact] of item.facts.entries()) rows.push(Text({dimColor: true, wrap: 'wrap', children: [fact]}));
+        if (item.auto) rows.push(Text({dimColor: true, children: [t(lang, 'list.auto')]}));
+        rows.push(item.claimed
+          ? Text({dimColor: true, children: [t(lang, 'list.claimed')]})
+          : Button({key: `resume-${i}`, label: t(lang, 'list.resume'), plain: true, onPress: () => resume($, item)}));
+      });
+      blocks.push(
+        Text({bold: true, children: [t(lang, 'list.header', {count: list.total})]}),
+        ...rows,
+        ...(list.total > list.items.length ? [Text({dimColor: true, children: [t(lang, 'list.more', {count: list.total - list.items.length})]})] : []),
+        Button({key: 'skip', label: t(lang, 'list.skip'), plain: true, onPress: async () => { await update($, listDone, () => true); await clearList($); }}),
+      );
+    }
+    if (open > 0) {
+      // No digit hotkeys: a digit typed at the start of a message in an empty prompt would answer the question.
+      blocks.push(
+        Text({bold: true, wrap: 'wrap', children: [t(lang, 'band.question', {percent: open})]}),
+        Button({key: 't1-agree', label: t(lang, 'band.agree'), plain: true, onPress: () => answerT1($, 'agree')}),
+        Button({key: 't1-snooze', label: t(lang, 'band.snooze', {step: 10}), plain: true, onPress: () => answerT1($, 'snooze')}),
+        Button({key: 't1-suppress', label: t(lang, 'band.suppress'), plain: true, onPress: () => answerT1($, 'suppress')}),
+      );
+    }
+    return Box({flexDirection: 'column', children: blocks});
   });
 }

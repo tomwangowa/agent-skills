@@ -110,6 +110,23 @@ macOS 特有的疑點：`/var` 是 `/private/var` 的符號連結，畫面上同
 - Warp 是 Tom 的終端機（依先前對話），截圖裡看不出是不是 Warp。
 - L5 沒有逐項記錄；P4（打字後 Enter）沒有回報。
 
+## Phase 2：切片 b，T1 門檻提示（Cloud，2026-10-08）
+
+環境：Linux container、Claude Code 2.1.292，pty 驅動真實互動 session（拋棄式 git repo，120 欄，`HANDOFF_THRESHOLD_PCT=1`，工作樹有一個未追蹤檔）。**不是 Tom 的 macOS／Warp，也還沒按過按鈕。**
+
+| 項目 | 結果 |
+| --- | --- |
+| 驗證與測試 | `claude plugin validate --strict .` 通過；`claude plugin test .` **139 pass、0 fail**（新增 15 項）。 |
+| 變異檢查 | 弄壞八處（髒樹判斷恆為真、不記錄已問過的門檻、不重置壓縮後的百分比、「別再問」沒存、啟動交接不收起提示、T1 status 壓過清單、`/clear` 不重置、「再多 10%」沒存）：七個一開始就被抓到，**「別再問」沒存那個沒被抓到**（同一門檻本來就只問一次，會掩蓋它），補了「壓縮後再升到門檻仍不問」的測試後也被抓到。 |
+| 真實 session | 回答後出現 band：「Context 已用 4%，要先交接嗎？」與「同意」「再多 10% 再問」「這個 session 別再問」；輸入框下方 `⚠ handoff-mod: Context 已用 4%。需要時輸入 /handoff-mod:handoff 交接`；追蹤顯示 `threshold: percent=4 at=1 dirty=true -> ask`。 |
+
+限制：
+
+- 按鈕在 Cloud 沒按過（Tom 的 L4 證明 Tab 與點擊可用，但沒有按過這三個）；「同意」會走計時器啟動 skill，這條只有測試覆蓋，真實 session 沒走過。
+- 「未完成跡象」只看 `git status`（計畫決定 9）；非 git 目錄不會被問。
+- 窄視窗加 attention-mod 時 band 看不到、只剩 status（P2 已證明 status 看得到），所以 T1 在那種情況靠 status 與手動輸入指令。
+- 門檻預設 60%，這次測試用 1%；60% 的實際體驗（多久會被問到）還沒有人用過。
+
 ## 尚未做
 
-Task 13 的切片 b（T1 提示）、f（結束筆記）、g（計數指令）、Task 14 的其餘驗收、Task 15（文件與 marketplace）。L1 已通過；`stats.written`、排除功能在無全域 gitignore 時的行為、P4 沒有確認。
+Task 13 的切片 f（結束筆記）、g（計數指令）、Task 14 的其餘驗收、Task 15（文件與 marketplace）。L1 已通過；`stats.written`、排除功能在無全域 gitignore 時的行為、P4 沒有確認。

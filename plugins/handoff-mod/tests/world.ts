@@ -10,8 +10,9 @@ const GIT_DEFAULTS: Record<string, [number, string]> = {
 };
 
 /** Stub every host call the wiring makes: in-memory files and store, a scripted git, and recorders for what the mod shows. */
-export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => string; askDelay?: number; turns?: number; env?: Record<string, string>; git?: Record<string, [number, string]>; files?: Record<string, string>; store?: Record<string, any>; repo?: any; surfaces?: string[]} = {}) {
+export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => string; askDelay?: number; turns?: number; env?: Record<string, string>; git?: Record<string, [number, string]>; files?: Record<string, string>; store?: Record<string, any>; repo?: any; surfaces?: string[]; percent?: number} = {}) {
   const clock = mock.clock(on, {now: NOW});
+  let percent: number | undefined = o.percent;
   mock.env(on, o.env ?? {});
   const files = new Map<string, {text: string; mtimeMs: number}>(Object.entries(o.files ?? {}).map(([p, text]) => [p, {text, mtimeMs: NOW - 3600_000}]));
   const store = new Map<string, any>(Object.entries(o.store ?? {}));
@@ -28,6 +29,7 @@ export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => s
   on('session.id', () => ({value: o.sessionId ? o.sessionId() : 'sess-A'}));
   on('session.root', () => ({value: '/work/app'}));
   on('session.repo', () => ({value: o.repo === undefined ? {root: '/work/app', remote: null, internal: false, name: null} : o.repo}));
+  on('session.usage', () => ({value: {context: {window: 1_000_000, ...(percent === undefined ? {} : {percent})}}}));
   on('session.turns', () => ({value: o.turns ?? 0}));
   on('session.surfaces', () => ({value: o.surfaces ?? ['terminal']}));
   on('store.get', ($: any, e: any) => ({value: store.get(e.key)}));
@@ -59,7 +61,8 @@ export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => s
   on('command.run', ($: any, e: any) => { rec.ran.push(e.command); return {text: ''}; });
 
   const flush = async () => { for (let i = 0; i < 25; i++) await clock.advance(0); };
-  return {clock, files, store, rec, lastStatus, flush};
+  const setPercent = (value: number | undefined) => { percent = value; };
+  return {clock, files, store, rec, lastStatus, flush, setPercent};
 }
 
 export const HANDOFF_DIR = '/work/app/.claude/handoffs';
