@@ -148,6 +148,18 @@ macOS 特有的疑點：`/var` 是 `/private/var` 的符號連結，畫面上同
 - 決定 9 到 12 Tom 沒有回應，目前視為沿用。
 - 窄視窗（約 80 欄）沒有單獨回報。
 
+## Phase 2：切片 g，使用計數指令（Cloud，2026-10-08）
+
+環境同切片 b。指令名 `/handoff-stats` 是我取的（D6 沒有規定計數指令的名字）。
+
+| 項目 | 結果 |
+| --- | --- |
+| 驗證與測試 | `claude plugin validate --strict .` 通過；`claude plugin test .` **142 pass、0 fail**（新增 3 項，並修改註冊測試）。 |
+| 變異檢查 | 弄壞三處（寫入不計數、讀錯 store 的 key、指令沒註冊）：全部一開始就被抓到。 |
+| 真實 session | `/handoff-stats` 印出 `交接寫入 0 次，接續 0 次`（Cloud 的 store 這次是空的）。 |
+
+計數只存在 `$.store`，不外傳；指令用 `$.ui.log` 輸出，Claude 讀不到。限制：Tom 的環境沒試過；損壞的計數紀錄會讀成 0。
+
 ## 尚未做
 
-Task 13 的切片 f（結束筆記）、g（計數指令）、Task 14 的其餘驗收、Task 15（文件與 marketplace）。L1 已通過；`stats.written`、排除功能在無全域 gitignore 時的行為、P4 沒有確認。
+Task 13 的切片 f（結束筆記）、Task 14 的其餘驗收、Task 15（文件與 marketplace）。L1 已通過；`stats.written`、排除功能在無全域 gitignore 時的行為、P4 沒有確認。

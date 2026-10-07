@@ -306,7 +306,7 @@ export function decideTrigger({percent, config, state, idle, hasUnfinishedSign, 
 - [x] **切片 d：驗證新檔。** 交接回合之後的 `turn.complete`：用 `$.fs.list` 找交接目錄中 mtime 晚於 `handoffStartedAt` 的新檔，經 `parseHandoff` 驗證；成功 → 呼叫 `ensureExcluded`、`$.ui.toast` 顯示路徑、累計寫入次數（D5，`$.store`）；失敗 → toast「未偵測到有效交接檔」，不標成功。交接目錄用 D10 的基準：git repo 內 `git rev-parse --show-toplevel`，否則 `$.session.root()`。
 - [x] **切片 e：啟動讀回。** `classic.SessionStart`，`source` 為 `startup` 或 `clear`、互動、`turns() === 0`。來源：目前 worktree 的目錄；`repo().root` 不同時再加主 checkout；同 repo 其他 worktree 由 `git worktree list --porcelain` 取得（D2）；不另做索引。逐個 `parseHandoff` → 讀 `$.store` 取得有效狀態與認領 → `freshnessFacts` → `rankHandoffs`。介面：寬視窗 band（接續、略過）；窄視窗且有 attention-mod 用 `$.ui.status` 一行「有 N 筆未完成交接」加 `/handoff-resume`；**清單輸出用 `$.ui.log`**（D14）。「接續」→ `tryClaim`、`$.prompt.fill`（內容只有路徑與驗證前提的提示）、`$.store` 記 `resumed`、累計接續次數（D5）。`/handoff-resume <編號>` 同「接續」。啟動清單那行 status 在 `turns() > 0` 時移除；與 T1 的 status 不同時存在。`classic.SessionStart` 的 `source` 為 `clear` 時，**明確重置** module 內任何殘留與 T1 狀態（`resetThreshold`）。
 - [ ] **切片 f：結束筆記（依 P1 路線）。** 路線 A：`session.end` 內讀訊息，`withDeadline` 在約 1.5 秒預算內完成。路線 B：`prompt.submit` 記最後一個要求、`turn.complete` 記最後一段回應，**先 `cleanForNote` 再存 `$.store`**（每 session 一組、key 含 session id、寫完筆記即刪、`/clear` 或新 session 時刪舊的、啟動時清掉超過 7 天的）；`session.end` 只組檔案並寫入。兩路線的寫檔相同：`$.fs.write` 之後 `$.process.run(['chmod', '600', path])`（`$.fs.write` 沒有權限參數）；寫之前呼叫 `ensureExcluded`；逾時就放棄、不留半個檔案；檔名 `…--auto.md`。`reason` 為 `clear` 不寫。
-- [ ] **切片 g：使用計數（D5）。** `$.store` 只存本機計數（交接寫入次數、接續次數）；不外傳；加一個指令印出計數（用 `$.ui.log`）。
+- [x] **切片 g：使用計數（D5）。**（Cloud 完成；指令名 `/handoff-stats`。） `$.store` 只存本機計數（交接寫入次數、接續次數）；不外傳；加一個指令印出計數（用 `$.ui.log`）。
 
 ---
 

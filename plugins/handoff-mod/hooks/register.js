@@ -399,6 +399,9 @@ export function register(on, options) {
       await $.command.register({name: 'handoff-resume', description: t(config.lang, 'cmd.resume'), argumentHint: t(config.lang, 'cmd.resume.hint')});
     } catch { /* A taken name or a failed read must not stop the session. */ }
     try {
+      await $.command.register({name: 'handoff-stats', description: t(config.lang, 'cmd.stats')});
+    } catch { /* Same: a taken name must not stop the session, nor the other command. */ }
+    try {
       // A reload of this module re-fires session.start; only a session with no prompts yet gets the list.
       if (e.isInteractive && (await $.session.turns()) === 0) void refreshList($);
     } catch { /* ignore */ }
@@ -491,6 +494,15 @@ export function register(on, options) {
       return {text: t(config.lang, 'clear.held')};
     }
     return {text: t(config.lang, 'clear.cancelled')};
+  });
+
+  // D5: the counts live in $.store on this machine only; this command is the one place they are shown.
+  on('command.run', {command: 'handoff-stats'}, async ($) => {
+    try {
+      const stats = (await storeGet($, 'stats')) ?? {};
+      $.ui.log(t(config.lang, 'stats.line', {written: Number(stats.written) || 0, resumed: Number(stats.resumed) || 0}));
+    } catch { /* ignore */ }
+    return {};
   });
 
   on('command.run', {command: 'handoff-resume'}, async ($, e) => {

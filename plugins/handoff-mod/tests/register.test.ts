@@ -8,9 +8,9 @@ const mountBand = ($: any) => $.ui.mount(bandTarget);
 test('the resume command is registered at session start, in the configured language', async ($, on) => {
   const w = world(on, {env: {HANDOFF_LANG: 'en'}});
   await $.session.start({surface: 'terminal', isInteractive: true, cwd: '/work/app'});
-  expect(w.rec.commands.length).toBe(1);
-  expect(w.rec.commands[0].name).toBe('handoff-resume');
+  expect(w.rec.commands.map((c: any) => c.name)).toEqual(['handoff-resume', 'handoff-stats']);
   expect(w.rec.commands[0].description).toContain('List unfinished handoffs');
+  expect(w.rec.commands[1].description).toContain('kept local, never sent');
 });
 
 // --- slice e: start-up read-back ----------------------------------------------------------------------------------
@@ -507,4 +507,33 @@ test('sub-agent and aborted turns still go through the threshold check without b
   await doneTurn($, {isAborted: true});
   await w.flush();
   expect(w.lastStatus()).toBe(undefined);
+});
+
+// --- slice g: local counts (D5) -------------------------------------------------------------------------------------
+test('/handoff-stats prints the local counts, zero when nothing was recorded', async ($, on) => {
+  const w = world(on);
+  await startSession($);
+  await $.command.run({command: 'handoff-stats', args: ''});
+  expect(w.rec.logs).toEqual(['交接寫入 0 次，接續 0 次']);
+  w.store.set('stats', {written: 3, resumed: 2});
+  await $.command.run({command: 'handoff-stats', args: ''});
+  expect(w.rec.logs[1]).toBe('交接寫入 3 次，接續 2 次');
+});
+test('the counts follow real use: a confirmed handoff and a resume each add one', async ($, on) => {
+  const w = world(on, {files: twoHandoffs});
+  await startSession($);
+  await w.flush();
+  await $.skill.prompt(START_SKILL);
+  w.files.set(`${HANDOFF_DIR}/feat-x--20261007-120500.md`, {text: handoffText(), mtimeMs: NOW + 5000});
+  await doneTurn($);
+  const band = await mountBand($);
+  await band.press({key: 'resume-0'});
+  await $.command.run({command: 'handoff-stats', args: ''});
+  expect(w.rec.logs[w.rec.logs.length - 1]).toBe('交接寫入 1 次，接續 1 次');
+});
+test('a damaged counts record reads as zero and sends nothing out', async ($, on) => {
+  const w = world(on, {store: {stats: 'garbage'}});
+  await startSession($);
+  await $.command.run({command: 'handoff-stats', args: ''});
+  expect(w.rec.logs).toEqual(['交接寫入 0 次，接續 0 次']);
 });
