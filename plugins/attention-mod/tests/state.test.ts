@@ -69,13 +69,13 @@ test('follow-up prompt retains bounded original sources while invalidating the g
 
 const input = (s, id, at = 10) => reduceState(s, {type:'external-input', entry:{id, kind:'hook 注入', origin:'引擎', excerpt:id}, sessionId:s.sessionId, epoch:s.epoch, at});
 
-test('external inputs keep the latest five, once per row, across prompts', () => {
+test('external inputs keep the latest three, once per row, across prompts', () => {
   let s = createState('one');
   for (const id of ['a','b','c','d','e','f']) s = input(s, id);
   s = input(s, 'f');
-  expect(s.inputs.map(i => i.id)).toEqual(['b','c','d','e','f']);
+  expect(s.inputs.map(i => i.id)).toEqual(['d','e','f']);
   const next = reduceState(s, {type:'new-prompt', id:'goal', text:'task', at:20});
-  expect(next.inputs.map(i => i.id)).toEqual(['b','c','d','e','f']);
+  expect(next.inputs.map(i => i.id)).toEqual(['d','e','f']);
   expect(next.inputs[0].epoch < next.epoch).toBe(true);
 });
 test('session end clears inputs; the next session keeps rows that arrived in between', () => {

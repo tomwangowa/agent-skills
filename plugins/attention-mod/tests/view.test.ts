@@ -31,14 +31,13 @@ test('external inputs list newest first with excerpts on the two newest only',()
   s=reduceState(s,{type:'external-input',entry:{id:'d',kind:'附件 file',origin:'引擎',excerpt:'text-d'},sessionId:'s',epoch:s.epoch,at:180000});
   const inputs=paneRows(s,0).sections[2];
   expect(inputs.label).toBe('外部輸入');
-  expect(inputs.meta).toBe('4 筆');
+  expect(inputs.meta).toBe('3 筆');
   expect(inputs.rows.map(i=>i.text)).toEqual([
     `${clockTime(180000)} 附件 file · 引擎`,
     `${clockTime(120000)} hook 注入 · 引擎`,
     `${clockTime(60000)} hook 注入 · 引擎`,
-    `${clockTime(0)} hook 注入 · 引擎`,
   ]);
-  expect(inputs.rows.map(i=>i.excerpt)).toEqual(['text-d','text-c',null,null]);
+  expect(inputs.rows.map(i=>i.excerpt)).toEqual(['text-d','text-c',null]);
   expect(inputs.empty).toBe(null);
   const lines=paneLines(s,0).join('\n');
   expect(lines).toContain('「text-d」');
@@ -122,13 +121,14 @@ test('input rows wrap instead of truncating, and the excerpt keeps its indent on
   expect(excerptBox).toBeTruthy();
 });
 test('a note row keeps its excerpt however old it is, since its label alone does not say what it is',()=>{
-  let s=createState('s');
-  const add=(id,door,at)=>{ s=reduceState(s,{type:'external-input',entry:{id,door,kind:door,origin:'引擎',excerpt:`text-${id}`},sessionId:'s',epoch:s.epoch,at}); };
-  add('old-note','note',0);
-  add('old-delivery','delivery',1000);
-  add('mid','attachment',2000);
-  add('new1','attachment',3000);
-  add('new2','attachment',4000);
-  const rows=paneRows(s,0).sections[2].rows;
-  expect(rows.map(i=>i.excerpt)).toEqual(['text-new2','text-new1',null,null,'text-old-note']);
+  const excerpts=oldestDoor=>{
+    let s=createState('s');
+    const add=(id,door,at)=>{ s=reduceState(s,{type:'external-input',entry:{id,door,kind:door,origin:'引擎',excerpt:`text-${id}`},sessionId:'s',epoch:s.epoch,at}); };
+    add('oldest',oldestDoor,0);
+    add('new1','attachment',1000);
+    add('new2','attachment',2000);
+    return paneRows(s,0).sections[2].rows.map(i=>i.excerpt);
+  };
+  expect(excerpts('delivery')).toEqual(['text-new2','text-new1',null]);
+  expect(excerpts('note')).toEqual(['text-new2','text-new1','text-oldest']);
 });
