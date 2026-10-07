@@ -1,7 +1,7 @@
 # Handoff Mod 設計
 
 日期：2026-10-06  
-狀態：**草案。** 待決項目 D1 至 D11 已於 2026-10-07 全部決定，整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。  
+狀態：**草案。** 待決項目 D1 至 D11 已於 2026-10-07 全部決定，整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）。  
 plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接著做」。  
 證據：[micro-PoC 結果](../../poc-results.md)（Cloud 與 Tom 本機實測：macOS、Warp、Claude Code 2.1.291 至 2.1.292）；驗證計畫：[micro-PoC 計畫](../plans/2026-10-06-handoff-mod-poc.md)。
 
@@ -45,6 +45,10 @@ plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接�
 | `session.end`：本機 `/exit`、`Ctrl-C` 兩次、關分頁都會觸發（`reason` 分別是 `prompt_input_exit`、`prompt_input_exit`、`other`），hook 寫一行檔案 1–10 ms；`Ctrl-D` 在 Tom 的環境不是離開；`kill -9`、當機沒有 | 結束時留事實筆記技術上可行（D4） |
 | `session.compact` 在壓縮開始前約 41 ms 觸發（`trigger:"manual"`），帶著 messages，可回 `{skip}` 否決；在這個 hook 裡能否 `$.ui.ask` 未驗證（本機） | T4 有機會，待驗 |
 | `repo()` 回 `{root, remote, …}`，不在 git 內是 `null`；worktree 時 `repo().root` 是主 checkout，`session.root()` 是 worktree 自己；從 repo 子目錄啟動時 `session.root()` 就是子目錄，不會往上推（本機） | 範圍鍵見下；git repo 內以 `git rev-parse --show-toplevel` 為基準，不直接用 `session.root()`（D10） |
+| `$.ui.ask` 的選項只有 `options`、`header`、`multiSelect`，沒有取消或中止（型別檔） | mod 無法關掉已彈出的對話框；`$.ui.ask` 的使用規則見 T2 |
+| `$.command.register` 的指令名只允許字母、數字、`_`、`-`，最多 64 字元（型別檔、文件） | mod 註冊的指令不能叫 `handoff-mod:…`；啟動清單的指令用 `/handoff-resume` |
+| `$.ui.status(text)` 每個 plugin 只有一行，`undefined` 清除，最多 2000 字（型別檔）；文件說畫出時帶 `⚠` 與 mod 名稱 | 窄視窗降級的常駐一行會是警告外觀，文案要短、不用嚇人的字（見補充 6） |
+| `register(on, options)` 收到 manifest 的 `userConfig` 值，`/config` 會畫成 `<plugin>.<field>` 一列（型別檔；未實測） | 正式設定走 `userConfig`（元件 9） |
 
 ## 元件
 
@@ -68,7 +72,7 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 | T1 門檻 | `percent` 有值且 ≥ 門檻（預設已用 60%，D1）；`turn.complete` 之後閒置、沒有等待；有未完成跡象；本 session 沒被抑制；這個門檻沒問過 | band，三個按鈕；窄視窗且有 attention-mod 時改 `$.ui.status` 常駐一行＋指令（D9） |
 | T2 `/clear` | 互動 session；`turns() > 0`（D3：不看未完成跡象，一律詢問） | `$.ui.ask`，三個選項 |
 | T3 手動 | 使用者自己下 `/handoff-mod:handoff` | 無，skill 直接執行 |
-| T4 壓縮前 | 有機會：`session.compact` 在壓縮前觸發且可否決；hook 內 `$.ui.ask` 未驗證 | 待驗 |
+| T4 壓縮前 | **日後，第一版不含。** `session.compact` 在壓縮前觸發且可否決，但 hook 內 `$.ui.ask` 未驗證 | 無 |
 
 **未完成跡象**（假設，未驗證）：本 session 有成功的 `Edit`／`Write`／`NotebookEdit`，或 `git status` 不乾淨。純問答的 session 不需要交接，沒有這個條件使用者會一直被問。這個條件用在 T1 與結束筆記；T2 依 D3 不看它。
 
@@ -86,6 +90,15 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 
 **T2 的三個選項：** 先交接再清除／直接清除／取消。選「先交接」時 hook **不呼叫 `next`**，回 `{text}` 說明「已暫停清除，交接完成後請再下 `/clear`」，並從計時器開始交接。「直接清除」呼叫 `next(e)`；取消、關閉、reject 都回 `{text}` 不執行。`-p` 或非互動時不攔截。
 
+**`$.ui.ask` 的使用規則（避免過期對話框）：** `AskOptions` 沒有取消或中止的欄位（型別檔），mod 無法自己關掉一個已經彈出的對話框；L4 也量到回合結束後對話框仍開著。所以第一版：
+
+1. `$.ui.ask` **只**在 T2 的 `/clear` hook 內呼叫，並且 `await`，這時 `/clear` 被擋在 hook 裡，對話框不會比它的指令活得更久。
+2. **不從計時器或其他事件呼叫** `$.ui.ask`（T1 一律用 band 或 `$.ui.status`）。
+3. 用旗標避免疊加：已有一個提問在等時，不再發第二個。
+4. 回答若在 session 重置（epoch 改變）之後才到，丟棄，不執行任何動作。
+
+使用者在提問開著時直接輸入新提示會怎樣，**沒有驗證**，列入實作前風險。
+
 **同意之後：** 從計時器呼叫 `$.command.run({command})`。`command` 是 `handoff-mod:handoff`，或在 D7 選用且偵測到時為使用者自己的 `handoff`。
 
 **不信任「已寫好」：** 之後的 `turn.complete`，mod 掃描交接目錄找 mtime 晚於開始時間的新檔並解析 frontmatter；成功才 toast 顯示路徑；否則顯示「未偵測到有效交接檔」。
@@ -97,7 +110,11 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 - **排序：** 同 `root` 優先，其次同 `repo`，其餘依 `created` 由新到舊。預設展開 3 筆，其餘折疊成「還有 N 筆」。創建超過 14 天的預設折疊。
 - **每筆顯示：** 任務（≤80 字）、branch、多久以前、新鮮度事實、「下一步」第一行（≤120 字）。
 - **按鈕：** 接續、略過。「略過」只對這個 session 有效，不改狀態。
-- **介面：** band。跟 attention-mod 共用 band 時，把自己的內容與 `next(e)` 的結果並排（探針已這樣做；共存待本機 L8）。
+- **介面：** 寬視窗用 band，與 attention-mod 並排時把自己的內容與 `next(e)` 的結果並排（L8 已驗證可並排，按鈕列要在 67 欄內放得下）。**窄視窗且有 attention-mod 時 band 看不到**（L8：被擠成 `↓2 more`），啟動清單與 T1 一樣降級（D9）：`$.ui.status` 常駐一行「有 N 筆未完成交接，輸入 `/handoff-resume` 查看」，加上 `/handoff-resume` 指令。
+  - `/handoff-resume`（無參數）：列出清單與編號；`/handoff-resume <編號>`：等同按「接續」（填入輸入框、認領）。寬視窗也可使用，不只限於降級。
+  - 指令名不能含冒號（`$.command.register` 只允許字母、數字、`_`、`-`，型別檔與文件），所以不是 `/handoff-mod:…`；`handoff-mod:handoff` 是 plugin skill，命名空間由 plugin 提供，不是這個規則的例外。
+  - **`$.ui.status` 每個 plugin 只有一行**（型別檔：`undefined` 清除）。啟動清單的那行在使用者送出第一個提示時移除（`turns() > 0`）；T1 的那行之後才可能出現，兩者不會同時存在。
+  - 清單輸出的呈現方式要在實作前選定：`{text}` 回傳會顯示在 transcript，文件寫 Claude 也讀得到（會進 context，且只含已淨化的短欄位）；`$.ui.log` Claude 讀不到，但會被 attention-mod 的外部輸入列出（L8）。`prompt.fill` 在 `command.run` hook 內呼叫是否被允許，沒有驗證，不行就改經計時器。
 - **接續：** `$.prompt.fill({text})`，文字是「請先讀 `<路徑>`，驗證其中前提是否仍成立，再接續『下一步』」。只放路徑，不放整份內容。使用者按 Enter 才送出。
 
 ### 4. 交接檔格式（schema 1）
@@ -181,6 +198,27 @@ source: auto                # 只有結束筆記（D4）有；省略表示使用
 
 **未驗證：** `$.session.messages()` 能不能在 `session.end` 內讀。headless 量到的結果是**讀不到**（`no session is bound in this process`），互動 session 沒測；`git status` 約 76 ms、寫檔加 `chmod 600` 約 16 ms（headless），預算不是問題。**備案（也未驗證）：** 不在結束時讀訊息，改成平時記：在 `prompt.submit` hook 記下最後一個使用者要求、在 `turn.complete` 記下最後一段回應（事件的 `text`），存在 `$.store`，結束時只負責寫檔。實作前要先在互動 session 驗證其中一條可行，否則 D4 做不出來。
 
+**備案的額外措施（Tom 選 A，2026-10-07；上面五條只管最後寫出的檔案，不管 `$.store` 裡的副本）：**
+
+1. 寫進 `$.store` **之前**就先套用緩解措施 2 與 3（各截斷到 2000 字、去除控制字元與 ANSI 碼、祕密樣式遮蔽）；store 裡不放未遮蔽的原文。
+2. 每個 session 只留一組（key 含 session id，每回合覆寫，不累積歷史）；結束筆記寫完就刪除；session 重置（`/clear`、新 session id）時刪除舊的。
+3. `kill -9` 或當機會留下殘餘，所以每次啟動時清掉超過 7 天的 key（與緩解措施 4 的「超過 7 天不顯示」一致）。
+4. **`$.store` 檔案的權限未驗證**（文件只說存在 `~/.claude/plugins/store/` 底下的 JSON 檔）。實作前要先查；若不是 `0600`，要在 mod 能做到的範圍內處理，做不到就在文件寫明這個殘餘風險，並考慮備案是否仍值得做。
+
+### 9. 設定
+
+正式的設定走 plugin 的 `userConfig`，不要求使用者設環境變數：型別檔說明 `register(on, options)` 會收到 manifest 宣告的 `userConfig` 欄位值（已補預設值），存在 `settings.json` 的 `pluginConfigs`，並且在 `/config` 畫成 `<plugin>.<field>` 的一列（有 `options` 的字串欄位畫成選單）。同事用 `/config` 就能改。
+
+| 欄位 | 預設 | 對應的測試覆寫（環境變數，只給測試與開發用） |
+| --- | --- | --- |
+| 門檻（已用 %）（D1） | `60` | `HANDOFF_THRESHOLD_PCT`（測試設 `10`） |
+| 介面語言（D8、D11） | `zh-TW`（另有 `en`） | `HANDOFF_LANG` |
+| 結束筆記（D4） | 開 | `HANDOFF_AUTO_NOTE=off` 關閉 |
+
+優先順序：環境變數 > `userConfig` > 預設。D1、D4、D11 決定的是預設值與行為，這裡只改「設定從哪裡來」。
+
+**未驗證：** `userConfig` 的欄位型別（數字、布林、有 `options` 的字串）在 manifest 怎麼宣告、在 mod 內實際收到什麼、在 `/config` 改值後要不要重新載入才生效，都沒有實測；manifest 欄位格式要先讀 plugin manifest reference。
+
 ## 資料流
 
 ```text
@@ -212,7 +250,7 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | D3 | `/clear` 在沒有未完成跡象時也要問嗎？取消 `/clear` 的做法（不呼叫 `next`）你能接受嗎？ | **已決（Tom，2026-10-07）：一律都問**（與我的傾向「沒跡象就放行」不同）；取消做法隨選項接受，文案要清楚。後果：純問答的 session 也會在 `/clear` 時被問一次 |
 | D4 | 結束時用 `session.end` 自動留一份只含事實的接續筆記（最後一個要求原文、最後一段話原文、branch、有改動的檔案），不呼叫模型 | **已決（Tom，2026-10-07）：做，含對話原文。** 設計見元件 8；五條緩解措施已確認，預設開啟（`HANDOFF_AUTO_NOTE=off` 關閉）。L6：`/exit`、`Ctrl-C` 兩次、關分頁都觸發 `session.end`（`kill -9`、當機沒有）。**未驗證：** `session.end` 內能否讀 `$.session.messages()`、在約 1.5 秒預算內讀完並寫入 |
 | D5 | 要不要記錄「交接寫了幾次、最後接續了幾次」來判斷有沒有價值？這需要持久化 | **已決（Tom，2026-10-07）：** 要，只放 `$.store`，本機計數，不外傳 |
-| D6 | plugin 與 skill 的名稱（暫 `handoff-mod`、`handoff-mod:handoff`） | 維持暫稱（2026-10-07 提出後 Tom 未提出異議；仍可改） |
+| D6 | plugin 與 skill 的名稱（暫 `handoff-mod`、`handoff-mod:handoff`） | **已決（Tom，2026-10-07，最後確認前核對選項 A）：** `handoff-mod`、`handoff-mod:handoff`，另有指令 `/handoff-resume`（見元件 3） |
 | D7 | 偵測到使用者自己的 `handoff` 時，優先用它還是一律用內建？ | **已決（Tom，2026-10-07）：一律用內建。** 你自己的 skill 格式只有 Tom 一個人保證相容。L2：你的 `handoff` 能由 `$.command.run` 啟動、Review Gate 與寫檔都成立，但不觸發 `skill.prompt`，且曾把沒跑過的指令標成已驗證 |
 | D8 | 同事是否都讀繁體中文？介面字串要不要預留抽出 | **已決（Tom，2026-10-07）：** 繁體中文加英文，兩種都做。選語言與交接檔標題的處理見 D11 |
 | D9 | 窄視窗且有 attention-mod 時，band 被擠出可見範圍（L8），門檻提示怎麼辦 | **已決（Tom，2026-10-07）：** 窄視窗用 `$.ui.status` 常駐一行＋指令（`/handoff-mod:handoff`），直到交接完成或選「不再問」才拆掉；寬視窗用 band。`$.ui.status` 與 `$.ui.toast` 只有型別檔說明，PoC 沒實測，實作前要先驗證在 attention-mod inline 模式下看得到 |
@@ -226,10 +264,26 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 - **實機劇本：** 門檻提示三個選項各走一次；`/clear` 三條路；兩個終端機同時接續同一份；worktree；非 git 目錄；有交接檔與沒有交接檔的啟動；交接回合沒寫出檔案。
 - 交接內容的準確度要用真實 session 人工抽查，不在自動測試範圍。
 - **PoC 沒測到的（Tom 於 2026-10-07 決定停止補測，列為實作前風險）：** `/cd` 之後的 `root()`、`session.compact` hook 內的 `$.ui.ask`、自動壓縮的 `trigger` 值、`$.ui.status` 與 `$.ui.toast` 的實際顯示、Warp 以外的終端機、同事的環境（版本、managed settings）。
+- **最後確認前核對新增的未驗證項目：** `$.store` 檔案的權限；`userConfig` 的欄位宣告、型別與改值後是否要重載；`prompt.fill` 能否在 `command.run` hook 內呼叫；`{text}` 與 `$.ui.log` 哪一個適合清單輸出（前者進 Claude 的 context，後者被 attention-mod 外部輸入列出）；`$.ui.ask` 開著時使用者直接輸入新提示會怎樣。
 
 ## 不做的事
 
-活動日誌或「最近做了什麼」、跨機器同步、稽核用途的證據保證、不經使用者確認就寫檔（D4 除外，已決）、由 mod 修改交接檔、`model.fork` 起草交接（日後可選）、`/compact` 攔截（待 L5）、跨 agent、檔案內 `assertions` 的自動檢查。
+活動日誌或「最近做了什麼」、跨機器同步、稽核用途的證據保證、不經使用者確認就寫檔（D4 除外，已決）、由 mod 修改交接檔、`model.fork` 起草交接（日後可選）、`/compact` 攔截（T4，日後；`session.compact` 內的 `$.ui.ask` 未驗證）、跨 agent、檔案內 `assertions` 的自動檢查。
+
+## 最後確認前的補充（2026-10-07，Tom 選 A）
+
+最後確認前讀完整份設計後發現的 6 處缺口或矛盾，Tom 選擇全部照提議修改。D1 至 D11 已決定的內容沒有動。
+
+| # | 問題 | 改了什麼 | 位置 |
+| --- | --- | --- | --- |
+| 1 | D4 備案把對話原文存進 `$.store`，緩解措施沒管這份副本 | 寫入 store 前先截斷與遮蔽；每 session 一組、寫完即刪、啟動清 7 天前殘餘；store 檔權限列為實作前驗證 | 元件 8 |
+| 2 | 窄視窗＋attention-mod 時，啟動清單同樣被擠出（D9 只管 T1） | 啟動清單同樣降級為 `$.ui.status` 一行；新增 `/handoff-resume` 指令。提議時寫的 `/handoff-mod:resume` 不合法（指令名不能含冒號），改為 `/handoff-resume` | 元件 3 |
+| 3 | T4 在觸發點表寫「有機會」，「不做的事」卻寫「待 L5」 | T4 明確為「日後，第一版不含」，兩處一致 | 元件 2、不做的事 |
+| 4 | 設定全靠環境變數，同事不會設 | 正式設定走 `userConfig`（`/config` 可改），環境變數只當測試覆寫；欄位行為未實測 | 元件 9 |
+| 5 | `$.ui.ask` 過期對話框沒有規則 | 提議時寫的「視為取消」不可行：`AskOptions` 沒有取消機制。改為只在 `/clear` hook 內 `await`、不從計時器呼叫、不疊加、重置後的回答丟棄 | 元件 2 的 T2 |
+| 6 | `$.ui.status` 會帶 `⚠` 與 mod 名稱，常駐一行像警告 | 文案要短、不用嚇人的字；一個 plugin 只有一行，啟動清單與 T1 不同時出現 | 已查證表、元件 3 |
+
+D6（名稱）在這次一併記為已決。
 
 ## 來源
 
