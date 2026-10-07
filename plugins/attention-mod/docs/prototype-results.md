@@ -126,6 +126,6 @@ NOT VERIFIED（待實機）：
   - 自動化：`tests/inputs.test.ts`（40／120 上限、entry 帶 `door`）、`tests/view.test.ts`（兩行都 wrap、縮排、`note` 在第 5 筆仍有節錄）。
   - NOT VERIFIED：5 筆都帶長節錄時 dock 的 18 行會不會被撐爆（實機只有 2 筆）；`note` 節錄規則在真實 session 裡的表現（實機沒出現 `note` 列）；`drawDock`／`drawInline` 的接線只有實機截圖證實，沒有自動化測試（測試 kit 無法觸發 `session.append`）；Claude Desktop 的繪製。
 - 0.4.0：面板內回饋表單，產生預填的 Teams 聊天連結，收件人由 `userConfig.feedbackRecipient` 提供（決策見 `docs/decisions/2026-10-07-feedback.md`）。
-  - 自動化：`tests/feedback.test.ts`（前綴解析、收件人驗證、連結內容、code point 截斷、lone surrogate、容量）、`tests/integration.test.ts`（terminal／desktop 表單流程、複製內容、無收件人與無效收件人、`session-reset` 清空草稿）。
+  - 自動化：`tests/feedback.test.ts`（前綴解析、收件人驗證與長度上限、`composeMessage`、連結內容、code point 截斷、lone surrogate、容量）、`tests/integration.test.ts`（terminal／desktop 表單流程、複製內容、無收件人與無效收件人、`session-reset` 清空草稿）。
   - VERIFIED（Tom 手動）：Teams `https://` 與 `msteams://` 連結可開啟。
   - NOT VERIFIED：面板內從點連結到 Teams 預填的完整流程；真實終端機與 Desktop 的輸入框焦點、`ui.copy` 實際寫入剪貼簿；`feedbackRecipient` 在安裝畫面與 `/config` 的呈現；dock 窄版面下表單的排版。

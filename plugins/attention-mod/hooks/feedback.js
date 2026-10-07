@@ -20,10 +20,23 @@ export function parseFeedback(raw) {
   return {kind, text};
 }
 
+/** An email address is at most 254 characters, so a longer value cannot be one and cannot fit a link. */
+const EMAIL_MAX = 254;
+
 /** The recipient as configured, or null when it is unset or not an email address. */
 export function parseRecipient(value) {
   const email = String(value ?? '').trim();
-  return EMAIL.test(email) ? email : null;
+  return email.length <= EMAIL_MAX && EMAIL.test(email) ? email : null;
+}
+
+/**
+ * The labelled, sanitised text a recipient would read, or null when nothing but a category
+ * prefix was typed. Shared by the link and the copy path so both always carry the same words.
+ */
+export function composeMessage(raw) {
+  const parsed = parseFeedback(raw);
+  if (!parsed) return null;
+  return {kind: parsed.kind, text: parsed.text, message: `[attention-mod ${KIND_LABEL[parsed.kind]}] ${parsed.text}`};
 }
 
 /**
@@ -32,13 +45,12 @@ export function parseRecipient(value) {
  * the mod itself sends no request. `message` is the plain text, for copying when the link fails.
  */
 export function buildTeamsLink(raw, recipient) {
-  const parsed = parseFeedback(raw);
+  const composed = composeMessage(raw);
   const email = parseRecipient(recipient);
-  if (!parsed || !email) return null;
-  const header = `[attention-mod ${KIND_LABEL[parsed.kind]}]`;
-  const compose = text => `${header} ${text}`;
-  const link = text => `${TEAMS_CHAT}?users=${encodeURIComponent(email)}&message=${encodeURIComponent(compose(text))}`;
-  let body = parsed.text;
+  if (!composed || !email) return null;
+  const header = `[attention-mod ${KIND_LABEL[composed.kind]}]`;
+  const link = text => `${TEAMS_CHAT}?users=${encodeURIComponent(email)}&message=${encodeURIComponent(`${header} ${text}`)}`;
+  let body = composed.text;
   let truncated = false;
   if (link(body).length > LINK_LIMIT) {
     truncated = true;
@@ -47,5 +59,5 @@ export function buildTeamsLink(raw, recipient) {
     while (points.length && link(points.join('') + MARKER).length > LINK_LIMIT) points = points.slice(0, Math.floor(points.length * 0.9));
     body = points.join('') + MARKER;
   }
-  return {url: link(body), kind: parsed.kind, truncated, message: compose(parsed.text)};
+  return {url: link(body), kind: composed.kind, truncated, message: composed.message};
 }

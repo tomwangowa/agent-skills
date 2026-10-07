@@ -42,12 +42,33 @@ claude --plugin-dir "<這個資料夾的路徑>"
 
 面板底部的「回饋」按鈕可回報使用問題或改善建議。輸入內容（可用 `bug:` 或 `idea:` 開頭分類）後按 Enter，面板會產生一條 Teams 連結；點開後 Teams 會開啟與收件人的聊天並預填好訊息，確認後在 Teams 按 Enter 才會送出。也可以按「複製內容」取得純文字，自行貼到其他地方。
 
-**收件人要先設定**：外掛設定 `feedbackRecipient` 填收件人的 Teams 登入 email（安裝時的設定畫面，或 `/config`）。為了不把任何地址放進公開 repo，程式碼沒有預設值；沒設定時，表單會提示，並只提供「複製內容」。
+### 設定收件人
+
+回饋要傳給誰，由外掛設定 `feedbackRecipient` 決定，值是收件人的 Teams 登入 email。為了不把任何地址放進公開 repo，程式碼沒有預設值，**每位使用者安裝後都要自己填一次**；請向維護者確認要填誰的地址。
+
+兩種設定方式：
+
+1. 安裝時的設定畫面，或之後在 `/config` 修改（Mod 會用新值重新載入）。
+2. 直接編輯 `~/.claude/settings.json`（`you@example.com` 換成收件人的地址）：
+
+   ```json
+   {
+     "pluginConfigs": {
+       "attention-mod": {
+         "options": { "feedbackRecipient": "you@example.com" }
+       }
+     }
+   }
+   ```
+
+   用 `--plugin-dir` 載入時，key 是 `attention-mod`（或 `attention-mod@inline`）；從 marketplace 安裝時的 key 可能是 `attention-mod@tomwangowa`，還沒實機確認，請以 `/config` 實際寫入的內容為準。
+
+沒設定，或填的不是單一合法 email 時，表單會提示「尚未設定回饋收件人」，並只提供「複製內容」，複製出來的文字和傳給收件人的訊息相同（含 `[attention-mod …]` 標籤）。收件人要和你在同一個 Teams 租戶，才找得到對方。
 
 - Mod 本身不送出任何網路請求，也不寫檔、不存 store；是否送出由你在 Teams 決定。
 - 連結只含你輸入的文字和分類標籤，不附帶對話、路徑、工具內容或 session 資訊。
 - 連結長度上限約 2,000 字元（編碼後），中文一字佔 9 字元。收件人 email 約 25 字元時，單行輸入大約 200 個中文字或 1,800 個英文字母；email 越長可用的越少。超過會截斷連結內的文字並提示，「複製內容」永遠是完整文字。
-- 收件人需要和你在同一個 Teams 租戶才找得到；草稿只在記憶體，重載、`/clear`、`/resume` 或結束 session 後清空。
+- 草稿只在記憶體，重載、`/clear`、`/resume` 或結束 session 後清空。
 
 ## 資訊怎麼來
 

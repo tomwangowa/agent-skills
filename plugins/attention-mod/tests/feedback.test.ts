@@ -1,5 +1,5 @@
 import {test,expect} from 'claude-code/testing';
-import {parseFeedback,parseRecipient,buildTeamsLink,LINK_LIMIT} from '../hooks/feedback.js';
+import {parseFeedback,parseRecipient,composeMessage,buildTeamsLink,LINK_LIMIT} from '../hooks/feedback.js';
 
 const TO='colleague@example.com';
 
@@ -70,4 +70,24 @@ test('the README capacity holds for a single line: about 200 CJK or 1,800 ASCII 
   expect(buildTeamsLink('idea: '+'中'.repeat(220),TO).truncated).toBe(true);
   expect(buildTeamsLink('idea: '+'a'.repeat(1800),TO).truncated).toBe(false);
   expect(buildTeamsLink('idea: '+'a'.repeat(1950),TO).truncated).toBe(true);
+});
+
+test('composeMessage gives the same labelled, sanitised text with or without a recipient',()=>{
+  expect(composeMessage('bug: 面板閃爍')).toMatchObject({kind:'bug',message:'[attention-mod 問題] 面板閃爍'});
+  expect(composeMessage('idea: a\uD83Db').message).toBe('[attention-mod 建議] a\uFFFDb');
+  expect(composeMessage('隨便說說').message).toBe('[attention-mod 回饋] 隨便說說');
+  // A category prefix alone is still empty feedback.
+  expect(composeMessage('bug:')).toBeNull();
+  expect(composeMessage('  ')).toBeNull();
+  expect(buildTeamsLink('bug: 面板閃爍',TO).message).toBe(composeMessage('bug: 面板閃爍').message);
+});
+
+test('a recipient longer than an email address can be is rejected, so the link always fits',()=>{
+  const longest=`${'a'.repeat(64)}@${'b'.repeat(185)}.com`;
+  expect(longest.length).toBe(254);
+  expect(parseRecipient(longest)).toBe(longest);
+  expect(parseRecipient('a'.repeat(300)+'@x.com')).toBeNull();
+  const result=buildTeamsLink('bug: '+'中'.repeat(500),longest);
+  expect(result.url.length).toBeLessThanOrEqual(LINK_LIMIT);
+  expect(result.truncated).toBe(true);
 });

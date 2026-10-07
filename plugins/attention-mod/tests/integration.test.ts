@@ -264,7 +264,19 @@ test('without a recipient the form says so, draws no link, and still offers the 
   await pane.input({key:'attention-feedback',text:'bug: 面板閃爍',kind:'submit'});
   expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
   await pane.press({key:'copy-feedback'});
-  expect(copies).toEqual(['bug: 面板閃爍']);
+  // Same labelled text a recipient would get, not the raw prefix.
+  expect(copies).toEqual(['[attention-mod 問題] 面板閃爍']);
+});
+
+test('a category prefix alone counts as empty feedback, with or without a recipient',{options:{feedbackRecipient:TO}},async($,on)=>{
+  hostWithCopy(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'open-feedback'});
+  await pane.input({key:'attention-feedback',text:'bug:',kind:'submit'});
+  expect(await renderedText(pane)).toContain('請先輸入內容');
+  expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+  expect(findNode(await pane.drawn(),n=>n.props?.key==='copy-feedback')).toBeUndefined();
 });
 
 test('an invalid recipient is treated as unset instead of building a link',{options:{feedbackRecipient:'a@b.c&message=x'}},async($,on)=>{

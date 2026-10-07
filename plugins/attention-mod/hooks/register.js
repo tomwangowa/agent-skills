@@ -5,7 +5,7 @@ import {createSchedule, claimSnapshot, settleRequest} from './scheduler.js';
 import {paneRows, inlineFields, footerNotes, sectionById, inputRowNodes} from './view.js';
 import {colorFor} from './theme.js';
 import {entryFromAppend} from './inputs.js';
-import {buildTeamsLink, parseRecipient} from './feedback.js';
+import {buildTeamsLink, composeMessage, parseRecipient} from './feedback.js';
 
 let state = createState(UNKNOWN_SESSION);
 const schedule = createSchedule();
@@ -272,10 +272,11 @@ function drawFeedback($, {Box, Text, Button, Input, Link}) {
       // Editing invalidates a link made from the older text, so redraw to drop it.
       onInput:value => change({draft:value, link:null, copied:null, empty:false}),
       onSubmit:value => {
-        const link = hasRecipient ? buildTeamsLink(value, recipient) : null;
-        // Without a recipient there is no link, but the typed text can still be copied.
-        const text = link ? link.message : String(value ?? '').trim();
-        change({draft:value, link:link ?? (text ? {message:text, url:null, truncated:false} : null), copied:null, empty:!text});
+        // A prefix with no text is empty feedback, so both paths agree on what counts as typed.
+        const composed = composeMessage(value);
+        const link = composed && hasRecipient ? buildTeamsLink(value, recipient) : null;
+        // Without a recipient there is no link, but the same labelled text can still be copied.
+        change({draft:value, link:link ?? (composed ? {message:composed.message, url:null, truncated:false} : null), copied:null, empty:!composed});
       }}),
     ...(feedback.empty ? [Text({color:colorFor('warning'), children:'請先輸入內容。'})] : []),
     ...(feedback.link ? [
