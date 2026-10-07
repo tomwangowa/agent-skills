@@ -212,3 +212,88 @@ test('starting the skill twice does not restart the count', async ($, on) => {
   await doneTurn($);
   expect(w.rec.toasts).toEqual(['未偵測到有效交接檔']);
 });
+
+// --- slice c: /clear interception (T2) ---------------------------------------------------------------------------
+const OPTIONS = ['取消', '先交接再清除', '直接清除'];
+const labels = (question: any) => question.options.map((option: any) => (typeof option === 'string' ? option : option.label));
+const clear = ($: any) => $.command.run({command: 'clear', args: ''});
+
+test('a /clear in a session with prompts asks first, with cancel as the first option', async ($, on) => {
+  const w = world(on, {turns: 3, ask: () => '直接清除'});
+  await startSession($);
+  await clear($);
+  expect(w.rec.asks.length).toBe(1);
+  expect(labels(w.rec.asks[0])).toEqual(OPTIONS);
+  expect(w.rec.asks[0].question).toBe('要先交接再清除嗎？');
+});
+test('"clear now" lets the /clear run', async ($, on) => {
+  const w = world(on, {turns: 3, ask: () => '直接清除'});
+  await startSession($);
+  await clear($);
+  expect(w.rec.ran).toEqual(['clear']);
+});
+test('cancel, dismissing the question, and typed text all keep the conversation', async ($, on) => {
+  let answer = '取消';
+  const w = world(on, {turns: 3, ask: () => answer});
+  await startSession($);
+  const results: any[] = [];
+  results.push(await clear($));
+  answer = 'reject';
+  results.push(await clear($));
+  answer = '請幫我清掉吧';
+  results.push(await clear($));
+  expect(w.rec.ran.filter((c) => c === 'clear').length).toBe(0);
+  expect(results[0].text).toBe('已取消清除。');
+  expect(results[1].text).toBe('已取消清除。');
+  expect(results[2].text).toBe('已取消清除。');
+  expect(w.rec.asks.length).toBe(3);
+});
+test('"hand off, then clear" holds the /clear and starts the handoff skill after the command has finished', async ($, on) => {
+  const w = world(on, {turns: 3, ask: () => '先交接再清除'});
+  await startSession($);
+  const result: any = await clear($);
+  expect(result.text).toBe('已暫停清除，交接完成後請再下 /clear。');
+  expect(w.rec.ran).toEqual([]);
+  await w.clock.advance(500);
+  expect(w.rec.ran).toEqual(['handoff-mod:handoff']);
+});
+test('no question when the conversation has no prompts yet', async ($, on) => {
+  const w = world(on, {turns: 0});
+  await startSession($);
+  await clear($);
+  expect(w.rec.asks.length).toBe(0);
+  expect(w.rec.ran).toEqual(['clear']);
+});
+test('no question in a headless session', async ($, on) => {
+  const w = world(on, {turns: 3, surfaces: []});
+  await clear($);
+  expect(w.rec.asks.length).toBe(0);
+  expect(w.rec.ran).toEqual(['clear']);
+});
+test('a second /clear while a question is open is cancelled without a second question', async ($, on) => {
+  const w = world(on, {turns: 3, askDelay: 1000, ask: () => '直接清除'});
+  await startSession($);
+  const first = clear($);
+  await w.flush();
+  const second: any = await clear($);
+  expect(second.text).toBe('已取消清除。');
+  expect(w.rec.asks.length).toBe(1);
+  await w.clock.advance(1500);
+  await first;
+  expect(w.rec.ran).toEqual(['clear']);
+});
+test('after a question has been answered the next /clear asks again', async ($, on) => {
+  const w = world(on, {turns: 3, ask: () => '取消'});
+  await startSession($);
+  await clear($);
+  await clear($);
+  expect(w.rec.asks.length).toBe(2);
+});
+test('an answer that arrives after the session has changed does nothing', async ($, on) => {
+  let id = 'sess-A';
+  const w = world(on, {turns: 3, sessionId: () => id, ask: () => { id = 'sess-B'; return '直接清除'; }});
+  await startSession($);
+  const result: any = await clear($);
+  expect(result).toEqual({});
+  expect(w.rec.ran).toEqual([]);
+});

@@ -273,7 +273,7 @@ export function decideTrigger({percent, config, state, idle, hasUnfinishedSign, 
 
 ## Phase 2：skill 與接線
 
-**狀態（2026-10-07，Cloud）：Task 12 與 Task 13 的切片 a、d、e 完成，未 commit。** 切片 b、c、f、g 未做。`claude plugin validate --strict .` 通過（呼叫清單沒有 `$.model`、`$.prompt.submit`、`$.command.run`）；`claude plugin test .` 為 **109 pass、0 fail**（含 `tests/register.test.ts` 的接線測試，用測試 kit 驅動事件並 stub 檔案系統、git、store）。另在 Cloud 的真實互動 session 驗證（見 `docs/implementation-results.md`）。
+**狀態（2026-10-07，Cloud）：Task 12 與 Task 13 的切片 a、c、d、e 完成。**（切片 a、d、e 與 skill 已 commit 為 `c87d6db`；切片 c 尚未 commit。）切片 b、f、g 未做。`claude plugin validate --strict .` 通過（呼叫清單沒有 `$.model`、`$.prompt.submit`、`$.command.run`）；`claude plugin test .` 為 **109 pass、0 fail**（含 `tests/register.test.ts` 的接線測試，用測試 kit 驅動事件並 stub 檔案系統、git、store）。另在 Cloud 的真實互動 session 驗證（見 `docs/implementation-results.md`）。
 
 **實作中與計畫不同或補充的決定（待 Tom 確認）：**
 
@@ -283,6 +283,8 @@ export function decideTrigger({percent, config, state, idle, hasUnfinishedSign, 
 4. 啟動讀回的窄視窗降級還沒有偵測 attention-mod（P2 未做）：目前**一律同時**畫 band 並設 `$.ui.status` 一行，如計畫切片 b 所寫的保守做法。
 5. `/handoff-resume` 只列排序後的前 3 筆，折疊的筆數只能在 band 看到「還有 N 筆」，沒有指令可以展開。
 6. 啟動清單的按鈕沒有數字 hotkey（避免使用者開頭輸入數字時被誤觸發）。
+7. **切片 c（T2）：** 只攔截使用者自己的 `/clear`（`origin.kind` 不是 `plugin`）、互動 session、`turns() > 0`；另一個外掛程式或 headless 的 `/clear` 直接放行。問題被關掉、Esc、輸入其他文字、預設的 Enter（第一項是「取消」）一律取消，只有完全相符的「直接清除」才放行（D13）。已有一個提問在等時，第二個 `/clear` 直接取消、不再問第二次。問題開著時 session 換了，什麼都不做（回 `{}`）。**如果提問本身失敗，就照使用者的意思放行 `/clear`**，不吞掉它。驗證器會警告這是「會擋指令的 hook 沒有 `.catch`」，這是刻意的：hook 本身出錯或逾時時，引擎會略過它、`/clear` 照常執行（fail-open），不讓使用者被卡住。
+8. 交接剛寫完後下一個 `/clear` 仍會再問一次（D3 一律詢問）。
 
 ### Task 12：內建 skill（`skills/handoff/SKILL.md`）
 
@@ -296,7 +298,7 @@ export function decideTrigger({percent, config, state, idle, hasUnfinishedSign, 
 
 - [x] **切片 a：註冊與設定。** `session.start` 註冊 `/handoff-resume`；讀三個環境變數（字面名稱）與 `register(on, options)` 的 `userConfig`，餵給 `resolveConfig`；`$.state` atoms 依 Task 1 的型別。初始化要可重複執行。驗證：改任何一個設定後（`$.config.set`），`$.state` 的值保留、`session.start` 再觸發而不出錯。
 - [ ] **切片 b：T1 提示。** 收 `turn.complete`、`session.measure`；呼叫 `onPercentSeen`、`decideTrigger`。要問時：寬視窗畫 band（三個按鈕，數字 hotkey 1／2／3，文字來自 `i18n`）；窄視窗且有 attention-mod 時用 `$.ui.status` 常駐一行加指令（D9）；選項 1 開始交接（`$.clock.after` 內呼叫 `$.command.run({command:'handoff-mod:handoff'})`，設 `handoffStartedAt`）、2 呼叫 `snooze`、3 呼叫 `suppress`。band 的內容要與 `next(e)` 的結果並排（共存）。**偵測「窄視窗且有 attention-mod」的方法在 Task 0 之後定**（可能用 `$.command.list()` 看 attention-mod 的指令，或看 band 收到的 `viewport`）；定不出來就先一律同時用 band 與 status，並回報 Tom。
-- [ ] **切片 c：T2 `/clear` 攔截。** `command.run` 的 `clear` hook：互動 session 且 `turns() > 0` 才攔截（D3：不看未完成跡象）；`$.ui.ask` 選項順序依 D13：取消／先交接再清除／直接清除；`askPending` 旗標防疊加；選「直接清除」呼叫 `next(e)`；取消、Esc（reject）、其他任何回答都回 `{text}` 不執行；選「先交接」回 `{text}` 說明「已暫停清除，交接完成後請再下 `/clear`」並從計時器開始交接；`-p` 或非互動時不攔截；回答若在 session 重置之後才到就丟棄。驗證（Cloud pty）：四條路徑，與設計的 W8 一致。
+- [x] **切片 c：T2 `/clear` 攔截。** `command.run` 的 `clear` hook：互動 session 且 `turns() > 0` 才攔截（D3：不看未完成跡象）；`$.ui.ask` 選項順序依 D13：取消／先交接再清除／直接清除；`askPending` 旗標防疊加；選「直接清除」呼叫 `next(e)`；取消、Esc（reject）、其他任何回答都回 `{text}` 不執行；選「先交接」回 `{text}` 說明「已暫停清除，交接完成後請再下 `/clear`」並從計時器開始交接；`-p` 或非互動時不攔截；回答若在 session 重置之後才到就丟棄。驗證（Cloud pty）：四條路徑，與設計的 W8 一致。
 - [x] **切片 d：驗證新檔。** 交接回合之後的 `turn.complete`：用 `$.fs.list` 找交接目錄中 mtime 晚於 `handoffStartedAt` 的新檔，經 `parseHandoff` 驗證；成功 → 呼叫 `ensureExcluded`、`$.ui.toast` 顯示路徑、累計寫入次數（D5，`$.store`）；失敗 → toast「未偵測到有效交接檔」，不標成功。交接目錄用 D10 的基準：git repo 內 `git rev-parse --show-toplevel`，否則 `$.session.root()`。
 - [x] **切片 e：啟動讀回。** `classic.SessionStart`，`source` 為 `startup` 或 `clear`、互動、`turns() === 0`。來源：目前 worktree 的目錄；`repo().root` 不同時再加主 checkout；同 repo 其他 worktree 由 `git worktree list --porcelain` 取得（D2）；不另做索引。逐個 `parseHandoff` → 讀 `$.store` 取得有效狀態與認領 → `freshnessFacts` → `rankHandoffs`。介面：寬視窗 band（接續、略過）；窄視窗且有 attention-mod 用 `$.ui.status` 一行「有 N 筆未完成交接」加 `/handoff-resume`；**清單輸出用 `$.ui.log`**（D14）。「接續」→ `tryClaim`、`$.prompt.fill`（內容只有路徑與驗證前提的提示）、`$.store` 記 `resumed`、累計接續次數（D5）。`/handoff-resume <編號>` 同「接續」。啟動清單那行 status 在 `turns() > 0` 時移除；與 T1 的 status 不同時存在。`classic.SessionStart` 的 `source` 為 `clear` 時，**明確重置** module 內任何殘留與 T1 狀態（`resetThreshold`）。
 - [ ] **切片 f：結束筆記（依 P1 路線）。** 路線 A：`session.end` 內讀訊息，`withDeadline` 在約 1.5 秒預算內完成。路線 B：`prompt.submit` 記最後一個要求、`turn.complete` 記最後一段回應，**先 `cleanForNote` 再存 `$.store`**（每 session 一組、key 含 session id、寫完筆記即刪、`/clear` 或新 session 時刪舊的、啟動時清掉超過 7 天的）；`session.end` 只組檔案並寫入。兩路線的寫檔相同：`$.fs.write` 之後 `$.process.run(['chmod', '600', path])`（`$.fs.write` 沒有權限參數）；寫之前呼叫 `ensureExcluded`；逾時就放棄、不留半個檔案；檔名 `…--auto.md`。`reason` 為 `clear` 不寫。

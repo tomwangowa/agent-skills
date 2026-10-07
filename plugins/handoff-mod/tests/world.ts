@@ -10,12 +10,12 @@ const GIT_DEFAULTS: Record<string, [number, string]> = {
 };
 
 /** Stub every host call the wiring makes: in-memory files and store, a scripted git, and recorders for what the mod shows. */
-export function world(on: any, o: {turns?: number; env?: Record<string, string>; git?: Record<string, [number, string]>; files?: Record<string, string>; store?: Record<string, any>; repo?: any; surfaces?: string[]} = {}) {
+export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => string; askDelay?: number; turns?: number; env?: Record<string, string>; git?: Record<string, [number, string]>; files?: Record<string, string>; store?: Record<string, any>; repo?: any; surfaces?: string[]} = {}) {
   const clock = mock.clock(on, {now: NOW});
   mock.env(on, o.env ?? {});
   const files = new Map<string, {text: string; mtimeMs: number}>(Object.entries(o.files ?? {}).map(([p, text]) => [p, {text, mtimeMs: NOW - 3600_000}]));
   const store = new Map<string, any>(Object.entries(o.store ?? {}));
-  const rec = {statuses: [] as any[], toasts: [] as string[], logs: [] as string[], fills: [] as string[], commands: [] as any[], git: [] as string[], writes: [] as Array<[string, string]>, fsCalls: 0};
+  const rec = {statuses: [] as any[], toasts: [] as string[], logs: [] as string[], fills: [] as string[], commands: [] as any[], git: [] as string[], writes: [] as Array<[string, string]>, fsCalls: 0, asks: [] as any[], ran: [] as string[]};
   const lastStatus = () => rec.statuses[rec.statuses.length - 1];
   const dirOf = (path: string) => path.slice(0, path.lastIndexOf('/'));
 
@@ -25,7 +25,7 @@ export function world(on: any, o: {turns?: number; env?: Record<string, string>;
   on('skill.prompt', ($: any, e: any) => ({text: e.text}));
   on('turn.complete', () => ({text: ''}));
   on('command.register', ($: any, e: any) => { rec.commands.push(e); return {value: undefined}; });
-  on('session.id', () => ({value: 'sess-A'}));
+  on('session.id', () => ({value: o.sessionId ? o.sessionId() : 'sess-A'}));
   on('session.root', () => ({value: '/work/app'}));
   on('session.repo', () => ({value: o.repo === undefined ? {root: '/work/app', remote: null, internal: false, name: null} : o.repo}));
   on('session.turns', () => ({value: o.turns ?? 0}));
@@ -48,6 +48,15 @@ export function world(on: any, o: {turns?: number; env?: Record<string, string>;
   on('fs.stat', ($: any, e: any) => { rec.fsCalls++; const f = files.get(e.path); return f ? {value: {kind: 'file', size: f.text.length, mtimeMs: f.mtimeMs, isLink: false}} : {deny: 'no such file'}; });
   on('fs.write', ($: any, e: any) => { files.set(e.path, {text: e.text, mtimeMs: clock.now()}); rec.writes.push([e.path, e.text]); return {value: undefined}; });
   on('ui.render', () => ({type: 'Text', props: {}, children: ['engine band']}));
+  // $.ui.ask reaches the host as a call to the AskUserQuestion tool; answer it in the person's place.
+  on('tool.call', async ($: any, e: any) => {
+    if (e.tool !== 'AskUserQuestion') return {result: 'ok'};
+    rec.asks.push(e.questions[0]);
+    if (o.askDelay) await clock.sleep(o.askDelay);
+    const answer = o.ask ? o.ask(e) : 'reject';
+    return answer === 'reject' ? {deny: 'dismissed'} : {result: {answers: {[e.questions[0].question]: answer}}};
+  });
+  on('command.run', ($: any, e: any) => { rec.ran.push(e.command); return {text: ''}; });
 
   const flush = async () => { for (let i = 0; i < 25; i++) await clock.advance(0); };
   return {clock, files, store, rec, lastStatus, flush};

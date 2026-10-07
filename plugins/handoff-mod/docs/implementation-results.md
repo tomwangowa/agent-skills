@@ -42,6 +42,23 @@
 - 交接內容的準確度只看了一份「幾乎空的 session」，不能代表真實工作的草稿品質。
 - 型別編譯（`tsc`）本機沒有。
 
+## Phase 2：切片 c，T2 `/clear` 攔截（Cloud，2026-10-07）
+
+環境同上。
+
+| 項目 | 結果 |
+| --- | --- |
+| 驗證與測試 | `claude plugin validate --strict .` 通過（會警告 `command.run{command=clear}` 是沒有 `.catch` 的 gating hook，刻意 fail-open，見計畫決定 7）；`claude plugin test .` **118 pass、0 fail**（新增 9 項）。 |
+| 變異檢查 | 弄壞五處（沒有 `turns` 判斷、非精確答案也放行、旗標不釋放、在 hook 內啟動交接、session 換了仍放行）：一開始 4 個被抓到，**session 換了那個沒被抓到**，補測試後也被抓到。 |
+| 對話框（真實 session） | `☐ Plugin`、問題「要先交接再清除嗎？」，選項 `1. 取消`、`2. 先交接再清除`、`3. 直接清除`，加上引擎自動附的 `4. Type something.` 與 `5. Chat about this`；**預設標在「取消」**（D13）。 |
+| 四條路徑（真實 session） | Esc → 取消，顯示「已取消清除。」；預設 Enter → 同樣取消；↓ 加 Enter（先交接再清除）→ 顯示「已暫停清除，交接完成後請再下 /clear。」，約 300 ms 後**由計時器啟動交接 skill，真的出現草稿並問「這樣對嗎」**；↓↓ 加 Enter（直接清除）→ 對話被清掉。草稿沒有確認，所以沒有寫出交接檔，與預期一致。 |
+
+限制：
+
+- 對話框的數字鍵在你的環境不能單獨選（L4／P4），這次用方向鍵；P4 的本機結果仍待你。
+- 「對話框開著時打字再 Enter」在真實 session 沒有再測；Cloud 先前（W8）的結果是文字不會送出、Enter 選預設項。
+- 沒有測 `/clear` 之後的啟動讀回（只有測試）。
+
 ## 尚未做
 
-Task 13 的切片 b（T1 提示）、c（T2 `/clear`）、f（結束筆記）、g（計數指令）、Task 14（Tom 本機驗收）、Task 15（文件與 marketplace）。實作前驗證 P2、P3、P4 仍待 Tom。
+Task 13 的切片 b（T1 提示）、f（結束筆記）、g（計數指令）、Task 14（Tom 本機驗收）、Task 15（文件與 marketplace）。實作前驗證 P2、P3、P4 仍待 Tom。

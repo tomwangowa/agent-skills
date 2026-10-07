@@ -1,6 +1,6 @@
 import {atom, read, update} from 'claude-code';
 import {resolveConfig} from './config.js';
-import {t} from './i18n.js';
+import {t, clearOptions} from './i18n.js';
 import {parseHandoff} from './handoff-file.js';
 import {rankHandoffs} from './rank.js';
 import {freshnessFacts} from './freshness.js';
@@ -27,6 +27,7 @@ const GIVE_UP_MS = 60 * 60 * 1000;
 const handoffStartedAt = atom({plugin: 'handoff-mod', key: 'handoffStartedAt'}, 0);
 const handoffTurns = atom({plugin: 'handoff-mod', key: 'handoffTurns'}, 0);
 const listDone = atom({plugin: 'handoff-mod', key: 'listDone'}, false);
+const askPending = atom({plugin: 'handoff-mod', key: 'askPending'}, false);
 
 // Rebuilt from userConfig and disk whenever the module (re)loads or a session starts.
 let USER_CONFIG = {};
@@ -265,6 +266,37 @@ async function checkHandoff($) {
   if (turns >= GIVE_UP_TURNS || (await $.clock.now()) - since > GIVE_UP_MS) await update($, handoffStartedAt, () => 0);
 }
 
+/** Start the handoff skill the way a user would. Must run from a timer: the host refuses it inside a command.run hook. */
+function startHandoffLater($) {
+  $.clock.after(300, async () => {
+    try { await $.command.run({command: SKILL}); } catch { /* The user can still run /handoff-mod:handoff by hand. */ }
+  });
+}
+
+/**
+ * T2: ask what to do with a /clear. The question is the only $.ui.ask this mod makes: it is awaited inside the held command,
+ * so it never outlives the command, and a flag keeps a second /clear from stacking another question.
+ * Returns 'clear', 'handoff', 'cancel' or 'stale' (the session changed while the question was open).
+ */
+async function askBeforeClear($) {
+  if (await read($, askPending)) return 'cancel';
+  const lang = config.lang;
+  const options = clearOptions(lang);
+  const sessionId = await $.session.id();
+  await update($, askPending, () => true);
+  let answer = null;
+  try {
+    answer = await $.ui.ask(t(lang, 'ask.clear.question'), options);
+  } catch {
+    answer = null; // dismissed (Esc) or nobody to ask: treated as cancel
+  } finally {
+    await update($, askPending, () => false);
+  }
+  if ((await $.session.id()) !== sessionId) return 'stale';
+  // Anything but an exact label, including text typed under "Other", cancels: never clear on a guess.
+  return answer === options[2] ? 'clear' : answer === options[1] ? 'handoff' : 'cancel';
+}
+
 /** Register the handoff hooks. */
 export function register(on, options) {
   USER_CONFIG = options ?? {};
@@ -321,6 +353,29 @@ export function register(on, options) {
     if (e.agentId || e.isAborted) return result;
     try { await checkHandoff($); } catch { /* ignore */ }
     return result;
+  });
+
+  on('command.run', {command: 'clear'}, async ($, e, next) => {
+    try {
+      // Only a person's own /clear in an interactive session that has had prompts (D3); not another plugin's, not headless.
+      if (e.origin?.kind === 'plugin') return next(e);
+      if ((await $.session.surfaces()).length === 0 || (await $.session.turns()) === 0) return next(e);
+    } catch {
+      return next(e);
+    }
+    let choice = 'clear';
+    try {
+      choice = await askBeforeClear($);
+    } catch {
+      return next(e); // if asking itself fails, do what the user asked rather than swallow the /clear
+    }
+    if (choice === 'clear') return next(e);
+    if (choice === 'stale') return {};
+    if (choice === 'handoff') {
+      startHandoffLater($);
+      return {text: t(config.lang, 'clear.held')};
+    }
+    return {text: t(config.lang, 'clear.cancelled')};
   });
 
   on('command.run', {command: 'handoff-resume'}, async ($, e) => {
