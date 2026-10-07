@@ -65,7 +65,7 @@
 
 | 項目 | 結果 | 狀態 |
 | --- | --- | --- |
-| L1 手動交接 | 交接檔有寫出（`.claude/handoffs/feat-demo--<時間>.md`），但 **「交接已寫入」的 toast 沒有出現**。 | **未解**，見下方分析 |
+| L1 手動交接 | 第一次：交接檔有寫出，但 **toast 沒有出現**（原因是偵測沒啟動，見下）。**修正後重跑（`541ba97`，`HANDOFF_DEBUG=1`）：第 1 回合掃描 `exists=false`、`nothing valid yet`；第 2 回合 `valid=true`、`found …`，右上角出現 toast「Handoff written to …」（截圖）。** | 通過（修正後）；`stats.written` 與哪個啟動訊號有效沒有確認 |
 | L2 啟動讀回 | band 列出 2 筆未完成交接（任務、分支、幾分鐘前、下一步、「接續」「略過」），輸入框下方有 `⚠ handoff-mod: 有 2 筆未完成交接，輸入 /handoff-resume 查看`。 | 通過 |
 | L3 `/handoff-resume` | 接續後輸入框被填入「請先讀 `<路徑>/.claude/handoffs/…md`，驗證其中前提是否仍成立，再接續「下一步」。」，沒有自動送出。 | 通過 |
 | L4 band 按鈕 | **Tab 與滑鼠點擊都能按。** 這是 Cloud 做不到的項目。 | 通過 |
@@ -93,6 +93,8 @@
 
 修正（Cloud 驗證，**尚未在 Tom 環境驗證**）：偵測改由三個訊號啟動，`markHandoffStarted` 保證只啟動一次：`skill.prompt`、`prompt.submit` 的文字以 `/handoff-mod:handoff` 開頭、`command.run` 的 `handoff-mod:handoff`。`claude plugin test .` 124 pass；變異檢查（拿掉 `prompt.submit` 或 `command.run` 其一）各被一個新測試抓到。三個訊號在 Tom 環境各自會不會來，仍要用 `HANDOFF_DEBUG=1` 看追蹤行確認。
 
+**修正後重跑（Tom，2026-10-08，截圖）：** 啟動偵測成立，掃描目錄存在、檔案 `valid=true`、`found`，toast 出現在右上角（含完整路徑，被截斷）。**沒有確認的：** 三個啟動訊號（`skill.prompt`、`prompt.submit`、`command.run`）哪個在 Tom 環境有效（截圖只拍到第 1 回合之後，啟動那幾行沒入鏡）；`stats.written` 沒有查；`.git/info/exclude` 的寫入因 Tom 的全域 gitignore 而無法在他的機器看到（要用 `GIT_CONFIG_GLOBAL=/dev/null` 啟動才能驗證）。畫面是英文是因為 Tom 先前在 `/config` 把 `lang` 存成了 `en`。
+
 macOS 特有的疑點：`/var` 是 `/private/var` 的符號連結，畫面上同時出現這兩種寫法；`findNewHandoff` 用 `git rev-parse --show-toplevel` 的結果拼路徑，啟動清單用同一個基準且有找到檔案，所以路徑本身應該沒問題，但**沒有驗證**。
 
 ### 對決策的影響
@@ -110,4 +112,4 @@ macOS 特有的疑點：`/var` 是 `/private/var` 的符號連結，畫面上同
 
 ## 尚未做
 
-Task 13 的切片 b（T1 提示）、f（結束筆記）、g（計數指令）、Task 14 的其餘驗收、Task 15（文件與 marketplace）。**L1 的 toast 問題**待 Tom 重做一次診斷（先不要清理 store），P4 沒有回報。
+Task 13 的切片 b（T1 提示）、f（結束筆記）、g（計數指令）、Task 14 的其餘驗收、Task 15（文件與 marketplace）。L1 已通過；`stats.written`、排除功能在無全域 gitignore 時的行為、P4 沒有確認。
