@@ -103,17 +103,27 @@ claude plugin validate --strict "$SCRATCH/poc/plugins/handoff-mod/poc/handoff-po
 | P4 與 Cloud 不同 | 回報 Tom，D13 的措辭與選項順序重新確認 |
 | P5 `root()` 會跟著 `/cd` 變 | 非 git 目錄的範圍鍵照設計用 `session.root()`；不變則在文件註明限制 |
 
-**Gate：** P1 與 P3 有結果、P2 與 P4 不推翻設計，才進 Task 1。其餘照決策表處理。
+**Gate（2026-10-07 Tom 同意放寬）：** P1 有結果（已完成，路線 B）即可進 Task 1。P3 只擋 Task 13 切片 f（路線 B 的 `$.store` 副本），P2 只擋切片 b 的窄視窗降級細節，P4 只擋切片 c 的措辭與選項；Task 1 至 12 不等它們。P3、P2、P4 的結果出來後照上面的決策表處理，若推翻設計就回報 Tom。
 
 ---
 
 ## Phase 1：骨架與純函式（Cloud）
 
+**狀態（2026-10-07，Cloud）：Task 1 至 11 已完成，未 commit。** `claude plugin validate --strict .` 通過；`claude plugin test .` 為 **88 pass、0 fail**（10 個測試檔）。每個模組先寫失敗測試（RED：10 個檔案都因模組不存在而載入失敗）再實作。另做變異檢查：故意弄壞四組實作（先截斷再遮蔽、放寬 branch 驗證、拿掉 7 天與 3 筆上限、拿掉已問過與 TTL 判斷），各有 1 至 3 個對應測試失敗，還原後恢復全過。結果見 `docs/implementation-results.md`。
+
+**實作中與計畫不同或補充的決定：**
+
+1. `hooks/register.js` 不能寫 `void on;`：驗證器規定 `on` 只能用在 `on("<event>", hook)` 的呼叫。空骨架寫成不使用參數的 `register(on, options) {}`。
+2. 結束筆記把引用的最後一個要求與最後一段回應**逐行加 `> ` 引用**：Claude 的回應常含 Markdown 標題，沒有引用的話，其中的 `## 下一步` 會被解析器當成筆記自己的章節。
+3. 祕密遮蔽的「名稱加值」規則用前綴字元類而不是 `\b`，因為 `GITHUB_TOKEN` 的底線不是字邊界。
+4. `rankHandoffs` 多回傳 `hidden`（超過 7 天的自動筆記數）；`i18n` 多出 `clearOptions(lang)` 與結束筆記、清單、新鮮度用的字串；`initialState()` 含 `handoffStartedAt`，與 `PluginState` 一致。
+5. `parseHandoff` 把 `status: resumed` 當成無效（`ok:false`），因為清單只列未完成的；`resumed` 由 `$.store` 的覆寫值表達，不寫回檔案。
+
 ### Task 1：plugin 骨架
 
 **Files:** 建立 `.claude-plugin/plugin.json`、`hooks/hooks.json`、`types/index.d.ts`、`package.json`、`tsconfig.json`、`.gitignore`。`hooks/register.js` 先放只註冊空 `register` 的版本。
 
-- [ ] **Step 1：** `plugin.json`：`name` 為 `handoff-mod`（D6）、`version` `0.1.0`、`types` 指向 `./types/index.d.ts`、`userConfig` 三欄（Cloud 已驗證的宣告）：
+- [x] **Step 1：** `plugin.json`：`name` 為 `handoff-mod`（D6）、`version` `0.1.0`、`types` 指向 `./types/index.d.ts`、`userConfig` 三欄（Cloud 已驗證的宣告）：
 
 ```json
 "userConfig": {
@@ -123,22 +133,22 @@ claude plugin validate --strict "$SCRATCH/poc/plugins/handoff-mod/poc/handoff-po
 }
 ```
 
-- [ ] **Step 2：** `types/index.d.ts` 宣告 `PluginState['handoff-mod']`：`nextAt: number`（0 表示用設定值）、`askedAt: number`、`suppressed: boolean`、`askPending: boolean`、`handoffStartedAt: number`（0 表示沒有）、`lastRequest`／`lastResponse` 不放這裡（見 Task 13 切片 f 路線 B，放 `$.store`）。
-- [ ] **Step 3：** `claude plugin validate --strict .` → 通過；`state` 欄位尚未被 `register.js` 讀寫，不應報錯。
-- [ ] **Step 4：** `.gitignore` 含 `.claude-plugin/types/`（本機型別，與 attention-mod 相同）。
+- [x] **Step 2：** `types/index.d.ts` 宣告 `PluginState['handoff-mod']`：`nextAt: number`（0 表示用設定值）、`askedAt: number`、`suppressed: boolean`、`askPending: boolean`、`handoffStartedAt: number`（0 表示沒有）、`lastRequest`／`lastResponse` 不放這裡（見 Task 13 切片 f 路線 B，放 `$.store`）。
+- [x] **Step 3：** `claude plugin validate --strict .` → 通過；`state` 欄位尚未被 `register.js` 讀寫，不應報錯。
+- [x] **Step 4：** `.gitignore` 含 `.claude-plugin/types/`（本機型別，與 attention-mod 相同）。
 
 ### Task 2：設定解析（`hooks/config.js`、`tests/config.test.ts`）
 
 `resolveConfig({env, userConfig})` → `{thresholdPct, lang, autoNote}`。`env` 是呼叫端用 `$.env.get` 讀到的三個字串（`HANDOFF_THRESHOLD_PCT`、`HANDOFF_LANG`、`HANDOFF_AUTO_NOTE`，可為 `undefined`）。
 
-- [ ] **Step 1：失敗測試：**
+- [x] **Step 1：失敗測試：**
   - 優先順序：環境變數 > `userConfig` > 預設（`60`、`zh-TW`、`true`）。
   - `HANDOFF_THRESHOLD_PCT=10` → `10`；`0`、`100`、`abc`、`5.5` 無效，退回 `userConfig`／預設。
   - `HANDOFF_LANG` 只接受 `zh-TW`、`en`，其餘退回。
   - `HANDOFF_AUTO_NOTE=off`（不分大小寫）→ `false`；`on` → `true`；其他退回 `userConfig`，再退回 `true`。
   - `userConfig` 缺欄位或型別不對時用預設，不丟例外。
-- [ ] **Step 2：** `claude plugin test .` → 新測試失敗。
-- [ ] **Step 3：實作**（純函式，不碰 `$`）：
+- [x] **Step 2：** `claude plugin test .` → 新測試失敗。
+- [x] **Step 3：實作**（純函式，不碰 `$`）：
 
 ```js
 const DEFAULTS = {thresholdPct:60, lang:'zh-TW', autoNote:true};
@@ -154,33 +164,33 @@ export function resolveConfig({env = {}, userConfig = {}} = {}) {
 }
 ```
 
-- [ ] **Step 4：** `claude plugin test .` 全過；`node --check hooks/config.js`。
+- [x] **Step 4：** `claude plugin test .` 全過；`node --check hooks/config.js`。
 
 ### Task 3：字串（`hooks/i18n.js`、`tests/i18n.test.ts`）
 
 `t(lang, key, vars)`，字串集中在一個檔（D8）。繁中與英文的 key 集合必須相同。
 
-- [ ] **Step 1：失敗測試：** 兩種語言 key 集合相同；每個字串的 `{var}` 佔位符在兩種語言一致；`t` 找不到語言退回 `zh-TW`、找不到 key 丟錯（開發期就發現）；替換後沒有殘留 `{…}`；band 按鈕文字在單行 67 欄內放得下（以兩種語言中較長者量，按 Unicode 顯示寬度，CJK 算 2）。
-- [ ] **Step 2：** 實作並 `claude plugin test .`。字串範圍：T1 band 三個按鈕與說明、窄視窗 status 一行、T2 的問題與三個選項（順序：取消／先交接再清除／直接清除，D13）與 `{text}` 說明、清單各欄標籤、「自動留下，未經審查」、`/handoff-resume` 輸出、toast 與錯誤訊息。**`$.ui.status` 與 `$.ui.log` 的文案要短、不用嚇人的字。**
+- [x] **Step 1：失敗測試：** 兩種語言 key 集合相同；每個字串的 `{var}` 佔位符在兩種語言一致；`t` 找不到語言退回 `zh-TW`、找不到 key 丟錯（開發期就發現）；替換後沒有殘留 `{…}`；band 按鈕文字在單行 67 欄內放得下（以兩種語言中較長者量，按 Unicode 顯示寬度，CJK 算 2）。
+- [x] **Step 2：** 實作並 `claude plugin test .`。字串範圍：T1 band 三個按鈕與說明、窄視窗 status 一行、T2 的問題與三個選項（順序：取消／先交接再清除／直接清除，D13）與 `{text}` 說明、清單各欄標籤、「自動留下，未經審查」、`/handoff-resume` 輸出、toast 與錯誤訊息。**`$.ui.status` 與 `$.ui.log` 的文案要短、不用嚇人的字。**
 
 ### Task 4：淨化與遮蔽（`hooks/sanitize.js`、`tests/sanitize.test.ts`）
 
 三個函式：`stripControl(text)`（去控制字元與 ANSI／OSC，保留換行與 tab）、`truncateCodePoints(text, max)`（以 Unicode code point 計，超過加 `…`）、`redactSecrets(text)`；以及組合 `cleanForNote(text, max)`，**順序固定：去控制字元 → 遮蔽 → 截斷**（先遮蔽再截斷，避免秘密被截成一半留下殘片）。
 
-- [ ] **Step 1：失敗測試。** 遮蔽規則逐條列出並測正反例（規則寫在檔案頂端註解，測試與它一一對應）：`Authorization:` 的 `Bearer`／`Basic`；`password`／`passwd`／`secret`／`token`／`api_key` 加 `=` 或 `:` 後的值；`AKIA` 開頭的 AWS key；`ghp_`／`gho_`／`github_pat_` 開頭的 GitHub token；`sk-` 開頭的長字串；`xox[baprs]-` 的 Slack token；PEM 私鑰區塊；JWT 三段式；URL 內的 `user:pass@`。
+- [x] **Step 1：失敗測試。** 遮蔽規則逐條列出並測正反例（規則寫在檔案頂端註解，測試與它一一對應）：`Authorization:` 的 `Bearer`／`Basic`；`password`／`passwd`／`secret`／`token`／`api_key` 加 `=` 或 `:` 後的值；`AKIA` 開頭的 AWS key；`ghp_`／`gho_`／`github_pat_` 開頭的 GitHub token；`sk-` 開頭的長字串；`xox[baprs]-` 的 Slack token；PEM 私鑰區塊；JWT 三段式；URL 內的 `user:pass@`。
   - 正例：每條規則至少一個，被取代為 `[redacted]`。
   - 反例：「token count」「password policy」之類沒有 `=`／`:` 加值的字樣不變。
   - 邊界：一個秘密剛好跨過 2000 字截斷點，輸出裡不含它的任何一段。
   - 文件寫明：**這是降低風險，不是保證**，仍可能漏掉；測試不得宣稱能擋所有秘密。
   - `stripControl`：CSI（`\x1b[31m`）、OSC（`\x1b]0;…\x07`）、`\x00`、`\x7f` 都被去除；中文、emoji、換行保留。
   - `truncateCodePoints`：emoji 不被切半（以 code point 計）。
-- [ ] **Step 2：** 實作並 `claude plugin test .`。
+- [x] **Step 2：** 實作並 `claude plugin test .`。
 
 ### Task 5：解析交接檔（`hooks/handoff-file.js`、`tests/handoff-file.test.ts`）
 
 `parseHandoff(text)` → `{ok:true, meta, fields}` 或 `{ok:false, reason}`。只讀前 64 KiB。
 
-- [ ] **Step 1：失敗測試：**
+- [x] **Step 1：失敗測試：**
   - 完整中文檔：取得 `status`、`created`（轉成毫秒）、`branch`、`head`、`root`、`repo`、`task`、`source`。
   - **章節標題中英都認**（D11）：`## 任務／Task`、`## 已完成／Done`、`## 未完成／Remaining`、`## 下一步／Next`、`## 前提（人工確認）／Premises`、`## 規矩（不能違反）／Rules`、`## 已驗證／未驗證（AI 自述）／Verified`。
   - 缺 `status` 或 `created`、`status` 不是 `in-progress`／`blocked`／`ready-for-review`、`created` 無法解析 → `ok:false`。
@@ -188,13 +198,13 @@ export function resolveConfig({env = {}, userConfig = {}} = {}) {
   - 顯示欄位淨化：`task` ≤80 字、「下一步」第一行 ≤120 字，去除項目符號、控制字元與 ANSI（呼叫 `sanitize.js`）。
   - CRLF、缺章節、空檔、只有 frontmatter 都不丟例外。
   - **來自檔案的 `branch`／`head` 不做任何執行**；解析只回傳字串，驗證留給 Task 7。
-- [ ] **Step 2：** 實作並 `claude plugin test .`。
+- [x] **Step 2：** 實作並 `claude plugin test .`。
 
 ### Task 6：排序與折疊（`hooks/rank.js`、`tests/rank.test.ts`）
 
 `rankHandoffs(items, {base, repo, now})`，`item = {path, meta, effectiveStatus, claimedByOther}`，回傳 `{shown, collapsed, hidden}`。
 
-- [ ] **Step 1：失敗測試：**
+- [x] **Step 1：失敗測試：**
   - 只列有效狀態為 `in-progress`／`blocked`／`ready-for-review` 的；`resumed`、`done`、`abandoned` 不列。
   - 排序：同 `base` 優先，其次同 `repo`，其餘依 `created` 由新到舊。
   - 預設展開 3 筆，其餘折疊成「還有 N 筆」。
@@ -202,14 +212,14 @@ export function resolveConfig({env = {}, userConfig = {}} = {}) {
   - `source: auto` 且超過 7 天的**不顯示也不計入折疊數**（D4 緩解措施 4）。
   - `claimedByOther` 的保留在清單、帶旗標。
   - 同時間排序穩定，輸入順序不影響結果。
-- [ ] **Step 2：** 實作並 `claude plugin test .`。
+- [x] **Step 2：** 實作並 `claude plugin test .`。
 
 ### Task 7：新鮮度（`hooks/freshness.js`、`tests/freshness.test.ts`）
 
 `freshnessFacts({meta, git})`，`git(args)` 是注入函式，回傳 `{exitCode, stdout}`；回傳事實陣列（key 加變數，由 `i18n` 轉成文字），**是事實不是結論**。
 
-- [ ] **Step 1：失敗測試：** 用假 `git` 驗證：branch 不存在 → 一筆事實；交接後多 N 個 commit → 帶 N；HEAD 已包含在預設分支 → 一筆事實；任何一個 git 指令失敗（`exitCode !== 0` 或丟例外）只省略該行，不影響其他；`repo` 為空或沒有 `head`／`branch` → 回傳「無法驗證」；**驗證不通過的 `branch`／`head`（含空白、開頭 `-`、`..`、`;`、換行、`--upload-pack=…`）完全不傳給 `git`**，且斷言假 `git` 沒被呼叫；傳給 `git` 的參數一律放在 `--` 之後。
-- [ ] **Step 2：** 實作（branch 允許 `[A-Za-z0-9._/-]`、不得以 `-` 或 `/` 開頭、不得含 `..`；head 允許 `[0-9a-f]{4,40}`）並 `claude plugin test .`。
+- [x] **Step 1：失敗測試：** 用假 `git` 驗證：branch 不存在 → 一筆事實；交接後多 N 個 commit → 帶 N；HEAD 已包含在預設分支 → 一筆事實；任何一個 git 指令失敗（`exitCode !== 0` 或丟例外）只省略該行，不影響其他；`repo` 為空或沒有 `head`／`branch` → 回傳「無法驗證」；**驗證不通過的 `branch`／`head`（含空白、開頭 `-`、`..`、`;`、換行、`--upload-pack=…`）完全不傳給 `git`**，且斷言假 `git` 沒被呼叫；傳給 `git` 的參數一律放在 `--` 之後。
+- [x] **Step 2：** 實作（branch 允許 `[A-Za-z0-9._/-]`、不得以 `-` 或 `/` 開頭、不得含 `..`；head 允許 `[0-9a-f]{4,40}`）並 `claude plugin test .`。
 
 ### Task 8：T1 門檻判斷（`hooks/trigger.js`、`tests/trigger.test.ts`）
 
@@ -228,36 +238,36 @@ export function decideTrigger({percent, config, state, idle, hasUnfinishedSign, 
 }
 ```
 
-- [ ] **Step 1：失敗測試（表格式，每列一個案例）：** `percent` 缺值（壓縮後到下一個回應之前）不問；低於門檻不問；剛好等於門檻會問；沒有未完成跡象不問；非閒置（回合進行中、有等待）不問；`suppressed` 不問；同一個門檻問過（`askedAt >= at`）不再問；handoff 進行中不問。
-- [ ] **Step 2：狀態轉換測試：** `afterAsk(state, at)` 設 `askedAt`；`snooze(state, {percent, at})` 把下一個門檻設為 `min(99, max(percent, at) + 10)`（設計元件 2 的「再多 10% 再問」）；`suppress(state)`；`resetThreshold(state)` 清 `nextAt` 與 `askedAt`（用於 `session.compact`、`/clear`）；`onPercentSeen(state, percent)`：`percent < state.askedAt` 時自動重置（壓縮後 % 會掉，本機量到 9% → 5%）。
-- [ ] **Step 3：** 實作並 `claude plugin test .`。`hasUnfinishedSign({editedFile, gitDirty})` 同檔：任一為真即真。
+- [x] **Step 1：失敗測試（表格式，每列一個案例）：** `percent` 缺值（壓縮後到下一個回應之前）不問；低於門檻不問；剛好等於門檻會問；沒有未完成跡象不問；非閒置（回合進行中、有等待）不問；`suppressed` 不問；同一個門檻問過（`askedAt >= at`）不再問；handoff 進行中不問。
+- [x] **Step 2：狀態轉換測試：** `afterAsk(state, at)` 設 `askedAt`；`snooze(state, {percent, at})` 把下一個門檻設為 `min(99, max(percent, at) + 10)`（設計元件 2 的「再多 10% 再問」）；`suppress(state)`；`resetThreshold(state)` 清 `nextAt` 與 `askedAt`（用於 `session.compact`、`/clear`）；`onPercentSeen(state, percent)`：`percent < state.askedAt` 時自動重置（壓縮後 % 會掉，本機量到 9% → 5%）。
+- [x] **Step 3：** 實作並 `claude plugin test .`。`hasUnfinishedSign({editedFile, gitDirty})` 同檔：任一為真即真。
 
 ### Task 9：認領（`hooks/claim.js`、`tests/claim.test.ts`）
 
 `tryClaim({id, sessionId, now, store})`，`store` 是注入的 `{get, set}`；`claimView(entry, sessionId, now)` 給清單用。
 
-- [ ] **Step 1：失敗測試：** 沒有認領 → 寫入後讀回是自己 → 贏；已有他人且未過期 → 輸，不覆寫；已有他人但超過 12 小時 → 覆寫並贏；**競爭：** 假 store 在 `set` 與讀回之間被另一個 session 覆寫 → 讀回不是自己 → 輸；同一個 session 重複認領 → 贏（冪等）；store 丟例外 → 回傳 `{won:true, degraded:true}`（設計：store 失敗時不認領、仍可接續）。
-- [ ] **Step 2：** 實作並 `claude plugin test .`。
+- [x] **Step 1：失敗測試：** 沒有認領 → 寫入後讀回是自己 → 贏；已有他人且未過期 → 輸，不覆寫；已有他人但超過 12 小時 → 覆寫並贏；**競爭：** 假 store 在 `set` 與讀回之間被另一個 session 覆寫 → 讀回不是自己 → 輸；同一個 session 重複認領 → 贏（冪等）；store 丟例外 → 回傳 `{won:true, degraded:true}`（設計：store 失敗時不認領、仍可接續）。
+- [x] **Step 2：** 實作並 `claude plugin test .`。
 
 ### Task 10：結束筆記（`hooks/note.js`、`tests/note.test.ts`）
 
 `shouldWriteNote({interactive, turns, hasUnfinishedSign, reason, config})`；`buildEndNote({lastRequest, lastResponse, branch, head, dirtyFiles, root, repo, now, lang})` → `{fileName, content}`。（若 Task 0 的 P1 為路線 C，本任務與 Task 13 切片 f 一起移除。）
 
-- [ ] **Step 1：失敗測試：**
+- [x] **Step 1：失敗測試：**
   - 寫入條件：互動、`turns > 0`、有未完成跡象、`reason !== 'clear'`、`config.autoNote` 為真；任一不成立不寫。
   - 內容：frontmatter 含 `schema: 1`、`status: in-progress`、`source: auto`、`task`（最後一個要求，截斷）；本文只有「最後一個要求」「最後一段回應」「branch／HEAD」「有改動的檔案」；**不含工具輸出、不含更早的對話**。
   - 兩段原文各截斷到 2000 字，走 `cleanForNote`；含祕密的輸入被遮蔽；含 ANSI 的被去除。
   - 檔名 `<branch 淨化>--<YYYYMMDD-HHMMSS>--auto.md`；沒有 git 時 branch 用 `no-branch`；branch 中的 `/` 與非 `[A-Za-z0-9._-]` 字元換成 `-`。
   - 兩種語言的章節標題都能被 Task 5 的解析器讀回（往返測試）。
   - `withDeadline(fn, ms)`：逾時回傳 `{timedOut:true}`，不留半個結果。
-- [ ] **Step 2：** 實作並 `claude plugin test .`。
+- [x] **Step 2：** 實作並 `claude plugin test .`。
 
 ### Task 11：`.git/info/exclude`（`hooks/exclude.js`、`tests/exclude.test.ts`）
 
 `ensureExcluded({git, fs, pattern})`，`git` 與 `fs` 是注入函式。
 
-- [ ] **Step 1：失敗測試：** 路徑用 `git rev-parse --git-path info/exclude` 取得（worktree 也正確）；已被忽略（`git check-ignore -q` 為 0）就不動；檔案不存在就建立；檔案已含該行不重複寫（冪等）；結尾沒有換行時先補換行；任何一步失敗回傳 `{ok:false}` 不丟例外；非 git 目錄直接略過。
-- [ ] **Step 2：** 實作並 `claude plugin test .`。
+- [x] **Step 1：失敗測試：** 路徑用 `git rev-parse --git-path info/exclude` 取得（worktree 也正確）；已被忽略（`git check-ignore -q` 為 0）就不動；檔案不存在就建立；檔案已含該行不重複寫（冪等）；結尾沒有換行時先補換行；任何一步失敗回傳 `{ok:false}` 不丟例外；非 git 目錄直接略過。
+- [x] **Step 2：** 實作並 `claude plugin test .`。
 
 ---
 

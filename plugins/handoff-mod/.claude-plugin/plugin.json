@@ -1,0 +1,30 @@
+{
+  "name": "handoff-mod",
+  "version": "0.1.0",
+  "description": "Hand off unfinished work before a session loses it, and pick it up again at the next start.",
+  "author": { "name": "Tom" },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "thresholdPct": {
+      "type": "number",
+      "title": "Handoff threshold (% used)",
+      "description": "Ask about a handoff when the context window is this full.",
+      "default": 60,
+      "min": 1,
+      "max": 99
+    },
+    "lang": {
+      "type": "string",
+      "title": "UI language",
+      "description": "Language of the prompts and of new handoff files.",
+      "options": ["zh-TW", "en"],
+      "default": "zh-TW"
+    },
+    "autoNote": {
+      "type": "boolean",
+      "title": "End-of-session note",
+      "description": "Write a facts-only note when a session ends.",
+      "default": true
+    }
+  }
+}
