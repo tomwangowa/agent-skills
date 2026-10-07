@@ -88,8 +88,9 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
   const [titleRow,rule,...rest]=(await pane.drawn()).children;
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.3']});
-  expect(titleRow.children[1]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.4']});
+  expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
+  expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
   expect(rule.children).toEqual(['─'.repeat(40)]);
   const labels=rest.filter(row=>row.type==='Text').flatMap(row=>(row.children??[]).filter(c=>c?.props?.bold)).map(c=>({text:c.children[0],color:c.props.color}));
   expect(labels).toEqual([{text:'目標：',color:'blue'},{text:'脈絡：',color:'blue'},{text:'動作：',color:undefined},{text:'證據：',color:'blue'},{text:'需要你：',color:undefined},{text:'外部輸入：',color:'magenta'}]);
@@ -117,8 +118,9 @@ test('dock pane draws a bold title above three round sections coloured by meanin
   for(const header of ['[ 摘要 ]','[ 即時 ]','[ 外部輸入 ]']) expect(text).toContain(header);
   // A lone dock pane has no tab strip, so the pane frame shows no title; the body must carry it.
   const [titleRow]=(await pane.drawn()).children;
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.3']});
-  expect(titleRow.children[1]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.4']});
+  expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
+  expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
 });
 test('dock live border is green while a tool runs, yellow while a question waits, default after',async($,on)=>{
   let finish;
@@ -320,23 +322,89 @@ test('feedback draft and link are cleared when the session is cleared',{options:
   expect(findNode(await pane.drawn(),n=>n.type==='Input').props.value).toBe('');
 });
 
-for(const placement of ['dock','inline']) test(`the title-row toggle collapses the ${placement} pane to a title and one status line, and expands it again`,async($,on)=>{
-  host(on);
+test('the inline toggle folds the pane to a title and one status line, and expands it again',async($,on)=>{
+  const h=host(on);
   await begin($);
-  const pane=await $.ui.mount(paneTarget('terminal',placement));
-  const section=placement==='dock' ? '[ 摘要 ]' : '目標：';
-  expect(await renderedText(pane)).toContain(section);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  expect(await renderedText(pane)).toContain('目標：');
   await pane.press({key:'toggle-collapse'});
   const collapsed=await renderedText(pane);
-  expect(collapsed).toContain('你到底在忙什麼？ v0.4.3');
+  expect(collapsed).toContain('你到底在忙什麼？ v0.4.4');
   expect(collapsed).toContain('展開面板');
   expect(collapsed).toContain('動作：尚未觀測到工作動作');
-  for(const hidden of [section,'外部輸入','需要你：']) expect(collapsed).not.toContain(hidden);
+  for(const hidden of ['目標：','外部輸入','需要你：']) expect(collapsed).not.toContain(hidden);
   expect(findNode(await pane.drawn(),n=>n.props?.key==='open-feedback')).toBeUndefined();
   expect((await pane.drawn()).children.length).toBe(2);
+  // Inline can shrink its own frame, so folding neither closes the pane nor pins a status line.
+  expect(h.record.closes).toEqual([]);
+  expect(h.record.statuses).toEqual([]);
   await pane.press({key:'toggle-collapse'});
-  expect(await renderedText(pane)).toContain(section);
+  expect(await renderedText(pane)).toContain('目標：');
   expect(await renderedText(pane)).toContain('收起面板');
+});
+test('the dock cannot shrink, so its toggle closes the pane and pins a one-line status instead',async($,on)=>{
+  const h=host(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','dock'));
+  await pane.press({key:'toggle-collapse'});
+  expect(h.record.closes).toEqual(['attention-mod']);
+  const line=h.record.statuses.at(-1);
+  expect(line).toContain('動作：尚未觀測到工作動作');
+  expect(line).toContain('/attention');
+  // Closed like a native ×: later updates must not reopen it.
+  await prompt($,'task');
+  await h.clock.advance(1000);
+  expect(h.record.opens.length).toBe(1);
+  expect(h.record.statuses.at(-1)).toContain('動作：');
+});
+test('the pinned status follows the state and swaps to the wait that needs the user',async($,on)=>{
+  const h=host(on,{tool:()=>new Promise(()=>{})});
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','dock'));
+  await pane.press({key:'toggle-collapse'});
+  void $.tool.call({tool:'Bash',command:'ls',tool_use_id:'b'});
+  await h.clock.advance(1000);
+  expect(h.record.statuses.at(-1)).toContain('正在執行');
+  void $.tool.call({tool:'AskUserQuestion',questions:[],tool_use_id:'q'});
+  await h.clock.settle();
+  const question=await $.ui.mount({plugin:'attention-mod',surface:'terminal',component:'AskUserQuestion',requestId:'q',props:{tool:'AskUserQuestion',questions:[]}});
+  await h.clock.advance(1000);
+  expect(h.record.statuses.at(-1)).toContain('需要你：有問題等你回答');
+  await question.unmount();
+});
+test('/attention brings a parked dock pane back and clears the status line',async($,on)=>{
+  const h=host(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','dock'));
+  await pane.press({key:'toggle-collapse'});
+  await $.command.run({command:'attention',args:'',origin:{kind:'composer'}});
+  expect(h.record.opens.length).toBe(2);
+  expect(h.record.statuses.some(text=>text!==undefined)).toBe(true);
+  expect(h.record.statuses.at(-1)).toBeUndefined();
+  const before=h.record.statuses.length;
+  await h.clock.advance(2000);
+  expect(h.record.statuses.length).toBe(before);
+});
+test('a parked status line is pinned again after a session clear',async($,on)=>{
+  const h=host(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','dock'));
+  await pane.press({key:'toggle-collapse'});
+  await $.session.end({reason:'clear',sessionId:'session-one',resume:{}});
+  await $.classic.SessionStart({hook_event_name:'SessionStart',source:'clear',session_id:'session-two',transcript_path:'/fixture',cwd:'/fixture'});
+  await h.clock.advance(1000);
+  expect(h.record.statuses.at(-1)).toContain('動作：');
+});
+test('a dock pane ignores the inline fold, since folding would only leave a tall empty frame',async($,on)=>{
+  host(on);
+  await begin($);
+  const inline=await $.ui.mount(paneTarget('terminal','inline'));
+  await inline.press({key:'toggle-collapse'});
+  await inline.unmount();
+  const dock=await $.ui.mount(paneTarget('terminal','dock'));
+  const shown=await renderedText(dock);
+  expect(shown).toContain('[ 摘要 ]');
+  expect(shown).toContain('收起面板');
 });
 test('a collapsed pane still surfaces a pending question as the need-you line',async($,on)=>{
   const h=host(on,{tool:()=>new Promise(()=>{})});
