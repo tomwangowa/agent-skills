@@ -1,6 +1,16 @@
 {
   "name": "attention-mod",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "A source-backed attention panel for the current Claude Code session.",
-  "author": { "name": "Tom" }
+  "author": {
+    "name": "Tom"
+  },
+  "userConfig": {
+    "feedbackRecipient": {
+      "type": "string",
+      "title": "回饋收件人",
+      "description": "面板「回饋」按鈕會開啟與此人的 Teams 聊天並預填內容。填收件人的 Teams 登入 email；留空則只提供複製內容。",
+      "required": false
+    }
+  }
 }

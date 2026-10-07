@@ -97,7 +97,10 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   // 0.2.0 row count (commit ed1c236, hooks/register.js) for this idle state:
   // title(1) + rule(1) + 5 fields(5) + inputs label line(1) + 0 input rows (none yet)
   // + blank line(1) + 0 notes (no snapshot/summary/error/lastEvent yet) + close button(1) = 10.
-  expect((await pane.drawn()).children.length).toBe(10);
+  // 0.4.0 adds exactly one row: the closed feedback form's open button, just above the close button.
+  const rows=(await pane.drawn()).children;
+  expect(rows.length).toBe(11);
+  expect(rows.slice(-2).map(row=>row.props.key)).toEqual(['open-feedback','close-attention']);
 });
 test('dock pane draws a bold title above three round sections coloured by meaning',async($,on)=>{
   host(on);
@@ -198,4 +201,107 @@ test('inline footer meta is dim while a successful summary keeps its field colou
   expect(metaNote.props.dimColor).toBe(true);
   expect(goalLabel.props.dimColor).toBe(undefined);
   expect(goalLabel.props.color).toBe('blue');
+});
+
+const findNode=(node,pred)=>{
+  if(!node || typeof node!=='object') return undefined;
+  if(pred(node)) return node;
+  for(const child of node.children??[]){ const hit=findNode(child,pred); if(hit) return hit; }
+  return undefined;
+};
+
+const TO='colleague@example.com';
+const copies=[];
+const hostWithCopy=on=>{ const h=host(on); on('ui.copy',($,e)=>{copies.push(e.text);return {value:{isCopied:true}};}); return h; };
+
+for(const surface of ['terminal','desktop'] as const){
+  test(`feedback form builds a prefilled Teams link on ${surface}`,{options:{feedbackRecipient:TO}},async($,on)=>{
+    copies.length=0;
+    const h=hostWithCopy(on);
+    await begin($);
+    const pane=await $.ui.mount(paneTarget(surface,'inline'));
+    expect(await renderedText(pane)).toContain('回饋');
+    expect(findNode(await pane.drawn(),n=>n.type==='Input')).toBeUndefined();
+
+    await pane.press({key:'open-feedback'});
+    expect(findNode(await pane.drawn(),n=>n.type==='Input')).toBeDefined();
+    expect(await renderedText(pane)).not.toContain('尚未設定回饋收件人');
+
+    // Empty submit warns and makes no link.
+    await pane.input({key:'attention-feedback',text:'   ',kind:'submit'});
+    expect(await renderedText(pane)).toContain('請先輸入內容');
+    expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+
+    await pane.input({key:'attention-feedback',text:'idea: 想要快捷鍵',kind:'submit'});
+    const link=findNode(await pane.drawn(),n=>n.type==='Link');
+    const url=new URL(link.props.href);
+    expect(url.origin+url.pathname).toBe('https://teams.microsoft.com/l/chat/0/0');
+    expect(url.searchParams.get('users')).toBe(TO);
+    expect(url.searchParams.get('message')).toBe('[attention-mod 建議] 想要快捷鍵');
+
+    // The copy button hands over the plain text, not the encoded link.
+    await pane.press({key:'copy-feedback'});
+    expect(copies).toEqual(['[attention-mod 建議] 想要快捷鍵']);
+    expect(await renderedText(pane)).toContain('已複製');
+
+    // Editing drops the stale link; cancel closes the form without touching the session.
+    await pane.input({key:'attention-feedback',text:'idea: 想要快捷鍵，另外',kind:'change'});
+    expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+    await pane.press({key:'close-feedback'});
+    expect(findNode(await pane.drawn(),n=>n.type==='Input')).toBeUndefined();
+    expect(h.record.prompts).toEqual([]);
+    expect(h.record.models).toEqual([]);
+  });
+}
+
+test('without a recipient the form says so, draws no link, and still offers the text to copy',async($,on)=>{
+  copies.length=0;
+  hostWithCopy(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'open-feedback'});
+  expect(await renderedText(pane)).toContain('尚未設定回饋收件人');
+  await pane.input({key:'attention-feedback',text:'bug: 面板閃爍',kind:'submit'});
+  expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+  await pane.press({key:'copy-feedback'});
+  // Same labelled text a recipient would get, not the raw prefix.
+  expect(copies).toEqual(['[attention-mod 問題] 面板閃爍']);
+});
+
+test('a category prefix alone counts as empty feedback, with or without a recipient',{options:{feedbackRecipient:TO}},async($,on)=>{
+  hostWithCopy(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'open-feedback'});
+  await pane.input({key:'attention-feedback',text:'bug:',kind:'submit'});
+  expect(await renderedText(pane)).toContain('請先輸入內容');
+  expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+  expect(findNode(await pane.drawn(),n=>n.props?.key==='copy-feedback')).toBeUndefined();
+});
+
+test('an invalid recipient is treated as unset instead of building a link',{options:{feedbackRecipient:'a@b.c&message=x'}},async($,on)=>{
+  hostWithCopy(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'open-feedback'});
+  await pane.input({key:'attention-feedback',text:'bug: x',kind:'submit'});
+  expect(await renderedText(pane)).toContain('尚未設定回饋收件人');
+  expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+});
+
+test('feedback draft and link are cleared when the session is cleared',{options:{feedbackRecipient:TO}},async($,on)=>{
+  host(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'open-feedback'});
+  await pane.input({key:'attention-feedback',text:'bug: 還沒送出',kind:'submit'});
+  expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeDefined();
+
+  await $.session.end({reason:'clear',sessionId:'session-one',resume:{}});
+  await $.classic.SessionStart({hook_event_name:'SessionStart',source:'clear',session_id:'session-two',transcript_path:'/fixture',cwd:'/fixture'});
+
+  expect(findNode(await pane.drawn(),n=>n.type==='Input')).toBeUndefined();
+  expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+  await pane.press({key:'open-feedback'});
+  expect(findNode(await pane.drawn(),n=>n.type==='Input').props.value).toBe('');
 });

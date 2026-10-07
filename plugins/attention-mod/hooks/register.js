@@ -5,6 +5,7 @@ import {createSchedule, claimSnapshot, settleRequest} from './scheduler.js';
 import {paneRows, inlineFields, footerNotes, sectionById, inputRowNodes} from './view.js';
 import {colorFor} from './theme.js';
 import {entryFromAppend} from './inputs.js';
+import {buildTeamsLink, composeMessage, parseRecipient} from './feedback.js';
 
 let state = createState(UNKNOWN_SESSION);
 const schedule = createSchedule();
@@ -15,8 +16,16 @@ let closed = false;
 let now = 0;
 let endingSessionId = null;
 let reconnecting = false;
+// Feedback form: memory-only. A reload or any session-reset (/clear, resume, end) starts it closed again.
+const closedFeedback = () => ({open:false, draft:'', link:null, copied:null, empty:false});
+let feedback = closedFeedback();
+// Teams account of whoever receives feedback; set per install so no address lives in this public repo.
+let recipient = null;
 const sourceId = () => `e${state.epoch}-s${++sequence}`;
-const apply = event => { state = reduceState(state, event); };
+const apply = event => {
+  state = reduceState(state, event);
+  if (event.type === 'session-reset') feedback = closedFeedback();
+};
 
 /** Keep observation failures from changing the caller's result. */
 function redraw($) { try { $.ui.invalidate('ui.render'); } catch {} }
@@ -97,7 +106,8 @@ async function reconnect($) {
 }
 
 /** Register passive observers and a memory-only attention panel. */
-export function register(on) {
+export function register(on, options) {
+  recipient = parseRecipient(options?.feedbackRecipient);
   on('session.start', async ($, e, next) => {
     const result = await next(e);
     try {
@@ -237,9 +247,49 @@ export function register(on) {
     const body = e.props.placement === 'dock' ? drawDock(view, els) : drawInline(view, els, e.props.bodyColumns);
     return els.Box({flexDirection:'column', children:[
       ...body,
+      ...drawFeedback($, els),
       els.Button({key:'close-attention', label:'收起', onPress:() => $.ui.close({id:'attention-mod'})}),
     ]});
   });
+}
+
+/**
+ * Feedback form. Submitting only builds a Teams chat link with the typed text prefilled;
+ * the person presses Enter in Teams, so the mod sends nothing and reads no session data.
+ */
+function drawFeedback($, {Box, Text, Button, Input, Link}) {
+  const change = patch => { feedback = {...feedback, ...patch}; redraw($); };
+  if (!feedback.open) return [Button({key:'open-feedback', label:'回饋', onPress:() => change({open:true, empty:false})})];
+  const hasRecipient = recipient !== null;
+  const copy = text => async press => {
+    try { const r = await $.ui.copy({text, surface:press.surface}); change({copied:r.isCopied}); } catch { change({copied:false}); }
+  };
+  return [Box({flexDirection:'column', children:[
+    Text({bold:true, children:'回饋'}),
+    Text({dimColor:true, wrap:'wrap', children:'描述問題或改善建議，可用 bug: 或 idea: 開頭分類，Enter 產生 Teams 連結。'}),
+    ...(hasRecipient ? [] : [Text({color:colorFor('warning'), wrap:'wrap', children:'尚未設定回饋收件人（外掛設定 feedbackRecipient），只能複製內容後自行傳送。'})]),
+    Input({key:'attention-feedback', label:'內容', placeholder:'bug: ...', value:feedback.draft, submitLabel:hasRecipient ? '產生連結' : '產生內容', autoFocus:true,
+      // Editing invalidates a link made from the older text, so redraw to drop it.
+      onInput:value => change({draft:value, link:null, copied:null, empty:false}),
+      onSubmit:value => {
+        // A prefix with no text is empty feedback, so both paths agree on what counts as typed.
+        const composed = composeMessage(value);
+        const link = composed && hasRecipient ? buildTeamsLink(value, recipient) : null;
+        // Without a recipient there is no link, but the same labelled text can still be copied.
+        change({draft:value, link:link ?? (composed ? {message:composed.message, url:null, truncated:false} : null), copied:null, empty:!composed});
+      }}),
+    ...(feedback.empty ? [Text({color:colorFor('warning'), children:'請先輸入內容。'})] : []),
+    ...(feedback.link ? [
+      ...(feedback.link.url ? [
+        Text({wrap:'wrap', children:'連結只含你輸入的文字，點開後在 Teams 確認內容，按 Enter 才會送出：'}),
+        Link({href:feedback.link.url, label:'在 Teams 開啟'}),
+        ...(feedback.link.truncated ? [Text({dimColor:true, wrap:'wrap', children:'內容過長，連結內已截斷；請改用「複製內容」貼上完整文字。'})] : []),
+      ] : []),
+      Button({key:'copy-feedback', label:'複製內容', onPress:copy(feedback.link.message)}),
+      ...(feedback.copied === true ? [Text({dimColor:true, children:'已複製。'})] : feedback.copied === false ? [Text({dimColor:true, children:'無法複製，請手動選取文字。'})] : []),
+    ] : []),
+    Button({key:'close-feedback', label:'取消回饋', onPress:() => change(closedFeedback())}),
+  ]})];
 }
 
 /** A dot then a coloured bold label, shared by both layouts so "● 動作：正在執行" reads the same. */
