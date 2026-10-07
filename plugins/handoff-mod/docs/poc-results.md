@@ -196,6 +196,19 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 - attention-mod 的「外部輸入」會列出我們的 `$.ui.log` 通知（`informational · 引擎`，例如 `handoff-poc: poc: ask answer=同意`）。正式的 handoff-mod 若用 `$.ui.log` 發通知，會灌進 attention-mod 的外部輸入，要克制。
 - `$.ui.ask` 不會讓 attention-mod 明確亮起「需要你」，這是 attention-mod 那邊的行為，handoff-mod 沒有依賴。「等待狀態不明」回答後不會復原，若要反映給 attention-mod，由它那邊處理。
 
+### 補驗（未完成，2026-10-07）
+
+決策完成後針對設計裡的未驗證項目加了探針，Tom 決定不再測，所以以下只有 headless（`claude -p`，Claude Code 2.1.292）與一次互動 `/poc-facts` 的資料，**探針改動已還原，沒有進 git**。
+
+| 項目 | 結果 | 限制 |
+| --- | --- | --- |
+| D4：`session.end` 內讀 `$.session.messages()` | headless 丟錯：`not available in this mode: no session is bound in this process`（REPL 未掛載、沒有 headless session） | **互動 session 結束時是否同樣讀不到沒測。** 這是 D4 的核心假設 |
+| D4：`session.end` 內跑 `git status --short` | 76 ms，exit 0（headless） | 只在 headless 量 |
+| D4：寫檔後 `chmod 600` | 寫檔加 `chmod` 共 16 ms，檔案權限 `-rw-------`；整個 `session.end` 約 100 ms（headless） | `$.fs.write` 沒有權限參數，0600 要靠寫完再 `chmod` |
+| D11：自動偵測使用者語言 | Tom 的互動 session：`$.settings.read().language` 為未設，`LANG=C.UTF-8`、`LC_ALL` 未設。`$.settings.read()` 讀得到 `language`，但 Tom 沒設 | 沒有可靠的自動偵測來源 |
+
+**沒測：** `$.ui.status` 與 `$.ui.toast` 在 attention-mod inline 模式下的實際顯示（D9）、`session.compact` hook 內的 `$.ui.ask` 與回 `{skip}`（T4）、`/cd` 之後的 `root()`（L7）、自動壓縮的 `trigger` 值。這些在設計文件列為實作前要先驗證的風險。
+
 ## 清理
 
 PoC 結束、結果寫完後刪除 `poc/`。探針不是產品，不會進 marketplace。

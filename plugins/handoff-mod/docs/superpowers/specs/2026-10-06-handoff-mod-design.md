@@ -179,7 +179,7 @@ source: auto                # 只有結束筆記（D4）有；省略表示使用
 4. 啟動讀回時標「自動留下，未經審查」，超過 7 天不顯示；`HANDOFF_AUTO_NOTE=off` 可整個關掉。
 5. 在 `session.end` 的共用預算（約 1.5 秒）內做完，逾時就放棄，不留半個檔案。
 
-**未驗證：** `$.session.messages()` 能不能在 `session.end` 內讀；L6 的 10 ms 只量了寫一行，沒量讀訊息加遮蔽。
+**未驗證：** `$.session.messages()` 能不能在 `session.end` 內讀。headless 量到的結果是**讀不到**（`no session is bound in this process`），互動 session 沒測；`git status` 約 76 ms、寫檔加 `chmod 600` 約 16 ms（headless），預算不是問題。**備案（也未驗證）：** 不在結束時讀訊息，改成平時記：在 `prompt.submit` hook 記下最後一個使用者要求、在 `turn.complete` 記下最後一段回應（事件的 `text`），存在 `$.store`，結束時只負責寫檔。實作前要先在互動 session 驗證其中一條可行，否則 D4 做不出來。
 
 ## 資料流
 
@@ -217,7 +217,7 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | D8 | 同事是否都讀繁體中文？介面字串要不要預留抽出 | **已決（Tom，2026-10-07）：** 繁體中文加英文，兩種都做。選語言與交接檔標題的處理見 D11 |
 | D9 | 窄視窗且有 attention-mod 時，band 被擠出可見範圍（L8），門檻提示怎麼辦 | **已決（Tom，2026-10-07）：** 窄視窗用 `$.ui.status` 常駐一行＋指令（`/handoff-mod:handoff`），直到交接完成或選「不再問」才拆掉；寬視窗用 band。`$.ui.status` 與 `$.ui.toast` 只有型別檔說明，PoC 沒實測，實作前要先驗證在 attention-mod inline 模式下看得到 |
 | D10 | 交接目錄的基準：git repo 內用 `git rev-parse --show-toplevel`（每個 worktree 一份），還是 `session.root()`（從子目錄啟動會各有一份，L7）？ | **已決（Tom，2026-10-07）：** git repo 內用 toplevel；不在 git 內才用 `root()`；啟動目錄記在檔案的 `root` 欄當標籤 |
-| D11 | 雙語帶來的兩個問題：(1) 介面語言怎麼選（`$.env` 變數、Claude Code 的語言設定，是否可讀沒查證）；(2) 交接檔的章節標題（`## 任務`、`## 下一步`…）是中文，啟動讀回靠標題找「下一步」，英文版標題怎麼辦 | **已決（Tom，2026-10-07）：** 解析器同時認中英標題，檔案語言由使用者語言決定；介面語言先用環境變數 `HANDOFF_LANG`（預設 `zh-TW`），自動偵測等查證可行再加 |
+| D11 | 雙語帶來的兩個問題：(1) 介面語言怎麼選（`$.env` 變數、Claude Code 的語言設定，是否可讀沒查證）；(2) 交接檔的章節標題（`## 任務`、`## 下一步`…）是中文，啟動讀回靠標題找「下一步」，英文版標題怎麼辦 | **已決（Tom，2026-10-07）：** 解析器同時認中英標題，檔案語言由使用者語言決定；介面語言先用環境變數 `HANDOFF_LANG`（預設 `zh-TW`），自動偵測等查證可行再加。本機查過：`settings.language` 未設、`LANG=C.UTF-8`，沒有可靠的自動偵測來源，語言以 `HANDOFF_LANG` 為準 |
 
 ## 驗證與測試
 
@@ -225,7 +225,7 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 - **事件接線由實機驗證：** attention-mod 的經驗是測試 kit 無法端到端觸發部分事件，接線只能靠程式碼審查與實機。哪些事件在 `handoff-mod` 的測試 kit 可觸發，**沒有查證**。
 - **實機劇本：** 門檻提示三個選項各走一次；`/clear` 三條路；兩個終端機同時接續同一份；worktree；非 git 目錄；有交接檔與沒有交接檔的啟動；交接回合沒寫出檔案。
 - 交接內容的準確度要用真實 session 人工抽查，不在自動測試範圍。
-- **PoC 沒測到的：** `/cd` 之後的 `root()`、`session.compact` hook 內的 `$.ui.ask`、自動壓縮的 `trigger` 值、`$.ui.status` 與 `$.ui.toast` 的實際顯示、Warp 以外的終端機、同事的環境（版本、managed settings）。
+- **PoC 沒測到的（Tom 於 2026-10-07 決定停止補測，列為實作前風險）：** `/cd` 之後的 `root()`、`session.compact` hook 內的 `$.ui.ask`、自動壓縮的 `trigger` 值、`$.ui.status` 與 `$.ui.toast` 的實際顯示、Warp 以外的終端機、同事的環境（版本、managed settings）。
 
 ## 不做的事
 
