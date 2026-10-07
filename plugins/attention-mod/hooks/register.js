@@ -44,7 +44,8 @@ function redraw($) {
 function pinStatus($) {
   try {
     const line = collapsedLine(paneRows(state, now));
-    $.ui.status(`你到底在忙什麼 · ${line.label}：${line.text}（輸入 /attention 展開）`);
+    // No plugin name here: the host prefixes the line with it.
+    $.ui.status(`${line.label}：${line.text}（輸入 /attention 展開）`);
   } catch { /* A failed status line must not disturb the caller. */ }
 }
 
