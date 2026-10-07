@@ -35,8 +35,8 @@
 | --- | --- | --- | --- |
 | L1 | 你的模型 window 與 `percent` 跟 `/context` 一致嗎？ | 做一段真實工作後 `/poc-usage`，對照 `/context` | 門檻的預設值（D1）。**已驗證（本機），見下一節** |
 | L2 | 用 `$.command.run` 啟動你自己的 `/handoff`（`disable-model-invocation: true`） | `/poc-submit cmd:handoff` | 「有使用者自己的 handoff 就用它」可不可行（D7）。**已驗證（本機），見下一節** |
-| L3 | band 的數字 hotkey 與 `AskUserQuestion` 的數字衝突嗎？ | `/poc-band`，再請 Claude 呼叫 AskUserQuestion，按 `1` | 提示要不要在等待時隱藏。**對 `AskUserQuestion` 已驗證（本機），見下一節；權限提示未測** |
-| L4 | Claude 工作中，計時器呼叫的 `$.ui.ask` 會怎樣？ | 讓 Claude 長時間產出（例如寫 1500 字文章、不用工具），3 秒內 `/poc-ask-timer`；前景 `sleep 30` 在 Tom 的環境會被擋 | 門檻提示只能在閒置時出現，還是可以插話。**已驗證（本機），見下一節；「不回答」未測** |
+| L3 | band 的數字 hotkey 與 `AskUserQuestion` 的數字衝突嗎？ | `/poc-band`，再請 Claude 呼叫 AskUserQuestion，按 `1` | 提示要不要在等待時隱藏。**已驗證（本機；`AskUserQuestion` 與權限提示），見下一節** |
+| L4 | Claude 工作中，計時器呼叫的 `$.ui.ask` 會怎樣？ | 讓 Claude 長時間產出（例如寫 1500 字文章、不用工具），3 秒內 `/poc-ask-timer`；前景 `sleep 30` 在 Tom 的環境會被擋 | 門檻提示只能在閒置時出現，還是可以插話。**已驗證（本機；含不回答），見下一節** |
 | L5 | 真實對話的 `/compact`：`command.run compact` 與 `session.compact` 的先後 | 有內容的 session 內 `/compact` | 壓縮前能不能問交接。**事件時序已驗證（本機），見下一節；在 hook 內提問未測** |
 | L6 | 真正結束：Ctrl-D、關掉分頁，`session.end` 有沒有跑 | 結束後看 log | 「結束時自動留事實筆記」（D4）可不可行 |
 | L7 | 非 git 目錄、子目錄啟動、worktree 的 `root()` 與 `repo().root` | 各處 `/poc-facts` | 範圍鍵（交接檔歸屬）的規則。**部分已驗證（本機 headless），見下一節；`/cd` 尚未測** |
@@ -92,7 +92,7 @@
 - 能啟動、有照格式寫出，所以 D7 **可以**在偵測到 `source:'user'` 的 `handoff` 時優先用，但仍要驗證寫出的 frontmatter。這只代表 Tom 的環境；同事沒有這個 skill，設計文件對 D7 的傾向（一律內建）不因此改變。
 - 「Review Gate」只擋使用者有看到並糾正的內容。這次草稿的 VERIFIED 有一句「我看過 diff」，收集步驟只跑了 2 個 shell 指令、沒有 `git diff`，這句沒有依據，使用者直接回「寫檔」，原句照樣寫進檔案。內建 `handoff-mod:handoff` 如果要擋這類錯，得在 skill 裡明確限制 VERIFIED 只能列這個回合實際跑過的指令。
 
-### L3 hotkey 與 `AskUserQuestion`（對 `AskUserQuestion` 已驗證，本機互動）
+### L3 hotkey 與對話框（`AskUserQuestion`、權限提示；已驗證，本機互動）
 
 band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項畫面出現後按數字 `1`。做了兩次，用 transcript 與 log 對時間：
 
@@ -104,10 +104,13 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 - 問題在等的時候，畫面上沒有 band，只有引擎的選項對話框；band 在回答完才重新出現。這一點只有畫面佐證，探針沒有記 render。
 - 數字鍵被對話框吃掉，band 沒有反應。依決策表，「L3：無衝突，只要閒置就顯示 band」成立。
 - `hasSurvey` 在問題等待時沒有觀察到（band 當時沒畫出來），回答後是 `false`；型別檔沒有 `survey`、`isWorking` 的說明，沒有證據它是等待訊號，設計不使用它。
-- **沒有測：工具權限提示**（`1. Yes　2. Yes, and don't ask again　3. No`，數字與 band 相同，也比 `AskUserQuestion` 常見）。結論只涵蓋 `AskUserQuestion`。
+- **工具權限提示也無衝突**（補測）。Tom 的全域設定是 `bypassPermissions`，不會跳提示，所以改用 `claude --permission-mode default --plugin-dir …` 開新 session（transcript 的 `permissionMode=default`）。`curl -sI https://example.com` 跳出權限提示，Tom 按數字 `1` 選了 Yes：提示等待時畫面上沒有 band，指令執行了，log 沒有新的 `band press`。同一輪平行呼叫的 `curl` 等了約 8.3 秒才回（bypass 時約 0.8 秒），符合在等人按鍵。
+- 這個版本的權限提示有四個選項：`1. Yes`、`2. Yes, and don't ask again for: curl *`、`3. Yes, and switch to auto mode`、`4. No`，不是三個。
+- 結論：兩種對話框（`AskUserQuestion`、權限提示）等待時 band 都不在，數字鍵都歸對話框；band 只在閒置時出現。依決策表採「只要閒置就顯示」。
+- 同事用預設模式才會碰到權限提示，Tom 自己的環境永遠不會，所以這一項要在非 bypass 的 session 才測得到。
 - 閒置時在空白輸入框按 `1` 會立刻觸發按鈕、不需要 Enter，每按一次在 transcript 追加一行 `band press 1` 通知。
 
-### L4 工作中提問（已驗證，本機互動；「不回答」未測）
+### L4 工作中提問（已驗證，本機互動）
 
 第一次嘗試無效：前景 `sleep 30` 被環境擋掉（`Blocked: standalone sleep 30. … use Monitor with an until-loop`），Claude 改成背景執行，回合 7 秒就結束，30 秒內 Claude 其實是閒置的。第二次改成讓 Claude 長時間產出（不用工具）：
 
@@ -121,8 +124,21 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 
 - 提問在回合進行中被回答，`ask(timer)` 排在 `turn.complete` 前 34 秒；彈出時間只知道在 16:09:32 到 16:09:47 之間，當時 Claude 在 thinking。
 - 回合沒被打斷，文章完整；回答只回到探針，沒有送進 Claude 的對話。
-- 沒有測：提問在等、使用者**不回答**時，回合會不會等它；提問期間輸入框能不能打字（沒有記錄）。
-- 對決策表：技術上「能彈出且不擋工作」成立，但不等於該在工作中彈出。第一版建議仍只在 `turn.complete` 後閒置時提示（尚未決定，待「不回答」的結果）。
+- 提問期間輸入框能不能打字沒有記錄。
+
+**補測：不回答。** 用預設模式的新 session，送出「隨便給我 200 字的文章」，`/poc-ask-timer` 彈出後先不答：
+
+| 時間（UTC） | 事件 |
+| --- | --- |
+| 02:39:50 | 送出任務 |
+| 02:40:02 | 文章輸出完成 |
+| 02:40:03 | `turn.complete` |
+| 02:40:10 | `ask(timer) turns=2 answer=同意`（回答完才記） |
+
+- `ask(timer)` 排在 `turn.complete` **之後 7 秒**：回合結束時提問還開著，Claude 沒有等它，文章照常完成。**不回答不會卡住工作。**
+- `$.ui.ask` 的對話框**不能單獨按數字選**，要用方向鍵加 Enter（Tom 回報）。這跟 L3 的 `AskUserQuestion`（按 `1` 直接選中）不同，原因不明；這段時間 `band press` 沒有新增，band 的 hotkey 沒有搶到按鍵。
+- 提問在回合結束後仍然開著，設計要處理「使用者一直沒答、下一個回合又開始」的過期對話框（例如下一個提示要不要取代舊的）。
+- 對決策表：技術上「能彈出且不擋工作」成立，但不等於該在工作中彈出。「不回答」也不會卡住工作，所以風險只剩打斷感與過期對話框；第一版建議仍只在 `turn.complete` 後閒置時提示（待 Tom 決定）。
 - 附帶：背景指令完成的通知會自己觸發一個回合（16:07:07，沒有使用者輸入），那種回合也會讓 `turn.complete` 觸發，T1 的「閒置」判斷要考慮。
 
 ### L5 壓縮（事件時序已驗證，本機互動；手動壓縮）
