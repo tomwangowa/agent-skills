@@ -1,11 +1,11 @@
-const ISSUE_URL = 'https://github.com/tomwangowa/agent-skills/issues/new';
+const TEAMS_CHAT = 'https://teams.microsoft.com/l/chat/0/0';
 /** Link's href allows 2,048 characters once encoded; keep a margin for what a terminal re-encodes. */
-export const ISSUE_URL_LIMIT = 2000;
-const TITLE_LIMIT = 60;
-const FOOTER = '\n\n---\n由 attention-mod 面板的回饋功能產生；除上述文字外，未附帶任何對話、路徑或工具內容。';
+export const LINK_LIMIT = 2000;
 const MARKER = '\n[truncated]';
 const KIND_LABEL = {bug: '問題', idea: '建議', other: '回饋'};
 const PREFIX = /^(bug|idea|問題|建議)\s*[:：]\s*/i;
+// Deliberately loose: Teams resolves the account; this only keeps stray text out of the link.
+const EMAIL = /^[^\s@,&?#=]+@[^\s@,&?#=]+\.[^\s@,&?#=]+$/;
 
 /** Split an optional `bug:`/`idea:` prefix off the typed text; blank input gives null. */
 export function parseFeedback(raw) {
@@ -18,26 +18,32 @@ export function parseFeedback(raw) {
   return {kind, text};
 }
 
-const cut = (text, limit) => Array.from(text).slice(0, limit).join('');
+/** The recipient as configured, or null when it is unset or not an email address. */
+export function parseRecipient(value) {
+  const email = String(value ?? '').trim();
+  return EMAIL.test(email) ? email : null;
+}
 
 /**
- * Build a prefilled GitHub new-issue link from what the person typed, and nothing else.
- * The user opens it and confirms on GitHub, so the mod itself sends no request.
+ * Build a Teams chat deep link that opens a chat with `recipient` and fills the compose box
+ * with what the person typed, and nothing else. The person presses Enter in Teams to send, so
+ * the mod itself sends no request. `message` is the plain text, for copying when the link fails.
  */
-export function buildIssueUrl(raw) {
+export function buildTeamsLink(raw, recipient) {
   const parsed = parseFeedback(raw);
-  if (!parsed) return null;
-  const firstLine = parsed.text.split(/\r?\n/)[0].trim();
-  const title = `[attention-mod] ${KIND_LABEL[parsed.kind]}：${cut(firstLine, TITLE_LIMIT)}`;
-  const link = body => `${ISSUE_URL}?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body + FOOTER)}`;
+  const email = parseRecipient(recipient);
+  if (!parsed || !email) return null;
+  const header = `[attention-mod ${KIND_LABEL[parsed.kind]}]`;
+  const compose = text => `${header} ${text}`;
+  const link = text => `${TEAMS_CHAT}?users=${encodeURIComponent(email)}&message=${encodeURIComponent(compose(text))}`;
   let body = parsed.text;
   let truncated = false;
-  if (link(body).length > ISSUE_URL_LIMIT) {
+  if (link(body).length > LINK_LIMIT) {
     truncated = true;
     // Shrink by code points so a surrogate pair is never split.
     let points = Array.from(body);
-    while (points.length && link(points.join('') + MARKER).length > ISSUE_URL_LIMIT) points = points.slice(0, Math.floor(points.length * 0.9) || 0);
+    while (points.length && link(points.join('') + MARKER).length > LINK_LIMIT) points = points.slice(0, Math.floor(points.length * 0.9));
     body = points.join('') + MARKER;
   }
-  return {url: link(body), kind: parsed.kind, truncated};
+  return {url: link(body), kind: parsed.kind, truncated, message: compose(parsed.text)};
 }

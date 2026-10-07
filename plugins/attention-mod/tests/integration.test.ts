@@ -210,9 +210,14 @@ const findNode=(node,pred)=>{
   return undefined;
 };
 
+const TO='colleague@example.com';
+const copies=[];
+const hostWithCopy=on=>{ const h=host(on); on('ui.copy',($,e)=>{copies.push(e.text);return {value:{isCopied:true}};}); return h; };
+
 for(const surface of ['terminal','desktop'] as const){
-  test(`feedback form builds a prefilled issue link on ${surface}`,async($,on)=>{
-    const h=host(on);
+  test(`feedback form builds a prefilled Teams link on ${surface}`,{options:{feedbackRecipient:TO}},async($,on)=>{
+    copies.length=0;
+    const h=hostWithCopy(on);
     await begin($);
     const pane=await $.ui.mount(paneTarget(surface,'inline'));
     expect(await renderedText(pane)).toContain('回饋');
@@ -220,6 +225,7 @@ for(const surface of ['terminal','desktop'] as const){
 
     await pane.press({key:'open-feedback'});
     expect(findNode(await pane.drawn(),n=>n.type==='Input')).toBeDefined();
+    expect(await renderedText(pane)).not.toContain('尚未設定回饋收件人');
 
     // Empty submit warns and makes no link.
     await pane.input({key:'attention-feedback',text:'   ',kind:'submit'});
@@ -229,8 +235,14 @@ for(const surface of ['terminal','desktop'] as const){
     await pane.input({key:'attention-feedback',text:'idea: 想要快捷鍵',kind:'submit'});
     const link=findNode(await pane.drawn(),n=>n.type==='Link');
     const url=new URL(link.props.href);
-    expect(url.pathname).toBe('/tomwangowa/agent-skills/issues/new');
-    expect(url.searchParams.get('title')).toBe('[attention-mod] 建議：想要快捷鍵');
+    expect(url.origin+url.pathname).toBe('https://teams.microsoft.com/l/chat/0/0');
+    expect(url.searchParams.get('users')).toBe(TO);
+    expect(url.searchParams.get('message')).toBe('[attention-mod 建議] 想要快捷鍵');
+
+    // The copy button hands over the plain text, not the encoded link.
+    await pane.press({key:'copy-feedback'});
+    expect(copies).toEqual(['[attention-mod 建議] 想要快捷鍵']);
+    expect(await renderedText(pane)).toContain('已複製');
 
     // Editing drops the stale link; cancel closes the form without touching the session.
     await pane.input({key:'attention-feedback',text:'idea: 想要快捷鍵，另外',kind:'change'});
@@ -241,3 +253,26 @@ for(const surface of ['terminal','desktop'] as const){
     expect(h.record.models).toEqual([]);
   });
 }
+
+test('without a recipient the form says so, draws no link, and still offers the text to copy',async($,on)=>{
+  copies.length=0;
+  hostWithCopy(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'open-feedback'});
+  expect(await renderedText(pane)).toContain('尚未設定回饋收件人');
+  await pane.input({key:'attention-feedback',text:'bug: 面板閃爍',kind:'submit'});
+  expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+  await pane.press({key:'copy-feedback'});
+  expect(copies).toEqual(['bug: 面板閃爍']);
+});
+
+test('an invalid recipient is treated as unset instead of building a link',{options:{feedbackRecipient:'a@b.c&message=x'}},async($,on)=>{
+  hostWithCopy(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'open-feedback'});
+  await pane.input({key:'attention-feedback',text:'bug: x',kind:'submit'});
+  expect(await renderedText(pane)).toContain('尚未設定回饋收件人');
+  expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+});

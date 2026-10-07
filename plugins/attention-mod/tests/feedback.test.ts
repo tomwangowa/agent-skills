@@ -1,10 +1,20 @@
 import {test,expect} from 'claude-code/testing';
-import {parseFeedback,buildIssueUrl,ISSUE_URL_LIMIT} from '../hooks/feedback.js';
+import {parseFeedback,parseRecipient,buildTeamsLink,LINK_LIMIT} from '../hooks/feedback.js';
 
-test('blank feedback produces no link',()=>{
-  expect(buildIssueUrl('')).toBeNull();
-  expect(buildIssueUrl('  \n\t ')).toBeNull();
-  expect(buildIssueUrl('bug:   ')).toBeNull();
+const TO='colleague@example.com';
+
+test('blank feedback or a missing recipient produces no link',()=>{
+  expect(buildTeamsLink('',TO)).toBeNull();
+  expect(buildTeamsLink('  \n\t ',TO)).toBeNull();
+  expect(buildTeamsLink('bug:   ',TO)).toBeNull();
+  expect(buildTeamsLink('bug: x',undefined)).toBeNull();
+  expect(buildTeamsLink('bug: x','')).toBeNull();
+  expect(buildTeamsLink('bug: x','not-an-email')).toBeNull();
+});
+
+test('recipient must look like one email address and nothing that could add parameters',()=>{
+  expect(parseRecipient(' a.b@corp.example ')).toBe('a.b@corp.example');
+  for(const bad of ['a@b','a@b.c,d@e.f','a@b.c&message=x','a b@c.d','a@b.c?x=1','@b.c',undefined,null,42]) expect(parseRecipient(bad)).toBeNull();
 });
 
 test('prefix classifies the report and is removed from the text',()=>{
@@ -17,31 +27,26 @@ test('prefix classifies the report and is removed from the text',()=>{
   expect(parseFeedback('我覺得 bug: 很多')).toEqual({kind:'other',text:'我覺得 bug: 很多'});
 });
 
-test('link targets this repository and carries only the typed text',()=>{
-  const {url,kind,truncated}=buildIssueUrl('bug: 外部輸入不更新\n第二行細節');
-  const parsed=new URL(url);
-  expect(parsed.origin+parsed.pathname).toBe('https://github.com/tomwangowa/agent-skills/issues/new');
-  expect(kind).toBe('bug');
-  expect(truncated).toBe(false);
-  expect(parsed.searchParams.get('title')).toBe('[attention-mod] 問題：外部輸入不更新');
-  const body=parsed.searchParams.get('body');
-  expect(body).toContain('外部輸入不更新\n第二行細節');
+test('link opens a Teams chat with the recipient and carries only the typed text',()=>{
+  const result=buildTeamsLink('bug: 外部輸入不更新\n第二行細節',TO);
+  const parsed=new URL(result.url);
+  expect(parsed.origin+parsed.pathname).toBe('https://teams.microsoft.com/l/chat/0/0');
+  expect(parsed.searchParams.get('users')).toBe(TO);
+  expect(parsed.searchParams.get('message')).toBe('[attention-mod 問題] 外部輸入不更新\n第二行細節');
+  expect(result.message).toBe('[attention-mod 問題] 外部輸入不更新\n第二行細節');
+  expect(result.kind).toBe('bug');
+  expect(result.truncated).toBe(false);
   // Nothing from the session may ride along: no ids, paths or tool text.
-  expect([...parsed.searchParams.keys()].sort()).toEqual(['body','title']);
+  expect([...parsed.searchParams.keys()].sort()).toEqual(['message','users']);
 });
 
-test('long titles are cut by code point without splitting a surrogate pair',()=>{
-  const {url}=buildIssueUrl('idea: '+'😀'.repeat(200));
-  const title=new URL(url).searchParams.get('title');
-  expect(Array.from(title).length).toBeLessThanOrEqual(90);
-  expect(title).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
-});
-
-test('oversized feedback is truncated, flagged, and still fits the link limit',()=>{
-  const result=buildIssueUrl('bug: '+'很長的回饋😀'.repeat(2000));
-  expect(result.url.length).toBeLessThanOrEqual(ISSUE_URL_LIMIT);
+test('oversized feedback is truncated in the link, flagged, and the copy text stays whole',()=>{
+  const typed='很長的回饋😀'.repeat(2000);
+  const result=buildTeamsLink('bug: '+typed,TO);
+  expect(result.url.length).toBeLessThanOrEqual(LINK_LIMIT);
   expect(result.truncated).toBe(true);
-  const body=new URL(result.url).searchParams.get('body');
-  expect(body).toContain('[truncated]');
-  expect(body).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
+  const message=new URL(result.url).searchParams.get('message');
+  expect(message).toContain('[truncated]');
+  expect(message).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
+  expect(result.message).toBe('[attention-mod 問題] '+typed);
 });

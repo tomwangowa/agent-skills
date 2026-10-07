@@ -30,7 +30,7 @@ claude --plugin-dir "$PWD"          # 實際載入 Mod 試用，面板沒出現�
 - `scheduler.js`：同一份 `sessionId:epoch:revision` 只試一次（失敗不重試），開始時間相隔至少 60 秒，同時最多一個呼叫。
 - `view.js`：`paneRows` 把狀態轉成三個區塊（摘要、即時、外部輸入），只帶語意色調不帶顏色；`liveTone` 決定即時區塊色調、`actionDot` 決定「動作」的點（「需要你」的點在 `paneRows` 裡依有無等待決定）；`inlineFields`／`footerNotes` 還原 0.2.0 的平面順序；`paneLines` 是純文字版本。不呼叫模型。`sectionById(view, id)` 讓兩種版面都依 id 取區塊，不依位置。
 - `theme.js`：`colorFor(tone)` 把色調對應到終端機具名色，未知色調回傳 undefined。`register.js` 依 `e.props.placement` 呼叫 `drawDock`（圓角框）或 `drawInline`（平面）。
-- `feedback.js`：`buildIssueUrl(raw)` 把使用者輸入轉成預填的 GitHub new-issue 連結（只含輸入文字與固定說明，長度上限 `ISSUE_URL_LIMIT`，超過以 code point 截斷並標 `[truncated]`），`parseFeedback` 解析 `bug:`／`idea:` 前綴。表單狀態 `feedback` 是 `register.js` 的記憶體變數，`drawFeedback` 負責畫出。
+- `feedback.js`：`buildTeamsLink(raw, recipient)` 把使用者輸入轉成 Teams 聊天 deep link（只含輸入文字與分類標籤，長度上限 `LINK_LIMIT`，超過以 code point 截斷並標 `[truncated]`；回傳的 `message` 永遠是完整純文字，供複製），`parseFeedback` 解析 `bug:`／`idea:` 前綴，`parseRecipient` 把收件人限制成單一 email，避免夾帶額外參數。收件人來自 `userConfig.feedbackRecipient`，程式碼與測試不得出現真實地址（repo 是公開的，測試用 `example.com`）。表單狀態 `feedback` 是 `register.js` 的記憶體變數，`drawFeedback` 負責畫出；沒設定收件人時只提供複製內容。
 - `inputs.js`：`entryFromAppend(e, result)` 把 `session.append` 的列分類成外部輸入或 null；`NOISE` 黑名單每項附原因，沒列的種類照樣顯示；被拒絕的 append（`result.deny`）不算。外部輸入只進 `state.inputs`，不進 `sources`，所以不會進摘要快照。測試 kit 無法端到端觸發 `session.append`，分類邏輯要放在這個純函式裡測。
 
 資料流：事件 hook 先 `await next(e)` 拿原結果，再把觀察寫進 state，最後原樣回傳。`clock.every(1000)` 背景計時器負責 redraw 並呼叫 `summarize()`，後者建快照、claim 排程，再呼叫 `$.model.complete({model:'haiku', maxTokens:512, timeoutMs:15000})`。
