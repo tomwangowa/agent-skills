@@ -6,7 +6,7 @@ import {paneRows, inlineFields, footerNotes, sectionById, inputRowNodes} from '.
 import {colorFor} from './theme.js';
 import {VERSION} from './meta.js';
 import {entryFromAppend} from './inputs.js';
-import {buildTeamsLink, composeMessage, parseRecipient} from './feedback.js';
+import {buildTeamsLink, composeMessage, parseRecipient, recipientStatus, SETUP_STEPS, SETUP_HEADLINE, SETUP_COPY_HINT} from './feedback.js';
 
 let state = createState(UNKNOWN_SESSION);
 const schedule = createSchedule();
@@ -22,6 +22,8 @@ const closedFeedback = () => ({open:false, draft:'', link:null, copied:null, emp
 let feedback = closedFeedback();
 // Teams account of whoever receives feedback; set per install so no address lives in this public repo.
 let recipient = null;
+// Why there is no recipient, so an unset value and a mistyped one get different guidance.
+let recipientNotice = 'unset';
 const sourceId = () => `e${state.epoch}-s${++sequence}`;
 const apply = event => {
   state = reduceState(state, event);
@@ -109,6 +111,7 @@ async function reconnect($) {
 /** Register passive observers and a memory-only attention panel. */
 export function register(on, options) {
   recipient = parseRecipient(options?.feedbackRecipient);
+  recipientNotice = recipientStatus(options?.feedbackRecipient);
   on('session.start', async ($, e, next) => {
     const result = await next(e);
     try {
@@ -268,7 +271,11 @@ function drawFeedback($, {Box, Text, Button, Input, Link}) {
   return [Box({flexDirection:'column', children:[
     Text({bold:true, children:'回饋'}),
     Text({dimColor:true, wrap:'wrap', children:'描述問題或改善建議，可用 bug: 或 idea: 開頭分類，Enter 產生 Teams 連結。'}),
-    ...(hasRecipient ? [] : [Text({color:colorFor('warning'), wrap:'wrap', children:'尚未設定回饋收件人（外掛設定 feedbackRecipient），只能複製內容後自行傳送。'})]),
+    ...(hasRecipient ? [] : [
+      Text({color:colorFor('warning'), wrap:'wrap', children:SETUP_HEADLINE[recipientNotice] ?? SETUP_HEADLINE.unset}),
+      ...SETUP_STEPS.map(step => Text({wrap:'wrap', children:step})),
+      Text({dimColor:true, wrap:'wrap', children:SETUP_COPY_HINT}),
+    ]),
     Input({key:'attention-feedback', label:'內容', placeholder:'bug: ...', value:feedback.draft, submitLabel:hasRecipient ? '產生連結' : '產生內容', autoFocus:true,
       // Editing invalidates a link made from the older text, so redraw to drop it.
       onInput:value => change({draft:value, link:null, copied:null, empty:false}),

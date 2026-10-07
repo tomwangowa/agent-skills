@@ -1,5 +1,5 @@
 import {test,expect} from 'claude-code/testing';
-import {parseFeedback,parseRecipient,composeMessage,buildTeamsLink,LINK_LIMIT} from '../hooks/feedback.js';
+import {parseFeedback,parseRecipient,recipientStatus,SETUP_STEPS,composeMessage,buildTeamsLink,LINK_LIMIT} from '../hooks/feedback.js';
 
 const TO='colleague@example.com';
 
@@ -90,4 +90,21 @@ test('a recipient longer than an email address can be is rejected, so the link a
   const result=buildTeamsLink('bug: '+'中'.repeat(500),longest);
   expect(result.url.length).toBeLessThanOrEqual(LINK_LIMIT);
   expect(result.truncated).toBe(true);
+});
+
+test('recipientStatus tells an unset value from one that is set but not a single email',()=>{
+  for(const unset of [undefined,null,'','   ','\n\t']) expect(recipientStatus(unset)).toBe('unset');
+  expect(recipientStatus(' a.b@corp.example ')).toBe('ok');
+  for(const bad of ['tom','a@b','a@b.c,d@e.f','a@b.c&message=x',42,'a'.repeat(300)+'@x.com']) expect(recipientStatus(bad)).toBe('invalid');
+  // Same verdict as parseRecipient, so the notice never disagrees with whether a link gets built.
+  for(const v of [undefined,'','tom',TO,'a@b.c&x=1']) expect(recipientStatus(v)==='ok').toBe(parseRecipient(v)!==null);
+});
+
+test('setup steps name the config field and the maintainer but carry no full address',()=>{
+  const text=SETUP_STEPS.join('\n');
+  expect(text).toContain('/config');
+  expect(text).toContain('「回饋收件人」');
+  expect(text).toContain('tom_wang');
+  // The repo is public: a maintainer name is fine, anything shaped like an address is not.
+  expect(text).not.toMatch(/\S@\S/);
 });

@@ -30,6 +30,27 @@ export function parseRecipient(value) {
 }
 
 /**
+ * Why the form has no link: 'unset' for a blank value, 'invalid' for one that was typed but is not
+ * a single email, 'ok' otherwise. Agrees with `parseRecipient`, so the notice cannot contradict it.
+ */
+export function recipientStatus(value) {
+  if (String(value ?? '').trim() === '') return 'unset';
+  return parseRecipient(value) === null ? 'invalid' : 'ok';
+}
+
+/** Names the maintainer without an address: the repo is public, so the person is asked in person. */
+export const SETUP_STEPS = [
+  '1. 輸入 /config，找到「回饋收件人」',
+  '2. 填收件人的 Teams 登入 email（向維護者 tom_wang 索取）',
+  '3. 儲存後面板會自動重載',
+];
+export const SETUP_HEADLINE = {
+  unset: '尚未設定回饋收件人，設定步驟：',
+  invalid: '目前的值不是單一合法 email，請重新設定，步驟：',
+};
+export const SETUP_COPY_HINT = '設定前也可以直接輸入，用「複製內容」自行傳送。';
+
+/**
  * The labelled, sanitised text a recipient would read, or null when nothing but a category
  * prefix was typed. Shared by the link and the copy path so both always carry the same words.
  */
