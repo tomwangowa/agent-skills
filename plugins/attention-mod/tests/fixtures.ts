@@ -5,7 +5,7 @@ export const paneTarget=(surface='terminal',placement='dock',requestId='attentio
 /** Stub the native host before the test's first dispatch. */
 export function host(on, options={}) {
   const clock=mock.clock(on);
-  const record={opens:[],prompts:[],models:[],commands:[]};
+  const record={opens:[],prompts:[],models:[],commands:[],closes:[],statuses:[]};
   let sessionId='session-one';
   on('session.id',()=>({value:sessionId}));
   on('session.messages',()=>options.readMessages ? options.readMessages() : {value:options.messages ?? []});
@@ -21,7 +21,8 @@ export function host(on, options={}) {
   on('tool.check',()=>({decision:'ask'}));
   on('turn.start',()=>({turnId:'turn-one'}));
   on('turn.complete',()=>({text:''}));
-  on('ui.close',()=>({value:undefined}));
+  on('ui.close',($,e)=>{record.closes.push(e.id);return {value:undefined};});
+  on('ui.status',($,e)=>{record.statuses.push(e.text);return {value:undefined};});
   on('ui.render',($,e)=>e.component === 'AskUserQuestion' ? {type:'engine',ref:1} : $.ui.resolve(e).Text({children:'native-component'}));
   on('model.complete',($,e)=>{record.models.push({request:e,at:clock.now()});return options.model ? options.model(e) : {value:{isAnswered:false,reason:'empty-reply',usage:{}}};});
   return {clock,record,setSession:id=>{sessionId=id;}};

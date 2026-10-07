@@ -1,7 +1,7 @@
 # 決策：面板收起改成標題列 toggle
 
 日期：2026-10-07  
-狀態：Tom 於 2026-10-07 選定；實作版本 0.4.3。設計見 `docs/superpowers/specs/2026-10-07-collapse-panel-design.md`。
+狀態：Tom 於 2026-10-07 選定；實作版本 0.4.3；dock 的處理在 0.4.4 修訂。設計見 `docs/superpowers/specs/2026-10-07-collapse-panel-design.md`。
 
 ## 決策
 
@@ -23,3 +23,18 @@
 - NOT VERIFIED：收起後面板外框會不會縮成兩行。`PaneOpenArgs.rows` 只是請求，dock 會忽略，對已開啟的 id 再 `open` 只算 retitle。要實機看 inline 與 dock 的實際高度，再決定要不要補「收起時重呼叫 `ui.open({rows:2})`」。
 - NOT VERIFIED：48 欄寬下標題加按鈕會不會折行。
 - 測試 kit 沒有 `$.ui.close`，原生 × 觸發的 `closed` 旗標失去自動化測試（原本靠底部按鈕觸發）。
+
+## 修訂（0.4.4）
+
+Tom 實機用 0.4.3 測試（2026-10-07 截圖）：
+
+- VERIFIED：inline 收起後外框縮成兩行，toggle 可以展開。
+- VERIFIED：dock 收起後內容只剩兩行，外框仍是整面高、留下一大片空白。型別文件（`PaneOpenArgs.rows`）說 dock 忽略 `rows`，高度由 host 決定，外掛縮不了。
+- 缺陷：標題與 `[ 收起面板 ]` 黏在一起，已補一格空白。
+
+Tom 選擇：dock 的「收起面板」改成關閉面板，並用 `$.ui.status` 在輸入框下方釘一行狀態（有等待就顯示「需要你」），輸入 `/attention` 展開；inline 維持標題列 toggle。dock 一律畫完整版面，不理會 inline 的收起狀態。
+
+### 新的限制
+
+- NOT VERIFIED：`$.ui.status` 的那一行在實機的位置與被截斷的寬度；`/clear` 後是否保留（程式在每次 redraw 都重新釘，不依賴它保留）；外掛重載後是否清掉。
+- 收起後想展開，dock 得打 `/attention`，沒有可點的按鈕（狀態行不能點）。

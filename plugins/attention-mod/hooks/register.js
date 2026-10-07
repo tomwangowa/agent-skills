@@ -16,6 +16,8 @@ let reading = false;
 let closed = false;
 // A view preference, so it survives /clear and resume; only a reload returns the pane to expanded.
 let collapsed = false;
+// Dock only: the dock cannot shrink, so folding it closes the pane and pins a status line instead.
+let parked = false;
 let now = 0;
 let endingSessionId = null;
 let reconnecting = false;
@@ -33,7 +35,25 @@ const apply = event => {
 };
 
 /** Keep observation failures from changing the caller's result. */
-function redraw($) { try { $.ui.invalidate('ui.render'); } catch {} }
+function redraw($) {
+  try { $.ui.invalidate('ui.render'); } catch {}
+  if (parked) pinStatus($);
+}
+
+/** The one-line stand-in for a parked pane: the wait when there is one, else the action. */
+function pinStatus($) {
+  try {
+    const line = collapsedLine(paneRows(state, now));
+    $.ui.status(`你到底在忙什麼 · ${line.label}：${line.text}（輸入 /attention 展開）`);
+  } catch { /* A failed status line must not disturb the caller. */ }
+}
+
+/** Close the pane like a native × (so updates do not reopen it) and leave the status line behind. */
+async function park($) {
+  parked = true;
+  pinStatus($);
+  try { await $.ui.close({id:'attention-mod'}); } catch { /* A refused close leaves the pane open beside the status. */ }
+}
 
 /** Restore only an unchanged, empty generation; messages lack stable IDs. */
 async function restore($) {
@@ -238,6 +258,7 @@ export function register(on, options) {
   });
   on('command.run', {command:'attention'}, async ($, e) => {
     closed = false;
+    if (parked) { parked = false; try { $.ui.status(undefined); } catch {} }
     await $.ui.open({id:'attention-mod', title:`你到底在忙什麼 v${VERSION}`, rows:18, columns:48});
     return {};
   });
@@ -250,12 +271,14 @@ export function register(on, options) {
     const els = $.ui.resolve(e);
     const view = paneRows(state, now);
     // Only the dock reliably has the height for bordered sections; any other placement keeps the compact layout.
-    const header = drawHeader(view, els, () => { collapsed = !collapsed; redraw($); });
-    if (collapsed) {
+    const dock = e.props.placement === 'dock';
+    // The dock's height belongs to the host, so folding it would only leave a tall empty frame.
+    const header = drawHeader(view, els, dock ? () => park($) : () => { collapsed = !collapsed; redraw($); }, e.props.placement);
+    if (collapsed && !dock) {
       const line = collapsedLine(view);
       return els.Box({flexDirection:'column', children:[header, labelled(els.Text, line, line.tone, 'truncate')]});
     }
-    const body = e.props.placement === 'dock' ? drawDock(view, els, header) : drawInline(view, els, e.props.bodyColumns, header);
+    const body = dock ? drawDock(view, els, header) : drawInline(view, els, e.props.bodyColumns, header);
     return els.Box({flexDirection:'column', children:[...body, ...drawFeedback($, els)]});
   });
 }
@@ -313,10 +336,12 @@ function labelled(Text, row, tone, wrap = 'wrap') {
 }
 
 /** Title and version, then the toggle: native × closes the pane, this only folds it. */
-function drawHeader(view, {Box, Text, Button}, toggle) {
+function drawHeader(view, {Box, Text, Button}, toggle, placement) {
   return Box({flexDirection:'row', children:[
     Text({bold:true, wrap:'truncate', children:view.title}),
-    Button({key:'toggle-collapse', label:collapsed ? '展開面板' : '收起面板', onPress:toggle}),
+    // A plain space: Button prints its brackets flush against whatever precedes it.
+    Text({children:' '}),
+    Button({key:'toggle-collapse', label:collapsed && placement !== 'dock' ? '展開面板' : '收起面板', onPress:toggle}),
   ]});
 }
 

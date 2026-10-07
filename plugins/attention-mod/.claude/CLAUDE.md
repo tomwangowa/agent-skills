@@ -29,7 +29,7 @@ claude --plugin-dir "$PWD"          # 實際載入 Mod 試用，面板沒出現�
 - `summary.js`：固定的 system prompt，加上 `parseSummary` 嚴格驗證。只接受 `goal/context/evidence` 三個 key，每欄 null 或 `{text, sources}`，text 最多 160 code points，引用的來源必須存在於快照。`context` 只能引用 `assistant`，`evidence` 只能引用 `tool`／`tool-success`／`tool-error`／`tool-denied`／`tool-cancelled`。`unwrapSummaryJson` 只拆掉完整、單一的 ```` ```json ```` 外框。
 - `scheduler.js`：同一份 `sessionId:epoch:revision` 只試一次（失敗不重試），開始時間相隔至少 60 秒，同時最多一個呼叫。
 - `view.js`：`paneRows` 把狀態轉成三個區塊（摘要、即時、外部輸入），只帶語意色調不帶顏色；`liveTone` 決定即時區塊色調、`actionDot` 決定「動作」的點（「需要你」的點在 `paneRows` 裡依有無等待決定）；`inlineFields`／`footerNotes` 還原 0.2.0 的平面順序；`paneLines` 是純文字版本。不呼叫模型。`sectionById(view, id)` 讓兩種版面都依 id 取區塊，不依位置。
-- `theme.js`：`colorFor(tone)` 把色調對應到終端機具名色，未知色調回傳 undefined。`register.js` 依 `e.props.placement` 呼叫 `drawDock`（圓角框）或 `drawInline`（平面）。標題列由 `drawHeader` 畫（標題加「收起面板／展開面板」toggle），`collapsed` 是記憶體變數、不隨 session-reset 重設；收起時只畫標題列與 `collapsedLine(view)`（有等待就顯示「需要你」，否則「動作」）。面板不再有底部關閉按鈕，完全關閉靠原生 ×；測試 kit 沒有 `$.ui.close`，`closed` 旗標沒有自動化測試。
+- `theme.js`：`colorFor(tone)` 把色調對應到終端機具名色，未知色調回傳 undefined。`register.js` 依 `e.props.placement` 呼叫 `drawDock`（圓角框）或 `drawInline`（平面）。標題列由 `drawHeader` 畫（標題、一格空白、「收起面板／展開面板」toggle）。toggle 依 `e.props.placement` 分兩種：inline 切換 `collapsed`（記憶體變數、不隨 session-reset 重設），收起時只畫標題列與 `collapsedLine(view)`（有等待就顯示「需要你」，否則「動作」）；dock 的高度由 host 決定、縮不了，所以 toggle 呼叫 `park()`：設 `parked`、`$.ui.close`、並在 `redraw()` 裡每次用 `$.ui.status` 重新釘上一行狀態，`/attention` 才清掉。dock 一律畫完整版面、不理會 `collapsed`。測試 kit 的 `$` 沒有 `$.ui.close`，原生 × 觸發的 `closed` 旗標沒有自動化測試（`park()` 走的是外掛自己的 `$.ui.close`，有測）。
 - `feedback.js`：`buildTeamsLink(raw, recipient)` 把使用者輸入轉成 Teams 聊天 deep link（只含輸入文字與分類標籤，長度上限 `LINK_LIMIT`，超過以 code point 截斷並標 `[truncated]`；回傳的 `message` 永遠是完整純文字，供複製），`parseFeedback` 解析 `bug:`／`idea:` 前綴，`composeMessage` 產生帶標籤、清掉 lone surrogate 的訊息文字（連結與「複製內容」共用，只輸入前綴視為空），`parseRecipient` 把收件人限制成單一 email（上限 254 字元），避免夾帶額外參數、也保證連結放得下。收件人來自 `userConfig.feedbackRecipient`，程式碼與測試不得出現真實地址（repo 是公開的，測試用 `example.com`）。表單狀態 `feedback` 是 `register.js` 的記憶體變數，`drawFeedback` 負責畫出；沒設定收件人時只提供複製內容；`recipientStatus` 把設定值分成 `unset`／`invalid`／`ok`（判斷與 `parseRecipient` 一致），`SETUP_STEPS` 等常數是表單裡顯示的設定步驟，只寫維護者名字、不含地址。
 - `inputs.js`：`entryFromAppend(e, result)` 把 `session.append` 的列分類成外部輸入或 null；`NOISE` 黑名單每項附原因，沒列的種類照樣顯示；被拒絕的 append（`result.deny`）不算。外部輸入只進 `state.inputs`，不進 `sources`，所以不會進摘要快照。測試 kit 無法端到端觸發 `session.append`，分類邏輯要放在這個純函式裡測。
 
@@ -37,7 +37,7 @@ claude --plugin-dir "$PWD"          # 實際載入 Mod 試用，面板沒出現�
 
 改程式時要守住的不變條件（設計理由見 spec）：
 
-- **被動觀察**：不改寫提示、工具結果或權限決定；觀察失敗包在 `try/catch` 裡，不能影響呼叫端。只用 clock、model.complete、session.id/messages、command.register、ui（含回饋表單的 `ui.copy`）；不用 store、檔案、http、process，也不提交主對話提示。validate 的 calls inventory 會反映這點。
+- **被動觀察**：不改寫提示、工具結果或權限決定；觀察失敗包在 `try/catch` 裡，不能影響呼叫端。只用 clock、model.complete、session.id/messages、command.register、ui（含回饋表單的 `ui.copy`、dock 收起用的 `ui.status`／`ui.close`）；不用 store、檔案、http、process，也不提交主對話提示。validate 的 calls inventory 會反映這點。
 - **世代保護**：`epoch` 在 new-prompt 和 session-reset 時加一。模型回應寫回前要核對 `sessionId` 和 `epoch`，晚到的舊回應直接丟掉。排程鎖跨 reset 仍然有效，不能因為世代失效就提早釋放。
 - **事件與模型分工**：「動作」「需要你」只由事件產生；「目標」「脈絡」「證據」只來自摘要，不能互相覆寫。`tool.check` 的 `ask` 只算「等待狀態不明」；`AskUserQuestion` 實際 render 才算等你回答；`permission_prompt` 只有在剛好一個執行中工具時才對應成權限等待。
 - **clear／resume**：實測不會再觸發 `session.start`，也不保證有 `classic.SessionStart`。`session.end` 記下 `endingSessionId` 後停用，由計時器在 `reconnect()` 輪詢 `session.id()`，看到 ID 改變才恢復並 `restore()`。
