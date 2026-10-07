@@ -1,7 +1,7 @@
 # Handoff Mod 設計
 
 日期：2026-10-06  
-狀態：**草案，Tom 尚未確認。** 標「待決」的項目由 Tom 決定；標「未驗證」的行為 PoC 沒測到。  
+狀態：**草案。** 待決項目 D1 至 D11 已於 2026-10-07 全部決定，整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。  
 plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接著做」。  
 證據：[micro-PoC 結果](../../poc-results.md)（Cloud 與 Tom 本機實測：macOS、Warp、Claude Code 2.1.291 至 2.1.292）；驗證計畫：[micro-PoC 計畫](../plans/2026-10-06-handoff-mod-poc.md)。
 
@@ -14,7 +14,7 @@ plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接�
 
 這不是活動日誌（「最近幾天做了什麼」），不是稽核證據，也不跨機器同步。
 
-**第一版包含：** 內建 skill、門檻觸發、`/clear` 攔截、啟動讀回、交接檔格式與新鮮度檢查、認領、結束筆記（D4）。  
+**第一版包含：** 內建 skill、門檻觸發、`/clear` 攔截、啟動讀回、交接檔格式與新鮮度檢查、認領、結束筆記（D4）、使用計數（D5）。  
 **第一版不含：** 見最後「不做的事」。
 
 ## 使用者與前提
@@ -66,11 +66,11 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 | 觸發點 | 條件 | 介面 |
 | --- | --- | --- |
 | T1 門檻 | `percent` 有值且 ≥ 門檻（預設已用 60%，D1）；`turn.complete` 之後閒置、沒有等待；有未完成跡象；本 session 沒被抑制；這個門檻沒問過 | band，三個按鈕；窄視窗且有 attention-mod 時改 `$.ui.status` 常駐一行＋指令（D9） |
-| T2 `/clear` | 互動 session；`turns() > 0`；有未完成跡象 | `$.ui.ask`，三個選項 |
+| T2 `/clear` | 互動 session；`turns() > 0`（D3：不看未完成跡象，一律詢問） | `$.ui.ask`，三個選項 |
 | T3 手動 | 使用者自己下 `/handoff-mod:handoff` | 無，skill 直接執行 |
 | T4 壓縮前 | 有機會：`session.compact` 在壓縮前觸發且可否決；hook 內 `$.ui.ask` 未驗證 | 待驗 |
 
-**未完成跡象**（假設，未驗證）：本 session 有成功的 `Edit`／`Write`／`NotebookEdit`，或 `git status` 不乾淨。純問答的 session 不需要交接，沒有這個條件使用者會一直被問。
+**未完成跡象**（假設，未驗證）：本 session 有成功的 `Edit`／`Write`／`NotebookEdit`，或 `git status` 不乾淨。純問答的 session 不需要交接，沒有這個條件使用者會一直被問。這個條件用在 T1 與結束筆記；T2 依 D3 不看它。
 
 **T1 的三個選項：**
 
@@ -102,7 +102,7 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 
 ### 4. 交接檔格式（schema 1）
 
-位置與檔名：`<root>/.claude/handoffs/<branch 淨化>--<YYYYMMDD-HHMMSS>.md`（沒有 git 時 branch 用 `no-branch`）。
+位置與檔名：`<base>/.claude/handoffs/<branch 淨化>--<YYYYMMDD-HHMMSS>.md`（`base` 見範圍鍵）（沒有 git 時 branch 用 `no-branch`）。
 
 ```markdown
 ---
@@ -126,7 +126,7 @@ source: auto                # 只有結束筆記（D4）有；省略表示使用
 ## 已驗證／未驗證（AI 自述）
 ```
 
-**讀取規則：** 只要求 `status` 與 `created`；其餘缺了就不顯示該項；不認得的欄位忽略。為了相容 Tom 現有的 `handoff`，`worktree` 視為 `root` 的別名；`assertions` 第一版忽略。
+**讀取規則：** 章節標題中文與英文都認（`## 下一步` 與 `## Next` 等，D11）；只要求 `status` 與 `created`；其餘缺了就不顯示該項；不認得的欄位忽略。為了相容 Tom 現有的 `handoff`，`worktree` 視為 `root` 的別名；`assertions` 第一版忽略。
 
 **內容是資料，不是指令：** 面板只顯示固定幾個欄位，去除控制字元與 ANSI 碼並限制長度；接續提示只引用路徑；mod 不執行檔案裡的任何內容。
 
@@ -161,17 +161,17 @@ source: auto                # 只有結束筆記（D4）有；省略表示使用
 - 從 `~` 啟動或專案不明：只用 `root` 比對，不猜。
 - session 中途 shell `cd` 不會移動 `root()`；`/cd` 未驗證。以寫檔當下算出的 `base` 為準。
 
-**交接檔位置（待決 D2）：** 預設放 `<root>/.claude/handoffs/`，在 git repo 內檢查是否已被忽略，沒有就寫進 `$(git rev-parse --git-path info/exclude)`，避免弄髒同事的 `git status`。
+**交接檔位置（D2、D10 已決）：** 放 `<base>/.claude/handoffs/`（git repo 內 `base` 是 toplevel），在 git repo 內檢查是否已被忽略，沒有就寫進 `$(git rev-parse --git-path info/exclude)`，避免弄髒同事的 `git status`。
 
 ### 8. 結束筆記（D4，自動寫入，未經使用者審查）
 
 `session.end` 時自動寫一份只含事實的筆記，不呼叫模型。放同一個交接目錄，檔名 `<branch 淨化>--<時間>--auto.md`，frontmatter `source: auto`。
 
-**寫入條件：** 互動 session；`turns() > 0`；有未完成跡象（同 T2）；`reason` 不是 `clear`（`/clear` 由 T2 處理）。其他一律不寫。
+**寫入條件：** 互動 session；`turns() > 0`；有未完成跡象（定義見 T1）；`reason` 不是 `clear`（`/clear` 由 T2 處理）。其他一律不寫。
 
 **內容：** `task` 用最後一個使用者要求（截斷）；本文只有「最後一個要求」「最後一段回應」「branch／HEAD」「有改動的檔案清單」。不寫工具輸出，不寫更早的對話。
 
-**緩解措施（我加的，待 Tom 確認）：** 因為沒有「先看過再寫」的關卡、又含對話原文，所以：
+**緩解措施（Tom 已確認，2026-10-07；預設開啟）：** 因為沒有「先看過再寫」的關卡、又含對話原文，所以：
 
 1. 目錄已被 `.git/info/exclude` 擋掉（D2），檔案權限 `0600`。
 2. 兩段原文各截斷到 2000 字，去除控制字元與 ANSI 碼。
@@ -203,20 +203,21 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | `$.store` 讀寫失敗 | 不認領、不覆寫狀態；仍可接續，只是不防重複 |
 | 任何 hook 內部錯誤 | `try/catch`，不影響主 session（沿用 attention-mod 的被動觀察原則） |
 
-## 待決（Tom）
+## 決定紀錄（D1 至 D11）
 
-| 編號 | 問題 | 我的傾向 |
+| 編號 | 問題 | 決定（或我的傾向） |
 | --- | --- | --- |
 | D1 | 門檻的語意與預設值。你的原意是「剩餘低於 40%」（原文寫成 60%，是筆誤），等於已用 60%；在 1M window 是 60 萬 token，在 200k 模型約 12 萬 | **已決（Tom，2026-10-07）：** 預設已用 60%，純百分比、可設定，不加絕對 token 上限（L1：`percent` 與 `/context` 一致，可用）。測試階段用環境變數 `HANDOFF_THRESHOLD_PCT` 覆寫，測試時設 `10`（1M window 下新 session 約 4%，10% 約十萬 token，不會一開始就達標）；其他觸發條件不因測試而繞過 |
 | D2 | 交接檔放 repo 內 `.claude/handoffs/`（跟著 worktree、刪 repo 就沒了）還是使用者目錄（不污染 repo、換機不跟）；跨 worktree 看不看得到 | **已決（Tom，2026-10-07）：** repo 內 `<toplevel>/.claude/handoffs/`，加 `.git/info/exclude`；啟動讀回時用 `git worktree list` 把同 repo 其他 worktree 的交接列在下面並標來源；不做使用者目錄、不另做索引（L2：skill 寫進該 worktree 自己的目錄） |
-| D3 | `/clear` 在沒有未完成跡象時也要問嗎？取消 `/clear` 的做法（不呼叫 `next`）你能接受嗎？ | 沒有跡象就直接放行；取消可接受，文案要清楚 |
-| D4 | 結束時用 `session.end` 自動留一份只含事實的接續筆記（最後一個要求原文、最後一段話原文、branch、有改動的檔案），不呼叫模型 | **已決（Tom，2026-10-07）：做，含對話原文。** 設計見元件 8；緩解措施是我加的，待 Tom 確認。L6：`/exit`、`Ctrl-C` 兩次、關分頁都觸發 `session.end`（`kill -9`、當機沒有）。**未驗證：** `session.end` 內能否讀 `$.session.messages()`、在約 1.5 秒預算內讀完並寫入 |
-| D5 | 要不要記錄「交接寫了幾次、最後接續了幾次」來判斷有沒有價值？這需要持久化 | 要，但只放 `$.store`，本機計數，不外傳 |
-| D6 | plugin 與 skill 的名稱（暫 `handoff-mod`、`handoff-mod:handoff`） | — |
-| D7 | 偵測到使用者自己的 `handoff` 時，優先用它還是一律用內建？ | 一律內建；你自己的 skill 格式只有 Tom 一個人保證相容。L2：你的 `handoff` 能由 `$.command.run` 啟動、Review Gate 與寫檔都成立，但不觸發 `skill.prompt`，理由不變 |
-| D8 | 同事是否都讀繁體中文？介面字串要不要預留抽出 | 先繁中，字串集中在一個檔 |
+| D3 | `/clear` 在沒有未完成跡象時也要問嗎？取消 `/clear` 的做法（不呼叫 `next`）你能接受嗎？ | **已決（Tom，2026-10-07）：一律都問**（與我的傾向「沒跡象就放行」不同）；取消做法隨選項接受，文案要清楚。後果：純問答的 session 也會在 `/clear` 時被問一次 |
+| D4 | 結束時用 `session.end` 自動留一份只含事實的接續筆記（最後一個要求原文、最後一段話原文、branch、有改動的檔案），不呼叫模型 | **已決（Tom，2026-10-07）：做，含對話原文。** 設計見元件 8；五條緩解措施已確認，預設開啟（`HANDOFF_AUTO_NOTE=off` 關閉）。L6：`/exit`、`Ctrl-C` 兩次、關分頁都觸發 `session.end`（`kill -9`、當機沒有）。**未驗證：** `session.end` 內能否讀 `$.session.messages()`、在約 1.5 秒預算內讀完並寫入 |
+| D5 | 要不要記錄「交接寫了幾次、最後接續了幾次」來判斷有沒有價值？這需要持久化 | **已決（Tom，2026-10-07）：** 要，只放 `$.store`，本機計數，不外傳 |
+| D6 | plugin 與 skill 的名稱（暫 `handoff-mod`、`handoff-mod:handoff`） | 維持暫稱（2026-10-07 提出後 Tom 未提出異議；仍可改） |
+| D7 | 偵測到使用者自己的 `handoff` 時，優先用它還是一律用內建？ | **已決（Tom，2026-10-07）：一律用內建。** 你自己的 skill 格式只有 Tom 一個人保證相容。L2：你的 `handoff` 能由 `$.command.run` 啟動、Review Gate 與寫檔都成立，但不觸發 `skill.prompt`，且曾把沒跑過的指令標成已驗證 |
+| D8 | 同事是否都讀繁體中文？介面字串要不要預留抽出 | **已決（Tom，2026-10-07）：** 繁體中文加英文，兩種都做。選語言與交接檔標題的處理見 D11 |
 | D9 | 窄視窗且有 attention-mod 時，band 被擠出可見範圍（L8），門檻提示怎麼辦 | **已決（Tom，2026-10-07）：** 窄視窗用 `$.ui.status` 常駐一行＋指令（`/handoff-mod:handoff`），直到交接完成或選「不再問」才拆掉；寬視窗用 band。`$.ui.status` 與 `$.ui.toast` 只有型別檔說明，PoC 沒實測，實作前要先驗證在 attention-mod inline 模式下看得到 |
 | D10 | 交接目錄的基準：git repo 內用 `git rev-parse --show-toplevel`（每個 worktree 一份），還是 `session.root()`（從子目錄啟動會各有一份，L7）？ | **已決（Tom，2026-10-07）：** git repo 內用 toplevel；不在 git 內才用 `root()`；啟動目錄記在檔案的 `root` 欄當標籤 |
+| D11 | 雙語帶來的兩個問題：(1) 介面語言怎麼選（`$.env` 變數、Claude Code 的語言設定，是否可讀沒查證）；(2) 交接檔的章節標題（`## 任務`、`## 下一步`…）是中文，啟動讀回靠標題找「下一步」，英文版標題怎麼辦 | **已決（Tom，2026-10-07）：** 解析器同時認中英標題，檔案語言由使用者語言決定；介面語言先用環境變數 `HANDOFF_LANG`（預設 `zh-TW`），自動偵測等查證可行再加 |
 
 ## 驗證與測試
 
