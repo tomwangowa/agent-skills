@@ -1,6 +1,6 @@
 import {test,expect} from 'claude-code/testing';
 import {createState,reduceState,BETWEEN_SESSIONS} from '../hooks/state.js';
-import {paneLines,paneRows,clockTime,liveTone,actionDot,inlineFields,footerNotes,inputRowNodes} from '../hooks/view.js';
+import {paneLines,paneRows,clockTime,liveTone,actionDot,collapsedLine,inlineFields,footerNotes,inputRowNodes} from '../hooks/view.js';
 test('pane uses snapshot age, marks newer data, and never claims task completion',()=>{
   const s={...createState('s'),revision:2,summaryRevision:1,snapshotAt:1000,summary:{goal:{text:'修正登入',sources:['s']},context:null,evidence:null},turnStatus:'ended'};
   const lines=paneLines(s,21000).join('\n');
@@ -19,7 +19,7 @@ test('waits are explicit, ask routes stay unknown, and concurrent tools are visi
 });
 test('pane rows expose the question title and each field label apart from its value',()=>{
   const view=paneRows(createState('s'),0);
-  expect(view.title).toBe('你到底在忙什麼？ v0.4.2');
+  expect(view.title).toBe('你到底在忙什麼？ v0.4.3');
   expect(view.sections.map(s=>s.label)).toEqual(['摘要','即時','外部輸入']);
   expect(inlineFields(view).map(f=>f.label)).toEqual(['目標','脈絡','動作','證據','需要你']);
   expect(inlineFields(view)[0].text).toBe('目的尚不清楚');
@@ -131,4 +131,14 @@ test('a note row keeps its excerpt however old it is, since its label alone does
   };
   expect(excerpts('delivery')).toEqual(['text-new2','text-new1',null]);
   expect(excerpts('note')).toEqual(['text-new2','text-new1','text-oldest']);
+});
+
+test('collapsed line shows the action, and swaps to the wait as soon as one is pending',()=>{
+  let s=createState('s');
+  expect(collapsedLine(paneRows(s,0))).toMatchObject({label:'動作',text:'尚未觀測到工作動作',tone:liveTone(s)});
+  s=reduceState(s,{type:'wait-start',kind:'question',id:'q',at:0});
+  expect(collapsedLine(paneRows(s,0))).toMatchObject({label:'需要你',text:'有問題等你回答',dot:'warning',tone:liveTone(s)});
+  s=reduceState(s,{type:'tool-start',epoch:s.epoch,id:'t',tool:'Bash',label:'ls',at:0});
+  // A wait still wins over a running tool: the line exists so nobody misses a pending question.
+  expect(collapsedLine(paneRows(s,0)).label).toBe('需要你');
 });

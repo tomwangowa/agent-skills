@@ -61,11 +61,12 @@ test('slow background model does not block tools, or overwrite current action wi
   expect(h.record.opens[0].focus).toBe(undefined);
   expect(h.record.opens[0].rows).toBe(18);
 });
-test('pane closes permanently across updates; attention command opens without a main prompt',async($,on)=>{
+// The test host has no `$.ui.close`, so a native × cannot be raised here; the `closed` flag set by
+// the ui.close hook is covered by code review only. The old bottom button was the one way in.
+test('attention command opens without a main prompt',async($,on)=>{
   const h=host(on);
   await begin($);
   const initialPane=await $.ui.mount(paneTarget());
-  await initialPane.press({key:'close-attention'});
   await initialPane.unmount();
   await prompt($,'task');
   await h.clock.advance(1000);
@@ -86,8 +87,9 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   host(on);
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
-  const [title,rule,...rest]=(await pane.drawn()).children;
-  expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.2']});
+  const [titleRow,rule,...rest]=(await pane.drawn()).children;
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.3']});
+  expect(titleRow.children[1]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
   expect(rule.children).toEqual(['─'.repeat(40)]);
   const labels=rest.filter(row=>row.type==='Text').flatMap(row=>(row.children??[]).filter(c=>c?.props?.bold)).map(c=>({text:c.children[0],color:c.props.color}));
   expect(labels).toEqual([{text:'目標：',color:'blue'},{text:'脈絡：',color:'blue'},{text:'動作：',color:undefined},{text:'證據：',color:'blue'},{text:'需要你：',color:undefined},{text:'外部輸入：',color:'magenta'}]);
@@ -97,10 +99,12 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   // 0.2.0 row count (commit ed1c236, hooks/register.js) for this idle state:
   // title(1) + rule(1) + 5 fields(5) + inputs label line(1) + 0 input rows (none yet)
   // + blank line(1) + 0 notes (no snapshot/summary/error/lastEvent yet) + close button(1) = 10.
-  // 0.4.0 adds exactly one row: the closed feedback form's open button, just above the close button.
+  // 0.4.0 added the feedback open button; 0.4.3 moves the toggle into the title row and drops the
+  // bottom close button (native × closes the pane), so the count stays 10 with the feedback button last.
   const rows=(await pane.drawn()).children;
-  expect(rows.length).toBe(11);
-  expect(rows.slice(-2).map(row=>row.props.key)).toEqual(['open-feedback','close-attention']);
+  expect(rows.length).toBe(10);
+  expect(rows.at(-1).props.key).toBe('open-feedback');
+  expect(findNode(await pane.drawn(),n=>n.props?.key==='close-attention')).toBeUndefined();
 });
 test('dock pane draws a bold title above three round sections coloured by meaning',async($,on)=>{
   host(on);
@@ -112,8 +116,9 @@ test('dock pane draws a bold title above three round sections coloured by meanin
   const text=await renderedText(pane);
   for(const header of ['[ 摘要 ]','[ 即時 ]','[ 外部輸入 ]']) expect(text).toContain(header);
   // A lone dock pane has no tab strip, so the pane frame shows no title; the body must carry it.
-  const [title]=(await pane.drawn()).children;
-  expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.2']});
+  const [titleRow]=(await pane.drawn()).children;
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.3']});
+  expect(titleRow.children[1]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
 });
 test('dock live border is green while a tool runs, yellow while a question waits, default after',async($,on)=>{
   let finish;
@@ -313,4 +318,47 @@ test('feedback draft and link are cleared when the session is cleared',{options:
   expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
   await pane.press({key:'open-feedback'});
   expect(findNode(await pane.drawn(),n=>n.type==='Input').props.value).toBe('');
+});
+
+for(const placement of ['dock','inline']) test(`the title-row toggle collapses the ${placement} pane to a title and one status line, and expands it again`,async($,on)=>{
+  host(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal',placement));
+  const section=placement==='dock' ? '[ 摘要 ]' : '目標：';
+  expect(await renderedText(pane)).toContain(section);
+  await pane.press({key:'toggle-collapse'});
+  const collapsed=await renderedText(pane);
+  expect(collapsed).toContain('你到底在忙什麼？ v0.4.3');
+  expect(collapsed).toContain('展開面板');
+  expect(collapsed).toContain('動作：尚未觀測到工作動作');
+  for(const hidden of [section,'外部輸入','需要你：']) expect(collapsed).not.toContain(hidden);
+  expect(findNode(await pane.drawn(),n=>n.props?.key==='open-feedback')).toBeUndefined();
+  expect((await pane.drawn()).children.length).toBe(2);
+  await pane.press({key:'toggle-collapse'});
+  expect(await renderedText(pane)).toContain(section);
+  expect(await renderedText(pane)).toContain('收起面板');
+});
+test('a collapsed pane still surfaces a pending question as the need-you line',async($,on)=>{
+  const h=host(on,{tool:()=>new Promise(()=>{})});
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'toggle-collapse'});
+  void $.tool.call({tool:'AskUserQuestion',questions:[],tool_use_id:'q'});
+  await h.clock.settle();
+  const question=await $.ui.mount({plugin:'attention-mod',surface:'terminal',component:'AskUserQuestion',requestId:'q',props:{tool:'AskUserQuestion',questions:[]}});
+  await h.clock.advance(1000);
+  const shown=await renderedText(pane);
+  expect(shown).toContain('需要你：有問題等你回答');
+  expect(shown).not.toContain('動作：');
+  await question.unmount();
+});
+test('collapsed state survives a session clear and returns to expanded only on reload',async($,on)=>{
+  host(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'toggle-collapse'});
+  await $.session.end({reason:'clear',sessionId:'session-one',resume:{}});
+  await $.classic.SessionStart({hook_event_name:'SessionStart',source:'clear',session_id:'session-two',transcript_path:'/fixture',cwd:'/fixture'});
+  expect(await renderedText(pane)).toContain('展開面板');
+  expect(await renderedText(pane)).not.toContain('目標：');
 });

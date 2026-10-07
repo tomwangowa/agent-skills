@@ -72,6 +72,16 @@ export function sectionById(view, id) {
   return view.sections.find(s => s.id === id);
 }
 
+/**
+ * The one status row a collapsed pane keeps: the pending wait when there is one, otherwise the
+ * action. A collapsed pane that hid a waiting question would defeat what the pane is for.
+ */
+export function collapsedLine(view) {
+  const live = sectionById(view, 'live');
+  const [action, attention] = live.rows;
+  return {...(attention.dot === 'warning' ? attention : action), tone:live.tone};
+}
+
 /** Fields in the flat layout's 0.2.0 order, each carrying its section tone. */
 export function inlineFields(view) {
   const summary = sectionById(view, 'summary');

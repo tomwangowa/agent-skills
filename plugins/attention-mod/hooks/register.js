@@ -2,7 +2,7 @@ import {createState, reduceState, boundedText, UNKNOWN_SESSION, BETWEEN_SESSIONS
 import {buildSnapshot} from './snapshot.js';
 import {parseSummary, summarySystemPrompt, unwrapSummaryJson} from './summary.js';
 import {createSchedule, claimSnapshot, settleRequest} from './scheduler.js';
-import {paneRows, inlineFields, footerNotes, sectionById, inputRowNodes} from './view.js';
+import {paneRows, inlineFields, footerNotes, sectionById, inputRowNodes, collapsedLine} from './view.js';
 import {colorFor} from './theme.js';
 import {VERSION} from './meta.js';
 import {entryFromAppend} from './inputs.js';
@@ -14,6 +14,8 @@ let sequence = 0;
 let timer = null;
 let reading = false;
 let closed = false;
+// A view preference, so it survives /clear and resume; only a reload returns the pane to expanded.
+let collapsed = false;
 let now = 0;
 let endingSessionId = null;
 let reconnecting = false;
@@ -248,12 +250,13 @@ export function register(on, options) {
     const els = $.ui.resolve(e);
     const view = paneRows(state, now);
     // Only the dock reliably has the height for bordered sections; any other placement keeps the compact layout.
-    const body = e.props.placement === 'dock' ? drawDock(view, els) : drawInline(view, els, e.props.bodyColumns);
-    return els.Box({flexDirection:'column', children:[
-      ...body,
-      ...drawFeedback($, els),
-      els.Button({key:'close-attention', label:'收起', onPress:() => $.ui.close({id:'attention-mod'})}),
-    ]});
+    const header = drawHeader(view, els, () => { collapsed = !collapsed; redraw($); });
+    if (collapsed) {
+      const line = collapsedLine(view);
+      return els.Box({flexDirection:'column', children:[header, labelled(els.Text, line, line.tone, 'truncate')]});
+    }
+    const body = e.props.placement === 'dock' ? drawDock(view, els, header) : drawInline(view, els, e.props.bodyColumns, header);
+    return els.Box({flexDirection:'column', children:[...body, ...drawFeedback($, els)]});
   });
 }
 
@@ -301,18 +304,26 @@ function drawFeedback($, {Box, Text, Button, Input, Link}) {
 }
 
 /** A dot then a coloured bold label, shared by both layouts so "● 動作：正在執行" reads the same. */
-function labelled(Text, row, tone) {
-  return Text({wrap:'wrap', children:[
+function labelled(Text, row, tone, wrap = 'wrap') {
+  return Text({wrap, children:[
     ...(row.dot ? [Text({color:colorFor(row.dot), children:'● '})] : []),
     Text({bold:true, color:colorFor(tone), children:`${row.label}：`}),
     row.text,
   ]});
 }
 
+/** Title and version, then the toggle: native × closes the pane, this only folds it. */
+function drawHeader(view, {Box, Text, Button}, toggle) {
+  return Box({flexDirection:'row', children:[
+    Text({bold:true, wrap:'truncate', children:view.title}),
+    Button({key:'toggle-collapse', label:collapsed ? '展開面板' : '收起面板', onPress:toggle}),
+  ]});
+}
+
 /** Bordered sections for the dock, which has the height for them. */
-function drawDock(view, {Box, Text}) {
+function drawDock(view, {Box, Text}, header) {
   // A lone dock pane gets no tab strip, so the frame shows no title; the body carries it instead.
-  return [Text({bold:true, wrap:'truncate', children:view.title}), ...view.sections.map(section => Box({flexDirection:'column', borderStyle:'round', borderColor:colorFor(section.tone), paddingX:1, children:[
+  return [header, ...view.sections.map(section => Box({flexDirection:'column', borderStyle:'round', borderColor:colorFor(section.tone), paddingX:1, children:[
     Box({flexDirection:'row', justifyContent:'space-between', children:[
       Text({bold:true, wrap:'truncate', children:`[ ${section.label} ]`}),
       ...(section.meta ? [Text({dimColor:true, wrap:'truncate', children:section.meta})] : []),
@@ -325,11 +336,11 @@ function drawDock(view, {Box, Text}) {
 }
 
 /** The 0.2.0 flat rows with colour added; used wherever height is scarce. */
-function drawInline(view, els, bodyColumns) {
+function drawInline(view, els, bodyColumns, header) {
   const {Text} = els;
   const inputs = sectionById(view, 'inputs');
   return [
-    Text({bold:true, wrap:'truncate', children:view.title}),
+    header,
     // Box borders draw all four sides, so the rule is a line of box-drawing cells sized to the body.
     Text({dimColor:true, wrap:'truncate', children:'─'.repeat(Math.max(1, bodyColumns))}),
     ...inlineFields(view).map(field => labelled(Text, field, field.tone)),
