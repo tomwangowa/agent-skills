@@ -1,7 +1,7 @@
 # Handoff Mod 設計
 
 日期：2026-10-06  
-狀態：**草案。** 待決項目 D1 至 D11 已於 2026-10-07 全部決定，整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）；同日 Cloud 補驗後再修訂（Tom 選 A，見文末「補驗後的修訂」），其中 3 項是我的建議，**待 Tom 逐項確認**。  
+狀態：**草案。** 待決項目 D1 至 D14 已於 2026-10-07 全部決定，整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）；同日 Cloud 補驗後再修訂（Tom 選 A，見文末「補驗後的修訂」），其中 3 項建議已由 Tom 全部採用，記為 D12 至 D14。  
 plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接著做」。  
 證據：[micro-PoC 結果](../../poc-results.md)（Cloud 與 Tom 本機實測：macOS、Warp、Claude Code 2.1.291 至 2.1.292）；驗證計畫：[micro-PoC 計畫](../plans/2026-10-06-handoff-mod-poc.md)。
 
@@ -87,15 +87,15 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 | --- | --- |
 | 1 同意 | 開始交接（見下） |
 | 2 再多 10% 再問 | 隱藏 band；下一個門檻 = 目前 % ＋ 10 個百分點 |
-| 3 這個 session 別再問 | 這個 session 不再提示；存在 `$.state`（模組重載後保留，`/clear` 後重置，語意正好相符；module 變數會在使用者改任何設定時歸零，**不可用**）。**建議，待 Tom 確認。** |
+| 3 這個 session 別再問 | 這個 session 不再提示；存在 `$.state`（模組重載後保留，`/clear` 後重置，語意正好相符；module 變數會在使用者改任何設定時歸零，**不可用**）。**已決（D12）。** |
 
 不操作等於暫緩：band 保持顯示，不重複彈出；`/clear`、新 session 時消失。
 
 **門檻狀態會重置：** `percent` 在壓縮與 `/clear` 後會下降（本機：9% → 5%），所以「下一個門檻」與「這個門檻沒問過」要在 `session.compact`、`/clear`（新 session id）時清掉；或在 `percent` 低於上次問過的值時重新起算。否則舊的下一個門檻會讓提示在一大段區間都不出現。
 
-**哪裡存這些狀態（建議，待 Tom 確認）：** 「下一個門檻」「這個門檻問過沒有」「別再問」「有一個提問在等」這類 session 範圍的狀態放 `$.state`，不放 module 變數。原因：改設定會重載模組（Cloud 補驗），module 變數會被歸零；`$.state` 在重載後保留、在 `/clear`／`/resume`／`/branch` 後重置，和上面「`/clear` 時要清掉」的需求一致。`/clear` 不會重載模組，所以 module 變數也不會自己清掉，若有留在 module 的狀態，要在 `classic.SessionStart`（`source` 為 `clear`）明確重置。代價：`$.state` 要在 manifest 宣告 `types` 與型別檔；尚未在實作層面比較過用 `$.store`（以 session id 為鍵）的做法。
+**哪裡存這些狀態（D12，Tom 已決）：** 「下一個門檻」「這個門檻問過沒有」「別再問」「有一個提問在等」這類 session 範圍的狀態放 `$.state`，不放 module 變數。原因：改設定會重載模組（Cloud 補驗），module 變數會被歸零；`$.state` 在重載後保留、在 `/clear`／`/resume`／`/branch` 後重置，和上面「`/clear` 時要清掉」的需求一致。`/clear` 不會重載模組，所以 module 變數也不會自己清掉，若有留在 module 的狀態，要在 `classic.SessionStart`（`source` 為 `clear`）明確重置。代價：`$.state` 要在 manifest 宣告 `types` 與型別檔；尚未在實作層面比較過用 `$.store`（以 session id 為鍵）的做法。
 
-**T2 的三個選項與順序（建議，待 Tom 確認）：** 取消／先交接再清除／直接清除。**預設標在第一項**（Cloud 補驗：直接按 Enter 一定選到第一項，對話框開著時打字不會被當成新提示、也不會送出），所以第一項要是「按錯也無害」的選項：把「取消」放第一，使用者必須明確選才會開始交接或清除。原本的順序（先交接再清除／直接清除／取消）會讓意外的 Enter 開始一個交接回合。選「先交接」時 hook **不呼叫 `next`**，回 `{text}` 說明「已暫停清除，交接完成後請再下 `/clear`」，並從計時器開始交接。「直接清除」呼叫 `next(e)`；取消、關閉、reject 都回 `{text}` 不執行。`-p` 或非互動時不攔截。
+**T2 的三個選項與順序（D13，Tom 已決）：** 取消／先交接再清除／直接清除。**預設標在第一項**（Cloud 補驗：直接按 Enter 一定選到第一項，對話框開著時打字不會被當成新提示、也不會送出），所以第一項要是「按錯也無害」的選項：把「取消」放第一，使用者必須明確選才會開始交接或清除。原本的順序（先交接再清除／直接清除／取消）會讓意外的 Enter 開始一個交接回合。選「先交接」時 hook **不呼叫 `next`**，回 `{text}` 說明「已暫停清除，交接完成後請再下 `/clear`」，並從計時器開始交接。「直接清除」呼叫 `next(e)`；取消、關閉、reject 都回 `{text}` 不執行。`-p` 或非互動時不攔截。
 
 **`$.ui.ask` 的使用規則（避免過期對話框）：** `AskOptions` 沒有取消或中止的欄位（型別檔），mod 無法自己關掉一個已經彈出的對話框；L4 也量到回合結束後對話框仍開著。所以第一版：
 
@@ -121,7 +121,7 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
   - `/handoff-resume`（無參數）：列出清單與編號；`/handoff-resume <編號>`：等同按「接續」（填入輸入框、認領）。寬視窗也可使用，不只限於降級。
   - 指令名不能含冒號（`$.command.register` 只允許字母、數字、`_`、`-`，型別檔與文件），所以不是 `/handoff-mod:…`；`handoff-mod:handoff` 是 plugin skill，命名空間由 plugin 提供，不是這個規則的例外。
   - **`$.ui.status` 每個 plugin 只有一行**（型別檔：`undefined` 清除）。啟動清單的那行在使用者送出第一個提示時移除（`turns() > 0`）；T1 的那行之後才可能出現，兩者不會同時存在。
-  - **清單輸出（建議用 `$.ui.log`，待 Tom 確認）：** Cloud 補驗：`{text}` 與 `context` 的內容 Claude 讀得到，`$.ui.log` 讀不到。清單只是給使用者看，Claude 不需要讀到；用 `$.ui.log` 就不會讓檔案裡的文字（任務、下一步）在使用者選擇之前進入 context，也不花 token。代價：attention-mod 的「外部輸入」會列出這些行（L8），所以行數與內容要克制。
+  - **清單輸出（D14，Tom 已決，用 `$.ui.log`）：** Cloud 補驗：`{text}` 與 `context` 的內容 Claude 讀得到，`$.ui.log` 讀不到。清單只是給使用者看，Claude 不需要讀到；用 `$.ui.log` 就不會讓檔案裡的文字（任務、下一步）在使用者選擇之前進入 context，也不花 token。代價：attention-mod 的「外部輸入」會列出這些行（L8），所以行數與內容要克制。
   - `prompt.fill` 可以在 `command.run` hook 內直接呼叫（Cloud 補驗），所以 `/handoff-resume <編號>` 不需要經計時器。
 - **接續：** `$.prompt.fill({text})`，文字是「請先讀 `<路徑>`，驗證其中前提是否仍成立，再接續『下一步』」。只放路徑，不放整份內容。使用者按 Enter 才送出。
 
@@ -262,7 +262,7 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | `$.store` 讀寫失敗 | 不認領、不覆寫狀態；仍可接續，只是不防重複 |
 | 任何 hook 內部錯誤 | `try/catch`，不影響主 session（沿用 attention-mod 的被動觀察原則） |
 
-## 決定紀錄（D1 至 D11）
+## 決定紀錄（D1 至 D14）
 
 | 編號 | 問題 | 決定（或我的傾向） |
 | --- | --- | --- |
@@ -277,6 +277,9 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | D9 | 窄視窗且有 attention-mod 時，band 被擠出可見範圍（L8），門檻提示怎麼辦 | **已決（Tom，2026-10-07）：** 窄視窗用 `$.ui.status` 常駐一行＋指令（`/handoff-mod:handoff`），直到交接完成或選「不再問」才拆掉；寬視窗用 band。`$.ui.status` 與 `$.ui.toast` 只有型別檔說明，PoC 沒實測，實作前要先驗證在 attention-mod inline 模式下看得到 |
 | D10 | 交接目錄的基準：git repo 內用 `git rev-parse --show-toplevel`（每個 worktree 一份），還是 `session.root()`（從子目錄啟動會各有一份，L7）？ | **已決（Tom，2026-10-07）：** git repo 內用 toplevel；不在 git 內才用 `root()`；啟動目錄記在檔案的 `root` 欄當標籤 |
 | D11 | 雙語帶來的兩個問題：(1) 介面語言怎麼選（`$.env` 變數、Claude Code 的語言設定，是否可讀沒查證）；(2) 交接檔的章節標題（`## 任務`、`## 下一步`…）是中文，啟動讀回靠標題找「下一步」，英文版標題怎麼辦 | **已決（Tom，2026-10-07）：** 解析器同時認中英標題，檔案語言由使用者語言決定；介面語言先用環境變數 `HANDOFF_LANG`（預設 `zh-TW`），自動偵測等查證可行再加。本機查過：`settings.language` 未設、`LANG=C.UTF-8`，沒有可靠的自動偵測來源，語言以 `HANDOFF_LANG` 為準 |
+| D12 | session 範圍的狀態（下一個門檻、別再問、有提問在等）放哪裡？改設定會重載模組、歸零 module 變數 | **已決（Tom，2026-10-07）：放 `$.state`**，不放 module 變數。Cloud 補驗（W10）：重載後保留、`/clear` 後重置。代價：manifest 要宣告 `types` 並附型別檔。沒有拿 `$.store`（以 session id 為鍵）做過比較 |
+| D13 | T2（`/clear` 攔截）的選項順序；預設標在第一項，Enter 一定選到它（W8） | **已決（Tom，2026-10-07）：取消／先交接再清除／直接清除**，取消放第一。代價：想直接清除的人要多按一下方向鍵 |
+| D14 | `/handoff-resume` 的清單輸出用哪種方式 | **已決（Tom，2026-10-07）：用 `$.ui.log`**，不用 `{text}`。Claude 讀不到，檔案內容在使用者選擇前不進 context、不花 token；代價：attention-mod 的外部輸入會列出這些行，所以行數與內容要克制 |
 
 ## 驗證與測試
 
@@ -309,13 +312,13 @@ D6（名稱）在這次一併記為已決。
 
 ## 補驗後的修訂（2026-10-07，Cloud 補驗，Tom 選 A）
 
-Cloud 補驗（`poc-results.md` 的 W1 至 W10）後對設計做的修訂。D1 至 D11 已決定的內容沒有動。標「待 Tom 確認」的 3 項是我的建議，不是你已做的決定，可以逐項否決。
+Cloud 補驗（`poc-results.md` 的 W1 至 W10）後對設計做的修訂。D1 至 D11 已決定的內容沒有動。前 3 項原為我的建議，Tom 已於 2026-10-07 全部採用，記為 D12 至 D14。
 
 | # | 內容 | 狀態 | 位置 |
 | --- | --- | --- | --- |
-| 1 | session 範圍的狀態（下一個門檻、別再問、有提問在等）放 `$.state`，不放 module 變數：改設定會重載模組、歸零 module 變數；`$.state` 重載後保留、`/clear` 後重置 | **建議，待 Tom 確認** | 元件 2 |
-| 2 | T2 的選項順序改成「取消／先交接再清除／直接清除」，因為 Enter 一定選到預設的第一項、打字不會送出 | **建議，待 Tom 確認** | 元件 2（T2） |
-| 3 | `/handoff-resume` 的清單輸出用 `$.ui.log`（Claude 讀不到），不用 `{text}`（Claude 讀得到） | **建議，待 Tom 確認** | 元件 3 |
+| 1 | session 範圍的狀態（下一個門檻、別再問、有提問在等）放 `$.state`，不放 module 變數：改設定會重載模組、歸零 module 變數；`$.state` 重載後保留、`/clear` 後重置 | **已決（D12，Tom 採用）** | 元件 2 |
+| 2 | T2 的選項順序改成「取消／先交接再清除／直接清除」，因為 Enter 一定選到預設的第一項、打字不會送出 | **已決（D13，Tom 採用）** | 元件 2（T2） |
+| 3 | `/handoff-resume` 的清單輸出用 `$.ui.log`（Claude 讀不到），不用 `{text}`（Claude 讀得到） | **已決（D14，Tom 採用）** | 元件 3 |
 | 4 | `$.store` 檔案權限：Linux 為 `0700`／`0600`、明文；macOS 待 Tom 本機驗證 | 已改（事實） | 元件 8 |
 | 5 | `userConfig` 的宣告、型別、`/config`、`min`／`max` 已驗證；改設定會重載模組，啟動初始化要可重複執行 | 已改（事實） | 元件 9、已查證表 |
 | 6 | `prompt.fill` 可在 `command.run` hook 內直接呼叫，`/handoff-resume <編號>` 不需要計時器 | 已改（事實） | 元件 3 |
