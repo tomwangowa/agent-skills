@@ -44,6 +44,10 @@ claude --plugin-dir "$PWD"          # 實際載入 Mod 試用，面板沒出現�
 - **重建素材**：`restore()` 從 `session.messages()` 重建（沒有穩定 row id，所以自己產生 `e{epoch}-s{n}` 識別），並排除 `<command-name>`／`<local-command>`／`<system-reminder>` 開頭的訊息。
 - 子代理事件（帶 `agentId`／`agent_id`）不影響主工作的動作與等待。
 
+## 開發與發佈
+
+attention-mod 只在 agent-skills 的 `plugins/attention-mod/` 開發（2026-10-07 起不再使用 subtree，見 `docs/decisions/2026-10-07-single-repo.md`）。`docs/superpowers/` 下舊計畫裡的 `git subtree pull` 步驟是歷史紀錄，不要照做。改完在 agent-skills 提 PR；合併後執行 `claude plugin update attention-mod@tomwangowa` 並重新啟動 Claude Code。
+
 ## 測試
 
 測試用 `claude-code/testing` kit。`tests/fixtures.ts` 的 `host(on, options)` 把原生 host 全部 stub 掉，搭配 `mock.clock`，並在 `record` 收集 `models`／`opens`／`prompts`／`commands`；`options.model`、`options.tool`、`options.readMessages` 可注入慢回應、失敗或特定對話。測試不會真的呼叫模型或執行 Bash。
