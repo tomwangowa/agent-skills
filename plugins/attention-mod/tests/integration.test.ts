@@ -87,7 +87,7 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
   const [title,rule,...rest]=(await pane.drawn()).children;
-  expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.0']});
+  expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.1']});
   expect(rule.children).toEqual(['─'.repeat(40)]);
   const labels=rest.filter(row=>row.type==='Text').flatMap(row=>(row.children??[]).filter(c=>c?.props?.bold)).map(c=>({text:c.children[0],color:c.props.color}));
   expect(labels).toEqual([{text:'目標：',color:'blue'},{text:'脈絡：',color:'blue'},{text:'動作：',color:undefined},{text:'證據：',color:'blue'},{text:'需要你：',color:undefined},{text:'外部輸入：',color:'magenta'}]);
@@ -113,7 +113,7 @@ test('dock pane draws a bold title above three round sections coloured by meanin
   for(const header of ['[ 摘要 ]','[ 即時 ]','[ 外部輸入 ]']) expect(text).toContain(header);
   // A lone dock pane has no tab strip, so the pane frame shows no title; the body must carry it.
   const [title]=(await pane.drawn()).children;
-  expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.0']});
+  expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.1']});
 });
 test('dock live border is green while a tool runs, yellow while a question waits, default after',async($,on)=>{
   let finish;
