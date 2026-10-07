@@ -46,6 +46,8 @@ claude --plugin-dir "$PWD"          # 實際載入 Mod 試用，面板沒出現�
 
 ## 開發與發佈
 
+面板標題顯示的版號來自 `hooks/meta.js` 的 `VERSION`，必須和 `.claude-plugin/plugin.json` 的 `version` 一起改。hooks 與測試只能載入 .js/.ts 檔，沒辦法在 `claude plugin test` 裡自動比對這兩處，發版前要手動核對。
+
 attention-mod 只在 agent-skills 的 `plugins/attention-mod/` 開發（2026-10-07 起不再使用 subtree，見 `docs/decisions/2026-10-07-single-repo.md`）。`docs/superpowers/` 下舊計畫裡的 `git subtree pull` 步驟是歷史紀錄，不要照做。改完在 agent-skills 提 PR；合併後執行 `claude plugin update attention-mod@tomwangowa` 並重新啟動 Claude Code。
 
 ## 測試

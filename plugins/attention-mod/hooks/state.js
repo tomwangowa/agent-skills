@@ -42,7 +42,7 @@ export function reduceState(state, event) {
   if (event.type === 'external-input') {
     // Display-only: never a source, so the summary snapshot cannot read it. Accepted while disabled on purpose.
     if (state.inputs.some(i => i.id === event.entry.id)) return state;
-    return {...state, inputs:[...state.inputs, {...event.entry, sessionId:event.sessionId, epoch:event.epoch, at:event.at}].slice(-5)};
+    return {...state, inputs:[...state.inputs, {...event.entry, sessionId:event.sessionId, epoch:event.epoch, at:event.at}].slice(-3)};
   }
   if (event.type === 'new-prompt') {
     const goalContextIds = (state.summary?.goal?.sources ?? (state.goalContextIds.length ? state.goalContextIds : state.goalId ? [state.goalId] : [])).slice(0,4);

@@ -1,3 +1,5 @@
+import {VERSION} from './meta.js';
+
 /** Local wall-clock HH:MM for a clock reading in milliseconds; follows the host time zone. */
 export function clockTime(ms) {
   const d = new Date(ms);
@@ -51,7 +53,7 @@ export function paneRows(state, now) {
   if (summary && state.summaryRevision !== state.revision) notes.push({text:'有新活動，摘要待更新', tone:'muted'});
   if (state.summaryError) notes.push({text:'摘要更新失敗', tone:'danger'});
   const inputs = inputRows(state);
-  return {title:'你到底在忙什麼？', sections:[
+  return {title:`你到底在忙什麼？ v${VERSION}`, sections:[
     {id:'summary', label:'摘要', tone:'accent', meta:state.snapshotAt === null ? null : `脈絡與證據更新：${seconds(now, state.snapshotAt)} 秒前`, notes, rows:[
       {label:'目標', text:summary?.goal?.text ?? '目的尚不清楚'},
       {label:'脈絡', text:summary?.context?.text ?? '尚無摘要'},

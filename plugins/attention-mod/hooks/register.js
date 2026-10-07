@@ -4,6 +4,7 @@ import {parseSummary, summarySystemPrompt, unwrapSummaryJson} from './summary.js
 import {createSchedule, claimSnapshot, settleRequest} from './scheduler.js';
 import {paneRows, inlineFields, footerNotes, sectionById, inputRowNodes} from './view.js';
 import {colorFor} from './theme.js';
+import {VERSION} from './meta.js';
 import {entryFromAppend} from './inputs.js';
 import {buildTeamsLink, composeMessage, parseRecipient} from './feedback.js';
 
@@ -118,7 +119,7 @@ export function register(on, options) {
       await $.command.register({name:'attention', description:'開啟目前工作脈絡面板', immediate:true});
       startTimer($);
       void restore($);
-      if (!closed && e.isInteractive) await $.ui.open({id:'attention-mod', title:'你到底在忙什麼', rows:18, columns:48});
+      if (!closed && e.isInteractive) await $.ui.open({id:'attention-mod', title:`你到底在忙什麼 v${VERSION}`, rows:18, columns:48});
     } catch { /* Panel setup cannot block the main session. */ }
     return result;
   });
@@ -232,7 +233,7 @@ export function register(on, options) {
   });
   on('command.run', {command:'attention'}, async ($, e) => {
     closed = false;
-    await $.ui.open({id:'attention-mod', title:'你到底在忙什麼', rows:18, columns:48});
+    await $.ui.open({id:'attention-mod', title:`你到底在忙什麼 v${VERSION}`, rows:18, columns:48});
     return {};
   });
   on('ui.close', {id:'attention-mod'}, ($, e, next) => { closed = true; return next(e); });
@@ -282,7 +283,7 @@ function drawFeedback($, {Box, Text, Button, Input, Link}) {
     ...(feedback.link ? [
       ...(feedback.link.url ? [
         Text({wrap:'wrap', children:'連結只含你輸入的文字，點開後在 Teams 確認內容，按 Enter 才會送出：'}),
-        Link({href:feedback.link.url, label:'在 Teams 開啟'}),
+        Link({href:feedback.link.url, label:'[ 在 Teams 開啟 ]'}),
         ...(feedback.link.truncated ? [Text({dimColor:true, wrap:'wrap', children:'內容過長，連結內已截斷；請改用「複製內容」貼上完整文字。'})] : []),
       ] : []),
       Button({key:'copy-feedback', label:'複製內容', onPress:copy(feedback.link.message)}),
