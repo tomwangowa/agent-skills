@@ -50,3 +50,24 @@ test('oversized feedback is truncated in the link, flagged, and the copy text st
   expect(message).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
   expect(result.message).toBe('[attention-mod 問題] '+typed);
 });
+
+test('a lone surrogate is replaced instead of making encoding throw',()=>{
+  // encodeURIComponent throws URIError on an unpaired surrogate, e.g. from a pasted half emoji.
+  for(const raw of ['bug: abc\uD83D def','\uDE00','idea: tail\uD83D']){
+    const result=buildTeamsLink(raw,TO);
+    expect(result).not.toBeNull();
+    expect(new URL(result.url).searchParams.get('message')).not.toMatch(/[\uD800-\uDFFF]/);
+    expect(result.message).not.toMatch(/[\uD800-\uDFFF]/);
+  }
+  expect(parseFeedback('bug: a\uD83Db')).toEqual({kind:'bug',text:'a\uFFFDb'});
+  // A real pair survives untouched.
+  expect(parseFeedback('bug: 😀')).toEqual({kind:'bug',text:'😀'});
+});
+
+test('the README capacity holds for a single line: about 200 CJK or 1,800 ASCII characters fit',()=>{
+  // TO is 21 characters; a longer recipient leaves less room, as the README says.
+  expect(buildTeamsLink('idea: '+'中'.repeat(200),TO).truncated).toBe(false);
+  expect(buildTeamsLink('idea: '+'中'.repeat(220),TO).truncated).toBe(true);
+  expect(buildTeamsLink('idea: '+'a'.repeat(1800),TO).truncated).toBe(false);
+  expect(buildTeamsLink('idea: '+'a'.repeat(1950),TO).truncated).toBe(true);
+});

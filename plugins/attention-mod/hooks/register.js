@@ -16,12 +16,16 @@ let closed = false;
 let now = 0;
 let endingSessionId = null;
 let reconnecting = false;
-// Feedback form: memory-only, so a reload or /clear simply starts it closed again.
-let feedback = {open:false, draft:'', link:null, copied:null, empty:false};
+// Feedback form: memory-only. A reload or any session-reset (/clear, resume, end) starts it closed again.
+const closedFeedback = () => ({open:false, draft:'', link:null, copied:null, empty:false});
+let feedback = closedFeedback();
 // Teams account of whoever receives feedback; set per install so no address lives in this public repo.
 let recipient = null;
 const sourceId = () => `e${state.epoch}-s${++sequence}`;
-const apply = event => { state = reduceState(state, event); };
+const apply = event => {
+  state = reduceState(state, event);
+  if (event.type === 'session-reset') feedback = closedFeedback();
+};
 
 /** Keep observation failures from changing the caller's result. */
 function redraw($) { try { $.ui.invalidate('ui.render'); } catch {} }
@@ -243,7 +247,7 @@ export function register(on, options) {
     const body = e.props.placement === 'dock' ? drawDock(view, els) : drawInline(view, els, e.props.bodyColumns);
     return els.Box({flexDirection:'column', children:[
       ...body,
-      ...drawFeedback($, e, els),
+      ...drawFeedback($, els),
       els.Button({key:'close-attention', label:'收起', onPress:() => $.ui.close({id:'attention-mod'})}),
     ]});
   });
@@ -253,7 +257,7 @@ export function register(on, options) {
  * Feedback form. Submitting only builds a Teams chat link with the typed text prefilled;
  * the person presses Enter in Teams, so the mod sends nothing and reads no session data.
  */
-function drawFeedback($, e, {Box, Text, Button, Input, Link}) {
+function drawFeedback($, {Box, Text, Button, Input, Link}) {
   const change = patch => { feedback = {...feedback, ...patch}; redraw($); };
   if (!feedback.open) return [Button({key:'open-feedback', label:'回饋', onPress:() => change({open:true, empty:false})})];
   const hasRecipient = recipient !== null;
@@ -283,7 +287,7 @@ function drawFeedback($, e, {Box, Text, Button, Input, Link}) {
       Button({key:'copy-feedback', label:'複製內容', onPress:copy(feedback.link.message)}),
       ...(feedback.copied === true ? [Text({dimColor:true, children:'已複製。'})] : feedback.copied === false ? [Text({dimColor:true, children:'無法複製，請手動選取文字。'})] : []),
     ] : []),
-    Button({key:'close-feedback', label:'取消回饋', onPress:() => change({open:false, draft:'', link:null, copied:null, empty:false})}),
+    Button({key:'close-feedback', label:'取消回饋', onPress:() => change(closedFeedback())}),
   ]})];
 }
 
