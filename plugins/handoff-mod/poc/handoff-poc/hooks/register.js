@@ -12,10 +12,23 @@ const COMMANDS = [
   ['poc-pane-timer', 'POC V5: open a pane from a timer, 2 s later'],
   ['poc-facts', 'POC V6: log session root/cwd/repo and git facts'],
   ['poc-block-clear', 'POC V3: toggle answering /clear in its place (no next), to test cancelling it'],
+  ['poc-store', 'POC: write a $.store key (then inspect the file permissions from a shell)'],
+  ['poc-config', 'POC: show userConfig options, /config rows and pluginConfigs'],
+  ['poc-config-set', 'POC: $.config.set <field> <value>, then re-read'],
+  ['poc-fill-hook', 'POC: call $.prompt.fill directly inside a command.run hook'],
+  ['poc-text', 'POC: command returns {text} with a marker'],
+  ['poc-log', 'POC: command prints a marker with $.ui.log'],
+  ['poc-context', 'POC: command returns {text, context} with a marker in context'],
+  ['poc-t2', 'POC: toggle the T2 flow (ask before /clear)'],
+  ['poc-status', 'POC D9: $.ui.status <text> (no text clears)'],
+  ['poc-toast', 'POC D9: $.ui.toast'],
 ];
 
 let band = null; // {last} while the band probe is showing
 let blockClear = false;
+let t2 = false;
+let USER_CONFIG = {}; // userConfig values as register(on, options) received them at load
+const LOAD_ID = Math.random().toString(36).slice(2, 8); // changes when the module reloads
 
 async function logPath($) {
   const dir = await safe(() => $.env.get('TMPDIR'));
@@ -26,6 +39,7 @@ async function logPath($) {
 /** Append a timestamped line to the transcript and the log file. Never throws. */
 async function note($, text) {
   try { $.ui.log(`poc: ${text}`); } catch { /* the transcript line is a convenience */ }
+  text = `[load ${LOAD_ID}] ${text}`;
   try {
     const path = await logPath($);
     const stamp = new Date(await $.clock.now()).toISOString();
@@ -42,13 +56,14 @@ async function safe(fn) {
 }
 
 const short = (value, max = 240) => {
-  const text = typeof value === 'string' ? value : JSON.stringify(value);
+  const text = typeof value === 'string' ? value : (JSON.stringify(value) ?? String(value));
   return text.length > max ? `${text.slice(0, max)}…` : text;
 };
 
 const OPTIONS = ['同意', '再多 10% 再問', '這個 session 別再問'];
 
-export function register(on) {
+export function register(on, options) {
+  USER_CONFIG = options ?? {};
   // V6 + registration: what a fresh session reports about itself.
   on('session.start', async ($, e, next) => {
     const result = await next(e);
@@ -131,7 +146,15 @@ export function register(on) {
 
   // V3: do built-in commands reach command.run, and what do compaction and /exit look like?
   on('command.run', {command:'clear'}, async ($, e, next) => {
-    await note($, `command.run clear blocked=${blockClear}`);
+    await note($, `command.run clear blocked=${blockClear} t2=${t2}`);
+    if (t2) {
+      // Same shape as the planned T2: ask inside the held command, treat anything but the explicit choice as cancel.
+      let answer;
+      try { answer = await $.ui.ask('poc T2：要先交接再清除嗎？', ['先交接再清除', '直接清除', '取消']); } catch (error) { answer = `REJECTED ${error?.message}`; }
+      await note($, `t2 answer=${short(answer)}`);
+      if (answer === '直接清除') return next(e);
+      return {text:`poc T2: /clear held (${short(answer, 60)})`};
+    }
     // Answering without next() runs no command, so the conversation stays. This is how a handoff prompt could hold /clear.
     if (blockClear) return {text:'poc: /clear was held by handoff-poc (blockClear is on)'};
     return next(e);
@@ -193,5 +216,50 @@ export function register(on) {
     if (e.requestId !== 'poc-pane') return next(e);
     const {Text} = $.ui.resolve(e);
     return Text({children:`poc pane placement=${e.props.placement} bodyColumns=${e.props.bodyColumns} viewport=${e.viewport?.columns}x${e.viewport?.rows}`});
+  });
+
+  // Store, userConfig, fill-in-hook, output visibility, T2 toggle, status/toast.
+  on('command.run', {command:'poc-store'}, async ($) => {
+    await $.store.set('poc-store-test', {text:'POC-STORE-VALUE', n:1});
+    await note($, `store set ok keys=${short(await safe(() => $.store.keys()))} get=${short(await safe(() => $.store.get('poc-store-test')))}`);
+    return {};
+  });
+  on('command.run', {command:'poc-config'}, async ($) => {
+    const rows = await safe(() => $.config.list());
+    const mine = Array.isArray(rows) ? rows.filter(r => String(r.key).startsWith('handoff-poc.')) : rows;
+    const settings = await safe(() => $.settings.read());
+    await note($, `config options(at load)=${short(USER_CONFIG)} rows=${short(mine, 700)} pluginConfigs=${short(settings?.pluginConfigs)}`);
+    return {};
+  });
+  on('command.run', {command:'poc-config-set'}, async ($, e) => {
+    const [field, raw] = (e.args || '').trim().split(/\s+/);
+    const value = raw === 'true' ? true : raw === 'false' ? false : Number.isNaN(Number(raw)) ? raw : Number(raw);
+    const result = await safe(() => $.config.set({key:`handoff-poc.${field}`, value}));
+    await note($, `config.set ${field}=${short(value)} -> ${short(result)}`);
+    $.clock.after(1500, async () => {
+      const rows = await safe(() => $.config.list());
+      const mine = Array.isArray(rows) ? rows.filter(r => String(r.key).startsWith('handoff-poc.')) : rows;
+      await note($, `after set: options(at load)=${short(USER_CONFIG)} rows=${short(mine, 700)}`);
+    });
+    return {};
+  });
+  on('command.run', {command:'poc-fill-hook'}, async ($) => {
+    await note($, `fill inside command.run hook -> ${short(await safe(() => $.prompt.fill({text:'poc: filled from inside a command.run hook'})))}`);
+    return {};
+  });
+  on('command.run', {command:'poc-text'}, async () => ({text:'POC-TEXT-MARKER-7391'}));
+  on('command.run', {command:'poc-log'}, async ($) => { $.ui.log('POC-LOG-MARKER-5528'); return {}; });
+  on('command.run', {command:'poc-context'}, async () => ({text:'poc-context shown', context:['POC-CONTEXT-MARKER-3306']}));
+  on('command.run', {command:'poc-t2'}, async ($) => { t2 = !t2; await note($, `t2=${t2}`); return {text:`poc: t2=${t2}`}; });
+  on('command.run', {command:'poc-status'}, async ($, e) => {
+    const text = (e.args || '').trim();
+    $.ui.status(text ? `poc status: ${text}` : undefined);
+    await note($, `status ${text ? 'set' : 'cleared'}`);
+    return {};
+  });
+  on('command.run', {command:'poc-toast'}, async ($) => {
+    $.ui.toast('poc toast: hello', {timeoutMs:6000});
+    await note($, 'toast shown');
+    return {};
   });
 }

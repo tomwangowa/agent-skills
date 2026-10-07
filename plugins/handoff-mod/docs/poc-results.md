@@ -209,6 +209,29 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 
 **沒測：** `$.ui.status` 與 `$.ui.toast` 在 attention-mod inline 模式下的實際顯示（D9）、`session.compact` hook 內的 `$.ui.ask` 與回 `{skip}`（T4）、`/cd` 之後的 `root()`（L7）、自動壓縮的 `trigger` 值。這些在設計文件列為實作前要先驗證的風險。
 
+### 補驗（Cloud，2026-10-07；Tom 選 C）
+
+針對設計「最後確認前的補充」新增的未驗證項目，加探針後在 **Cloud container** 驗證：Linux、Claude Code 2.1.292、互動 session 由 pty 驅動、版面用終端機模擬器（pyte）重繪最後一幀。**不是 Tom 的 macOS／Warp。** 探針新增指令：`/poc-store`、`/poc-config`、`/poc-config-set`、`/poc-fill-hook`、`/poc-text`、`/poc-log`、`/poc-context`、`/poc-t2`、`/poc-status`、`/poc-toast`；manifest 加 `userConfig` 三欄（`thresholdPct`、`lang`、`autoNote`）。`claude plugin validate --strict` 通過。
+
+| 編號 | 問題 | 結果（Cloud） |
+| --- | --- | --- |
+| W1 | `$.store` 的檔案權限 | 目錄 `~/.claude/plugins/store/` 為 `0700`，檔案 `handoff-poc_inline-<hash>.json` 為 `0600`（umask 0022），內容是縮排的**明文 JSON**。macOS 未驗證。 |
+| W2 | `userConfig` 預設值與型別 | `register(on, options)` 收到 `{thresholdPct: 60, lang: "zh-TW", autoNote: true}`，型別依宣告（數字、字串、布林）；headless 與互動一致。 |
+| W3 | `/config` 列 | 互動 session 有三列：`handoff-poc.thresholdPct`（`kind: number`）、`handoff-poc.lang`（`kind: choice`，`options: ["zh-TW","en"]`）、`handoff-poc.autoNote`（`kind: boolean`），`provider` 為 `handoff-poc@inline`、tier `user`。headless 的 `$.config.list()` 是空的。 |
+| W4 | `$.config.set` | 成功回 `{value}`；`thresholdPct` 設 `150` 回 `{deny: "… takes a number between 1 and 99."}`，`min`／`max` 有檢查。值寫進 `settings.json` 的 `pluginConfigs["handoff-poc@inline"].options`。 |
+| W5 | 改值後要不要重載 | **會重載模組。** `config.set` 成功後 `LOAD_ID` 改變、`session.start` 再觸發一次、計時器停掉（設定後 1.5 秒的計時器沒有輸出）、module 變數重置，新值立刻生效（重載後 `options` 為 `33／en／false`）。 |
+| W6 | `prompt.fill` 在 `command.run` hook 內 | **可以**，回 `{isFilled: true, …}`。 |
+| W7 | 指令輸出誰看得到 | `{text}` 裡的標記 **Claude 讀得到**（問「有沒有看到 POC-TEXT-MARKER-」，答 `7391`）；`$.ui.log` 的標記 **Claude 讀不到**（答「看不到」）；`{text, context}` 的 `context` 標記 **Claude 讀得到**（答 `3306`）。子 session 是全新的，看不到母 session 的紀錄（`cache_read` 為 0、`messages=0`），所以不是污染。 |
+| W8 | T2 流程（`/clear` hook 內 `await $.ui.ask`） | 四條路徑都實測：選「直接清除」（方向鍵 ↓ 加 Enter）→ `next(e)` → `session.end(reason=clear)`、新 session id；按 Esc → `$.ui.ask` reject（`no answer (The user doesn't want to proceed…)`）→ 視為取消，session 不變；直接 Enter（預設標在第一項）→ 選到第一項「先交接再清除」，指令被擋住；對話框開著時先打 `hello` 再 Enter → **文字沒有被送出、沒有任何回合**，Enter 仍選到第一項。四次 `/clear` 之間模組**沒有重載**（`LOAD_ID` 不變，module 變數保留）。 |
+| W9 | `$.ui.status`、`$.ui.toast` 與 attention-mod inline 面板 | 80、100 欄，先 `/attention` 叫出 inline 面板後：status 單獨一行畫在輸入框**下方**，格式 `⚠ handoff-poc: poc status: …`；toast 有畫出（出現在畫面流裡，最後一幀已過期，沒有逐幀確認位置）。先前 80 欄看不到 attention-mod 面板，是因為它在 `session.start` 自己開 pane，窄於 144 欄不會自動顯示，要使用者 `/attention`。 |
+
+限制：
+
+- 全部是 Linux container、pty 驅動，只做一次。子 session 會多一行 `⚠ Transcript saving is off — inherited CLAUDE_CODE_CHILD_SESSION marker`，佔用 status 區的一列，是測試方式造成的，Tom 的環境不會有。
+- W1 只代表 Linux 的權限；macOS 與 Tom 的環境要另驗（一行：`ls -l ~/.claude/plugins/store/`）。
+- W8 的「打字後 Enter」只測了一次，輸入的是 `hello`；`$.ui.ask` 在 Tom 的環境不能單獨按數字選（L4），這次沒有再比對。
+- W9 的版面是以模擬器重繪的最後一幀，不是截圖。
+
 ## 清理
 
 PoC 結束、結果寫完後刪除 `poc/`。探針不是產品，不會進 marketplace。
