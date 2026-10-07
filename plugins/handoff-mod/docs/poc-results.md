@@ -38,13 +38,13 @@
 | L3 | band 的數字 hotkey 與 `AskUserQuestion` 的數字衝突嗎？ | `/poc-band`，再請 Claude 呼叫 AskUserQuestion，按 `1` | 提示要不要在等待時隱藏。**已驗證（本機；`AskUserQuestion` 與權限提示），見下一節** |
 | L4 | Claude 工作中，計時器呼叫的 `$.ui.ask` 會怎樣？ | 讓 Claude 長時間產出（例如寫 1500 字文章、不用工具），3 秒內 `/poc-ask-timer`；前景 `sleep 30` 在 Tom 的環境會被擋 | 門檻提示只能在閒置時出現，還是可以插話。**已驗證（本機；含不回答），見下一節** |
 | L5 | 真實對話的 `/compact`：`command.run compact` 與 `session.compact` 的先後 | 有內容的 session 內 `/compact` | 壓縮前能不能問交接。**事件時序已驗證（本機），見下一節；在 hook 內提問未測** |
-| L6 | 真正結束：Ctrl-D、關掉分頁，`session.end` 有沒有跑 | 結束後看 log | 「結束時自動留事實筆記」（D4）可不可行 |
+| L6 | 真正結束：Ctrl-D、關掉分頁，`session.end` 有沒有跑 | 結束後看 log | 「結束時自動留事實筆記」（D4）可不可行。**已驗證（本機），見下一節** |
 | L7 | 非 git 目錄、子目錄啟動、worktree 的 `root()` 與 `repo().root` | 各處 `/poc-facts` | 範圍鍵（交接檔歸屬）的規則。**部分已驗證（本機 headless），見下一節；`/cd` 尚未測** |
-| L8 | 與 attention-mod 同時載入 | `--plugin-dir` 各載一次，開 band 與 ask | band 共用、等待訊號重複 |
+| L8 | 與 attention-mod 同時載入 | `--plugin-dir` 各載一次，開 band 與 ask | band 共用、等待訊號重複。**已驗證（本機），見下一節** |
 
 ## 本機驗證（Tom 的環境）
 
-日期：2026-10-06。環境：Tom 的 macOS、Claude Code 2.1.291。L7 用 `claude -p "/poc-facts" --plugin-dir …/handoff-poc` 在各目錄各跑一次，由 Claude 在 Tom 的終端機代跑，**不是**互動 session，`surfaces()` 為 `[]`，`/cd` 要互動、沒測。L1 在 Tom 自己開的互動 session 量測。
+日期：2026-10-06 至 07。環境：Tom 的 macOS。Claude Code 版本中途從 2.1.291 更新到 2.1.292：L1 到 L5、L7、L3 第一部分用 2.1.291；權限提示與不回答的補測、L6、L8 用 2.1.292（以各 session transcript 的 `version` 為準）。L7 用 `claude -p "/poc-facts" --plugin-dir …/handoff-poc` 在各目錄各跑一次，由 Claude 在 Tom 的終端機代跑，**不是**互動 session，`surfaces()` 為 `[]`，`/cd` 要互動、沒測。L1 在 Tom 自己開的互動 session 量測。
 
 ### L7 範圍
 
@@ -162,6 +162,39 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 - 在 worktree（`~/.claude/agent-skills-handoff`）啟動時，交接檔寫進 **worktree 自己**的 `.claude/handoffs/`；主 checkout（`~/.claude/skills`，`repo().root` 指向的地方）沒有新檔。
 - 所以預設是**各 worktree 各一份**：在主 checkout 或另一個 worktree 開 session，看不到這份。要跨 worktree 接續，得用 `repo().root` 加 `git worktree list` 去找各處的 `.claude/handoffs/`；設計文件還沒決定要不要這樣做。
 - 限制：只有一次寫檔、從 worktree 根目錄啟動。在 repo 子目錄啟動時會寫到哪裡（子目錄、worktree 根、還是別處）沒測；這份檔案由模型依 skill 文字決定位置，不是 mod 控制的，所以內建 skill 要自己明確指定路徑。
+
+### L6 結束方式（已驗證，本機互動）
+
+| 結束方式 | 事件 | `session.end` 的 `reason` | hook 耗時 |
+| --- | --- | --- | --- |
+| `/exit`（兩個 session） | `command.run exit`，約 1 到 1.4 秒後 `session.end` | `prompt_input_exit` | 1、2 ms |
+| `Ctrl-C` 兩次 | 只有 `session.end`，沒有 `command.run exit` | `prompt_input_exit` | 3 ms |
+| 直接關終端機分頁 | `session.end` | `other` | 10 ms |
+| `Ctrl-D` | 按三次只有畫面往下捲動一格，session 沒有結束 | 無 | 無 |
+
+- 三種真的會結束的方式都觸發 `session.end`，hook 有跑完，log 也寫進去了。依決策表，D4（結束時留事實筆記）技術上可行；寫一個小檔約 10 ms，遠低於所有 `session.end` hook 合計約 1.5 秒的預算。D4 涉及自動寫檔的隱私邊界，仍要 Tom 拍板。
+- `/exit` 與 `Ctrl-C` 兩次的 `reason` 都是 `prompt_input_exit`，無法從 `reason` 分辨；`other` 也見於 `-p` 跑完，所以 `other` 不等於「關分頁」。
+- 關分頁只測了 Warp 一次。`kill -9`、當機、斷電沒有任何 hook，D4 做不到，設計要接受。
+- `Ctrl-D` 在 Tom 的環境不是離開（原因沒查：Warp 吃掉，或 Claude Code 綁成捲動）。計畫原本假設「Ctrl-D 結束」，不成立。
+- **探針 log 的缺陷：** `note()` 先讀整個檔案、加一行、再整份寫回，不是附加。同時有多個 session 時會互相覆蓋，A 的 `session.start` 就是這樣沒進 log（transcript 裡有）。關分頁時行程會被殺，transcript 可能來不及寫，log 是唯一證據，所以那一輪是單獨一個 session 測的。以後 PoC 若要同時開多個 session，要改成附加寫入或每個 session 各寫一個檔。
+
+### L8 與 attention-mod 共存（已驗證，本機互動；2.1.292）
+
+`--plugin-dir` 各載 attention-mod 與 handoff-poc，開 band，再 `/poc-ask`：
+
+| 情境 | 結果 |
+| --- | --- |
+| 寬視窗，閒置 | attention-mod 的面板在右半邊，band 在左半邊，不遮蔽。band 收到的 `viewport` 是扣掉右側面板後的 `72x38`、`bodyColumns=67`（單獨載入時 `115x38`、`110`）。band 的說明文字折成兩行，三個按鈕那一行在 67 欄放得下 |
+| 窄視窗，閒置 | attention-mod 切成 inline 模式，面板蓋在輸入框上方；band 只剩 `↓2 more` 與 `[-]` 一行。我的推斷：這一區有行數上限，我們的按鈕排在 attention-mod 的內容之後，被截掉。按 `[-]` 後整個 plugin 區收成一行 `plugin panel hidden · ctrl+x ctrl+a or click to show` |
+| 寬視窗，`/poc-ask` | 對話框完整顯示，右側面板不擋。attention-mod 的「需要你」從「目前沒有待回覆訊號」變成「等待狀態不明」，沒有明確亮起 |
+| 窄視窗，`/poc-ask` | 對話框完整顯示；attention-mod 的 inline 面板與 band 在對話框等待時都不見（輸入框上方整區被對話框取代），回答後面板回來 |
+| 回答之後 | 「需要你」仍是「等待狀態不明」，沒有回到「目前沒有待回覆訊號」（只有一張截圖，不確定是否穩定） |
+
+對決策表的意思：
+
+- 寬視窗並排可行；窄視窗下 band 被擠出可見範圍，所以窄視窗要改用 toast 加指令，或至少不能只靠 band。
+- attention-mod 的「外部輸入」會列出我們的 `$.ui.log` 通知（`informational · 引擎`，例如 `handoff-poc: poc: ask answer=同意`）。正式的 handoff-mod 若用 `$.ui.log` 發通知，會灌進 attention-mod 的外部輸入，要克制。
+- `$.ui.ask` 不會讓 attention-mod 明確亮起「需要你」，這是 attention-mod 那邊的行為，handoff-mod 沒有依賴。「等待狀態不明」回答後不會復原，若要反映給 attention-mod，由它那邊處理。
 
 ## 清理
 
