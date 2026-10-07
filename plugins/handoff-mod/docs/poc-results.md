@@ -233,6 +233,26 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 - W8 的「打字後 Enter」只測了一次，輸入的是 `hello`；`$.ui.ask` 在 Tom 的環境不能單獨按數字選（L4），這次沒有再比對。
 - W9 的版面是以模擬器重繪的最後一幀，不是截圖。
 
+### 實作前驗證（Task 0，Cloud，2026-10-07）
+
+實作計畫 Task 0 的 P1 與 P5，在 **Cloud container**（Linux、Claude Code 2.1.292）驗證，探針從 commit `0d319f4` 解到暫存目錄修改，沒有放回 repo。P2、P3、P4 要在 Tom 本機做，**尚未做**。
+
+| 編號 | 問題 | 結果（Cloud） |
+| --- | --- | --- |
+| P1a | `session.end` 內能不能讀 `$.session.messages()`（D4 路線 A） | **不能。** 互動 session 做過一個真實回合後用 `/exit` 結束：`$.session.messages is not available in this mode: no session is bound in this process (the REPL has not mounted and no headless session is built)`。關分頁（SIGHUP，`reason: other`）同樣失敗。headless 先前也是同樣的錯誤。 |
+| P1b | 備案所需欄位（D4 路線 B） | **都在。** `prompt.submit` 事件有 `e.text`（記錄到 `textLen=9`，與輸入的 9 個字一致）；`turn.complete` 事件有 `e.answer`（字串，長度 1，等於 Claude 的回答）。`turn.complete` 的欄位為 `answer、durationMs、isAborted、turnId、reason、usage`。 |
+| P1 結論 | D4 走哪條路線 | **路線 B**：平時在 `prompt.submit`、`turn.complete` 記最後一組（先遮蔽再存 `$.store`），`session.end` 只負責寫檔。路線 A 在 Cloud 不成立。 |
+| P1c | Ctrl-C 兩次 | Cloud 沒有重現 `session.end`（探針沒有記錄到）。可能是兩次按鍵的間隔，Tom 本機 L6 有觸發。預期同樣讀不到訊息（成因是 REPL 已卸載），**待 Tom 複驗**。 |
+| P5 | `/cd` 後的 `session.root()` | `/cd` 是內建指令（`$.command.list()` 的 `source: builtin`）。`/cd` 到**專案外**的目錄被拒絕（`Staying in …`）。`/cd` 到專案內的子目錄成功：`cwd` 與 `root()` **一起移到子目錄**，`repo().root` 與 `git rev-parse --show-toplevel` 不變。 |
+
+對決策表的意思：
+
+- 路線 B 的實作要點：只記 `origin.kind` 為 `composer`／`bridge`／`sdk` 且不以 `/` 開頭的 `prompt.submit`（比照 attention-mod）；`turn.complete` 要略過帶 `agentId` 的子代理回合與 `isAborted`；每 session 一組、key 含 session id。
+- 範圍鍵：git repo 內以 toplevel 為基準，不受 `/cd` 影響（D10）；不在 git 內時 `session.root()` 會跟著專案內的 `/cd` 移動，交接目錄以寫檔當下算出的值為準。
+- 沒測的另一條路：`classic.SessionEnd` 的輸入有 `transcript_path`，理論上能在結束時讀對話紀錄檔，但檔案可能超過 `$.fs.read` 的 4 MiB 上限，也沒有驗證，所以沒有採用。
+
+限制：Linux、pty 驅動、各只做一次；P1c 沒有重現。P1、P5 不能代表 Tom 的 macOS／Warp。
+
 ## 清理
 
 2026-10-07 Tom 最後確認設計後，`poc/` 已刪除（`git rm -r plugins/handoff-mod/poc`）。探針不是產品，不會進 marketplace。實作前驗證需要探針時，從 commit `0d319f4` 取回，或另寫新的。

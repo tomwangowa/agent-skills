@@ -84,11 +84,11 @@ mkdir -p "$SCRATCH/poc" && git archive 0d319f4 plugins/handoff-mod/poc | tar -x 
 claude plugin validate --strict "$SCRATCH/poc/plugins/handoff-mod/poc/handoff-poc"
 ```
 
-- [ ] **P1（Cloud 先做，Tom 複驗）：D4 結束筆記的資料來源。** 在探針的 `session.end` hook 內呼叫 `$.session.messages()`，互動 session 以 `/exit` 結束，記下成功或錯誤訊息（headless 已知會丟 `no session is bound in this process`）。同時確認備案所需欄位存在：`prompt.submit` 事件的 `e.text`、`turn.complete` 的 `e.answer`（文件寫明）。**結果：** 可讀 → 路線 A（結束時讀訊息）；讀不到但備案欄位在 → 路線 B（平時記進 `$.store`）；兩者都不行 → 路線 C（D4 不做，回報 Tom）。
+- [x] **P1（Cloud 先做，Tom 複驗）：D4 結束筆記的資料來源。** 在探針的 `session.end` hook 內呼叫 `$.session.messages()`，互動 session 以 `/exit` 結束，記下成功或錯誤訊息（headless 已知會丟 `no session is bound in this process`）。同時確認備案所需欄位存在：`prompt.submit` 事件的 `e.text`、`turn.complete` 的 `e.answer`（文件寫明）。**結果：** 可讀 → 路線 A（結束時讀訊息）；讀不到但備案欄位在 → 路線 B（平時記進 `$.store`）；兩者都不行 → 路線 C（D4 不做，回報 Tom）。 **Cloud 結果（2026-10-07）：** `/exit` 與 SIGHUP 的 `session.end` 內讀不到訊息，備案欄位都在，**採路線 B**；Ctrl-C 兩次未重現，待 Tom 複驗，見 poc-results.md「實作前驗證」。
 - [ ] **P2（Tom 本機）：D9 的 `$.ui.status`、`$.ui.toast` 在 Warp。** 載入 attention-mod 與探針，窄視窗先 `/attention`，再 `/poc-status 測試` 與 `/poc-toast`；記下 status 是否在輸入框下方、toast 是否可見、位置。Cloud 已在 Linux 驗證可見。
 - [ ] **P3（Tom 本機，一行指令）：** `ls -l ~/.claude/plugins/store/`。記下目錄與檔案權限。
 - [ ] **P4（Tom 本機）：D13 的 T2 流程。** `/poc-t2` 後 `/clear`，依序測：方向鍵加 Enter、Esc、直接 Enter、對話框開著時打字再 Enter。記下選到什麼、是否送出文字（Tom 的 `$.ui.ask` 不能單獨按數字，Cloud 沒有比對）。
-- [ ] **P5（Cloud，可選）：** `/cd <目錄>` 後的 `session.root()`。`/cd` 不存在就記下「這個版本沒有」並略過；不阻擋後面任務。
+- [x] **P5（Cloud，可選）：** `/cd <目錄>` 後的 `session.root()`。`/cd` 不存在就記下「這個版本沒有」並略過；不阻擋後面任務。 **Cloud 結果：** `/cd` 到專案內子目錄成功且 `root()` 跟著移動，到專案外被拒絕；git repo 內不受影響（D10）。
 - [ ] **記錄：** 把結果追加到 `docs/poc-results.md` 的新小節「實作前驗證」，Cloud 與 Tom 分開。
 
 **決策表：**
