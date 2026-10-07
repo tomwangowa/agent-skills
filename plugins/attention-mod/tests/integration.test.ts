@@ -241,3 +241,20 @@ for(const surface of ['terminal','desktop'] as const){
     expect(h.record.models).toEqual([]);
   });
 }
+
+test('feedback draft and link are cleared when the session is cleared',async($,on)=>{
+  host(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'open-feedback'});
+  await pane.input({key:'attention-feedback',text:'bug: 還沒送出',kind:'submit'});
+  expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeDefined();
+
+  await $.session.end({reason:'clear',sessionId:'session-one',resume:{}});
+  await $.classic.SessionStart({hook_event_name:'SessionStart',source:'clear',session_id:'session-two',transcript_path:'/fixture',cwd:'/fixture'});
+
+  expect(findNode(await pane.drawn(),n=>n.type==='Input')).toBeUndefined();
+  expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
+  await pane.press({key:'open-feedback'});
+  expect(findNode(await pane.drawn(),n=>n.type==='Input').props.value).toBe('');
+});

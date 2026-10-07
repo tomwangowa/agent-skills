@@ -125,3 +125,6 @@ NOT VERIFIED（待實機）：
   - VERIFIED（2026-10-05 實機，`--plugin-dir`）：inline 的種類完整顯示 `附件 mcp_instructions_delta`（27 字，舊版會切在 24 字）、59 字的節錄完整顯示；dock 的節錄換行成兩行，第二行縮排對齊，沒有被切。
   - 自動化：`tests/inputs.test.ts`（40／120 上限、entry 帶 `door`）、`tests/view.test.ts`（兩行都 wrap、縮排、`note` 在第 5 筆仍有節錄）。
   - NOT VERIFIED：5 筆都帶長節錄時 dock 的 18 行會不會被撐爆（實機只有 2 筆）；`note` 節錄規則在真實 session 裡的表現（實機沒出現 `note` 列）；`drawDock`／`drawInline` 的接線只有實機截圖證實，沒有自動化測試（測試 kit 無法觸發 `session.append`）；Claude Desktop 的繪製。
+- 0.4.0：面板內回饋表單，只產生預填的 GitHub new-issue 連結（決策見 `docs/decisions/2026-10-07-feedback.md`）。
+  - 自動化：`tests/feedback.test.ts`（前綴解析、連結內容、code point 截斷、lone surrogate、容量）、`tests/integration.test.ts`（terminal／desktop 表單流程、`session-reset` 清空草稿）。
+  - NOT VERIFIED：真實終端機與 Desktop 的輸入框焦點、連結點擊開啟、`ui.copy` 實際寫入剪貼簿；dock 窄版面下表單的排版；複製按鈕的成功／失敗分支沒有自動化測試。

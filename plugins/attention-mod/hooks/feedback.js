@@ -6,10 +6,12 @@ const FOOTER = '\n\n---\n由 attention-mod 面板的回饋功能產生；除上�
 const MARKER = '\n[truncated]';
 const KIND_LABEL = {bug: '問題', idea: '建議', other: '回饋'};
 const PREFIX = /^(bug|idea|問題|建議)\s*[:：]\s*/i;
+// encodeURIComponent throws URIError on an unpaired surrogate (e.g. a pasted half emoji).
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
 
 /** Split an optional `bug:`/`idea:` prefix off the typed text; blank input gives null. */
 export function parseFeedback(raw) {
-  const trimmed = String(raw ?? '').trim();
+  const trimmed = String(raw ?? '').replace(LONE_SURROGATE, '\uFFFD').trim();
   const match = PREFIX.exec(trimmed);
   const text = match ? trimmed.slice(match[0].length).trim() : trimmed;
   if (!text) return null;

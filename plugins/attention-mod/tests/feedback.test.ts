@@ -45,3 +45,22 @@ test('oversized feedback is truncated, flagged, and still fits the link limit',(
   expect(body).toContain('[truncated]');
   expect(body).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
 });
+
+test('a lone surrogate is replaced instead of making encoding throw',()=>{
+  // encodeURIComponent throws URIError on an unpaired surrogate, e.g. from a pasted half emoji.
+  for(const raw of ['bug: abc\uD83D def','\uDE00','idea: tail\uD83D']){
+    const result=buildIssueUrl(raw);
+    expect(result).not.toBeNull();
+    expect(new URL(result.url).searchParams.get('body')).not.toMatch(/[\uD800-\uDFFF]/);
+  }
+  expect(parseFeedback('bug: a\uD83Db')).toEqual({kind:'bug',text:'a\uFFFDb'});
+  // A real pair survives untouched.
+  expect(parseFeedback('bug: 😀')).toEqual({kind:'bug',text:'😀'});
+});
+
+test('the README capacity holds for a single line: about 110 CJK or 1,400 ASCII characters fit',()=>{
+  expect(buildIssueUrl('idea: '+'中'.repeat(110)).truncated).toBe(false);
+  expect(buildIssueUrl('idea: '+'中'.repeat(120)).truncated).toBe(true);
+  expect(buildIssueUrl('idea: '+'a'.repeat(1400)).truncated).toBe(false);
+  expect(buildIssueUrl('idea: '+'a'.repeat(1500)).truncated).toBe(true);
+});
