@@ -44,11 +44,11 @@ claude --plugin-dir "<這個資料夾的路徑>"
 
 ### 設定收件人
 
-回饋要傳給誰，由外掛設定 `feedbackRecipient` 決定，值是收件人的 Teams 登入 email。為了不把任何地址放進公開 repo，程式碼沒有預設值，**每位使用者安裝後都要自己填一次**；請向維護者確認要填誰的地址。
+回饋要傳給誰，由外掛設定 `feedbackRecipient` 決定，值是收件人的 Teams 登入 email。為了不把任何地址放進公開 repo，程式碼沒有預設值，**每位使用者安裝後都要自己填一次**；請向維護者 tom_wang 索取收件人的 Teams 登入 email。
 
 兩種設定方式：
 
-1. 安裝時的設定畫面，或之後在 `/config` 修改（Mod 會用新值重新載入）。
+1. 安裝時的設定畫面，或之後輸入 `/config`，找到「回饋收件人」欄位修改（Mod 會用新值重新載入）。
 2. 直接編輯 `~/.claude/settings.json`（`you@example.com` 換成收件人的地址）：
 
    ```json
@@ -63,7 +63,7 @@ claude --plugin-dir "<這個資料夾的路徑>"
 
    用 `--plugin-dir` 載入時，key 是 `attention-mod`（或 `attention-mod@inline`）；從 marketplace 安裝時的 key 可能是 `attention-mod@tomwangowa`，還沒實機確認，請以 `/config` 實際寫入的內容為準。
 
-沒設定，或填的不是單一合法 email 時，表單會提示「尚未設定回饋收件人」，並只提供「複製內容」，複製出來的文字和傳給收件人的訊息相同（含 `[attention-mod …]` 標籤）。收件人要和你在同一個 Teams 租戶，才找得到對方。
+沒設定時，按下面板的「回饋」會在表單裡顯示設定步驟（輸入 `/config`、填「回饋收件人」、儲存），並只提供「複製內容」；填了但不是單一合法 email 時，開頭改成「目前的值不是單一合法 email，請重新設定」，其餘相同。兩種情況都可以先輸入內容，複製出來的文字和傳給收件人的訊息相同（含 `[attention-mod …]` 標籤）。收件人要和你在同一個 Teams 租戶，才找得到對方。
 
 - Mod 本身不送出任何網路請求，也不寫檔、不存 store；是否送出由你在 Teams 決定。
 - 連結只含你輸入的文字和分類標籤，不附帶對話、路徑、工具內容或 session 資訊。

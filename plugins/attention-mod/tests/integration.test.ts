@@ -87,7 +87,7 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
   const [title,rule,...rest]=(await pane.drawn()).children;
-  expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.1']});
+  expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.2']});
   expect(rule.children).toEqual(['─'.repeat(40)]);
   const labels=rest.filter(row=>row.type==='Text').flatMap(row=>(row.children??[]).filter(c=>c?.props?.bold)).map(c=>({text:c.children[0],color:c.props.color}));
   expect(labels).toEqual([{text:'目標：',color:'blue'},{text:'脈絡：',color:'blue'},{text:'動作：',color:undefined},{text:'證據：',color:'blue'},{text:'需要你：',color:undefined},{text:'外部輸入：',color:'magenta'}]);
@@ -113,7 +113,7 @@ test('dock pane draws a bold title above three round sections coloured by meanin
   for(const header of ['[ 摘要 ]','[ 即時 ]','[ 外部輸入 ]']) expect(text).toContain(header);
   // A lone dock pane has no tab strip, so the pane frame shows no title; the body must carry it.
   const [title]=(await pane.drawn()).children;
-  expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.1']});
+  expect(title).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.4.2']});
 });
 test('dock live border is green while a tool runs, yellow while a question waits, default after',async($,on)=>{
   let finish;
@@ -226,6 +226,7 @@ for(const surface of ['terminal','desktop'] as const){
     await pane.press({key:'open-feedback'});
     expect(findNode(await pane.drawn(),n=>n.type==='Input')).toBeDefined();
     expect(await renderedText(pane)).not.toContain('尚未設定回饋收件人');
+    expect(await renderedText(pane)).not.toContain('設定步驟');
 
     // Empty submit warns and makes no link.
     await pane.input({key:'attention-feedback',text:'   ',kind:'submit'});
@@ -260,7 +261,12 @@ test('without a recipient the form says so, draws no link, and still offers the 
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
   await pane.press({key:'open-feedback'});
-  expect(await renderedText(pane)).toContain('尚未設定回饋收件人');
+  const shown=await renderedText(pane);
+  expect(shown).toContain('尚未設定回饋收件人');
+  expect(shown).toContain('/config');
+  expect(shown).toContain('tom_wang');
+  expect(shown).toContain('複製內容');
+  expect(shown).not.toContain('不是單一合法 email');
   await pane.input({key:'attention-feedback',text:'bug: 面板閃爍',kind:'submit'});
   expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
   await pane.press({key:'copy-feedback'});
@@ -279,13 +285,16 @@ test('a category prefix alone counts as empty feedback, with or without a recipi
   expect(findNode(await pane.drawn(),n=>n.props?.key==='copy-feedback')).toBeUndefined();
 });
 
-test('an invalid recipient is treated as unset instead of building a link',{options:{feedbackRecipient:'a@b.c&message=x'}},async($,on)=>{
+test('an invalid recipient builds no link and says the value is wrong, not missing',{options:{feedbackRecipient:'a@b.c&message=x'}},async($,on)=>{
   hostWithCopy(on);
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
   await pane.press({key:'open-feedback'});
   await pane.input({key:'attention-feedback',text:'bug: x',kind:'submit'});
-  expect(await renderedText(pane)).toContain('尚未設定回饋收件人');
+  const shown=await renderedText(pane);
+  expect(shown).toContain('不是單一合法 email');
+  expect(shown).toContain('/config');
+  expect(shown).not.toContain('尚未設定回饋收件人');
   expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeUndefined();
 });
 
