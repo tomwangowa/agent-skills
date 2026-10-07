@@ -278,7 +278,7 @@ export function decideTrigger({percent, config, state, idle, hasUnfinishedSign, 
 **實作中與計畫不同或補充的決定（待 Tom 確認）：**
 
 1. **驗證新檔要跨多個回合。** 計畫寫「交接回合之後的 `turn.complete`」，但審閱關卡讓一次交接至少有兩個回合（草稿、確認），第一個回合結束時一定還沒有檔案。實作改成：只要有交接進行中，每個 `turn.complete` 都檢查，找到有效新檔就報告；**第 4 個回合仍沒有檔案才提示一次**「未偵測到有效交接檔」，之後繼續檢查，找到仍會報告；10 個回合或 60 分鐘後放棄。
-2. **用 `skill.prompt` 偵測交接開始**（`{skill: 'handoff-mod:handoff'}`），不是 `prompt.submit`。它涵蓋使用者自己輸入與日後 mod 啟動兩種來源，Cloud 真實 session 驗證有效。
+2. **偵測交接開始：三個訊號任一個即可**（`skill.prompt`、`prompt.submit` 文字以 `/handoff-mod:handoff` 開頭、`command.run` 的 `handoff-mod:handoff`；`markHandoffStarted` 保證只啟動一次）。**原本只用 `skill.prompt`，在 Tom 的 macOS 環境輸入指令時它不會觸發（見 `docs/implementation-results.md` 的 L1），已修正；Tom 環境的修正結果待驗證。**
 3. **skill 的語言要能處理「沒替換」：** `${user_config.lang}` 在使用者沒有儲存這個設定時**不會被替換**（skill 看到字面的 `${user_config.lang}`，預設值不會代入），存進設定後才會替換。skill 因此加一句：值不是 `zh-TW` 或 `en` 就用 `zh-TW`。測試用的 `HANDOFF_LANG` 環境變數**不會**傳給 skill。
 4. 啟動讀回的窄視窗降級還沒有偵測 attention-mod（P2 未做）：目前**一律同時**畫 band 並設 `$.ui.status` 一行，如計畫切片 b 所寫的保守做法。
 5. `/handoff-resume` 只列排序後的前 3 筆，折疊的筆數只能在 band 看到「還有 N 筆」，沒有指令可以展開。

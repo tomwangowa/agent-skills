@@ -89,6 +89,10 @@
 
 **Tom 的回覆（2026-10-07）：跑了完整流程，且輸入的是 `/handoff-mod:handoff`。** 所以 L1 是真的：寫入後偵測在 Tom 的環境沒走到「找到檔案」。啟動清單與偵測讀的是同一個目錄、同一個解析器，唯一差別是偵測多呼叫 `$.fs.stat` 並比對 `mtimeMs`；讀程式看不出失敗點（Cloud 的真實 session 同一段是通過的）。下一步是加 `HANDOFF_DEBUG=1` 追蹤（`[handoff-mod debug]` 行，經 `$.ui.log`，Claude 讀不到），讓 Tom 重跑一次看停在哪一步：`skill.prompt` 有沒有觸發與技能名稱、`turn.complete` 有沒有進來、掃描的目錄與每個檔案的 `mtimeMs`／解析結果。
 
+**追蹤結果（Tom 重跑，2026-10-08）：L1 的原因找到了。** 輸入 `/handoff-mod:handoff` 後，只有 `turn.complete` 的追蹤行，**沒有 `skill.prompt` 行，也沒有 `handoff run started`**，所以偵測從未啟動，`checkHandoff` 每回合都在 `since <= 0` 直接返回，不會掃描、不會 toast、不會寫 store。結論：**在 Tom 的環境，輸入 plugin skill 不會觸發 `skill.prompt`**（Cloud 會）。這與本檔 poc-results L2 的紀錄（user skill 經 `$.command.run` 不觸發）和設計文件的「偵測 handoff 是否被啟動要看 `prompt.submit`，不能靠 `skill.prompt`」一致；實作計畫決定 2 卻改成 `skill.prompt`，只憑 Cloud 通過就採用，**是我的疏漏**。
+
+修正（Cloud 驗證，**尚未在 Tom 環境驗證**）：偵測改由三個訊號啟動，`markHandoffStarted` 保證只啟動一次：`skill.prompt`、`prompt.submit` 的文字以 `/handoff-mod:handoff` 開頭、`command.run` 的 `handoff-mod:handoff`。`claude plugin test .` 124 pass；變異檢查（拿掉 `prompt.submit` 或 `command.run` 其一）各被一個新測試抓到。三個訊號在 Tom 環境各自會不會來，仍要用 `HANDOFF_DEBUG=1` 看追蹤行確認。
+
 macOS 特有的疑點：`/var` 是 `/private/var` 的符號連結，畫面上同時出現這兩種寫法；`findNewHandoff` 用 `git rev-parse --show-toplevel` 的結果拼路徑，啟動清單用同一個基準且有找到檔案，所以路徑本身應該沒問題，但**沒有驗證**。
 
 ### 對決策的影響

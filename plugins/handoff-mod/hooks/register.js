@@ -15,6 +15,7 @@ import {ensureExcluded} from './exclude.js';
  */
 
 const SKILL = 'handoff-mod:handoff';
+const SKILL_COMMAND = new RegExp(`^/${SKILL}(\\s|$)`);
 const DIR = '.claude/handoffs';
 const PATTERN = `${DIR}/`;
 const MAX_DIRS = 20;
@@ -227,7 +228,7 @@ async function resume($, item) {
 async function markHandoffStarted($) {
   const already = await read($, handoffStartedAt);
   if (already > 0) {
-    trace($, `skill started again; a run is already pending since ${already}`);
+    trace($, `start signal ignored, a run is already pending since ${already}`);
     return;
   }
   const now = Math.max(1, await $.clock.now());
@@ -359,6 +360,9 @@ export function register(on, options) {
     try {
       if ('drop' in result) return result;
       const text = result.text ?? e.text ?? '';
+      if (text.startsWith('/')) trace($, `prompt.submit origin=${e.origin?.kind ?? '-'} command=${text.trim().split(/\s/)[0]}`);
+      // skill.prompt does not fire for a typed plugin skill in every environment, so the command text starts a run too.
+      if (SKILL_COMMAND.test(text.trim())) await markHandoffStarted($);
       // The first real prompt ends the start-up list; slash commands such as /handoff-resume do not.
       if (list && ['composer', 'bridge', 'sdk'].includes(e.origin?.kind) && !text.startsWith('/')) {
         await update($, listDone, () => true);
@@ -377,6 +381,16 @@ export function register(on, options) {
   on('skill.prompt', {skill: SKILL}, async ($, e, next) => {
     const result = await next(e);
     try { await markHandoffStarted($); } catch { /* ignore */ }
+    return result;
+  });
+
+  // A third way to see a run start: the skill is a command, however it was started (typed, or run by this mod).
+  on('command.run', {command: SKILL}, async ($, e, next) => {
+    const result = await next(e);
+    try {
+      trace($, `command.run command=${SKILL}`);
+      await markHandoffStarted($);
+    } catch (error) { trace($, `markHandoffStarted failed: ${String(error?.message ?? error)}`); }
     return result;
   });
 
