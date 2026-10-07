@@ -235,7 +235,7 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 
 ### 實作前驗證（Task 0，Cloud，2026-10-07）
 
-實作計畫 Task 0 的 P1 與 P5，在 **Cloud container**（Linux、Claude Code 2.1.292）驗證，探針從 commit `0d319f4` 解到暫存目錄修改，沒有放回 repo。P2、P3、P4 要在 Tom 本機做，**尚未做**。
+實作計畫 Task 0 的 P1 與 P5，在 **Cloud container**（Linux、Claude Code 2.1.292）驗證，探針從 commit `0d319f4` 解到暫存目錄修改，沒有放回 repo。P2、P3、P4 要在 Tom 本機做；2026-10-07 Tom 已回報 P2 與 P3 的部分結果，見 [implementation-results.md](implementation-results.md) 的「Task 14（部分）」（P2 通過；P3 只確認檔案 0600，目錄未驗證；P4 沒有回報）。
 
 | 編號 | 問題 | 結果（Cloud） |
 | --- | --- | --- |

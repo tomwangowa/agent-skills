@@ -59,6 +59,51 @@
 - 「對話框開著時打字再 Enter」在真實 session 沒有再測；Cloud 先前（W8）的結果是文字不會送出、Enter 選預設項。
 - 沒有測 `/clear` 之後的啟動讀回（只有測試）。
 
+## Task 14（部分）：Tom 本機實測（macOS、Claude Code 2.1.292、模型 `claude-sonnet-5-5`，2026-10-07）
+
+環境：Tom 的 macOS，拋棄式 git repo（分支 `feat/demo`），`claude --plugin-dir`。結果是 Tom 回報加截圖，**我沒有親眼驗證**；這批對應切片 a、c、d、e（還沒有 T1 與結束筆記）。
+
+| 項目 | 結果 | 狀態 |
+| --- | --- | --- |
+| L1 手動交接 | 交接檔有寫出（`.claude/handoffs/feat-demo--<時間>.md`），但 **「交接已寫入」的 toast 沒有出現**。 | **未解**，見下方分析 |
+| L2 啟動讀回 | band 列出 2 筆未完成交接（任務、分支、幾分鐘前、下一步、「接續」「略過」），輸入框下方有 `⚠ handoff-mod: 有 2 筆未完成交接，輸入 /handoff-resume 查看`。 | 通過 |
+| L3 `/handoff-resume` | 接續後輸入框被填入「請先讀 `<路徑>/.claude/handoffs/…md`，驗證其中前提是否仍成立，再接續「下一步」。」，沒有自動送出。 | 通過 |
+| L4 band 按鈕 | **Tab 與滑鼠點擊都能按。** 這是 Cloud 做不到的項目。 | 通過 |
+| L5 `/clear` | Tom 回報「沒問題」，沒有逐一記錄四條路徑與數字鍵的結果。 | 通過（細節未記錄） |
+| L6 / P3 store 權限 | `~/.claude/plugins/store/handoff-mod_inline-<hash>.json` 為 `-rw-------`（0600）。同目錄的內建 plugin 檔有 `-rw-r--r--` 也有 `-rw-------`。**目錄 `~/.claude/plugins/store` 是 `drwxr-xr-x@`（0755）**，與 Cloud 的 0700 不同；同機器的其他使用者能列出檔名，但讀不到 0600 檔案的內容。目錄由 Claude Code 建立，不是本 plugin 控制。 | 通過（檔案 0600）；目錄 0755 是**與 Cloud 不同的事實**，已記錄 |
+| L7 / P2 與 attention-mod 同載入 | 窄視窗、attention-mod 在輸入框上方的 inline 面板：**band 被面板遮住，看不到**；`$.ui.status` 那一行在輸入框下方**看得到**。寬視窗（面板在右側）：band 與 status **都看得到**。 | 通過（D9 的假設成立） |
+| L8 語言 | `HANDOFF_LANG=en`：band 變成 `1 unfinished handoff(s)`、`Next:`、`Resume`、`Skip`，status 變成 `1 unfinished handoff(s). Run /handoff-resume to see them`；檔案內容仍是原本寫的中文，符合預期。 | 通過（介面）；skill 在 `en` 的流程 Tom 沒回報 |
+
+### L1：toast 沒出現（未解）
+
+可能原因：
+
+| 假設 | 依據 | 怎麼分辨 |
+| --- | --- | --- |
+| H1：toast 有呼叫，但沒看到 | 型別文件寫 toast 預設只停 **4 秒**，畫在 transcript 的**右上角**（滾動模式下才是通知列一行）；又因為 `$.ui.toast` 前面還有 `ensureExcluded` 與寫 store，toast 出現在模型回答的最後一刻 | store 的 `stats.written` ≥ 1，且 `.git/info/exclude` 有 `.claude/handoffs/` |
+| H2：`checkHandoff` 沒走到 toast | `checkHandoff` 被 `try { … } catch { /* ignore */ }` 包住（`register.js` 的 `turn.complete`），例外會被吞；`ensureExcluded` 或 `$.fs.stat` 在 macOS 失敗都會讓 toast 不出現 | 同上；`stats.written` 不存在或為 0 |
+
+**第一次診斷無效（2026-10-07）：** Tom 在沒有交接資料的位置跑了診斷（`git status` 只有 `?? hello.txt`，store 沒有 `handoff-mod_inline-*.json`，該檔已在清理步驟刪掉），所以 H1／H2 仍分不出來。另外，`ensureExcluded` 的第一步是 `git check-ignore`：Tom 的**全域 gitignore 已有 `**/.claude/handoffs/`**（`git check-ignore -v` 實測，第 7 行），它會直接回傳「不需要改」，`.git/info/exclude` 維持預設是**正常行為**，不是 bug；因此在 Tom 的機器上看不到排除功能的效果，也不能拿 exclude 當 H2 的證據，要看 `stats.written`。要在他的機器驗證排除，需用 `git -c core.excludesFile=/dev/null check-ignore -v .claude/handoffs/x`（略過全域設定）。
+
+**第二次診斷（2026-10-07）：** `check-ignore` 命中全域規則（exit 0）；`~/.claude/plugins/store/handoff-mod_*.json` **完全不存在**。若 Tom 這次確實在新 repo 跑完了交接，代表 `bumpStat` 沒被執行，偵測沒走到「找到檔案」；但**尚未確認他這次是否真的跑了交接、輸入的是 `/handoff-mod:handoff` 還是自己的 `/handoff`**（後者不會觸發本 mod 的偵測），結論未定。
+
+**Tom 的回覆（2026-10-07）：跑了完整流程，且輸入的是 `/handoff-mod:handoff`。** 所以 L1 是真的：寫入後偵測在 Tom 的環境沒走到「找到檔案」。啟動清單與偵測讀的是同一個目錄、同一個解析器，唯一差別是偵測多呼叫 `$.fs.stat` 並比對 `mtimeMs`；讀程式看不出失敗點（Cloud 的真實 session 同一段是通過的）。下一步是加 `HANDOFF_DEBUG=1` 追蹤（`[handoff-mod debug]` 行，經 `$.ui.log`，Claude 讀不到），讓 Tom 重跑一次看停在哪一步：`skill.prompt` 有沒有觸發與技能名稱、`turn.complete` 有沒有進來、掃描的目錄與每個檔案的 `mtimeMs`／解析結果。
+
+macOS 特有的疑點：`/var` 是 `/private/var` 的符號連結，畫面上同時出現這兩種寫法；`findNewHandoff` 用 `git rev-parse --show-toplevel` 的結果拼路徑，啟動清單用同一個基準且有找到檔案，所以路徑本身應該沒問題，但**沒有驗證**。
+
+### 對決策的影響
+
+- **P2**：D9 成立。窄視窗時 band 不可靠，`$.ui.status` 是唯一保證看得到的訊號，所以 T1（門檻提示）在窄視窗必須以 status 為主。
+- **L4**：band 的按鈕在 Tom 的環境可用（Tab、點擊），T1 的 band 按鈕做法可行。
+- **P3**：檔案 0600、目錄 0755。內容不會被其他使用者讀到，但**檔名與存在**可見；結束筆記（切片 f）要不要做，改成需要 Tom 決定的取捨（見回覆），不再是「等驗證」。
+- **toast 不應當作唯一的成功訊號**：不論 H1 或 H2，4 秒的右上角提示都太容易錯過。
+
+限制：
+
+- 以上是 Tom 的回報與截圖；沒有 log，沒有逐項重現。
+- Warp 是 Tom 的終端機（依先前對話），截圖裡看不出是不是 Warp。
+- L5 沒有逐項記錄；P4（打字後 Enter）沒有回報。
+
 ## 尚未做
 
-Task 13 的切片 b（T1 提示）、f（結束筆記）、g（計數指令）、Task 14（Tom 本機驗收）、Task 15（文件與 marketplace）。實作前驗證 P2、P3、P4 仍待 Tom。
+Task 13 的切片 b（T1 提示）、f（結束筆記）、g（計數指令）、Task 14 的其餘驗收、Task 15（文件與 marketplace）。**L1 的 toast 問題**待 Tom 重做一次診斷（先不要清理 store），P4 沒有回報。
