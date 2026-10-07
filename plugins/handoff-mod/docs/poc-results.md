@@ -6,7 +6,7 @@
 
 下表的「已驗證」都在 **Cloud container** 取得：Linux、Claude Code 2.1.291、模型 `claude-sonnet-5-5`（window 1,000,000）、用 pty 驅動真正的互動 session（80／120／170 欄）；標「headless」的是 `claude -p`。**不是 Tom 的 macOS、Warp、預設模型，也沒有 Tom 的 harness。** 標題寫「待本機」的項目還沒做，不能當成已驗證。
 
-探針在 `poc/handoff-poc/`，每個探針都把結果寫進 `$TMPDIR/handoff-poc.log`（沒設 `TMPDIR` 時是 `/tmp/handoff-poc.log`）和 transcript。`claude plugin validate --strict` 通過。
+探針原本在 `poc/handoff-poc/`（2026-10-07 Tom 最後確認後已刪除，原始碼留在 commit `0d319f4`，要用時 `git checkout 0d319f4 -- plugins/handoff-mod/poc` 取回）。每個探針都把結果寫進 `$TMPDIR/handoff-poc.log`（沒設 `TMPDIR` 時是 `/tmp/handoff-poc.log`）和 transcript。`claude plugin validate --strict` 通過。
 
 ## 已驗證（Cloud）
 
@@ -235,4 +235,4 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 
 ## 清理
 
-PoC 結束、結果寫完後刪除 `poc/`。探針不是產品，不會進 marketplace。
+2026-10-07 Tom 最後確認設計後，`poc/` 已刪除（`git rm -r plugins/handoff-mod/poc`）。探針不是產品，不會進 marketplace。實作前驗證需要探針時，從 commit `0d319f4` 取回，或另寫新的。
