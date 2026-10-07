@@ -11,6 +11,10 @@ declare module 'claude-code' {
       askPending: boolean
       /** When the handoff turn started (ms), 0 when none; used to find the new file. */
       handoffStartedAt: number
+      /** Turns completed since the handoff started; used to decide when to say that no file appeared. */
+      handoffTurns: number
+      /** The start-up list was skipped, resumed or dismissed in this session. */
+      listDone: boolean
     }
   }
 }

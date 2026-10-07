@@ -273,21 +273,32 @@ export function decideTrigger({percent, config, state, idle, hasUnfinishedSign, 
 
 ## Phase 2：skill 與接線
 
+**狀態（2026-10-07，Cloud）：Task 12 與 Task 13 的切片 a、d、e 完成，未 commit。** 切片 b、c、f、g 未做。`claude plugin validate --strict .` 通過（呼叫清單沒有 `$.model`、`$.prompt.submit`、`$.command.run`）；`claude plugin test .` 為 **109 pass、0 fail**（含 `tests/register.test.ts` 的接線測試，用測試 kit 驅動事件並 stub 檔案系統、git、store）。另在 Cloud 的真實互動 session 驗證（見 `docs/implementation-results.md`）。
+
+**實作中與計畫不同或補充的決定（待 Tom 確認）：**
+
+1. **驗證新檔要跨多個回合。** 計畫寫「交接回合之後的 `turn.complete`」，但審閱關卡讓一次交接至少有兩個回合（草稿、確認），第一個回合結束時一定還沒有檔案。實作改成：只要有交接進行中，每個 `turn.complete` 都檢查，找到有效新檔就報告；**第 4 個回合仍沒有檔案才提示一次**「未偵測到有效交接檔」，之後繼續檢查，找到仍會報告；10 個回合或 60 分鐘後放棄。
+2. **用 `skill.prompt` 偵測交接開始**（`{skill: 'handoff-mod:handoff'}`），不是 `prompt.submit`。它涵蓋使用者自己輸入與日後 mod 啟動兩種來源，Cloud 真實 session 驗證有效。
+3. **skill 的語言要能處理「沒替換」：** `${user_config.lang}` 在使用者沒有儲存這個設定時**不會被替換**（skill 看到字面的 `${user_config.lang}`，預設值不會代入），存進設定後才會替換。skill 因此加一句：值不是 `zh-TW` 或 `en` 就用 `zh-TW`。測試用的 `HANDOFF_LANG` 環境變數**不會**傳給 skill。
+4. 啟動讀回的窄視窗降級還沒有偵測 attention-mod（P2 未做）：目前**一律同時**畫 band 並設 `$.ui.status` 一行，如計畫切片 b 所寫的保守做法。
+5. `/handoff-resume` 只列排序後的前 3 筆，折疊的筆數只能在 band 看到「還有 N 筆」，沒有指令可以展開。
+6. 啟動清單的按鈕沒有數字 hotkey（避免使用者開頭輸入數字時被誤觸發）。
+
 ### Task 12：內建 skill（`skills/handoff/SKILL.md`）
 
-- [ ] **Step 1：** 寫 skill（指令名為 `handoff-mod:handoff`）。內容須包含：唯讀收集（`git branch --show-current`、`git status --short --branch`、近期 commit、當前對話）；**草擬後完整顯示並等使用者確認，未經確認不寫檔**；寫入路徑由 skill **明確指定**：git repo 內用 `git rev-parse --show-toplevel` 加 `.claude/handoffs/`，不在 git 內用目前目錄（D10），檔名 `<branch 淨化>--<YYYYMMDD-HHMMSS>.md`；frontmatter 照設計 schema 1；「已驗證」只能列**這個回合實際跑過的指令或讀過的檔案**並寫出是哪個指令（L2：Tom 的 `handoff` 曾把沒跑過的「看過 diff」標成已驗證）；不寫金鑰、token、客戶資料；標明「已驗證／未驗證」是 AI 自述；章節標題語言依 `${user_config.lang}`（manifest 文件寫明非敏感的 `userConfig` 值會在 skill 內容中替換，**這一點沒有實測**，Step 3 要驗證；替換不成立就改成讓 skill 同時產出兩種標題之一並由使用者指定，回報 Tom）。
-- [ ] **Step 2：** `claude plugin validate --strict .`。
-- [ ] **Step 3（Cloud 與 Tom）：** 先確認 `${user_config.lang}` 在 skill 內容中確實被替換（兩種語言各看一次展開後的內容）。再在拋棄式 git repo 與非 git 目錄各跑一次 `/handoff-mod:handoff`，檢查寫出的路徑、frontmatter 能被 Task 5 的解析器讀回、「已驗證」沒有捏造。Tom 的 `handoff` 不受影響（`handoff-mod:handoff` 是不同的指令名）。
+- [x] **Step 1：** 寫 skill（指令名為 `handoff-mod:handoff`）。內容須包含：唯讀收集（`git branch --show-current`、`git status --short --branch`、近期 commit、當前對話）；**草擬後完整顯示並等使用者確認，未經確認不寫檔**；寫入路徑由 skill **明確指定**：git repo 內用 `git rev-parse --show-toplevel` 加 `.claude/handoffs/`，不在 git 內用目前目錄（D10），檔名 `<branch 淨化>--<YYYYMMDD-HHMMSS>.md`；frontmatter 照設計 schema 1；「已驗證」只能列**這個回合實際跑過的指令或讀過的檔案**並寫出是哪個指令（L2：Tom 的 `handoff` 曾把沒跑過的「看過 diff」標成已驗證）；不寫金鑰、token、客戶資料；標明「已驗證／未驗證」是 AI 自述；章節標題語言依 `${user_config.lang}`（manifest 文件寫明非敏感的 `userConfig` 值會在 skill 內容中替換，**這一點沒有實測**，Step 3 要驗證；替換不成立就改成讓 skill 同時產出兩種標題之一並由使用者指定，回報 Tom）。
+- [x] **Step 2：** `claude plugin validate --strict .`。
+- [x] **Step 3（Cloud 與 Tom）：** 先確認 `${user_config.lang}` 在 skill 內容中確實被替換（兩種語言各看一次展開後的內容）。再在拋棄式 git repo 與非 git 目錄各跑一次 `/handoff-mod:handoff`，檢查寫出的路徑、frontmatter 能被 Task 5 的解析器讀回、「已驗證」沒有捏造。Tom 的 `handoff` 不受影響（`handoff-mod:handoff` 是不同的指令名）。
 
 ### Task 13：`register.js` 接線（分切片，每片結束都驗證）
 
 每一片：寫接線 → `node --check` → `claude plugin validate --strict .` → 在互動 session 驗證（Cloud 用 pty，結果標「Cloud」；最終驗收在 Task 14）。**所有 hook 本體都包 `try/catch`。**
 
-- [ ] **切片 a：註冊與設定。** `session.start` 註冊 `/handoff-resume`；讀三個環境變數（字面名稱）與 `register(on, options)` 的 `userConfig`，餵給 `resolveConfig`；`$.state` atoms 依 Task 1 的型別。初始化要可重複執行。驗證：改任何一個設定後（`$.config.set`），`$.state` 的值保留、`session.start` 再觸發而不出錯。
+- [x] **切片 a：註冊與設定。** `session.start` 註冊 `/handoff-resume`；讀三個環境變數（字面名稱）與 `register(on, options)` 的 `userConfig`，餵給 `resolveConfig`；`$.state` atoms 依 Task 1 的型別。初始化要可重複執行。驗證：改任何一個設定後（`$.config.set`），`$.state` 的值保留、`session.start` 再觸發而不出錯。
 - [ ] **切片 b：T1 提示。** 收 `turn.complete`、`session.measure`；呼叫 `onPercentSeen`、`decideTrigger`。要問時：寬視窗畫 band（三個按鈕，數字 hotkey 1／2／3，文字來自 `i18n`）；窄視窗且有 attention-mod 時用 `$.ui.status` 常駐一行加指令（D9）；選項 1 開始交接（`$.clock.after` 內呼叫 `$.command.run({command:'handoff-mod:handoff'})`，設 `handoffStartedAt`）、2 呼叫 `snooze`、3 呼叫 `suppress`。band 的內容要與 `next(e)` 的結果並排（共存）。**偵測「窄視窗且有 attention-mod」的方法在 Task 0 之後定**（可能用 `$.command.list()` 看 attention-mod 的指令，或看 band 收到的 `viewport`）；定不出來就先一律同時用 band 與 status，並回報 Tom。
 - [ ] **切片 c：T2 `/clear` 攔截。** `command.run` 的 `clear` hook：互動 session 且 `turns() > 0` 才攔截（D3：不看未完成跡象）；`$.ui.ask` 選項順序依 D13：取消／先交接再清除／直接清除；`askPending` 旗標防疊加；選「直接清除」呼叫 `next(e)`；取消、Esc（reject）、其他任何回答都回 `{text}` 不執行；選「先交接」回 `{text}` 說明「已暫停清除，交接完成後請再下 `/clear`」並從計時器開始交接；`-p` 或非互動時不攔截；回答若在 session 重置之後才到就丟棄。驗證（Cloud pty）：四條路徑，與設計的 W8 一致。
-- [ ] **切片 d：驗證新檔。** 交接回合之後的 `turn.complete`：用 `$.fs.list` 找交接目錄中 mtime 晚於 `handoffStartedAt` 的新檔，經 `parseHandoff` 驗證；成功 → 呼叫 `ensureExcluded`、`$.ui.toast` 顯示路徑、累計寫入次數（D5，`$.store`）；失敗 → toast「未偵測到有效交接檔」，不標成功。交接目錄用 D10 的基準：git repo 內 `git rev-parse --show-toplevel`，否則 `$.session.root()`。
-- [ ] **切片 e：啟動讀回。** `classic.SessionStart`，`source` 為 `startup` 或 `clear`、互動、`turns() === 0`。來源：目前 worktree 的目錄；`repo().root` 不同時再加主 checkout；同 repo 其他 worktree 由 `git worktree list --porcelain` 取得（D2）；不另做索引。逐個 `parseHandoff` → 讀 `$.store` 取得有效狀態與認領 → `freshnessFacts` → `rankHandoffs`。介面：寬視窗 band（接續、略過）；窄視窗且有 attention-mod 用 `$.ui.status` 一行「有 N 筆未完成交接」加 `/handoff-resume`；**清單輸出用 `$.ui.log`**（D14）。「接續」→ `tryClaim`、`$.prompt.fill`（內容只有路徑與驗證前提的提示）、`$.store` 記 `resumed`、累計接續次數（D5）。`/handoff-resume <編號>` 同「接續」。啟動清單那行 status 在 `turns() > 0` 時移除；與 T1 的 status 不同時存在。`classic.SessionStart` 的 `source` 為 `clear` 時，**明確重置** module 內任何殘留與 T1 狀態（`resetThreshold`）。
+- [x] **切片 d：驗證新檔。** 交接回合之後的 `turn.complete`：用 `$.fs.list` 找交接目錄中 mtime 晚於 `handoffStartedAt` 的新檔，經 `parseHandoff` 驗證；成功 → 呼叫 `ensureExcluded`、`$.ui.toast` 顯示路徑、累計寫入次數（D5，`$.store`）；失敗 → toast「未偵測到有效交接檔」，不標成功。交接目錄用 D10 的基準：git repo 內 `git rev-parse --show-toplevel`，否則 `$.session.root()`。
+- [x] **切片 e：啟動讀回。** `classic.SessionStart`，`source` 為 `startup` 或 `clear`、互動、`turns() === 0`。來源：目前 worktree 的目錄；`repo().root` 不同時再加主 checkout；同 repo 其他 worktree 由 `git worktree list --porcelain` 取得（D2）；不另做索引。逐個 `parseHandoff` → 讀 `$.store` 取得有效狀態與認領 → `freshnessFacts` → `rankHandoffs`。介面：寬視窗 band（接續、略過）；窄視窗且有 attention-mod 用 `$.ui.status` 一行「有 N 筆未完成交接」加 `/handoff-resume`；**清單輸出用 `$.ui.log`**（D14）。「接續」→ `tryClaim`、`$.prompt.fill`（內容只有路徑與驗證前提的提示）、`$.store` 記 `resumed`、累計接續次數（D5）。`/handoff-resume <編號>` 同「接續」。啟動清單那行 status 在 `turns() > 0` 時移除；與 T1 的 status 不同時存在。`classic.SessionStart` 的 `source` 為 `clear` 時，**明確重置** module 內任何殘留與 T1 狀態（`resetThreshold`）。
 - [ ] **切片 f：結束筆記（依 P1 路線）。** 路線 A：`session.end` 內讀訊息，`withDeadline` 在約 1.5 秒預算內完成。路線 B：`prompt.submit` 記最後一個要求、`turn.complete` 記最後一段回應，**先 `cleanForNote` 再存 `$.store`**（每 session 一組、key 含 session id、寫完筆記即刪、`/clear` 或新 session 時刪舊的、啟動時清掉超過 7 天的）；`session.end` 只組檔案並寫入。兩路線的寫檔相同：`$.fs.write` 之後 `$.process.run(['chmod', '600', path])`（`$.fs.write` 沒有權限參數）；寫之前呼叫 `ensureExcluded`；逾時就放棄、不留半個檔案；檔名 `…--auto.md`。`reason` 為 `clear` 不寫。
 - [ ] **切片 g：使用計數（D5）。** `$.store` 只存本機計數（交接寫入次數、接續次數）；不外傳；加一個指令印出計數（用 `$.ui.log`）。
 

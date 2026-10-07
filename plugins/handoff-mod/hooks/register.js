@@ -1,4 +1,373 @@
-/** Register the handoff hooks. Wiring is added slice by slice (see the implementation plan, Task 13). */
+import {atom, read, update} from 'claude-code';
+import {resolveConfig} from './config.js';
+import {t} from './i18n.js';
+import {parseHandoff} from './handoff-file.js';
+import {rankHandoffs} from './rank.js';
+import {freshnessFacts} from './freshness.js';
+import {tryClaim, claimView} from './claim.js';
+import {ensureExcluded} from './exclude.js';
+
+/*
+ * Wiring for the handoff mod. Every pure decision lives in its own module; this file only connects events to them.
+ * Invariants (see docs/superpowers/plans/2026-10-07-handoff-mod.md): never touch a tool call, a permission decision or
+ * Claude's prompt; every hook body is wrapped in try/catch; session-scoped state lives in $.state, not in module variables,
+ * because changing any setting reloads the module; list output goes through $.ui.log, which Claude does not read.
+ */
+
+const SKILL = 'handoff-mod:handoff';
+const DIR = '.claude/handoffs';
+const PATTERN = `${DIR}/`;
+const MAX_DIRS = 20;
+const MAX_PER_DIR = 30;
+const GIVE_UP_TURNS = 10;
+const WARN_AT_TURN = 4;
+const GIVE_UP_MS = 60 * 60 * 1000;
+
+// Session-scoped state, kept in $.state: it survives a module reload and is reset by /clear, /resume and /branch.
+const handoffStartedAt = atom({plugin: 'handoff-mod', key: 'handoffStartedAt'}, 0);
+const handoffTurns = atom({plugin: 'handoff-mod', key: 'handoffTurns'}, 0);
+const listDone = atom({plugin: 'handoff-mod', key: 'listDone'}, false);
+
+// Rebuilt from userConfig and disk whenever the module (re)loads or a session starts.
+let USER_CONFIG = {};
+let config = resolveConfig({});
+let list = null; // {items, total} while the start-up list is showing
+let listing = false;
+
+/** Run git without a shell; resolves to {exitCode, stdout} and never throws. */
+async function git($, args) {
+  try {
+    const result = await $.process.run(['git', ...args], {timeoutMs: 5000});
+    return {exitCode: result.exitCode, stdout: String(result.stdout ?? '')};
+  } catch {
+    return {exitCode: -1, stdout: ''};
+  }
+}
+
+/** Test-only env overrides (literal names, so validate can list them), then userConfig, then defaults. */
+async function loadConfig($) {
+  try {
+    const env = {
+      HANDOFF_THRESHOLD_PCT: await $.env.get('HANDOFF_THRESHOLD_PCT'),
+      HANDOFF_LANG: await $.env.get('HANDOFF_LANG'),
+      HANDOFF_AUTO_NOTE: await $.env.get('HANDOFF_AUTO_NOTE'),
+    };
+    return resolveConfig({env, userConfig: USER_CONFIG});
+  } catch {
+    return resolveConfig({userConfig: USER_CONFIG});
+  }
+}
+
+/** The handoff directory's base: the git toplevel of this working tree, else the session root (D10). */
+async function projectBase($) {
+  const top = await git($, ['rev-parse', '--show-toplevel']);
+  const line = top.exitCode === 0 ? top.stdout.trim() : '';
+  return line || (await $.session.root());
+}
+
+async function repoRoot($) {
+  try {
+    return (await $.session.repo())?.root ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** The working tree's own directory, the main checkout's, and every other worktree's (D2); no index, bounded. */
+async function candidateDirs($, base, repo) {
+  const dirs = [`${base}/${DIR}`];
+  if (repo) {
+    dirs.push(`${repo}/${DIR}`);
+    const trees = await git($, ['worktree', 'list', '--porcelain']);
+    if (trees.exitCode === 0) {
+      for (const line of trees.stdout.split('\n')) if (line.startsWith('worktree ')) dirs.push(`${line.slice(9).trim()}/${DIR}`);
+    }
+  }
+  return [...new Set(dirs)].slice(0, MAX_DIRS);
+}
+
+/** Newest first by the timestamp in the file name, then by name. */
+const byStamp = (a, b) => {
+  const key = (name) => /--(\d{8}-\d{6})/.exec(name)?.[1] ?? '';
+  return key(b).localeCompare(key(a)) || (a < b ? 1 : a > b ? -1 : 0);
+};
+
+async function readHandoffs($, dirs) {
+  const found = [];
+  for (const dir of dirs) {
+    try {
+      if (!(await $.fs.exists(dir))) continue;
+      const names = (await $.fs.list(dir)).filter((entry) => entry.kind === 'file' && entry.name.endsWith('.md')).map((entry) => entry.name).sort(byStamp).slice(0, MAX_PER_DIR);
+      for (const name of names) {
+        const path = `${dir}/${name}`;
+        try {
+          const parsed = parseHandoff(await $.fs.read(path));
+          if (parsed.ok) found.push({path, meta: parsed.meta, fields: parsed.fields});
+        } catch { /* An unreadable file is skipped. */ }
+      }
+    } catch { /* An unreadable directory counts as no handoffs. */ }
+  }
+  return found;
+}
+
+const age = (lang, ms) => {
+  const minutes = Math.max(1, Math.round(ms / 60000));
+  if (minutes < 60) return t(lang, 'age.minutes', {n: minutes});
+  const hours = Math.round(minutes / 60);
+  return hours < 48 ? t(lang, 'age.hours', {n: hours}) : t(lang, 'age.days', {n: Math.round(hours / 24)});
+};
+
+const factText = (lang, fact) =>
+  fact.kind === 'branchGone' ? t(lang, 'fresh.branchGone', {branch: fact.branch})
+    : fact.kind === 'ahead' ? t(lang, 'fresh.ahead', {branch: fact.branch, count: fact.count})
+      : fact.kind === 'merged' ? t(lang, 'fresh.merged', {base: fact.base})
+        : t(lang, 'fresh.unverifiable');
+
+async function storeGet($, key) {
+  try {
+    return await $.store.get(key);
+  } catch {
+    return undefined;
+  }
+}
+
+/** Collect, rank and describe the unfinished handoffs for this working tree and its repository. */
+async function buildList($) {
+  const lang = config.lang;
+  const sessionId = await $.session.id();
+  const now = await $.clock.now();
+  const base = await projectBase($);
+  const repo = await repoRoot($);
+  const found = await readHandoffs($, await candidateDirs($, base, repo));
+  const items = [];
+  for (const f of found) {
+    const override = await storeGet($, `state:${f.path}`);
+    items.push({
+      path: f.path, meta: f.meta, fields: f.fields,
+      effectiveStatus: override && typeof override.status === 'string' ? override.status : f.meta.status,
+      claimedByOther: claimView(await storeGet($, `claim:${f.path}`), sessionId, now).state === 'other',
+    });
+  }
+  const ranked = rankHandoffs(items, {base, repo, now});
+  const views = [];
+  for (const item of ranked.shown) {
+    const facts = await freshnessFacts({meta: item.meta, git: (args) => git($, args)});
+    views.push({
+      id: item.path,
+      title: t(lang, 'list.item', {n: views.length + 1, task: item.fields.task || item.path.split('/').pop(), branch: item.meta.branch ?? '-', age: age(lang, now - item.meta.created)}),
+      next: item.fields.next ? t(lang, 'list.next', {next: item.fields.next}) : '',
+      facts: facts.map((fact) => factText(lang, fact)),
+      auto: item.meta.source === 'auto',
+      claimed: item.claimedByOther,
+    });
+  }
+  return {items: views, total: ranked.shown.length + ranked.collapsed};
+}
+
+function showList($, built) {
+  list = built.items.length ? built : null;
+  $.ui.status(list ? t(config.lang, 'status.pending', {count: built.total}) : undefined);
+  $.ui.invalidate('ui.render');
+}
+
+function clearList($) {
+  list = null;
+  $.ui.status(undefined);
+  $.ui.invalidate('ui.render');
+}
+
+/** Compute the start-up list once per call; `force` ignores "already dismissed" (used by /handoff-resume). */
+async function refreshList($, {force = false} = {}) {
+  if (listing) return;
+  listing = true;
+  try {
+    if (!force && (await read($, listDone))) return;
+    showList($, await buildList($));
+  } catch {
+    /* The list is a convenience; never let it break the session. */
+  } finally {
+    listing = false;
+  }
+}
+
+async function bumpStat($, field) {
+  try {
+    const stats = (await $.store.get('stats')) ?? {};
+    await $.store.set('stats', {written: 0, resumed: 0, ...stats, [field]: (Number(stats[field]) || 0) + 1});
+  } catch { /* Counts are local and optional. */ }
+}
+
+/** Resume one handoff: claim it, remember that, and put a prompt in the input box for the user to send. */
+async function resume($, item) {
+  const lang = config.lang;
+  const now = await $.clock.now();
+  const sessionId = await $.session.id();
+  const claim = await tryClaim({id: item.id, sessionId, now, store: {get: (key) => $.store.get(key), set: (key, value) => $.store.set(key, value)}});
+  if (!claim.won) {
+    $.ui.toast(t(lang, 'resume.claimedElsewhere'));
+    return;
+  }
+  try { await $.store.set(`state:${item.id}`, {status: 'resumed', at: now, sessionId}); } catch { /* Resuming still works without the record. */ }
+  await bumpStat($, 'resumed');
+  await $.prompt.fill({text: t(lang, 'resume.prompt', {path: item.id})});
+  await update($, listDone, () => true);
+  clearList($);
+}
+
+/** A handoff run starts when the skill is expanded, however it was started (typed, or run by this mod). */
+async function markHandoffStarted($) {
+  if ((await read($, handoffStartedAt)) > 0) return;
+  const now = Math.max(1, await $.clock.now());
+  await update($, handoffStartedAt, () => now);
+  await update($, handoffTurns, () => 0);
+}
+
+/** The newest valid handoff file written since `since`, or null. Never trusts that the model wrote one. */
+async function findNewHandoff($, since) {
+  const dir = `${await projectBase($)}/${DIR}`;
+  if (!(await $.fs.exists(dir))) return null;
+  let newest = null;
+  for (const entry of await $.fs.list(dir)) {
+    if (entry.kind !== 'file' || !entry.name.endsWith('.md')) continue;
+    const path = `${dir}/${entry.name}`;
+    try {
+      const stat = await $.fs.stat(path);
+      if (stat.mtimeMs < since - 2000 || (newest && stat.mtimeMs <= newest.mtimeMs)) continue;
+      if (parseHandoff(await $.fs.read(path)).ok) newest = {path, mtimeMs: stat.mtimeMs};
+    } catch { /* Skip files that cannot be read. */ }
+  }
+  return newest;
+}
+
+/**
+ * After each turn while a handoff is pending: report the file once a valid one exists. The review gate makes a handoff
+ * span at least two turns (draft, then confirm), so "no file yet" is only reported after WARN_AT_TURN turns, once.
+ */
+async function checkHandoff($) {
+  const since = await read($, handoffStartedAt);
+  if (since <= 0) return;
+  const lang = config.lang;
+  const turns = (await read($, handoffTurns)) + 1;
+  await update($, handoffTurns, () => turns);
+  const found = await findNewHandoff($, since);
+  if (found) {
+    await ensureExcluded({
+      git: (args) => git($, args),
+      fs: {exists: (path) => $.fs.exists(path), read: (path) => $.fs.read(path), write: (path, text) => $.fs.write(path, text)},
+      pattern: PATTERN,
+    });
+    await bumpStat($, 'written');
+    $.ui.toast(t(lang, 'toast.written', {path: found.path}));
+    await update($, handoffStartedAt, () => 0);
+    return;
+  }
+  if (turns === WARN_AT_TURN) $.ui.toast(t(lang, 'toast.invalid'));
+  if (turns >= GIVE_UP_TURNS || (await $.clock.now()) - since > GIVE_UP_MS) await update($, handoffStartedAt, () => 0);
+}
+
+/** Register the handoff hooks. */
 export function register(on, options) {
-  // Nothing wired yet: the pure modules come first.
+  USER_CONFIG = options ?? {};
+  config = resolveConfig({userConfig: USER_CONFIG});
+
+  on('session.start', async ($, e, next) => {
+    const result = await next(e);
+    try {
+      config = await loadConfig($);
+      await $.command.register({name: 'handoff-resume', description: t(config.lang, 'cmd.resume'), argumentHint: t(config.lang, 'cmd.resume.hint')});
+    } catch { /* A taken name or a failed read must not stop the session. */ }
+    try {
+      // A reload of this module re-fires session.start; only a session with no prompts yet gets the list.
+      if (e.isInteractive && (await $.session.turns()) === 0) void refreshList($);
+    } catch { /* ignore */ }
+    return result;
+  });
+
+  on('classic.SessionStart', async ($, e, next) => {
+    const result = await next(e);
+    if (e.agent_id) return result;
+    try {
+      // resume, fork and compact keep a conversation that already has its context; only a fresh start or /clear lists handoffs.
+      if (!['startup', 'clear'].includes(e.source)) return result;
+      if ((await $.session.surfaces()).length === 0 || (await $.session.turns()) > 0) return result;
+      config = await loadConfig($);
+      void refreshList($);
+    } catch { /* ignore */ }
+    return result;
+  });
+
+  on('prompt.submit', async ($, e, next) => {
+    const result = await next(e);
+    try {
+      if ('drop' in result) return result;
+      const text = result.text ?? e.text ?? '';
+      // The first real prompt ends the start-up list; slash commands such as /handoff-resume do not.
+      if (list && ['composer', 'bridge', 'sdk'].includes(e.origin?.kind) && !text.startsWith('/')) {
+        await update($, listDone, () => true);
+        clearList($);
+      }
+    } catch { /* ignore */ }
+    return result;
+  });
+
+  on('skill.prompt', {skill: SKILL}, async ($, e, next) => {
+    const result = await next(e);
+    try { await markHandoffStarted($); } catch { /* ignore */ }
+    return result;
+  });
+
+  on('turn.complete', async ($, e, next) => {
+    const result = await next(e);
+    if (e.agentId || e.isAborted) return result;
+    try { await checkHandoff($); } catch { /* ignore */ }
+    return result;
+  });
+
+  on('command.run', {command: 'handoff-resume'}, async ($, e) => {
+    try {
+      config = await loadConfig($);
+      await refreshList($, {force: true});
+      const lang = config.lang;
+      const arg = String(e.args ?? '').trim();
+      if (!list) {
+        $.ui.log(t(lang, 'list.none'));
+      } else if (arg === '') {
+        $.ui.log(t(lang, 'list.header', {count: list.total}));
+        for (const item of list.items) {
+          const extra = [item.next, ...item.facts, item.auto ? t(lang, 'list.auto') : '', item.claimed ? t(lang, 'list.claimed') : ''].filter(Boolean);
+          $.ui.log(extra.length ? `${item.title} — ${extra.join('；')}` : item.title);
+        }
+      } else {
+        const n = Number(arg);
+        const item = Number.isInteger(n) ? list.items[n - 1] : undefined;
+        if (item) await resume($, item);
+        else $.ui.log(t(lang, 'list.bad', {n: arg}));
+      }
+    } catch { /* ignore */ }
+    return {};
+  });
+
+  on('ui.render', {component: 'AbovePrompt'}, async ($, e, next) => {
+    if (!list) return next(e);
+    const {Box, Text, Button} = $.ui.resolve(e);
+    const theirs = await next(e);
+    const lang = config.lang;
+    const rows = [];
+    list.items.forEach((item, i) => {
+      rows.push(Text({bold: true, wrap: 'wrap', children: [item.title]}));
+      if (item.next) rows.push(Text({wrap: 'wrap', children: [item.next]}));
+      for (const [j, fact] of item.facts.entries()) rows.push(Text({dimColor: true, wrap: 'wrap', children: [fact]}));
+      if (item.auto) rows.push(Text({dimColor: true, children: [t(lang, 'list.auto')]}));
+      rows.push(item.claimed
+        ? Text({dimColor: true, children: [t(lang, 'list.claimed')]})
+        : Button({key: `resume-${i}`, label: t(lang, 'list.resume'), plain: true, onPress: () => resume($, item)}));
+    });
+    return Box({flexDirection: 'column', children: [
+      theirs,
+      Text({bold: true, children: [t(lang, 'list.header', {count: list.total})]}),
+      ...rows,
+      ...(list.total > list.items.length ? [Text({dimColor: true, children: [t(lang, 'list.more', {count: list.total - list.items.length})]})] : []),
+      Button({key: 'skip', label: t(lang, 'list.skip'), plain: true, onPress: async () => { await update($, listDone, () => true); clearList($); }}),
+    ]});
+  });
 }
