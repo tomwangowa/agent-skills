@@ -68,7 +68,7 @@
 | --- | --- | --- |
 | `list.skip`（修改） | `本 session 忽略` | `Ignore for this session` |
 | `cmd.resume`（修改） | `列出未完成的交接；/handoff-resume <編號> 接續其中一筆；drop <編號\|all> 放棄` | `List unfinished handoffs; "/handoff-resume <n>" resumes one; "drop <n\|all>" abandons` |
-| `list.dropHint`（新增） | `不要的可以放棄：/handoff-resume drop <編號\|all>` | `Not needed? Abandon them: /handoff-resume drop <n\|all>` |
+| `list.dropHint`（新增） | `（若想放棄交接檔：/handoff-resume drop <編號\|all>）` | `(To abandon a handoff: /handoff-resume drop <n\|all>)` |
 | `cmd.resume.hint`（修改） | `[編號\|all\|drop]` | `[n\|all\|drop]` |
 | `drop.usage`（新增） | `用法：/handoff-resume drop <編號\|all>` | `Usage: /handoff-resume drop <n\|all>` |
 | `drop.header`（新增） | `已放棄 {count} 筆，剩下的編號已重排：` | `Abandoned {count}; the remaining items are renumbered:` |
