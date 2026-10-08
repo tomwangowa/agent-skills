@@ -28,6 +28,18 @@ test('unfinished handoffs show as a status line and a band with their details', 
   expect(await band.find({key: 'resume-0'})).toBeDefined();
   expect(await band.find({key: 'skip'})).toBeDefined();
 });
+test('the list sits in a coloured border and its buttons are not drawn plain', async ($, on) => {
+  const w = world(on, {files: twoHandoffs});
+  await startSession($);
+  await w.flush();
+  const band = await mountBand($);
+  // find() matches on type, key and text only, so the styling is read off the element it returns.
+  const boxes = (await band.findAll({type: 'Box'})).map((box: any) => box.props);
+  expect(boxes.some((props: any) => props.borderStyle === 'round' && props.borderColor === 'suggestion')).toBe(true);
+  expect((await band.find({key: 'resume-0'})).props).toMatchObject({variant: 'primary'});
+  expect((await band.find({key: 'resume-0'})).props.plain).toBeUndefined();
+  expect((await band.find({key: 'skip'})).props.plain).toBeUndefined();
+});
 test('with no handoffs nothing is drawn or shown', async ($, on) => {
   const w = world(on);
   await startSession($);

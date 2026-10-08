@@ -636,23 +636,32 @@ export function register(on, options) {
         if (item.auto) rows.push(Text({dimColor: true, children: [t(lang, 'list.auto')]}));
         rows.push(item.claimed
           ? Text({dimColor: true, children: [t(lang, 'list.claimed')]})
-          : Button({key: `resume-${i}`, label: t(lang, 'list.resume'), plain: true, onPress: () => resume($, item)}));
+          : Button({key: `resume-${i}`, label: t(lang, 'list.resume'), variant: 'primary', onPress: () => resume($, item)}));
       });
-      blocks.push(
-        Text({bold: true, children: [t(lang, 'list.header', {count: list.total})]}),
-        ...rows,
-        ...(list.total > list.items.length ? [Text({dimColor: true, children: [t(lang, 'list.more', {count: list.total - list.items.length})]})] : []),
-        Button({key: 'skip', label: t(lang, 'list.skip'), plain: true, onPress: async () => { await update($, listDone, () => true); await clearList($); }}),
-      );
+      // Theme keys, not raw colors, so the borders follow the person's theme. Buttons are not `plain`: plain ones draw as bare text.
+      blocks.push(Box({
+        flexDirection: 'column', borderStyle: 'round', borderColor: 'suggestion', paddingX: 1,
+        children: [
+          Text({bold: true, children: [t(lang, 'list.header', {count: list.total})]}),
+          ...rows,
+          ...(list.total > list.items.length ? [Text({dimColor: true, children: [t(lang, 'list.more', {count: list.total - list.items.length})]})] : []),
+          Button({key: 'skip', label: t(lang, 'list.skip'), variant: 'secondary', onPress: async () => { await update($, listDone, () => true); await clearList($); }}),
+        ],
+      }));
     }
     if (open > 0) {
       // No digit hotkeys: a digit typed at the start of a message in an empty prompt would answer the question.
-      blocks.push(
-        Text({bold: true, wrap: 'wrap', children: [t(lang, 'band.question', {percent: open})]}),
-        Button({key: 't1-agree', label: t(lang, 'band.agree'), plain: true, onPress: () => answerT1($, 'agree')}),
-        Button({key: 't1-snooze', label: t(lang, 'band.snooze', {step: 10}), plain: true, onPress: () => answerT1($, 'snooze')}),
-        Button({key: 't1-suppress', label: t(lang, 'band.suppress'), plain: true, onPress: () => answerT1($, 'suppress')}),
-      );
+      blocks.push(Box({
+        flexDirection: 'column', borderStyle: 'round', borderColor: 'warning', paddingX: 1,
+        children: [
+          Text({bold: true, wrap: 'wrap', children: [t(lang, 'band.question', {percent: open})]}),
+          Box({flexDirection: 'row', flexWrap: 'wrap', columnGap: 1, children: [
+            Button({key: 't1-agree', label: t(lang, 'band.agree'), variant: 'primary', onPress: () => answerT1($, 'agree')}),
+            Button({key: 't1-snooze', label: t(lang, 'band.snooze', {step: 10}), variant: 'secondary', onPress: () => answerT1($, 'snooze')}),
+            Button({key: 't1-suppress', label: t(lang, 'band.suppress'), variant: 'secondary', onPress: () => answerT1($, 'suppress')}),
+          ]}),
+        ],
+      }));
     }
     return Box({flexDirection: 'column', children: blocks});
   });
