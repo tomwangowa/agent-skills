@@ -379,6 +379,58 @@ async function resume($, item) {
   await clearList($);
 }
 
+/** D17: mark a handoff abandoned on this machine. Only the store record changes; the file is never touched (invariant 6). */
+async function abandon($, item, now, sessionId) {
+  try {
+    await $.store.set(`state:${item.id}`, {status: 'abandoned', at: now, sessionId});
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** `/handoff-resume drop <n|all>`: abandon one listed item, or every listed item that no other session is resuming. */
+async function dropCommand($, target) {
+  const lang = config.lang;
+  const isAll = target === 'all';
+  const n = Number(target);
+  if (!isAll && !(target !== undefined && Number.isInteger(n))) {
+    $.ui.log(t(lang, 'drop.usage'));
+    return;
+  }
+  if (!list) {
+    $.ui.log(t(lang, 'list.none'));
+    return;
+  }
+  // A number past the shown items may still be a folded one (D16): expand, then look again.
+  if (!isAll && n > list.items.length && list.total > list.items.length) await expandList($);
+  const picked = isAll ? [...list.items] : [list?.items[n - 1]].filter(Boolean);
+  if (picked.length === 0) {
+    $.ui.log(t(lang, 'list.bad', {n: target}));
+    return;
+  }
+  const skipped = picked.filter((item) => item.claimed);
+  if (!isAll && skipped.length) {
+    $.ui.log(t(lang, 'drop.claimed', {title: skipped[0].title}));
+    return;
+  }
+  const now = await $.clock.now();
+  const sessionId = await $.session.id();
+  const done = [];
+  for (const item of picked) {
+    if (!item.claimed && (await abandon($, item, now, sessionId))) done.push(item);
+  }
+  if (done.length === 0) {
+    for (const item of skipped) $.ui.log(t(lang, 'drop.claimed', {title: item.title}));
+    $.ui.log(t(lang, 'drop.none'));
+    return;
+  }
+  await refreshList($, {force: true});
+  $.ui.log(t(lang, 'drop.header', {count: done.length}));
+  for (const item of done) $.ui.log(item.title);
+  for (const item of skipped) $.ui.log(t(lang, 'drop.claimed', {title: item.title}));
+}
+
 /** A handoff run starts when the skill is expanded, however it was started (typed, or run by this mod). */
 async function markHandoffStarted($) {
   const already = await read($, handoffStartedAt);
@@ -611,9 +663,13 @@ export function register(on, options) {
       config = await loadConfig($);
       const lang = config.lang;
       const arg = String(e.args ?? '').trim();
-      if (arg === 'all') await update($, expanded, () => true);
+      const words = arg === '' ? [] : arg.split(/\s+/);
+      const dropping = words[0] === 'drop';
+      if (arg === 'all' || (dropping && words[1] === 'all')) await update($, expanded, () => true);
       await refreshList($, {force: true});
-      if (!list) {
+      if (dropping) {
+        await dropCommand($, words[1]);
+      } else if (!list) {
         $.ui.log(t(lang, 'list.none'));
       } else if (arg === '' || arg === 'all') {
         $.ui.log(t(lang, 'list.header', {count: list.total}));
@@ -622,6 +678,7 @@ export function register(on, options) {
           $.ui.log(extra.length ? `${item.title} — ${extra.join('；')}` : item.title);
         }
         if (list.total > list.items.length) $.ui.log(t(lang, 'list.moreCmd', {count: list.total - list.items.length}));
+        $.ui.log(t(lang, 'list.dropHint'));
       } else {
         const n = Number(arg);
         // A number past the shown items may still be a folded one (D15, D16): expand, then look again.

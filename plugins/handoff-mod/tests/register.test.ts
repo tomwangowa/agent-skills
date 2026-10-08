@@ -1,7 +1,7 @@
 import {expect, test} from 'claude-code/testing';
 import {handoffText} from './fixtures.js';
 import {parseHandoff} from '../hooks/handoff-file.js';
-import {world, twoHandoffs, fiveHandoffs, autoNote, fileA, fileB, HANDOFF_DIR, bandTarget, startSession, doneTurn, NOW} from './world.js';
+import {world, twoHandoffs, fiveHandoffs, fiveFile, autoNote, fileA, fileB, HANDOFF_DIR, bandTarget, startSession, doneTurn, NOW} from './world.js';
 
 const mountBand = ($: any) => $.ui.mount(bandTarget);
 
@@ -89,6 +89,16 @@ test('a handoff that was already resumed is not listed again', async ($, on) => 
   await w.flush();
   expect(w.lastStatus()).toBe('有 1 筆未完成交接，輸入 /handoff-resume 查看');
 });
+test('the skip button says it only ignores the list for this session, and changes no state', async ($, on) => {
+  const w = world(on, {files: twoHandoffs});
+  await startSession($);
+  await w.flush();
+  const band = await mountBand($);
+  expect((await band.find({key: 'skip'})).props.label).toBe('本 session 忽略');
+  await band.press({key: 'skip'});
+  expect(w.lastStatus()).toBe(undefined);
+  expect([...w.store.keys()].some((key) => key.startsWith('state:'))).toBe(false);
+});
 test('skip hides the list for this session, and /handoff-resume still shows it', async ($, on) => {
   const w = world(on, {files: twoHandoffs});
   await startSession($);
@@ -100,7 +110,7 @@ test('skip hides the list for this session, and /handoff-resume still shows it',
   // $.state is reset by /clear in a real session; here it is not, so the list stays hidden until the command forces it.
   await $.command.run({command: 'handoff-resume', args: ''});
   expect(w.rec.logs[0]).toBe('有 2 筆未完成交接');
-  expect(w.rec.logs.length).toBe(3);
+  expect(w.rec.logs.length).toBe(4);
   expect(w.rec.logs[1]).toContain('1. 修正登入逾時');
 });
 test('resume, fork and compact starts do not list', async ($, on) => {
@@ -179,7 +189,7 @@ test('/handoff-resume with folded items ends with a line saying how to list them
   const w = world(on, {files: fiveHandoffs});
   await $.command.run({command: 'handoff-resume', args: ''});
   expect(w.rec.logs[0]).toBe('有 5 筆未完成交接');
-  expect(w.rec.logs.length).toBe(5);
+  expect(w.rec.logs.length).toBe(6);
   expect(w.rec.logs[4]).toBe('還有 2 筆，輸入 /handoff-resume all 全部列出');
 });
 test('/handoff-resume all lists every item, folded or not, and labels older automatic notes', async ($, on) => {
@@ -187,14 +197,28 @@ test('/handoff-resume all lists every item, folded or not, and labels older auto
   const w = world(on, {files});
   await $.command.run({command: 'handoff-resume', args: 'all'});
   expect(w.rec.logs[0]).toBe('有 7 筆未完成交接');
-  expect(w.rec.logs.length).toBe(8);
+  expect(w.rec.logs.length).toBe(9);
   expect(w.rec.logs.some((line) => line.includes('舊的筆記') && line.includes('同 branch 較舊的自動筆記'))).toBe(true);
   expect(w.rec.logs.some((line) => line.includes('還有'))).toBe(false);
 });
 test('/handoff-resume all with nothing folded behaves like the plain command', async ($, on) => {
   const w = world(on, {files: twoHandoffs});
   await $.command.run({command: 'handoff-resume', args: 'all'});
-  expect(w.rec.logs.length).toBe(3);
+  expect(w.rec.logs.length).toBe(4);
+});
+test('/handoff-resume ends with a line saying how to abandon, after the "more" line when there is one', async ($, on) => {
+  const w = world(on, {files: fiveHandoffs});
+  await $.command.run({command: 'handoff-resume', args: ''});
+  expect(w.rec.logs[4]).toBe('還有 2 筆，輸入 /handoff-resume all 全部列出');
+  expect(w.rec.logs[5]).toBe('不要的可以放棄：/handoff-resume drop <編號|all>');
+  w.rec.logs.length = 0;
+  await $.command.run({command: 'handoff-resume', args: 'all'});
+  expect(w.rec.logs[w.rec.logs.length - 1]).toBe('不要的可以放棄：/handoff-resume drop <編號|all>');
+});
+test('with no handoffs, /handoff-resume says so and has no abandon hint', async ($, on) => {
+  const w = world(on);
+  await $.command.run({command: 'handoff-resume', args: ''});
+  expect(w.rec.logs).toEqual(['目前沒有未完成的交接。']);
 });
 test('/handoff-resume <n> beyond the shown items expands first, then resumes', async ($, on) => {
   const w = world(on, {files: fiveHandoffs});
@@ -212,6 +236,76 @@ test('/handoff-resume with a number past the total, or zero, says the number is 
   expect(w.rec.logs).toContain('沒有第 0 筆。');
 });
 
+const CLAIMED_BY_B = {sessionId: 'sess-B', at: NOW - 1000};
+
+test('/handoff-resume drop <n> marks the item abandoned, reloads the list and says the numbers moved', async ($, on) => {
+  const w = world(on, {files: fiveHandoffs});
+  await $.command.run({command: 'handoff-resume', args: 'drop 2'});
+  expect(w.store.get(`state:${fiveFile(2)}`)).toMatchObject({status: 'abandoned', sessionId: 'sess-A'});
+  expect(w.rec.logs.length).toBe(2);
+  expect(w.rec.logs[0]).toBe('已放棄 1 筆，剩下的編號已重排：');
+  expect(w.rec.logs[1]).toContain('2. 任務2');
+  w.rec.logs.length = 0;
+  await $.command.run({command: 'handoff-resume', args: ''});
+  expect(w.rec.logs[0]).toBe('有 4 筆未完成交接');
+});
+test('/handoff-resume drop <n> beyond the shown items expands first, then abandons', async ($, on) => {
+  const w = world(on, {files: fiveHandoffs});
+  await $.command.run({command: 'handoff-resume', args: 'drop 5'});
+  expect(w.store.get(`state:${fiveFile(5)}`)).toMatchObject({status: 'abandoned'});
+  expect(w.rec.logs[1]).toContain('5. 任務5');
+});
+test('/handoff-resume drop <n> leaves an item another session is resuming alone', async ($, on) => {
+  const w = world(on, {files: fiveHandoffs, store: {[`claim:${fiveFile(1)}`]: CLAIMED_BY_B}});
+  await $.command.run({command: 'handoff-resume', args: 'drop 1'});
+  expect(w.store.get(`state:${fiveFile(1)}`)).toBe(undefined);
+  expect(w.rec.logs.length).toBe(1);
+  expect(w.rec.logs[0]).toContain('另一個 session 正在接續，沒有放棄：1. 任務1');
+});
+test('/handoff-resume drop all abandons everything listed, folded or not, except what another session is resuming', async ($, on) => {
+  const w = world(on, {files: fiveHandoffs, store: {[`claim:${fiveFile(1)}`]: CLAIMED_BY_B}});
+  await $.command.run({command: 'handoff-resume', args: 'drop all'});
+  for (const n of [2, 3, 4, 5]) expect(w.store.get(`state:${fiveFile(n)}`)).toMatchObject({status: 'abandoned'});
+  expect(w.store.get(`state:${fiveFile(1)}`)).toBe(undefined);
+  expect(w.rec.logs[0]).toBe('已放棄 4 筆，剩下的編號已重排：');
+  expect(w.rec.logs.length).toBe(6);
+  expect(w.rec.logs[5]).toContain('另一個 session 正在接續，沒有放棄：1. 任務1');
+  w.rec.logs.length = 0;
+  await $.command.run({command: 'handoff-resume', args: ''});
+  expect(w.rec.logs[0]).toBe('有 1 筆未完成交接');
+});
+test('/handoff-resume drop all with everything claimed abandons nothing and says so', async ($, on) => {
+  const w = world(on, {files: twoHandoffs, store: {[`claim:${fileA}`]: CLAIMED_BY_B, [`claim:${fileB}`]: CLAIMED_BY_B}});
+  await $.command.run({command: 'handoff-resume', args: 'drop all'});
+  expect([...w.store.keys()].some((key) => key.startsWith('state:'))).toBe(false);
+  expect(w.rec.logs.length).toBe(3);
+  expect(w.rec.logs[2]).toBe('沒有可以放棄的交接。');
+});
+test('after dropping everything the band and the status line are gone', async ($, on) => {
+  const w = world(on, {files: twoHandoffs});
+  await startSession($);
+  await w.flush();
+  await $.command.run({command: 'handoff-resume', args: 'drop all'});
+  await w.flush();
+  expect(w.lastStatus()).toBe(undefined);
+  expect(await (await mountBand($)).find({key: 'skip'})).toBeUndefined();
+});
+test('an abandoned handoff does not come back at the next start', async ($, on) => {
+  const w = world(on, {files: twoHandoffs});
+  await $.command.run({command: 'handoff-resume', args: 'drop 1'});
+  await startSession($);
+  await w.flush();
+  expect(w.lastStatus()).toBe('有 1 筆未完成交接，輸入 /handoff-resume 查看');
+});
+test('/handoff-resume drop with no usable target prints the usage, and with a number out of range says there is no such item', async ($, on) => {
+  const w = world(on, {files: fiveHandoffs});
+  for (const args of ['drop', 'drop abc', 'drop 1.5', 'drop 0', 'drop -1', 'drop 99']) await $.command.run({command: 'handoff-resume', args});
+  expect(w.rec.logs).toEqual([
+    '用法：/handoff-resume drop <編號|all>', '用法：/handoff-resume drop <編號|all>', '用法：/handoff-resume drop <編號|all>',
+    '沒有第 0 筆。', '沒有第 -1 筆。', '沒有第 99 筆。',
+  ]);
+  expect([...w.store.keys()].some((key) => key.startsWith('state:'))).toBe(false);
+});
 test('the first real prompt ends the list; a slash command does not', async ($, on) => {
   const w = world(on, {files: twoHandoffs});
   await startSession($);
