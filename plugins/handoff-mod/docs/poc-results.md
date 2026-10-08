@@ -242,7 +242,7 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 | P1a | `session.end` 內能不能讀 `$.session.messages()`（D4 路線 A） | **不能。** 互動 session 做過一個真實回合後用 `/exit` 結束：`$.session.messages is not available in this mode: no session is bound in this process (the REPL has not mounted and no headless session is built)`。關分頁（SIGHUP，`reason: other`）同樣失敗。headless 先前也是同樣的錯誤。 |
 | P1b | 備案所需欄位（D4 路線 B） | **都在。** `prompt.submit` 事件有 `e.text`（記錄到 `textLen=9`，與輸入的 9 個字一致）；`turn.complete` 事件有 `e.answer`（字串，長度 1，等於 Claude 的回答）。`turn.complete` 的欄位為 `answer、durationMs、isAborted、turnId、reason、usage`。 |
 | P1 結論 | D4 走哪條路線 | **路線 B**：平時在 `prompt.submit`、`turn.complete` 記最後一組（先遮蔽再存 `$.store`），`session.end` 只負責寫檔。路線 A 在 Cloud 不成立。 |
-| P1c | Ctrl-C 兩次 | Cloud 沒有重現 `session.end`（探針沒有記錄到）。可能是兩次按鍵的間隔，Tom 本機 L6 有觸發。預期同樣讀不到訊息（成因是 REPL 已卸載），**待 Tom 複驗**。 |
+| P1c | Ctrl-C 兩次 | Cloud 沒有重現 `session.end`（探針沒有記錄到）。可能是兩次按鍵的間隔，Tom 本機 L6 有觸發。預期同樣讀不到訊息（成因是 REPL 已卸載），**待 Tom 複驗**。（2026-10-08：Tom 在 macOS 連按兩次 Ctrl-C，`session.end` 有觸發，結束筆記寫得出來，見 implementation-results.md。） |
 | P5 | `/cd` 後的 `session.root()` | `/cd` 是內建指令（`$.command.list()` 的 `source: builtin`）。`/cd` 到**專案外**的目錄被拒絕（`Staying in …`）。`/cd` 到專案內的子目錄成功：`cwd` 與 `root()` **一起移到子目錄**，`repo().root` 與 `git rev-parse --show-toplevel` 不變。 |
 
 對決策表的意思：

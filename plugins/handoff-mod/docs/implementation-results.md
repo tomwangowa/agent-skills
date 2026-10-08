@@ -185,6 +185,26 @@ D4 由 Tom 於 2026-10-08 決定照原設計存對話片段（做法 2）。路�
 - `$.fs.write` 之後到 `chmod` 之前有一小段時間檔案是預設權限（已遮蔽內容，視窗很短）。
 - 逾時之後背景裡的呼叫仍會跑完，但不會寫檔（有保護，已測）。
 
+### Tom 的本機實測：結束筆記（macOS、Claude Code 2.1.292，2026-10-08，`d91df57`）
+
+結果是 Tom 回報的 `ls -l` 輸出，我沒有親眼驗證。
+
+| 項目 | 結果 |
+| --- | --- |
+| E-1 `/exit` | 寫出一個 `feat-demo--20261008-101525--auto.md`，830 位元組，權限 `-rw-------@`（0600） |
+| E-2 連按兩次 Ctrl-C | 同一個目錄新增 `feat-demo--20261008-101745--auto.md`，825 位元組，權限 `-rw-------@`（0600）。**這也回答了 P1c：Ctrl-C 兩次在 macOS 會觸發 `session.end`，且筆記寫得出來。** |
+| E-3 關閉終端機分頁 | Tom 當時找不到測試路徑，事後用 `$TMPDIR/tmp.*/.claude/handoffs/` 找回：同一個 repo 有第三個 `feat-demo--20261008-101936--auto.md`，767 位元組，權限 `-rw-------@`（0600），時間在 E-2 之後兩分鐘，符合「關分頁」那一輪。**通過**（以時間先後判斷是 E-3 的筆記，沒有其他證據）。 |
+
+事後補查（Tom，同一批 `tmp.*` 目錄）：
+
+| 項目 | 結果 |
+| --- | --- |
+| 密碼遮蔽 | 三個筆記對明文密碼的 `grep -c` 都是 **0**（輸入是 `password = abc12345` 形式，有特徵，符合預期）。 |
+| `.git/info/exclude` | 用 `GIT_CONFIG_GLOBAL=/dev/null` 啟動的那個 repo 有 `.claude/handoffs/`；其他較早的測試 repo 沒有，是因為當時全域 gitignore 已涵蓋該路徑（`ensureExcluded` 先 `check-ignore`，符合預期）。 |
+| store 暫存 | `grep -c '"last:'` 為 **0**，暫存紀錄已刪。 |
+
+仍**未確認**：下次啟動清單在 macOS 是否顯示該筆並標「自動留下，未經審查」（Cloud 看過）；遮蔽對「沒有特徵的單獨密碼字串」仍無效（設計限制，不是測試項目）；`/handoff-stats` 與 `stats.written` 在 Tom 環境的計數；P4。
+
 ## 尚未做
 
 Task 14 的其餘驗收、Task 15（文件與 marketplace）。L1 已通過；`stats.written`、排除功能在無全域 gitignore 時的行為、P4 沒有確認。
