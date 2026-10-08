@@ -105,7 +105,7 @@ test('the band header names the drop command, so it can be found without running
   await w.flush();
   const band = await mountBand($);
   expect(await band.find({type: 'Text', text: '有 2 筆未完成交接'})).toBeDefined();
-  expect(await band.find({type: 'Text', text: '不要的：/handoff-resume drop <編號|all>'})).toBeDefined();
+  expect(await band.find({type: 'Text', text: '（若想放棄交接檔：/handoff-resume drop <編號|all>）'})).toBeDefined();
   // A hint, not a button: D17 keeps the abandon action off the band.
   expect(await band.find({key: 'drop'})).toBeUndefined();
 });
@@ -114,7 +114,7 @@ test('the band drop hint follows the configured language', async ($, on) => {
   await startSession($);
   await w.flush();
   const band = await mountBand($);
-  expect(await band.find({type: 'Text', text: 'Not needed? /handoff-resume drop <n|all>'})).toBeDefined();
+  expect(await band.find({type: 'Text', text: '(To abandon a handoff: /handoff-resume drop <n|all>)'})).toBeDefined();
 });
 test('skip hides the list for this session, and /handoff-resume still shows it', async ($, on) => {
   const w = world(on, {files: twoHandoffs});
@@ -227,10 +227,10 @@ test('/handoff-resume ends with a line saying how to abandon, after the "more" l
   const w = world(on, {files: fiveHandoffs});
   await $.command.run({command: 'handoff-resume', args: ''});
   expect(w.rec.logs[4]).toBe('還有 2 筆，輸入 /handoff-resume all 全部列出');
-  expect(w.rec.logs[5]).toBe('不要的可以放棄：/handoff-resume drop <編號|all>');
+  expect(w.rec.logs[5]).toBe('（若想放棄交接檔：/handoff-resume drop <編號|all>）');
   w.rec.logs.length = 0;
   await $.command.run({command: 'handoff-resume', args: 'all'});
-  expect(w.rec.logs[w.rec.logs.length - 1]).toBe('不要的可以放棄：/handoff-resume drop <編號|all>');
+  expect(w.rec.logs[w.rec.logs.length - 1]).toBe('（若想放棄交接檔：/handoff-resume drop <編號|all>）');
 });
 test('with no handoffs, /handoff-resume says so and has no abandon hint', async ($, on) => {
   const w = world(on);

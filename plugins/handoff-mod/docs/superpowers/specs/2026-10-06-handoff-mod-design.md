@@ -284,7 +284,7 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | D16 | 折疊項目何時建立資料 | **已決（Tom，2026-10-08）：展開時才建。** 「還有 N 筆」按鈕與 `/handoff-resume all` 把 `$.state` 的 `expanded` 設為 true 再重建；啟動時只替前 3 筆跑 git 新鮮度。`/handoff-resume <n>` 超出範圍時先展開再找 |
 | D17 | 一份不打算接續的交接，怎麼讓它不再出現 | **已決（Tom，2026-10-08）：** 指令 `/handoff-resume drop <編號>` 與 `drop all`，只在 `$.store` 寫 `state:<path>` = `{status: 'abandoned', ...}`，交接檔不動；必須打完整的 `all`、逐筆列出放棄了哪些、被別的 session 正在接續的不動；不做復原指令。詳見 [放棄交接與「本 session 忽略」](2026-10-08-handoff-drop-design.md) |
 | D18 | 按鈕「略過」的名稱 | **已決（Tom，2026-10-08）：** 改名為「本 session 忽略」（英文 `Ignore for this session`），行為不變。原名讓人以為「別再提醒我」，實際上新 session 會重新出現 |
-| D19 | 啟動清單怎麼讓人知道有 `drop` 可用 | **已決（Tom，2026-10-08）：** 在清單框標頭那一行，計數旁邊加一段淡色小字 `不要的：/handoff-resume drop <編號\|all>`（英文 `Not needed? /handoff-resume drop <n\|all>`），寫完整指令。不加按鈕，D17 不動。起因是作者看到清單只有「接續」，不知道能放棄；原本的提示只在執行 `/handoff-resume` 後的輸出裡。放標頭是因為清單過長時終端機會從底部切掉內容；窄終端機上這段字會換到計數下面 |
+| D19 | 啟動清單怎麼讓人知道有 `drop` 可用 | **已決（Tom，2026-10-08）：** 在清單框標頭那一行，計數旁邊加一段淡色小字 `（若想放棄交接檔：/handoff-resume drop <編號\|all>）`（英文 `(To abandon a handoff: /handoff-resume drop <n\|all>)`），整句放進括號，寫完整指令。不加按鈕，D17 不動。起因是作者看到清單只有「接續」，不知道能放棄；原本的提示只在執行 `/handoff-resume` 後的輸出裡。放標頭是因為清單過長時終端機會從底部切掉內容；窄終端機上這段字會換到計數下面 |
 
 ## 驗證與測試
 
