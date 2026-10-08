@@ -72,7 +72,9 @@ claude plugin test .
 | --- | --- |
 | Automated tests | 153 native tests plus mutation checks; run in Cloud. |
 | Start-up list, `/handoff-resume`, buttons (Tab and mouse), the `/clear` dialog, the threshold prompt, the end-of-session note (all three ways of ending), running beside attention-mod, the `en` interface | **Verified on the author's macOS** (Claude Code 2.1.292). |
-| The `/handoff-stats` and `stats.written` counts, typing then Enter in the dialog, how a new session labels an automatic note | Verified only in Cloud; **not yet confirmed on macOS**. |
+| The `/handoff-stats` write count, and the start-up list's label on an automatic note | **Verified on the author's macOS.** |
+| Typing then Enter in the `/clear` dialog | On macOS only that Enter picks the default "cancel" is confirmed; whether text was typed first was not recorded. |
+| `/handoff-resume <n>` and the resumed count | **Verified once on the author's macOS** (`/handoff-resume 2` filled the input box, the resumed count went 2 to 3, matching the store records). A first try (item 1) had no effect and left no trace; **the cause is unknown and it could not be reproduced**. |
 | The default 60% threshold, terminals other than Warp, Windows, directories outside git, real worktrees | **Not verified.** |
 | Accuracy of the handoff content, and cost | **Not measured.** |
 

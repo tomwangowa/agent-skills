@@ -72,7 +72,9 @@ claude plugin test .
 | --- | --- |
 | 自動測試 | 原生測試 153 項，另有變異檢查；在 Cloud 跑。 |
 | 啟動清單、`/handoff-resume`、按鈕（Tab 與滑鼠）、`/clear` 的對話框、門檻提示、結束筆記（三種結束方式）、與 attention-mod 同載入、`en` 介面 | **作者的 macOS 驗證過**（Claude Code 2.1.292）。 |
-| `/handoff-stats` 與 `stats.written` 的計數、對話框打字後 Enter、新 session 看自動筆記的標示 | 只在 Cloud 驗證，**macOS 尚未確認**。 |
+| `/handoff-stats` 的寫入計數、新 session 啟動清單對自動筆記的標示 | **作者的 macOS 驗證過。** |
+| `/clear` 對話框「打字後再按 Enter」 | macOS 只確認 Enter 選到預設的取消；是否有先打字沒有記錄。 |
+| `/handoff-resume <編號>` 與接續計數 | **作者的 macOS 驗證過一次**（`/handoff-resume 2` 填入輸入框，接續次數 2 變 3，與 store 紀錄一致）。第一次試（第 1 筆）沒有任何效果也沒有留下紀錄，**原因不明、無法重現**。 |
 | 預設 60% 門檻、Warp 以外的終端機、Windows、非 git 目錄、真實 worktree | **沒有驗證**。 |
 | 交接內容的準確度與成本 | **沒有量測。** |
 

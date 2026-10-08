@@ -275,7 +275,7 @@ export function decideTrigger({percent, config, state, idle, hasUnfinishedSign, 
 
 **狀態（2026-10-07，Cloud）：Task 12 與 Task 13 的切片 a、c、d、e 完成。**（切片 a、d、e 與 skill 已 commit 為 `c87d6db`；切片 c 尚未 commit。）切片 b、f、g 未做。`claude plugin validate --strict .` 通過（呼叫清單沒有 `$.model`、`$.prompt.submit`、`$.command.run`）；`claude plugin test .` 為 **109 pass、0 fail**（含 `tests/register.test.ts` 的接線測試，用測試 kit 驅動事件並 stub 檔案系統、git、store）。另在 Cloud 的真實互動 session 驗證（見 `docs/implementation-results.md`）。
 
-**實作中與計畫不同或補充的決定（待 Tom 確認）：**
+**實作中與計畫不同或補充的決定（待 Tom 確認；2026-10-08 Tom 對「確認決定 9 到 12」的選項回覆「A + C」，沒有逐項回答，視為接受沿用，這是推論，不是逐項確認）：**
 
 1. **驗證新檔要跨多個回合。** 計畫寫「交接回合之後的 `turn.complete`」，但審閱關卡讓一次交接至少有兩個回合（草稿、確認），第一個回合結束時一定還沒有檔案。實作改成：只要有交接進行中，每個 `turn.complete` 都檢查，找到有效新檔就報告；**第 4 個回合仍沒有檔案才提示一次**「未偵測到有效交接檔」，之後繼續檢查，找到仍會報告；10 個回合或 60 分鐘後放棄。
 2. **偵測交接開始：三個訊號任一個即可**（`skill.prompt`、`prompt.submit` 文字以 `/handoff-mod:handoff` 開頭、`command.run` 的 `handoff-mod:handoff`；`markHandoffStarted` 保證只啟動一次）。**原本只用 `skill.prompt`，在 Tom 的 macOS 環境輸入指令時它不會觸發（見 `docs/implementation-results.md` 的 L1），已修正；Tom 環境的修正結果待驗證。**
