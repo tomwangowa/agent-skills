@@ -1,7 +1,7 @@
 # Handoff Mod 設計
 
 日期：2026-10-06  
-狀態：**草案。** 待決項目 D1 至 D14 已於 2026-10-07 全部決定（D15、D16 於 2026-10-08 增補，見 [啟動清單展開與自動筆記折疊](2026-10-08-handoff-list-expand-design.md)），整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）；同日 Cloud 補驗後再修訂（Tom 選 A，見文末「補驗後的修訂」），其中 3 項建議已由 Tom 全部採用，記為 D12 至 D14。  
+狀態：**草案。** 待決項目 D1 至 D14 已於 2026-10-07 全部決定（D15、D16 於 2026-10-08 增補，見 [啟動清單展開與自動筆記折疊](2026-10-08-handoff-list-expand-design.md)；D17、D18 見 [放棄交接與「本 session 忽略」](2026-10-08-handoff-drop-design.md)），整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）；同日 Cloud 補驗後再修訂（Tom 選 A，見文末「補驗後的修訂」），其中 3 項建議已由 Tom 全部採用，記為 D12 至 D14。  
 plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接著做」。  
 證據：[micro-PoC 結果](../../poc-results.md)（Cloud 與 Tom 本機實測：macOS、Warp、Claude Code 2.1.291 至 2.1.292）；驗證計畫：[micro-PoC 計畫](../plans/2026-10-06-handoff-mod-poc.md)。
 
@@ -116,7 +116,7 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 - **來源：** 目前 worktree（`git rev-parse --show-toplevel`）的交接目錄；`repo().root` 不同時再加上主 checkout 的目錄；同 repo 其他 worktree 的目錄用 `git worktree list` 取得（D2 已決），不另做索引；非 git 目錄只看自己的 `root()`。
 - **排序：** 同 `root` 優先，其次同 `repo`，其餘依 `created` 由新到舊。預設展開 3 筆，其餘折疊成「還有 N 筆」按鈕，按下去（或 `/handoff-resume all`）展開（D16）。創建超過 14 天的預設折疊；同 `root` 加 `branch` 的較舊自動筆記也折疊，只有最新一份有資格進前 3 筆（D15）。
 - **每筆顯示：** 任務（≤80 字）、branch、多久以前、新鮮度事實、「下一步」第一行（≤120 字）。
-- **按鈕：** 接續、略過。「略過」只對這個 session 有效，不改狀態。
+- **按鈕：** 接續、本 session 忽略（D18）。「本 session 忽略」只對這個 session 有效，不改狀態；要讓一份交接不再出現用 `/handoff-resume drop`（D17）。
 - **介面：** 寬視窗用 band，與 attention-mod 並排時把自己的內容與 `next(e)` 的結果並排（L8 已驗證可並排，按鈕列要在 67 欄內放得下）。**窄視窗且有 attention-mod 時 band 看不到**（L8：被擠成 `↓2 more`），啟動清單與 T1 一樣降級（D9）：`$.ui.status` 常駐一行「有 N 筆未完成交接，輸入 `/handoff-resume` 查看」，加上 `/handoff-resume` 指令。
   - `/handoff-resume`（無參數）：列出清單與編號；`/handoff-resume <編號>`：等同按「接續」（填入輸入框、認領）。寬視窗也可使用，不只限於降級。
   - 指令名不能含冒號（`$.command.register` 只允許字母、數字、`_`、`-`，型別檔與文件），所以不是 `/handoff-mod:…`；`handoff-mod:handoff` 是 plugin skill，命名空間由 plugin 提供，不是這個規則的例外。
@@ -246,7 +246,7 @@ source: auto                # 只有結束筆記（D4）有；省略表示使用
 turn.complete / session.measure ─▶ usage ─▶ decideTrigger ─▶ band（1／2／3）
 /clear ─▶ command.run hook ─▶ ui.ask ─▶ 先交接（不 next）｜直接清除（next）｜取消
 同意 ─▶ clock.after ─▶ $.command.run(handoff) ─▶ 一個回合 ─▶ turn.complete ─▶ 驗證新檔 ─▶ toast
-classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮度 ─▶ 排序 ─▶ band（接續／略過）─▶ prompt.fill
+classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮度 ─▶ 排序 ─▶ band（接續／本 session 忽略）─▶ prompt.fill
 ```
 
 ## 失敗與降級
@@ -282,6 +282,8 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | D14 | `/handoff-resume` 的清單輸出用哪種方式 | **已決（Tom，2026-10-07）：用 `$.ui.log`**，不用 `{text}`。Claude 讀不到，檔案內容在使用者選擇前不進 context、不花 token；代價：attention-mod 的外部輸入會列出這些行，所以行數與內容要克制 |
 | D15 | 同 `root` 加 `branch` 的較舊自動筆記是否折疊、折疊到哪 | **已決（Tom，2026-10-08）：折疊，不隱藏。** 每個 branch 只有最新一份自動筆記有資格進前 3 筆，較舊的進「還有 N 筆」（算進 N、展開後看得到並標示）；手動交接不分組；程式無法判斷是否同一任務，所以不做任務判斷。詳見 [啟動清單展開與自動筆記折疊](2026-10-08-handoff-list-expand-design.md) |
 | D16 | 折疊項目何時建立資料 | **已決（Tom，2026-10-08）：展開時才建。** 「還有 N 筆」按鈕與 `/handoff-resume all` 把 `$.state` 的 `expanded` 設為 true 再重建；啟動時只替前 3 筆跑 git 新鮮度。`/handoff-resume <n>` 超出範圍時先展開再找 |
+| D17 | 一份不打算接續的交接，怎麼讓它不再出現 | **已決（Tom，2026-10-08）：** 指令 `/handoff-resume drop <編號>` 與 `drop all`，只在 `$.store` 寫 `state:<path>` = `{status: 'abandoned', ...}`，交接檔不動；必須打完整的 `all`、逐筆列出放棄了哪些、被別的 session 正在接續的不動；不做復原指令。詳見 [放棄交接與「本 session 忽略」](2026-10-08-handoff-drop-design.md) |
+| D18 | 按鈕「略過」的名稱 | **已決（Tom，2026-10-08）：** 改名為「本 session 忽略」（英文 `Ignore for this session`），行為不變。原名讓人以為「別再提醒我」，實際上新 session 會重新出現 |
 
 ## 驗證與測試
 
