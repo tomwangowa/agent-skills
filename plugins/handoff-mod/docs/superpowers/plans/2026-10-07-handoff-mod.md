@@ -329,9 +329,9 @@ export function decideTrigger({percent, config, state, idle, hasUnfinishedSign, 
 
 ### Task 15：文件與 marketplace
 
-- [ ] **Step 1：** `README.md`（繁中與英文）：安裝、設定（`/config` 與測試用環境變數）、行為、風險（Mod 不在 sandbox、結束筆記含對話原文、遮蔽只降低風險）、移除。`.claude/CLAUDE.md`：架構、不變條件、指令，格式比照 attention-mod。`docs/implementation-results.md` 完成。
+- [x] **Step 1：** `README.md`（繁中）與 `README-en.md`（英文）：安裝、設定（`/config` 與測試用環境變數）、行為、風險（Mod 不在 sandbox、結束筆記含對話原文、遮蔽只降低風險）、移除。`.claude/CLAUDE.md`：架構、不變條件、指令，格式比照 attention-mod。`docs/implementation-results.md` 完成。
 - [ ] **Step 2：** **經 Tom 同意後**才在 `.claude-plugin/marketplace.json` 加 `handoff-mod` 的條目，並把 `docs/superpowers/plans/2026-10-06-handoff-mod-poc.md` 的 Task 3 標完成。
-- [ ] **Step 3：** `claude plugin validate --strict .`、`claude plugin test .` 全過；個人資訊掃描（`/Users/`、email、內部識別）沒有命中。
+- [x] **Step 3：** `claude plugin validate --strict .`、`claude plugin test .` 全過；個人資訊掃描（`/Users/`、email、內部識別）沒有命中（Cloud，2026-10-08；唯一命中是說明要掃哪些樣式的文字）。
 
 ## 這份計畫沒有涵蓋
 
