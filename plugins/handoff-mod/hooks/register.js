@@ -714,7 +714,11 @@ export function register(on, options) {
       blocks.push(Box({
         flexDirection: 'column', borderStyle: 'round', borderColor: 'suggestion', paddingX: 1,
         children: [
-          Text({bold: true, children: [t(lang, 'list.header', {count: list.total})]}),
+          // The hint shares the header row (D19); it wraps below the count on a narrow terminal instead of being cut off.
+          Box({flexDirection: 'row', flexWrap: 'wrap', columnGap: 2, children: [
+            Text({bold: true, children: [t(lang, 'list.header', {count: list.total})]}),
+            Text({dimColor: true, children: [t(lang, 'list.bandHint')]}),
+          ]}),
           ...rows,
           ...(list.total > list.items.length ? [Button({key: 'more', label: t(lang, 'list.more', {count: list.total - list.items.length}), variant: 'secondary', onPress: () => expandList($)})] : []),
           Button({key: 'skip', label: t(lang, 'list.skip'), variant: 'secondary', onPress: async () => { await update($, listDone, () => true); await clearList($); }}),

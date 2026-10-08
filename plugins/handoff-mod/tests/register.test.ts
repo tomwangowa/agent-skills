@@ -99,6 +99,23 @@ test('the skip button says it only ignores the list for this session, and change
   expect(w.lastStatus()).toBe(undefined);
   expect([...w.store.keys()].some((key) => key.startsWith('state:'))).toBe(false);
 });
+test('the band header names the drop command, so it can be found without running /handoff-resume first (D19)', async ($, on) => {
+  const w = world(on, {files: twoHandoffs});
+  await startSession($);
+  await w.flush();
+  const band = await mountBand($);
+  expect(await band.find({type: 'Text', text: '有 2 筆未完成交接'})).toBeDefined();
+  expect(await band.find({type: 'Text', text: '不要的：/handoff-resume drop <編號|all>'})).toBeDefined();
+  // A hint, not a button: D17 keeps the abandon action off the band.
+  expect(await band.find({key: 'drop'})).toBeUndefined();
+});
+test('the band drop hint follows the configured language', async ($, on) => {
+  const w = world(on, {files: twoHandoffs, env: {HANDOFF_LANG: 'en'}});
+  await startSession($);
+  await w.flush();
+  const band = await mountBand($);
+  expect(await band.find({type: 'Text', text: 'Not needed? /handoff-resume drop <n|all>'})).toBeDefined();
+});
 test('skip hides the list for this session, and /handoff-resume still shows it', async ($, on) => {
   const w = world(on, {files: twoHandoffs});
   await startSession($);

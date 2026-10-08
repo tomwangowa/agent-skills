@@ -1,7 +1,7 @@
 # Handoff Mod 設計
 
 日期：2026-10-06  
-狀態：**草案。** 待決項目 D1 至 D14 已於 2026-10-07 全部決定（D15、D16 於 2026-10-08 增補，見 [啟動清單展開與自動筆記折疊](2026-10-08-handoff-list-expand-design.md)；D17、D18 見 [放棄交接與「本 session 忽略」](2026-10-08-handoff-drop-design.md)），整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）；同日 Cloud 補驗後再修訂（Tom 選 A，見文末「補驗後的修訂」），其中 3 項建議已由 Tom 全部採用，記為 D12 至 D14。  
+狀態：**草案。** 待決項目 D1 至 D14 已於 2026-10-07 全部決定（D15、D16 於 2026-10-08 增補，見 [啟動清單展開與自動筆記折疊](2026-10-08-handoff-list-expand-design.md)；D17、D18 見 [放棄交接與「本 session 忽略」](2026-10-08-handoff-drop-design.md)；D19 補清單標頭的 drop 提示），整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）；同日 Cloud 補驗後再修訂（Tom 選 A，見文末「補驗後的修訂」），其中 3 項建議已由 Tom 全部採用，記為 D12 至 D14。  
 plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接著做」。  
 證據：[micro-PoC 結果](../../poc-results.md)（Cloud 與 Tom 本機實測：macOS、Warp、Claude Code 2.1.291 至 2.1.292）；驗證計畫：[micro-PoC 計畫](../plans/2026-10-06-handoff-mod-poc.md)。
 
@@ -116,7 +116,7 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 - **來源：** 目前 worktree（`git rev-parse --show-toplevel`）的交接目錄；`repo().root` 不同時再加上主 checkout 的目錄；同 repo 其他 worktree 的目錄用 `git worktree list` 取得（D2 已決），不另做索引；非 git 目錄只看自己的 `root()`。
 - **排序：** 同 `root` 優先，其次同 `repo`，其餘依 `created` 由新到舊。預設展開 3 筆，其餘折疊成「還有 N 筆」按鈕，按下去（或 `/handoff-resume all`）展開（D16）。創建超過 14 天的預設折疊；同 `root` 加 `branch` 的較舊自動筆記也折疊，只有最新一份有資格進前 3 筆（D15）。
 - **每筆顯示：** 任務（≤80 字）、branch、多久以前、新鮮度事實、「下一步」第一行（≤120 字）。
-- **按鈕：** 接續、本 session 忽略（D18）。「本 session 忽略」只對這個 session 有效，不改狀態；要讓一份交接不再出現用 `/handoff-resume drop`（D17）。
+- **按鈕：** 接續、本 session 忽略（D18）。「本 session 忽略」只對這個 session 有效，不改狀態；要讓一份交接不再出現用 `/handoff-resume drop`（D17），標頭那一行有這個指令的提示（D19）。
 - **介面：** 寬視窗用 band，與 attention-mod 並排時把自己的內容與 `next(e)` 的結果並排（L8 已驗證可並排，按鈕列要在 67 欄內放得下）。**窄視窗且有 attention-mod 時 band 看不到**（L8：被擠成 `↓2 more`），啟動清單與 T1 一樣降級（D9）：`$.ui.status` 常駐一行「有 N 筆未完成交接，輸入 `/handoff-resume` 查看」，加上 `/handoff-resume` 指令。
   - `/handoff-resume`（無參數）：列出清單與編號；`/handoff-resume <編號>`：等同按「接續」（填入輸入框、認領）。寬視窗也可使用，不只限於降級。
   - 指令名不能含冒號（`$.command.register` 只允許字母、數字、`_`、`-`，型別檔與文件），所以不是 `/handoff-mod:…`；`handoff-mod:handoff` 是 plugin skill，命名空間由 plugin 提供，不是這個規則的例外。
@@ -284,6 +284,7 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | D16 | 折疊項目何時建立資料 | **已決（Tom，2026-10-08）：展開時才建。** 「還有 N 筆」按鈕與 `/handoff-resume all` 把 `$.state` 的 `expanded` 設為 true 再重建；啟動時只替前 3 筆跑 git 新鮮度。`/handoff-resume <n>` 超出範圍時先展開再找 |
 | D17 | 一份不打算接續的交接，怎麼讓它不再出現 | **已決（Tom，2026-10-08）：** 指令 `/handoff-resume drop <編號>` 與 `drop all`，只在 `$.store` 寫 `state:<path>` = `{status: 'abandoned', ...}`，交接檔不動；必須打完整的 `all`、逐筆列出放棄了哪些、被別的 session 正在接續的不動；不做復原指令。詳見 [放棄交接與「本 session 忽略」](2026-10-08-handoff-drop-design.md) |
 | D18 | 按鈕「略過」的名稱 | **已決（Tom，2026-10-08）：** 改名為「本 session 忽略」（英文 `Ignore for this session`），行為不變。原名讓人以為「別再提醒我」，實際上新 session 會重新出現 |
+| D19 | 啟動清單怎麼讓人知道有 `drop` 可用 | **已決（Tom，2026-10-08）：** 在清單框標頭那一行，計數旁邊加一段淡色小字 `不要的：/handoff-resume drop <編號\|all>`（英文 `Not needed? /handoff-resume drop <n\|all>`），寫完整指令。不加按鈕，D17 不動。起因是作者看到清單只有「接續」，不知道能放棄；原本的提示只在執行 `/handoff-resume` 後的輸出裡。放標頭是因為清單過長時終端機會從底部切掉內容；窄終端機上這段字會換到計數下面 |
 
 ## 驗證與測試
 
