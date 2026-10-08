@@ -6,6 +6,8 @@ import {rankHandoffs} from './rank.js';
 import {freshnessFacts} from './freshness.js';
 import {tryClaim, claimView} from './claim.js';
 import {ensureExcluded} from './exclude.js';
+import {cleanForNote} from './sanitize.js';
+import {shouldWriteNote, buildEndNote, withDeadline} from './note.js';
 import {decideTrigger, effectiveThreshold, snooze, onPercentSeen, hasUnfinishedSign} from './trigger.js';
 
 /*
@@ -24,6 +26,11 @@ const MAX_PER_DIR = 30;
 const GIVE_UP_TURNS = 10;
 const WARN_AT_TURN = 4;
 const GIVE_UP_MS = 60 * 60 * 1000;
+// D4, route B: session.end cannot read the conversation, so the last request and answer are kept (masked) in $.store.
+const LAST_PREFIX = 'last:';
+const QUOTE_MAX = 2000;
+const RECORD_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+const NOTE_DEADLINE_MS = 1500;
 
 // Session-scoped state, kept in $.state: it survives a module reload and is reset by /clear, /resume and /branch.
 const handoffStartedAt = atom({plugin: 'handoff-mod', key: 'handoffStartedAt'}, 0);
@@ -269,6 +276,82 @@ async function bumpStat($, field) {
   } catch { /* Counts are local and optional. */ }
 }
 
+/** Keep the newest request, masked and cut, for the end-of-session note. One record per session; each prompt replaces it. */
+async function recordRequest($, text) {
+  if (!config.autoNote || !text.trim() || (await $.session.surfaces()).length === 0) return;
+  await $.store.set(`${LAST_PREFIX}${await $.session.id()}`, {request: cleanForNote(text, QUOTE_MAX), response: '', at: await $.clock.now()});
+}
+
+/** Attach the answer to the request it belongs to. With no recorded request there is nothing to attach it to. */
+async function recordResponse($, answer) {
+  if (!config.autoNote) return;
+  const key = `${LAST_PREFIX}${await $.session.id()}`;
+  const record = await storeGet($, key);
+  if (!record || typeof record.request !== 'string') return;
+  await $.store.set(key, {...record, response: cleanForNote(String(answer ?? ''), QUOTE_MAX), at: await $.clock.now()});
+}
+
+/** A crash or kill -9 leaves a record behind; drop any that is a week old. */
+async function sweepOldRecords($) {
+  const now = await $.clock.now();
+  for (const key of await $.store.keys()) {
+    if (!key.startsWith(LAST_PREFIX)) continue;
+    const record = await storeGet($, key);
+    if (!record || !(now - Number(record.at) < RECORD_MAX_AGE_MS)) await $.store.delete(key);
+  }
+}
+
+const dirtyPaths = (porcelain) => porcelain.split('\n').filter((line) => line.trim()).map((line) => line.slice(3).split(' -> ').pop());
+
+/**
+ * D4: at the end of an interactive session that left unfinished work, write the facts-only note (the last request and
+ * answer, git state, changed files) without asking a model. Gives up at the exit's short budget and writes nothing then.
+ * The record is always deleted afterwards: it holds the only copy of that text outside the note.
+ */
+async function writeEndNote($, e, next) {
+  const key = `${LAST_PREFIX}${e.sessionId}`;
+  try {
+    const record = await storeGet($, key);
+    if (!record || typeof record.request !== 'string') return;
+    const remaining = Number(next.budget?.remainingMs);
+    const budget = Math.min(NOTE_DEADLINE_MS, Number.isFinite(remaining) ? remaining - 200 : NOTE_DEADLINE_MS);
+    if (budget < 200) { trace($, `end note skipped: ${remaining} ms left`); return; }
+    let abandoned = false;
+    const outcome = await withDeadline(async () => {
+      const status = await git($, ['status', '--porcelain']);
+      const dirty = status.exitCode === 0 ? dirtyPaths(status.stdout) : [];
+      const write = shouldWriteNote({interactive: true, turns: 1, hasUnfinishedSign: hasUnfinishedSign({gitDirty: dirty.length > 0}), reason: e.reason, config});
+      trace($, `end note: reason=${e.reason} dirty=${dirty.length} write=${write}`);
+      if (!write) return false;
+      const branch = (await git($, ['branch', '--show-current'])).stdout.trim();
+      const head = (await git($, ['rev-parse', '--short', 'HEAD'])).stdout.trim();
+      const base = await projectBase($);
+      let root = base;
+      try { root = (await $.session.root()) || base; } catch { /* The git toplevel stands in. */ }
+      const note = buildEndNote({
+        lastRequest: record.request, lastResponse: record.response, branch, head, dirtyFiles: dirty,
+        root, repo: await repoRoot($), now: await $.clock.now(), lang: config.lang,
+      });
+      if (abandoned) return false;
+      await ensureExcluded({
+        git: (args) => git($, args),
+        fs: {exists: (path) => $.fs.exists(path), read: (path) => $.fs.read(path), write: (path, text) => $.fs.write(path, text)},
+        pattern: PATTERN,
+      });
+      const path = `${base}/${DIR}/${note.fileName}`;
+      await $.fs.write(path, note.content);
+      let chmodExit = -1;
+      try { chmodExit = (await $.process.run(['chmod', '600', path], {timeoutMs: 1000})).exitCode; } catch { /* The trace shows it. */ }
+      trace($, `end note written to ${path} (chmod exit ${chmodExit})`);
+      return true;
+    }, budget, (ms, callback) => $.clock.after(ms, callback));
+    if (outcome.timedOut) { abandoned = true; trace($, 'end note abandoned: out of time'); }
+    if (outcome.error) trace($, `end note failed: ${String(outcome.error?.message ?? outcome.error)}`);
+  } finally {
+    try { await $.store.delete(key); } catch { /* The weekly sweep removes it. */ }
+  }
+}
+
 /** Resume one handoff: claim it, remember that, and put a prompt in the input box for the user to send. */
 async function resume($, item) {
   const lang = config.lang;
@@ -401,6 +484,7 @@ export function register(on, options) {
     try {
       await $.command.register({name: 'handoff-stats', description: t(config.lang, 'cmd.stats')});
     } catch { /* Same: a taken name must not stop the session, nor the other command. */ }
+    try { await sweepOldRecords($); } catch { /* ignore */ }
     try {
       // A reload of this module re-fires session.start; only a session with no prompts yet gets the list.
       if (e.isInteractive && (await $.session.turns()) === 0) void refreshList($);
@@ -431,6 +515,7 @@ export function register(on, options) {
       if ('drop' in result) return result;
       const text = result.text ?? e.text ?? '';
       if (text.startsWith('/')) trace($, `prompt.submit origin=${e.origin?.kind ?? '-'} command=${text.trim().split(/\s/)[0]}`);
+      if (['composer', 'bridge', 'sdk'].includes(e.origin?.kind) && !text.startsWith('/')) await recordRequest($, text);
       // skill.prompt does not fire for a typed plugin skill in every environment, so the command text starts a run too.
       if (SKILL_COMMAND.test(text.trim())) await markHandoffStarted($);
       // The first real prompt ends the start-up list; slash commands such as /handoff-resume do not.
@@ -470,7 +555,13 @@ export function register(on, options) {
     if (e.agentId || e.isAborted) return result;
     try { await checkHandoff($); } catch (error) { trace($, `checkHandoff failed: ${String(error?.message ?? error)}`); }
     try { await checkThreshold($); } catch (error) { trace($, `checkThreshold failed: ${String(error?.message ?? error)}`); }
+    try { await recordResponse($, e.answer); } catch { /* ignore */ }
     return result;
+  });
+
+  on('session.end', async ($, e, next) => {
+    try { await writeEndNote($, e, next); } catch (error) { trace($, `writeEndNote failed: ${String(error?.message ?? error)}`); }
+    return next(e);
   });
 
   on('command.run', {command: 'clear'}, async ($, e, next) => {

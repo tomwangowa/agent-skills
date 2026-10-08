@@ -160,6 +160,31 @@ macOS 特有的疑點：`/var` 是 `/private/var` 的符號連結，畫面上同
 
 計數只存在 `$.store`，不外傳；指令用 `$.ui.log` 輸出，Claude 讀不到。限制：Tom 的環境沒試過；損壞的計數紀錄會讀成 0。
 
+## Phase 2：切片 f，結束筆記（D4 做法 2，路線 B；Cloud，2026-10-08）
+
+D4 由 Tom 於 2026-10-08 決定照原設計存對話片段（做法 2）。路線 B：`session.end` 讀不到訊息（P1），所以平時記、結束時寫。環境同切片 b，**不是 Tom 的 macOS**。
+
+| 項目 | 結果 |
+| --- | --- |
+| 驗證與測試 | `claude plugin validate --strict .` 通過；`claude plugin test .` **153 pass、0 fail**（新增 11 項）。 |
+| 變異檢查 | 弄壞九處（請求或回應沒遮蔽、記錄沒刪、`/clear` 仍寫、沒有逾時放棄的保護、沒有 `chmod 600`、清掃判斷反向、乾淨樹仍寫、斜線與 plugin 提示也記錄）：八個直接被抓到，**「逾時放棄」那個一開始沒被抓到**（我的測試每個 git 呼叫延遲 5 秒，整段流程超過測試推進的時間，根本沒走到寫檔），改成每個呼叫 1 秒、推進足夠久後被抓到。 |
+| 真實 session（Cloud，`/exit`） | 送一個含 `password = hunter2hunter2` 的提示，再 `/exit`：寫出 `feat-demo--<時間>--auto.md`，權限 `-rw-------`；請求與任務中的密碼變成 `[redacted]`；有「最後一個要求」「最後一段回應」「branch／HEAD」「有改動的檔案」；`.git/info/exclude` 新增 `.claude/handoffs/`；store 的暫存紀錄已刪（檔案只剩 `{}`）。下次啟動：清單顯示該筆並標「自動留下，未經審查」。 |
+
+行為：
+
+- 平時每個真正的提示（`composer`、`bridge`、`sdk` 來源，不以 `/` 開頭，互動 session）把**已遮蔽、截斷到 2000 字**的請求存進 `$.store` 的 `last:<session id>`（每 session 一筆，每個提示覆蓋），每個回合結束時補上回應。
+- `session.end` 時：有記錄、`reason` 不是 `clear`、工作樹有未提交變更、`HANDOFF_AUTO_NOTE` 不是 `off`，才組檔寫入（`$.fs.write` 之後 `chmod 600`），預算取 `min(1500 ms, 剩餘預算 − 200 ms)`，逾時就不寫。**記錄一律刪除**。
+- 啟動時清掉超過 7 天的 `last:*`（當機或 `kill -9` 的殘留）。
+
+限制與沒驗證的：
+
+- **遮蔽只認有特徵的形式**（`password = …`、`sk-…`、Bearer 等九種）。回應或請求裡單獨出現的密碼字串（例如「用 hunter2 部署」）**不會**被遮蔽；這是設計就寫明的「降低風險、不是保證」。
+- Tom 的 macOS：store 目錄是 0755、檔案 0600（P3），所以暫存紀錄的**內容**別的使用者讀不到，但檔名可見；筆記檔本身 `chmod 600`，**在 macOS 沒驗證**。
+- 結束方式只在 Cloud 驗過 `/exit`。Ctrl-C 兩次、關分頁（SIGHUP）、`reason: other` 沒有在真實 session 驗證（P1c 在 Cloud 沒重現過 `session.end`）。
+- 沒有未完成跡象（乾淨樹、非 git 目錄）就不寫；決定 9 同樣適用。
+- `$.fs.write` 之後到 `chmod` 之前有一小段時間檔案是預設權限（已遮蔽內容，視窗很短）。
+- 逾時之後背景裡的呼叫仍會跑完，但不會寫檔（有保護，已測）。
+
 ## 尚未做
 
-Task 13 的切片 f（結束筆記）、Task 14 的其餘驗收、Task 15（文件與 marketplace）。L1 已通過；`stats.written`、排除功能在無全域 gitignore 時的行為、P4 沒有確認。
+Task 14 的其餘驗收、Task 15（文件與 marketplace）。L1 已通過；`stats.written`、排除功能在無全域 gitignore 時的行為、P4 沒有確認。

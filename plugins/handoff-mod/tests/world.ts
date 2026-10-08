@@ -7,16 +7,18 @@ const GIT_DEFAULTS: Record<string, [number, string]> = {
   'worktree list --porcelain': [0, 'worktree /work/app\nHEAD 781ac6b\nbranch refs/heads/feat/login-timeout\n\n'],
   'check-ignore -q -- .claude/handoffs/_probe': [1, ''],
   'rev-parse --git-path info/exclude': [0, '.git/info/exclude\n'],
+  'branch --show-current': [0, 'feat/login-timeout\n'],
+  'rev-parse --short HEAD': [0, '781ac6b\n'],
 };
 
 /** Stub every host call the wiring makes: in-memory files and store, a scripted git, and recorders for what the mod shows. */
-export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => string; askDelay?: number; turns?: number; env?: Record<string, string>; git?: Record<string, [number, string]>; files?: Record<string, string>; store?: Record<string, any>; repo?: any; surfaces?: string[]; percent?: number} = {}) {
+export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => string; askDelay?: number; turns?: number; env?: Record<string, string>; git?: Record<string, [number, string]>; files?: Record<string, string>; store?: Record<string, any>; repo?: any; surfaces?: string[]; percent?: number; gitDelay?: number} = {}) {
   const clock = mock.clock(on, {now: NOW});
   let percent: number | undefined = o.percent;
   mock.env(on, o.env ?? {});
   const files = new Map<string, {text: string; mtimeMs: number}>(Object.entries(o.files ?? {}).map(([p, text]) => [p, {text, mtimeMs: NOW - 3600_000}]));
   const store = new Map<string, any>(Object.entries(o.store ?? {}));
-  const rec = {statuses: [] as any[], toasts: [] as string[], logs: [] as string[], fills: [] as string[], commands: [] as any[], git: [] as string[], writes: [] as Array<[string, string]>, fsCalls: 0, asks: [] as any[], ran: [] as string[]};
+  const rec = {statuses: [] as any[], toasts: [] as string[], logs: [] as string[], fills: [] as string[], commands: [] as any[], git: [] as string[], writes: [] as Array<[string, string]>, fsCalls: 0, asks: [] as any[], ran: [] as string[], chmods: [] as string[][]};
   const lastStatus = () => rec.statuses[rec.statuses.length - 1];
   const dirOf = (path: string) => path.slice(0, path.lastIndexOf('/'));
 
@@ -26,6 +28,7 @@ export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => s
   on('skill.prompt', ($: any, e: any) => ({text: e.text}));
   on('turn.complete', () => ({text: ''}));
   on('command.register', ($: any, e: any) => { rec.commands.push(e); return {value: undefined}; });
+  on('session.end', ($: any, e: any) => ({sessionId: e.sessionId}));
   on('session.id', () => ({value: o.sessionId ? o.sessionId() : 'sess-A'}));
   on('session.root', () => ({value: '/work/app'}));
   on('session.repo', () => ({value: o.repo === undefined ? {root: '/work/app', remote: null, internal: false, name: null} : o.repo}));
@@ -33,12 +36,16 @@ export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => s
   on('session.turns', () => ({value: o.turns ?? 0}));
   on('session.surfaces', () => ({value: o.surfaces ?? ['terminal']}));
   on('store.get', ($: any, e: any) => ({value: store.get(e.key)}));
+  on('store.delete', ($: any, e: any) => { store.delete(e.key); return {value: undefined}; });
+  on('store.keys', () => ({value: [...store.keys()]}));
   on('store.set', ($: any, e: any) => { store.set(e.key, e.value); return {value: undefined}; });
   on('ui.status', ($: any, e: any) => { rec.statuses.push(e.text); return {value: undefined}; });
   on('ui.toast', ($: any, e: any) => { rec.toasts.push(e.text); return {value: undefined}; });
   on('ui.log', ($: any, e: any) => { rec.logs.push(e.text); return {value: undefined}; });
   on('prompt.fill', ($: any, e: any) => { rec.fills.push(e.text); return {isFilled: true, text: '', cursor: 0}; });
-  on('process.run', ($: any, e: any) => {
+  on('process.run', async ($: any, e: any) => {
+    if (e.argv[0] === 'chmod') { rec.chmods.push(e.argv.slice(1)); return {value: {exitCode: 0, stdout: '', stderr: ''}}; }
+    if (o.gitDelay) await clock.sleep(o.gitDelay);
     const key = e.argv.slice(1).join(' ');
     rec.git.push(key);
     const [exitCode, stdout] = (o.git ?? {})[key] ?? GIT_DEFAULTS[key] ?? [128, ''];

@@ -1,5 +1,6 @@
 import {expect, test} from 'claude-code/testing';
 import {handoffText} from './fixtures.js';
+import {parseHandoff} from '../hooks/handoff-file.js';
 import {world, twoHandoffs, fileA, fileB, HANDOFF_DIR, bandTarget, startSession, doneTurn, NOW} from './world.js';
 
 const mountBand = ($: any) => $.ui.mount(bandTarget);
@@ -536,4 +537,117 @@ test('a damaged counts record reads as zero and sends nothing out', async ($, on
   await startSession($);
   await $.command.run({command: 'handoff-stats', args: ''});
   expect(w.rec.logs).toEqual(['交接寫入 0 次，接續 0 次']);
+});
+
+// --- slice f: the end-of-session note (D4, route B) ------------------------------------------------------------------
+const SECRET = 'hunter2hunter2';
+const submit = ($: any, text: string, kind = 'composer') => $.prompt.submit({text, wait: false, origin: {kind}});
+const END = {reason: 'prompt_input_exit', sessionId: 'sess-A', resume: {id: 'sess-A'}} as any;
+const notePath = (w: any) => [...w.files.keys()].find((p: string) => p.endsWith('--auto.md'));
+const talk = async ($: any, w: any, request = 'fix the login timeout', answer = 'done, see auth.ts') => {
+  await submit($, request);
+  await doneTurn($, {answer});
+  await w.flush();
+};
+
+test('the last request and answer are kept masked and cut, one record for the session', async ($, on) => {
+  const w = world(on);
+  await startSession($);
+  await talk($, w, `deploy with password = ${SECRET} and then ${'x'.repeat(3000)}`, `set password = ${SECRET} in the env and deployed`);
+  const record = w.store.get('last:sess-A');
+  expect(JSON.stringify(record)).not.toContain(SECRET);
+  expect(record.request.length).toBeLessThanOrEqual(2001);
+  expect(record.response).toContain('deployed');
+  await talk($, w, 'second request', 'second answer');
+  expect([...w.store.keys()].filter((k) => k.startsWith('last:')).length).toBe(1);
+  expect(w.store.get('last:sess-A')).toMatchObject({request: 'second request', response: 'second answer'});
+});
+test('slash commands, plugin prompts, headless sessions and HANDOFF_AUTO_NOTE=off record nothing', async ($, on) => {
+  const w = world(on);
+  await startSession($);
+  await submit($, '/handoff-resume');
+  await submit($, 'from a plugin', 'plugin');
+  expect(w.store.get('last:sess-A')).toBeUndefined();
+});
+test('nothing is recorded in a headless session or with the note switched off', async ($, on) => {
+  const headless = world(on, {surfaces: []});
+  await startSession($);
+  await talk($, headless);
+  expect(headless.store.get('last:sess-A')).toBeUndefined();
+});
+test('with HANDOFF_AUTO_NOTE=off nothing is recorded', async ($, on) => {
+  const w = world(on, {env: {HANDOFF_AUTO_NOTE: 'off'}});
+  await startSession($);
+  await talk($, w);
+  expect(w.store.get('last:sess-A')).toBeUndefined();
+});
+test('ending with unfinished work writes a facts-only note that the list can read back', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  await talk($, w, `fix it, password = ${SECRET}`, 'changed src/login.ts');
+  await $.session.end(END);
+  const path = notePath(w);
+  expect(path).toMatch(/\/work\/app\/\.claude\/handoffs\/feat-login-timeout--\d{8}-\d{6}--auto\.md$/);
+  const text = w.files.get(path).text;
+  expect(text).not.toContain(SECRET);
+  expect(text).toContain('source: auto');
+  expect(text).toContain('> fix it, password =');
+  expect(text).toContain('src/login.ts');
+  expect(parseHandoff(text).ok).toBe(true);
+  expect(w.rec.chmods).toEqual([['600', path]]);
+  expect(w.rec.writes.some(([p, body]) => p.endsWith('.git/info/exclude') && body.includes('.claude/handoffs/'))).toBe(true);
+  expect(w.store.get('last:sess-A')).toBeUndefined();
+});
+test('no note when the tree is clean, when /clear ended the session, or when there was no request; the record is deleted anyway', async ($, on) => {
+  const clean = world(on, {git: {'status --porcelain': [0, '']}});
+  await startSession($);
+  await talk($, clean);
+  await $.session.end(END);
+  expect(notePath(clean)).toBeUndefined();
+  expect(clean.store.get('last:sess-A')).toBeUndefined();
+});
+test('a /clear writes no note (T2 owns it) and drops the record', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  await talk($, w);
+  await $.session.end({...END, reason: 'clear'});
+  expect(notePath(w)).toBeUndefined();
+  expect(w.store.get('last:sess-A')).toBeUndefined();
+});
+test('a session with no recorded request writes nothing', async ($, on) => {
+  const w = world(on, {git: DIRTY});
+  await startSession($);
+  await $.session.end(END);
+  expect(notePath(w)).toBeUndefined();
+});
+test('with HANDOFF_AUTO_NOTE=off ending the session writes nothing', async ($, on) => {
+  const w = world(on, {git: DIRTY, env: {HANDOFF_AUTO_NOTE: 'off'}, store: {'last:sess-A': {request: 'x', response: 'y', at: NOW}}});
+  await startSession($);
+  await $.session.end(END);
+  expect(notePath(w)).toBeUndefined();
+});
+test('out of time means no file at all, and the record is still deleted', async ($, on) => {
+  const w = world(on, {git: DIRTY, gitDelay: 1000});
+  await startSession($);
+  w.store.set('last:sess-A', {request: 'fix it', response: 'ok', at: NOW});
+  const ending = $.session.end(END);
+  await w.clock.advance(2000);
+  await ending;
+  // The abandoned run keeps going in the background (about seven git calls); it must still write nothing.
+  for (let i = 0; i < 12; i++) await w.clock.advance(1000);
+  expect(notePath(w)).toBeUndefined();
+  expect(w.rec.chmods.length).toBe(0);
+  expect(w.store.get('last:sess-A')).toBeUndefined();
+});
+test('a record left behind by a crash is swept after a week, a recent one is kept', async ($, on) => {
+  const w = world(on, {store: {
+    'last:old': {request: 'a', response: 'b', at: NOW - 8 * 86400_000},
+    'last:new': {request: 'a', response: 'b', at: NOW - 3600_000},
+    stats: {written: 1, resumed: 0},
+  }});
+  await startSession($);
+  await w.flush();
+  expect(w.store.get('last:old')).toBeUndefined();
+  expect(w.store.get('last:new')).toBeDefined();
+  expect(w.store.get('stats')).toBeDefined();
 });
