@@ -1,7 +1,7 @@
 # Handoff Mod 設計
 
 日期：2026-10-06  
-狀態：**草案。** 待決項目 D1 至 D14 已於 2026-10-07 全部決定，整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）；同日 Cloud 補驗後再修訂（Tom 選 A，見文末「補驗後的修訂」），其中 3 項建議已由 Tom 全部採用，記為 D12 至 D14。  
+狀態：**草案。** 待決項目 D1 至 D14 已於 2026-10-07 全部決定（D15、D16 於 2026-10-08 增補，見 [啟動清單展開與自動筆記折疊](2026-10-08-handoff-list-expand-design.md)），整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）；同日 Cloud 補驗後再修訂（Tom 選 A，見文末「補驗後的修訂」），其中 3 項建議已由 Tom 全部採用，記為 D12 至 D14。  
 plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接著做」。  
 證據：[micro-PoC 結果](../../poc-results.md)（Cloud 與 Tom 本機實測：macOS、Warp、Claude Code 2.1.291 至 2.1.292）；驗證計畫：[micro-PoC 計畫](../plans/2026-10-06-handoff-mod-poc.md)。
 
@@ -114,7 +114,7 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 
 - **時機：** `classic.SessionStart`，`source` 為 `startup` 或 `clear`（`resume`、`fork`、`compact` 不顯示，對話已有脈絡）；互動 session；`turns() == 0`。
 - **來源：** 目前 worktree（`git rev-parse --show-toplevel`）的交接目錄；`repo().root` 不同時再加上主 checkout 的目錄；同 repo 其他 worktree 的目錄用 `git worktree list` 取得（D2 已決），不另做索引；非 git 目錄只看自己的 `root()`。
-- **排序：** 同 `root` 優先，其次同 `repo`，其餘依 `created` 由新到舊。預設展開 3 筆，其餘折疊成「還有 N 筆」。創建超過 14 天的預設折疊。
+- **排序：** 同 `root` 優先，其次同 `repo`，其餘依 `created` 由新到舊。預設展開 3 筆，其餘折疊成「還有 N 筆」按鈕，按下去（或 `/handoff-resume all`）展開（D16）。創建超過 14 天的預設折疊；同 `root` 加 `branch` 的較舊自動筆記也折疊，只有最新一份有資格進前 3 筆（D15）。
 - **每筆顯示：** 任務（≤80 字）、branch、多久以前、新鮮度事實、「下一步」第一行（≤120 字）。
 - **按鈕：** 接續、略過。「略過」只對這個 session 有效，不改狀態。
 - **介面：** 寬視窗用 band，與 attention-mod 並排時把自己的內容與 `next(e)` 的結果並排（L8 已驗證可並排，按鈕列要在 67 欄內放得下）。**窄視窗且有 attention-mod 時 band 看不到**（L8：被擠成 `↓2 more`），啟動清單與 T1 一樣降級（D9）：`$.ui.status` 常駐一行「有 N 筆未完成交接，輸入 `/handoff-resume` 查看」，加上 `/handoff-resume` 指令。
@@ -280,6 +280,8 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | D12 | session 範圍的狀態（下一個門檻、別再問、有提問在等）放哪裡？改設定會重載模組、歸零 module 變數 | **已決（Tom，2026-10-07）：放 `$.state`**，不放 module 變數。Cloud 補驗（W10）：重載後保留、`/clear` 後重置。代價：manifest 要宣告 `types` 並附型別檔。沒有拿 `$.store`（以 session id 為鍵）做過比較 |
 | D13 | T2（`/clear` 攔截）的選項順序；預設標在第一項，Enter 一定選到它（W8） | **已決（Tom，2026-10-07）：取消／先交接再清除／直接清除**，取消放第一。代價：想直接清除的人要多按一下方向鍵 |
 | D14 | `/handoff-resume` 的清單輸出用哪種方式 | **已決（Tom，2026-10-07）：用 `$.ui.log`**，不用 `{text}`。Claude 讀不到，檔案內容在使用者選擇前不進 context、不花 token；代價：attention-mod 的外部輸入會列出這些行，所以行數與內容要克制 |
+| D15 | 同 `root` 加 `branch` 的較舊自動筆記是否折疊、折疊到哪 | **已決（Tom，2026-10-08）：折疊，不隱藏。** 每個 branch 只有最新一份自動筆記有資格進前 3 筆，較舊的進「還有 N 筆」（算進 N、展開後看得到並標示）；手動交接不分組；程式無法判斷是否同一任務，所以不做任務判斷。詳見 [啟動清單展開與自動筆記折疊](2026-10-08-handoff-list-expand-design.md) |
+| D16 | 折疊項目何時建立資料 | **已決（Tom，2026-10-08）：展開時才建。** 「還有 N 筆」按鈕與 `/handoff-resume all` 把 `$.state` 的 `expanded` 設為 true 再重建；啟動時只替前 3 筆跑 git 新鮮度。`/handoff-resume <n>` 超出範圍時先展開再找 |
 
 ## 驗證與測試
 

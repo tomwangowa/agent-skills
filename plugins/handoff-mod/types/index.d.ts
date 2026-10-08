@@ -17,6 +17,8 @@ declare module 'claude-code' {
       t1Percent: number
       /** The start-up list was skipped, resumed or dismissed in this session. */
       listDone: boolean
+      /** The folded part of the start-up list was asked for (button or `/handoff-resume all`); D16. */
+      expanded: boolean
     }
   }
 }
