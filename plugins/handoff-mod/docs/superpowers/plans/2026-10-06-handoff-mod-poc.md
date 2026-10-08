@@ -86,7 +86,7 @@
 
 - [x] Tom 確認設計後，刪除 `poc/`（`git rm -r plugins/handoff-mod/poc`），保留 `docs/poc-results.md`。2026-10-07 已做。
 - [x] 另寫實作計畫：[`2026-10-07-handoff-mod.md`](2026-10-07-handoff-mod.md)。
-- [ ] 實作前不要建立正式的 `.claude-plugin/plugin.json`，也不要動 `.claude-plugin/marketplace.json`。
+- [x] 實作前不要建立正式的 `.claude-plugin/plugin.json`，也不要動 `.claude-plugin/marketplace.json`。（已遵守：實作期間未動，2026-10-08 Tom 同意後才加條目。）
 
 ## 這份 PoC 沒有涵蓋
 

@@ -4,7 +4,7 @@
 
 Claude Code Mod。在 session 即將失去狀態之前（context 快滿、`/clear`、結束）協助你留下一份交接檔；下次在同一個專案開新 session 時，列出還沒做完的交接，讓你一鍵接續。零模型成本：Mod 本身不呼叫模型，只有你自己執行交接 skill 時才花一個回合。
 
-> **狀態：原型，尚未上架 marketplace。** 在作者的 macOS（Claude Code 2.1.292）和 Cloud container（Linux）驗證過，見最下方「驗證狀態」。其他環境、終端機與預設的 60% 門檻實際用起來的感覺，還沒有人驗證。
+> **狀態：原型。** marketplace 條目已加入，但 marketplace 讀的是預設分支，**這個 PR 合併後才會生效**；`claude plugin install` 的流程我沒有實際跑過。 在作者的 macOS（Claude Code 2.1.292）和 Cloud container（Linux）驗證過，見最下方「驗證狀態」。其他環境、終端機與預設的 60% 門檻實際用起來的感覺，還沒有人驗證。
 
 ## 它做什麼
 
@@ -21,14 +21,23 @@ Claude Code Mod。在 session 即將失去狀態之前（context 快滿、`/clea
 
 ## 安裝
 
-作者測的是 Claude Code 2.1.291 與 2.1.292，**最低可用版本沒有驗證**。目前沒有上架 marketplace，用本機載入：
+作者測的是 Claude Code 2.1.291 與 2.1.292，**最低可用版本沒有驗證**。
+
+**合併後**可從 marketplace 安裝（**這條流程沒有驗證過**）：
+
+```sh
+claude plugin marketplace add tomwangowa/agent-skills
+claude plugin install handoff-mod@tomwangowa --scope user
+```
+
+**合併前**，或只想試用，用本機載入：
 
 ```sh
 git clone https://github.com/tomwangowa/agent-skills.git
 claude --plugin-dir "<clone 路徑>/plugins/handoff-mod"
 ```
 
-這只在那一次 session 有效，不會安裝任何東西。Mod **不在 sandbox 裡執行**，會以你的使用者權限跑在 Claude Code 裡，載入前請先看過 `hooks/` 的程式碼。
+`--plugin-dir` 只在那一次 session 有效，不會安裝任何東西。Mod **不在 sandbox 裡執行**，會以你的使用者權限跑在 Claude Code 裡，載入前請先看過 `hooks/` 的程式碼。
 
 如果同時載入 [attention-mod](../attention-mod)，展開的 inline 面板會把輸入框上方的提示遮住；輸入框下方那一行狀態仍然看得到，`/handoff-resume` 與 `/handoff-mod:handoff` 照常可用。
 

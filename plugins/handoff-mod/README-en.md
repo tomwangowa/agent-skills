@@ -4,7 +4,7 @@
 
 A Claude Code Mod. Before a session loses its state (context nearly full, `/clear`, exit) it helps you leave a handoff file; the next time you open a session in the same project it lists the handoffs that are still unfinished and lets you resume one. The Mod itself costs no model usage: it never calls a model. Only when you run the handoff skill yourself does it take one turn.
 
-> **Status: prototype, not in the marketplace.** Verified on the author's macOS (Claude Code 2.1.292) and in a Cloud container (Linux); see "Verification status" at the end. Other environments, other terminals, and how the default 60% threshold feels in daily use have not been verified.
+> **Status: prototype.** The marketplace entry is added, but the marketplace reads the default branch, so **it only takes effect once this PR is merged**; I have not actually run `claude plugin install`. Verified on the author's macOS (Claude Code 2.1.292) and in a Cloud container (Linux); see "Verification status" at the end. Other environments, other terminals, and how the default 60% threshold feels in daily use have not been verified.
 
 ## What it does
 
@@ -21,14 +21,23 @@ Handoff files go to `<git root>/.claude/handoffs/`, and the directory is added t
 
 ## Install
 
-Tested on Claude Code 2.1.291 and 2.1.292; **the minimum working version is not verified**. It is not in the marketplace, so load it locally:
+Tested on Claude Code 2.1.291 and 2.1.292; **the minimum working version is not verified**.
+
+**After the merge** you can install it from the marketplace (**this flow is not verified**):
+
+```sh
+claude plugin marketplace add tomwangowa/agent-skills
+claude plugin install handoff-mod@tomwangowa --scope user
+```
+
+**Before the merge**, or just to try it, load it locally:
 
 ```sh
 git clone https://github.com/tomwangowa/agent-skills.git
 claude --plugin-dir "<path to clone>/plugins/handoff-mod"
 ```
 
-This only applies to that one session and installs nothing. The Mod **does not run in a sandbox**: it runs inside Claude Code with your user's permissions, so read the code in `hooks/` before loading it.
+`--plugin-dir` only applies to that one session and installs nothing. The Mod **does not run in a sandbox**: it runs inside Claude Code with your user's permissions, so read the code in `hooks/` before loading it.
 
 If [attention-mod](../attention-mod) is loaded at the same time, its expanded inline panel hides the prompt above the input box; the status line under the input box is still visible, and `/handoff-resume` and `/handoff-mod:handoff` work as usual.
 

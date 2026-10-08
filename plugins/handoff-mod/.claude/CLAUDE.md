@@ -80,4 +80,4 @@ claude --plugin-dir "$PWD"          # 實際載入試用
 - Conventional Commits；**每次 commit 與 push 都要先問作者**，前一次的同意不延續。
 - 公開 repo：追蹤的檔案裡不放個人路徑（`/Users/…`）、email、內部識別，用 `~` 或占位符。
 - 程式碼註解與輸出用英文；文件用繁體中文（台灣用語）。
-- `.claude-plugin/marketplace.json` 在作者同意前不動。
+- `.claude-plugin/marketplace.json` 已於 2026-10-08 經作者同意加入條目；marketplace 讀預設分支，合併後才生效。之後改動仍要先問作者。
