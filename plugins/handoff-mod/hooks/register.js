@@ -36,6 +36,8 @@ const NOTE_DEADLINE_MS = 1500;
 const handoffStartedAt = atom({plugin: 'handoff-mod', key: 'handoffStartedAt'}, 0);
 const handoffTurns = atom({plugin: 'handoff-mod', key: 'handoffTurns'}, 0);
 const listDone = atom({plugin: 'handoff-mod', key: 'listDone'}, false);
+// D16: whether the folded part of the start-up list has been asked for; reset by /clear like the other session state.
+const expanded = atom({plugin: 'handoff-mod', key: 'expanded'}, false);
 const askPending = atom({plugin: 'handoff-mod', key: 'askPending'}, false);
 // T1 (D12): the next threshold after "ask again in 10%", the threshold last asked about, "never ask again", and the
 // percentage the open prompt reports (0 while no prompt is open).
@@ -173,8 +175,9 @@ async function buildList($) {
     });
   }
   const ranked = rankHandoffs(items, {base, repo, now});
+  const picked = (await read($, expanded)) ? [...ranked.shown, ...ranked.rest] : ranked.shown;
   const views = [];
-  for (const item of ranked.shown) {
+  for (const item of picked) {
     const facts = await freshnessFacts({meta: item.meta, git: (args) => git($, args)});
     views.push({
       id: item.path,
@@ -182,6 +185,7 @@ async function buildList($) {
       next: item.fields.next ? t(lang, 'list.next', {next: item.fields.next}) : '',
       facts: facts.map((fact) => factText(lang, fact)),
       auto: item.meta.source === 'auto',
+      older: Boolean(item.olderAuto),
       claimed: item.claimedByOther,
     });
   }
@@ -267,6 +271,12 @@ async function refreshList($, {force = false} = {}) {
   } finally {
     listing = false;
   }
+}
+
+/** D16: build the folded part too. Setting the flag first means a press during a rebuild still ends up expanded. */
+async function expandList($) {
+  await update($, expanded, () => true);
+  await refreshList($, {force: true});
 }
 
 async function bumpStat($, field) {
@@ -599,20 +609,24 @@ export function register(on, options) {
   on('command.run', {command: 'handoff-resume'}, async ($, e) => {
     try {
       config = await loadConfig($);
-      await refreshList($, {force: true});
       const lang = config.lang;
       const arg = String(e.args ?? '').trim();
+      if (arg === 'all') await update($, expanded, () => true);
+      await refreshList($, {force: true});
       if (!list) {
         $.ui.log(t(lang, 'list.none'));
-      } else if (arg === '') {
+      } else if (arg === '' || arg === 'all') {
         $.ui.log(t(lang, 'list.header', {count: list.total}));
         for (const item of list.items) {
-          const extra = [item.next, ...item.facts, item.auto ? t(lang, 'list.auto') : '', item.claimed ? t(lang, 'list.claimed') : ''].filter(Boolean);
+          const extra = [item.next, ...item.facts, item.auto ? t(lang, 'list.auto') : '', item.older ? t(lang, 'list.older') : '', item.claimed ? t(lang, 'list.claimed') : ''].filter(Boolean);
           $.ui.log(extra.length ? `${item.title} — ${extra.join('；')}` : item.title);
         }
+        if (list.total > list.items.length) $.ui.log(t(lang, 'list.moreCmd', {count: list.total - list.items.length}));
       } else {
         const n = Number(arg);
-        const item = Number.isInteger(n) ? list.items[n - 1] : undefined;
+        // A number past the shown items may still be a folded one (D15, D16): expand, then look again.
+        if (Number.isInteger(n) && n > list.items.length && list.total > list.items.length) await expandList($);
+        const item = Number.isInteger(n) ? list?.items[n - 1] : undefined;
         if (item) await resume($, item);
         else $.ui.log(t(lang, 'list.bad', {n: arg}));
       }
@@ -634,6 +648,7 @@ export function register(on, options) {
         if (item.next) rows.push(Text({wrap: 'wrap', children: [item.next]}));
         for (const [j, fact] of item.facts.entries()) rows.push(Text({dimColor: true, wrap: 'wrap', children: [fact]}));
         if (item.auto) rows.push(Text({dimColor: true, children: [t(lang, 'list.auto')]}));
+        if (item.older) rows.push(Text({dimColor: true, children: [t(lang, 'list.older')]}));
         rows.push(item.claimed
           ? Text({dimColor: true, children: [t(lang, 'list.claimed')]})
           : Button({key: `resume-${i}`, label: t(lang, 'list.resume'), variant: 'primary', onPress: () => resume($, item)}));
@@ -644,7 +659,7 @@ export function register(on, options) {
         children: [
           Text({bold: true, children: [t(lang, 'list.header', {count: list.total})]}),
           ...rows,
-          ...(list.total > list.items.length ? [Text({dimColor: true, children: [t(lang, 'list.more', {count: list.total - list.items.length})]})] : []),
+          ...(list.total > list.items.length ? [Button({key: 'more', label: t(lang, 'list.more', {count: list.total - list.items.length}), variant: 'secondary', onPress: () => expandList($)})] : []),
           Button({key: 'skip', label: t(lang, 'list.skip'), variant: 'secondary', onPress: async () => { await update($, listDone, () => true); await clearList($); }}),
         ],
       }));

@@ -1,7 +1,7 @@
 import {expect, test} from 'claude-code/testing';
 import {handoffText} from './fixtures.js';
 import {parseHandoff} from '../hooks/handoff-file.js';
-import {world, twoHandoffs, fileA, fileB, HANDOFF_DIR, bandTarget, startSession, doneTurn, NOW} from './world.js';
+import {world, twoHandoffs, fiveHandoffs, autoNote, fileA, fileB, HANDOFF_DIR, bandTarget, startSession, doneTurn, NOW} from './world.js';
 
 const mountBand = ($: any) => $.ui.mount(bandTarget);
 
@@ -131,6 +131,87 @@ test('/handoff-resume <n> resumes item n, and a bad number says so', async ($, o
   await $.command.run({command: 'handoff-resume', args: '9'});
   expect(w.rec.logs.some((line) => line.includes('沒有第 9 筆'))).toBe(true);
 });
+test('beyond three, the rest sit behind a button, and git is asked only about the shown ones', async ($, on) => {
+  const w = world(on, {files: fiveHandoffs});
+  await startSession($);
+  await w.flush();
+  const band = await mountBand($);
+  expect(await band.find({type: 'Text', text: /3\. 任務3/})).toBeDefined();
+  expect(await band.find({type: 'Text', text: /4\. 任務4/})).toBeUndefined();
+  const more = await band.find({key: 'more'});
+  expect(more.props).toMatchObject({label: '還有 2 筆', variant: 'secondary'});
+  expect(more.props.plain).toBeUndefined();
+  expect(w.rec.git.some((key) => key.includes('refs/heads/feat/n3'))).toBe(true);
+  expect(w.rec.git.some((key) => key.includes('refs/heads/feat/n4'))).toBe(false);
+});
+test('pressing the button lists everything with continuous numbers, asks git about the rest, and the button goes away', async ($, on) => {
+  const w = world(on, {files: fiveHandoffs});
+  await startSession($);
+  await w.flush();
+  const band = await mountBand($);
+  await band.press({key: 'more'});
+  await w.flush();
+  expect(await band.find({type: 'Text', text: /4\. 任務4/})).toBeDefined();
+  expect(await band.find({type: 'Text', text: /5\. 任務5/})).toBeDefined();
+  expect(await band.find({key: 'resume-4'})).toBeDefined();
+  expect(await band.find({key: 'more'})).toBeUndefined();
+  expect(w.rec.git.some((key) => key.includes('refs/heads/feat/n4'))).toBe(true);
+  expect(w.lastStatus()).toBe('有 5 筆未完成交接，輸入 /handoff-resume 查看');
+});
+test('an older automatic note on a branch is folded, counted, and labelled once expanded', async ($, on) => {
+  const files = {...fiveHandoffs, ...Object.fromEntries([autoNote('11', '新的筆記', 'feat/same'), autoNote('10', '舊的筆記', 'feat/same')])};
+  const w = world(on, {files});
+  await startSession($);
+  await w.flush();
+  const before = await mountBand($);
+  expect(await before.find({type: 'Text', text: '有 7 筆未完成交接'})).toBeDefined();
+  expect(await before.find({type: 'Text', text: /新的筆記/})).toBeDefined();
+  expect(await before.find({type: 'Text', text: /舊的筆記/})).toBeUndefined();
+  expect((await before.find({key: 'more'})).props.label).toBe('還有 4 筆');
+  await before.press({key: 'more'});
+  await w.flush();
+  // A mounted band is live: reading it again draws the current list.
+  const after = before;
+  expect(await after.find({type: 'Text', text: /舊的筆記/})).toBeDefined();
+  expect(await after.find({type: 'Text', text: '同 branch 較舊的自動筆記'})).toBeDefined();
+});
+test('/handoff-resume with folded items ends with a line saying how to list them all', async ($, on) => {
+  const w = world(on, {files: fiveHandoffs});
+  await $.command.run({command: 'handoff-resume', args: ''});
+  expect(w.rec.logs[0]).toBe('有 5 筆未完成交接');
+  expect(w.rec.logs.length).toBe(5);
+  expect(w.rec.logs[4]).toBe('還有 2 筆，輸入 /handoff-resume all 全部列出');
+});
+test('/handoff-resume all lists every item, folded or not, and labels older automatic notes', async ($, on) => {
+  const files = {...fiveHandoffs, ...Object.fromEntries([autoNote('11', '新的筆記', 'feat/same'), autoNote('10', '舊的筆記', 'feat/same')])};
+  const w = world(on, {files});
+  await $.command.run({command: 'handoff-resume', args: 'all'});
+  expect(w.rec.logs[0]).toBe('有 7 筆未完成交接');
+  expect(w.rec.logs.length).toBe(8);
+  expect(w.rec.logs.some((line) => line.includes('舊的筆記') && line.includes('同 branch 較舊的自動筆記'))).toBe(true);
+  expect(w.rec.logs.some((line) => line.includes('還有'))).toBe(false);
+});
+test('/handoff-resume all with nothing folded behaves like the plain command', async ($, on) => {
+  const w = world(on, {files: twoHandoffs});
+  await $.command.run({command: 'handoff-resume', args: 'all'});
+  expect(w.rec.logs.length).toBe(3);
+});
+test('/handoff-resume <n> beyond the shown items expands first, then resumes', async ($, on) => {
+  const w = world(on, {files: fiveHandoffs});
+  await $.command.run({command: 'handoff-resume', args: '4'});
+  const fourth = `${HANDOFF_DIR}/feat-n4--20261006-060000.md`;
+  expect(w.store.get(`state:${fourth}`).status).toBe('resumed');
+  expect(w.rec.fills[0]).toContain(fourth);
+});
+test('/handoff-resume with a number past the total, or zero, says the number is bad', async ($, on) => {
+  const w = world(on, {files: fiveHandoffs});
+  await $.command.run({command: 'handoff-resume', args: '6'});
+  await $.command.run({command: 'handoff-resume', args: '0'});
+  expect(w.rec.fills.length).toBe(0);
+  expect(w.rec.logs).toContain('沒有第 6 筆。');
+  expect(w.rec.logs).toContain('沒有第 0 筆。');
+});
+
 test('the first real prompt ends the list; a slash command does not', async ($, on) => {
   const w = world(on, {files: twoHandoffs});
   await startSession($);

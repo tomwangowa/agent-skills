@@ -1,6 +1,6 @@
 {
   "name": "handoff-mod",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Hand off unfinished work before a session loses it, and pick it up again at the next start.",
   "author": { "name": "Tom" },
   "types": "./types/index.d.ts",

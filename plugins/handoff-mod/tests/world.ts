@@ -80,6 +80,17 @@ export const twoHandoffs = {
   [fileB]: handoffText({created: '2026-10-05T09:00:00+08:00', extra: 'x: y', body: '## 任務\n其他\n\n## 下一步\n- 做別的\n'}).replace('task: 修正登入逾時', 'task: 其他工作').replace('branch: feat/login-timeout', 'branch: feat/other'),
 };
 
+/** Five handoffs on five branches, all fresh; task 1 is the newest. */
+export const fiveHandoffs: Record<string, string> = Object.fromEntries([1, 2, 3, 4, 5].map((n) => [
+  `${HANDOFF_DIR}/feat-n${n}--20261006-0${10 - n}0000.md`,
+  handoffText({created: `2026-10-06T0${10 - n}:00:00Z`}).replace('task: 修正登入逾時', `task: 任務${n}`).replace('branch: feat/login-timeout', `branch: feat/n${n}`),
+]));
+/** An automatic note; `hh` is the hour it was written on 2026-10-06. */
+export const autoNote = (hh: string, task: string, branch: string): [string, string] => [
+  `${HANDOFF_DIR}/${branch.replace('/', '-')}--20261006-${hh}0000--auto.md`,
+  handoffText({created: `2026-10-06T${hh}:00:00Z`, extra: 'source: auto'}).replace('task: 修正登入逾時', `task: ${task}`).replace('branch: feat/login-timeout', `branch: ${branch}`),
+];
+
 export const bandTarget = {plugin: 'handoff-mod', surface: 'terminal', component: 'AbovePrompt', requestId: 'band', viewport: {columns: 100, rows: 30}, props: {hasSurvey: false, isWorking: false, maxRows: 14, bodyColumns: 80, scroll: {offset: 0, bodyRows: 10}, view: {}}} as const;
 export const startSession = async ($: any, source = 'startup') => {
   await $.session.start({surface: 'terminal', isInteractive: true, cwd: '/work/app'});

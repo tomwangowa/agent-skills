@@ -5,10 +5,11 @@ const DAY = 24 * 3600 * 1000;
 const now = Date.parse('2026-10-20T00:00:00Z');
 const item = (path: string, daysAgo: number, o: any = {}) => ({
   path, effectiveStatus: o.status ?? 'in-progress', claimedByOther: o.claimed ?? false,
-  meta: {root: o.root ?? '/other', repo: o.repo, created: now - daysAgo * DAY, source: o.source, task: path},
+  meta: {root: o.root ?? '/other', repo: o.repo, branch: o.branch, created: now - daysAgo * DAY, source: o.source, task: path},
 });
 const ctx = {base: '/work/app', repo: '/work/app', now};
 const paths = (r: any) => r.shown.map((i: any) => i.path);
+const restPaths = (r: any) => r.rest.map((i: any) => i.path);
 
 test('only open statuses are listed', () => {
   const r = rankHandoffs([item('a', 1), item('b', 1, {status: 'resumed'}), item('c', 1, {status: 'done'}), item('d', 1, {status: 'abandoned'}), item('e', 1, {status: 'blocked'})], ctx);
@@ -43,4 +44,51 @@ test('the order does not depend on the input order', () => {
   const forward = paths(rankHandoffs(items, ctx));
   const backward = paths(rankHandoffs([...items].reverse(), ctx));
   expect(forward).toEqual(backward);
+});
+test('the rest is everything that is not shown, in ranked order', () => {
+  const r = rankHandoffs([1, 2, 3, 4, 5].map((n) => item(`p${n}`, n)), ctx);
+  expect(restPaths(r)).toEqual(['p4', 'p5']);
+  expect(r.collapsed).toBe(2);
+});
+test('on one branch only the newest automatic note can be shown; older ones sit in the rest, flagged and counted', () => {
+  const r = rankHandoffs([item('auto-new', 1, {source: 'auto', branch: 'b'}), item('auto-mid', 2, {source: 'auto', branch: 'b'}), item('auto-old', 3, {source: 'auto', branch: 'b'})], ctx);
+  expect(paths(r)).toEqual(['auto-new']);
+  expect(restPaths(r)).toEqual(['auto-mid', 'auto-old']);
+  expect(r.rest.every((i: any) => i.olderAuto === true)).toBe(true);
+  expect(r.shown[0].olderAuto).toBeUndefined();
+  expect(r.collapsed).toBe(2);
+});
+test('a folded older automatic note is not pulled up when the shown list has room', () => {
+  const r = rankHandoffs([item('auto-new', 1, {source: 'auto', branch: 'b'}), item('auto-old', 2, {source: 'auto', branch: 'b'}), item('manual', 5)], ctx);
+  expect(paths(r)).toEqual(['auto-new', 'manual']);
+  expect(restPaths(r)).toEqual(['auto-old']);
+});
+test('automatic notes on different branches or roots do not fold each other', () => {
+  const r = rankHandoffs([item('a', 1, {source: 'auto', branch: 'x'}), item('b', 2, {source: 'auto', branch: 'y'}), item('c', 3, {source: 'auto', branch: 'x', root: '/work/app'})], ctx);
+  expect(paths(r).sort()).toEqual(['a', 'b', 'c']);
+  expect(r.rest).toEqual([]);
+});
+test('manual handoffs are never folded and do not affect the grouping of automatic notes', () => {
+  const r = rankHandoffs([item('manual-new', 1, {branch: 'b'}), item('auto-new', 2, {source: 'auto', branch: 'b'}), item('auto-old', 3, {source: 'auto', branch: 'b'})], ctx);
+  expect(paths(r)).toEqual(['manual-new', 'auto-new']);
+  expect(restPaths(r)).toEqual(['auto-old']);
+});
+test('automatic notes with no branch are grouped by root', () => {
+  const r = rankHandoffs([item('new', 1, {source: 'auto'}), item('old', 2, {source: 'auto'}), item('elsewhere', 3, {source: 'auto', root: '/another'})], ctx);
+  expect(paths(r).sort()).toEqual(['elsewhere', 'new']);
+  expect(restPaths(r)).toEqual(['old']);
+});
+test('automatic notes past 7 days are hidden before grouping, so they never count as folded', () => {
+  const r = rankHandoffs([item('new', 1, {source: 'auto', branch: 'b'}), item('week-old', 8, {source: 'auto', branch: 'b'})], ctx);
+  expect(paths(r)).toEqual(['new']);
+  expect(r.rest).toEqual([]);
+  expect(r.collapsed).toBe(0);
+  expect(r.hidden).toBe(1);
+});
+test('folding does not depend on the input order and does not touch the input items', () => {
+  const items = [item('a', 1, {source: 'auto', branch: 'b'}), item('b', 2, {source: 'auto', branch: 'b'}), item('c', 2, {source: 'auto', branch: 'b'})];
+  const forward = rankHandoffs(items, ctx);
+  const backward = rankHandoffs([...items].reverse(), ctx);
+  expect(restPaths(forward)).toEqual(restPaths(backward));
+  expect(items.every((i: any) => i.olderAuto === undefined)).toBe(true);
 });
