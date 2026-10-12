@@ -89,7 +89,7 @@ When MCP tools are available, call the tool using the detected prefix from Step 
 - User pastes content directly → analyze the provided text
 - User says "my journal" / "my work log" without specifics → ask for the path or date range
 
-**Step 2 — Parse and classify the query** into one of these 5 types (matching the Tool mapping table above):
+**Step 2 — Parse and classify the query** into one of these 7 types (matching the Tool mapping table above):
 
 | Query Type | Trigger phrases |
 |------------|----------------|
@@ -99,6 +99,7 @@ When MCP tools are available, call the tool using the detected prefix from Step 
 | **TODO Management** | "未完成的 TODO", "過期的任務", "pending tasks" |
 | **Decision Tracking** | "為什麼選擇 X", "X 的決策過程", "when was X decided" |
 | **General Search** | keyword or topic search without structural intent |
+| **Recent Overview** | "最近在忙什麼", "recent overview", "dashboard" |
 
 If the query needs a parser hint (unusual log format, non-ISO dates, TODO variants), Read `references/log-formats.md` first.
 
