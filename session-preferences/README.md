@@ -1,14 +1,16 @@
 # session-preferences 使用手冊
 
-`session-preferences` 是一組手動啟用的 session 回應規則。它不會自己啟用，也不會改 global policy 或同步到其他 runtime。
+`session-preferences` 是一組 session 回應規則。Claude Code 和 Codex 開新 session、/clear、壓縮 context 時，SessionStart hook 會自動注入；它不會改 global policy，也不會自己同步到其他 runtime。
 
 ## 啟用
+
+平常不用做任何事，hook 會在 session 開始時載入規則。想在某個 session 不套用，開 session 前設 `AGENT_SESSION_PREFS=off`。
+
+hook 沒跑的 session 裡，要手動套用時：
 
 ```text
 $session-preferences
 ```
-
-看到「已啟用」後，規則從該刻套用到本 session 結束。開新 session 時需要再呼叫一次；這是對話中的指令，不是 runtime 的硬性開關。
 
 ## 新增規則
 
@@ -26,9 +28,10 @@ $session-preferences add-rule deai-voice: 避免重複同一種句尾
 `references/INDEX.md` 列出啟用時一定會讀取的 modules：
 
 - `deai-voice.md`：通用、可分享的日常去 AI 味規則、優先序與按需載入判斷。
+- `explanation-depth.md`：重要判斷、設計變更和交接內容要交代理由、影響範圍、取捨與驗證方式。
 - `socratic-dialogue.md`：brainstorming 這類一問一答時，把問題講清楚並附例子。
 
-「每則回覆附三個下一步」已獨立成另一個手動 skill：`$control-return`。它不會隨 `$session-preferences` 一起啟用。
+「每則回覆附三個下一步」是另一個 skill：`$control-return`，有自己的 SessionStart hook，同一個 `AGENT_SESSION_PREFS=off` 也會關掉它。
 
 去 AI 味規則會依情境讀取以下 reference，不會在每次啟用時全部載入：
 

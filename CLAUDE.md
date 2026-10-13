@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents working in this repository. Claude Code reads `CLAUDE.md`; Codex reads `AGENTS.md`, which is a symlink to this file.
 
 ## Repository Overview
 
@@ -84,6 +84,13 @@ Followed by markdown content containing:
 - **skill-sync** — one-way **mirror** of `~/.claude/skills/` to other agent folders (codex, gemini, cursor, antigravity, omp) via `rsync --delete` (target files not in source are removed); dry-run preview shows deletion count before `y/N` confirmation (defaults N); configurable via `.skill-sync-targets` (gitignored) and `.skill-sync-ignore` (committed, defaults include symlink protection for `spec-generator`)
 - **skill-auditor** — Audit skills for quality, security, and best practices
 - **skill-router** — Unified skill discovery and routing: smart match, category browse, workflow browse
+
+## Deployment
+
+- `~/.claude/skills` is a symlink to the `agent-skills-production` worktree (branch `production`). Changes on `main` take effect only after they are merged into `production`.
+- `~/.codex/skills` and `~/.omp/agent/skills` are rsync mirrors written by `skill-sync`. After `production` changes, run `skill-sync --dry-run`, review every write and deletion, and sync only after confirmation.
+- New or modified Codex hooks (`~/.codex/hooks.json`) run only after they are approved in Codex.
+- SessionStart hooks for `session-preferences` and `control-return` read the runtime's own installed copy, so a Codex rule change is live only after `skill-sync`.
 
 ## Creating New Skills
 
