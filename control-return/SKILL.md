@@ -1,12 +1,13 @@
 ---
 name: control-return
-description: "Use when the user explicitly invokes $control-return or /control-return to make every reply in the current session end with three next steps. Never enable automatically."
+description: "Use when the user explicitly invokes $control-return or /control-return to re-apply the three-next-steps rule mid-session. A SessionStart hook auto-applies the rule at session start; the model must not invoke this skill on its own."
 disable-model-invocation: true
 ---
 
 # Control Return
 
-Manual, session-scoped rule. It is an instruction carried by the current
+Session-scoped rule, loaded automatically by a SessionStart hook; the manual
+command re-applies it. It is an instruction carried by the current
 conversation, not a runtime setting.
 
 ## Activation
@@ -14,10 +15,18 @@ conversation, not a runtime setting.
 On `$control-return` or `/control-return`:
 
 1. Apply the rule below from this response onward until the session ends.
-   Do not apply it retroactively or in a new session.
+   Do not apply it retroactively.
 2. Reply once: `已啟用 control-return；本 session 後續回應會附三個下一步。`
 
-There is no off command. If the user asks to stop, stop.
+There is no off command inside a session; if the user asks to stop, stop.
+To start a session without the rule, set `AGENT_SESSION_PREFS=off` first.
+
+## Automatic loading
+
+`scripts/session_start_hook.py` runs as a SessionStart hook in Claude Code
+and Codex with matcher `startup|clear|compact`. It injects the `## Rule`
+block below verbatim, and the activation reply is not sent. If the block
+cannot be found, the hook warns and the rule is not active.
 
 ## Rule
 
@@ -27,6 +36,29 @@ There is no off command. If the user asks to stop, stop.
 不要為了湊數硬編選項。
 例外：向我提問確認需求，或工作還在進行中的回報，不附。
 ```
+
+## Error Handling
+
+The SessionStart hook always exits 0 so a rule problem never blocks a session.
+
+- `SKILL.md` unreadable or not valid UTF-8: nothing is injected, and a
+  `systemMessage` names the path.
+- No ```` ```text ```` block inside the `## Rule` section: nothing is injected,
+  and a `systemMessage` says so. A text block in a later section is never used.
+- Any other failure: a `systemMessage` reports it and nothing is injected.
+
+When a warning appears, the rule is inactive until `SKILL.md` is fixed or the
+manual command is used.
+
+## Security Considerations
+
+- The `## Rule` block is injected verbatim as model instructions. Keep the
+  installed skill directory writable only by the user.
+- The hook reads only this `SKILL.md`, makes no network calls, does not
+  execute file content, and ignores its stdin payload.
+- The hook validates that the rule block is non-empty, and builds output with
+  `json.dumps`, which escapes quotes, newlines, and control characters, so
+  rule content cannot break the hook JSON.
 
 ## Examples
 

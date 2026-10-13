@@ -1,6 +1,6 @@
 ---
 name: session-preferences
-description: "Use when the user explicitly invokes $session-preferences or /session-preferences to enable a modular policy bundle for the current session, or to propose and confirm a new rule. Never enable automatically."
+description: "Use when the user explicitly invokes $session-preferences or /session-preferences to re-apply the session policy bundle mid-session, or to propose and confirm a new rule. A SessionStart hook auto-applies the bundle at session start; the model must not invoke this skill on its own."
 disable-model-invocation: true
 ---
 
@@ -10,9 +10,9 @@ disable-model-invocation: true
 
 Use ASCII to visualize content when explaining concepts.
 
-Load and apply the user's active interaction rules from `references/` for the
-remainder of this session. This is a manual, session-scoped policy bundle; it
-is not a global runtime setting.
+Apply the user's active interaction rules from `references/` for the rest of
+the session. A SessionStart hook loads them automatically; the manual command
+re-applies them. This is session-scoped, not a global runtime setting.
 
 ## Activation
 
@@ -22,14 +22,26 @@ On `$session-preferences` or `/session-preferences`:
 2. Apply those modules from this response onward until the session ends.
 3. Reply once: `已啟用 session-preferences；本 session 後續回應會套用目前規則。`
 
-Do not apply rules retroactively or in a new session. The policy is an
-instruction carried by the current conversation, not a hard runtime state.
+New sessions already get these modules from the SessionStart hook (see
+Automatic loading). Use the manual command when the hook did not run, for
+example when `AGENT_SESSION_PREFS=off` was set, and the user wants the policy
+for the rest of this session. Do not apply rules retroactively.
 
 An active module may direct conditional reading of a reference intentionally
 absent from `INDEX.md`. Read that reference before producing the matching
 content. If it cannot be read, name the missing path and do not claim that its
 rules were applied. `INDEX.md` remains the complete list of always-loaded
 modules.
+
+## Automatic loading
+
+`scripts/session_start_hook.py` runs as a SessionStart hook in Claude Code
+(`~/.claude/settings.json`) and Codex (`~/.codex/hooks.json`) with matcher
+`startup|clear|compact`. It injects `INDEX.md` modules verbatim, plus the
+absolute paths of deferred references. In hook mode the activation reply is
+not sent. Setting `AGENT_SESSION_PREFS=off` before starting a session skips
+injection. If a file is unreadable, the hook names the path in a warning and
+the missing rules must not be claimed as applied.
 
 ## Maintain Rules
 
@@ -73,6 +85,35 @@ skill.
 
 If `INDEX.md` or a listed module cannot be read, report the missing path and
 do not claim the policy is enabled.
+
+## Error Handling
+
+The SessionStart hook always exits 0 so a rule problem never blocks a session.
+
+- `INDEX.md` unreadable or listing no modules: nothing is injected, and a
+  `systemMessage` names the path.
+- A listed module unreadable, not valid UTF-8, or with an invalid filename
+  in `INDEX.md`: the other modules are injected, the context lists the
+  missing path as not loaded, and a `systemMessage` repeats it.
+- Any other failure: a `systemMessage` reports it and nothing is injected.
+
+When a warning appears, treat the named rules as inactive until the file is
+fixed or the manual command succeeds.
+
+## Security Considerations
+
+- Module text is injected verbatim as model instructions. Anyone who can write
+  to `references/` controls those instructions, so keep the installed skill
+  directory writable only by the user.
+- The hook validates each `INDEX.md` File cell (backticks allowed) against
+  `[\w.-]+\.md`. A cell with a path separator or other invalid character is
+  not loaded and is reported like a missing module, so an entry cannot point
+  outside `references/` and cannot disappear silently.
+- Output is built with `json.dumps`, which escapes quotes, newlines, and
+  control characters in rule text, so rule content cannot break the hook JSON.
+- The hook reads only files inside this skill directory, makes no network
+  calls, does not execute file content, and ignores its stdin payload.
+- Rules must not contain secrets; they are sent to the model every session.
 
 ## Examples
 
