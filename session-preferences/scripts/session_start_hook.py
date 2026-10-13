@@ -27,8 +27,8 @@ HEADER = (
     "those take precedence."
 )
 
-# The File column of an INDEX.md table row, e.g. "| deai-voice | deai-voice.md | ... |".
-INDEX_ROW = re.compile(r"^\|\s*[^|]+?\s*\|\s*([\w.-]+\.md)\s*\|")
+# A bare filename inside references/; path separators are rejected.
+MODULE_NAME = re.compile(r"[\w.-]+\.md")
 
 
 def emit(context: str | None, warning: str | None) -> None:
@@ -44,21 +44,36 @@ def emit(context: str | None, warning: str | None) -> None:
         print(json.dumps(payload, ensure_ascii=False))
 
 
-def listed_modules(index_text: str) -> list[str]:
-    return [m.group(1) for line in index_text.splitlines() if (m := INDEX_ROW.match(line))]
+def listed_modules(index_text: str) -> tuple[list[str], list[str]]:
+    """Return (valid names, invalid File cells) from the INDEX.md table.
+
+    Invalid cells are returned instead of dropped so the caller can warn; a
+    silently skipped row would load in manual mode but not in hook mode.
+    """
+    names: list[str] = []
+    invalid: list[str] = []
+    for line in index_text.splitlines():
+        cells = line.strip().strip("|").split("|")
+        if not line.lstrip().startswith("|") or len(cells) < 2:
+            continue
+        cell = cells[1].strip().strip("`").strip()
+        if cell == "File" or set(cell) <= set("-: "):
+            continue  # header or separator row
+        (names if MODULE_NAME.fullmatch(cell) else invalid).append(cell)
+    return names, invalid
 
 
 def build() -> tuple[str | None, str | None]:
     index = REFERENCES / "INDEX.md"
     try:
-        names = listed_modules(index.read_text(encoding="utf-8"))
+        names, invalid = listed_modules(index.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None, f"session-preferences: cannot read {index}; rules were not loaded."
-    if not names:
+    if not names and not invalid:
         return None, f"session-preferences: {index} lists no modules; rules were not loaded."
 
     sections: list[str] = []
-    missing: list[str] = []
+    missing: list[str] = [f"{entry} (invalid INDEX.md entry)" for entry in invalid]
     for name in names:
         path = REFERENCES / name
         try:

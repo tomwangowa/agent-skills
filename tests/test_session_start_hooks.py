@@ -117,6 +117,26 @@ class SessionPreferencesHookTest(HookFixture):
         self.assertIn(missing, context)
         self.assertIn(missing, output["systemMessage"])
 
+    def test_backticked_file_cell_is_accepted(self) -> None:
+        self.write_reference("INDEX.md", INDEX_MD.replace("| alpha.md |", "| `alpha.md` |"))
+        self.write_reference("alpha.md", "ALPHA RULE\n")
+        self.write_reference("beta.md", "BETA RULE\n")
+        output = self.run_json()
+        context = output["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("ALPHA RULE", context)
+        self.assertIn("BETA RULE", context)
+        self.assertNotIn("systemMessage", output)
+
+    def test_malformed_file_cell_is_warned_not_silently_dropped(self) -> None:
+        self.write_reference("INDEX.md", INDEX_MD + "| escape | ../escape.md | Outside references. |\n")
+        self.write_reference("alpha.md", "ALPHA RULE\n")
+        self.write_reference("beta.md", "BETA RULE\n")
+        output = self.run_json()
+        context = output["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("BETA RULE", context)
+        self.assertIn("../escape.md", context)
+        self.assertIn("../escape.md", output["systemMessage"])
+
     def test_undecodable_module_is_reported_like_a_missing_one(self) -> None:
         self.write_reference("INDEX.md", INDEX_MD)
         self.write_reference("alpha.md", "ALPHA RULE\n")
