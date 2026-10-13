@@ -3,7 +3,7 @@
 ## Language & Communication
 - Answer in Traditional Chinese unless otherwise specified
 - Code comments and program output in English unless otherwise specified
-- 根據 /Users/tom_wang/.claude/output-styles/deai-tom.md 裡的「去 AI 味規則」，讓這個 session 的輸出符合我(Tom)的語言風格。
+- 根據 ~/.claude/output-styles/deai-tom.md 裡的「去 AI 味規則」，讓這個 session 的輸出符合我(Tom)的語言風格。
 
 ## Behavior
 - Critically examine my inputs; point out problems and unreasonable requests immediately
@@ -35,6 +35,6 @@
 - **Session 結束前**: 當使用者表示要結束工作（「結束」「收工」「done」「先這樣」「今天到這」），MUST invoke `activity-logger` 記錄本次 session 的工作脈絡，再讓使用者離開。提醒使用者：「記得用 /activity-logger 記錄再走」
 
 ## Lessons
-- 開工第一個動作：執行 `python3 /Users/tom_wang/.claude/skills/lesson/scripts/lesson.py digest`，並在第一則回覆開頭原樣帶出輸出的第一行。輸出的規則本 session 都要遵守。
+- 開工第一個動作：執行 `python3 ~/.claude/skills/lesson/scripts/lesson.py digest`，並在第一則回覆開頭原樣帶出輸出的第一行。輸出的規則本 session 都要遵守。
 - 遇到「踩坑修好」「假設被推翻」「被使用者糾正」時，在自然停頓點提議記錄，一次最多兩條，使用者確認才寫（流程見 /lesson）。
-- 沒有 /lesson 可用時，把 JSON（rule、scope、project、why、background、slug）用標準輸入傳給 `python3 /Users/tom_wang/.claude/skills/lesson/scripts/lesson.py add --json -` 寫入；rule 限一行、不超過 120 字。
+- 沒有 /lesson 可用時，把 JSON（rule、scope、project、why、background、slug）用標準輸入傳給 `python3 ~/.claude/skills/lesson/scripts/lesson.py add --json -` 寫入；rule 限一行、不超過 120 字。
