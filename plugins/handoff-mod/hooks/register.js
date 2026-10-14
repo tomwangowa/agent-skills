@@ -5,6 +5,7 @@ import {parseHandoff} from './handoff-file.js';
 import {rankHandoffs} from './rank.js';
 import {freshnessFacts} from './freshness.js';
 import {tryClaim, claimView} from './claim.js';
+import {mergeCopies, stateKeys, claimKeys, newestState} from './identity.js';
 import {ensureExcluded} from './exclude.js';
 import {cleanForNote} from './sanitize.js';
 import {shouldWriteNote, buildEndNote, withDeadline} from './note.js';
@@ -128,7 +129,9 @@ async function readHandoffs($, dirs) {
         const path = `${dir}/${name}`;
         try {
           const parsed = parseHandoff(await $.fs.read(path));
-          if (parsed.ok) found.push({path, meta: parsed.meta, fields: parsed.fields});
+          if (parsed.ok) found.push({path, meta: parsed.meta, fields: parsed.fields, closed: false});
+          // D20: a closed copy is kept so that it can close its copies in other working trees; it is never listed.
+          else if (parsed.reason === 'status' && parsed.meta) found.push({path, meta: parsed.meta, fields: parsed.fields, closed: true});
         } catch { /* An unreadable file is skipped. */ }
       }
     } catch { /* An unreadable directory counts as no handoffs. */ }
@@ -157,7 +160,14 @@ async function storeGet($, key) {
   }
 }
 
-/** Collect, rank and describe the unfinished handoffs for this working tree and its repository. */
+/** Read `keys` one by one; a failed read is undefined. */
+async function storeGetAll($, keys) {
+  const values = [];
+  for (const key of keys) values.push(await storeGet($, key));
+  return values;
+}
+
+/** Collect, merge (D20), rank and describe the unfinished handoffs for this working tree and its repository. */
 async function buildList($) {
   const lang = config.lang;
   const sessionId = await $.session.id();
@@ -166,12 +176,14 @@ async function buildList($) {
   const repo = await repoRoot($);
   const found = await readHandoffs($, await candidateDirs($, base, repo));
   const items = [];
-  for (const f of found) {
-    const override = await storeGet($, `state:${f.path}`);
+  for (const group of mergeCopies(found, {base, repo, dir: DIR})) {
+    // D21: the new key first, then each copy's old path key, so that records written by 0.1.x still count.
+    const record = newestState(await storeGetAll($, stateKeys(group)));
+    const claims = await storeGetAll($, claimKeys(group));
     items.push({
-      path: f.path, meta: f.meta, fields: f.fields,
-      effectiveStatus: override && typeof override.status === 'string' ? override.status : f.meta.status,
-      claimedByOther: claimView(await storeGet($, `claim:${f.path}`), sessionId, now).state === 'other',
+      ...group,
+      effectiveStatus: record ? record.status : group.fileClosed ? 'closed' : group.meta.status,
+      claimedByOther: claims.some((claim) => claimView(claim, sessionId, now).state === 'other'),
     });
   }
   const ranked = rankHandoffs(items, {base, repo, now});
@@ -180,7 +192,10 @@ async function buildList($) {
   for (const item of picked) {
     const facts = await freshnessFacts({meta: item.meta, git: (args) => git($, args)});
     views.push({
-      id: item.path,
+      id: item.key,
+      path: item.path,
+      stateKeys: stateKeys(item),
+      claimKeys: claimKeys(item),
       title: t(lang, 'list.item', {n: views.length + 1, task: item.fields.task || item.path.split('/').pop(), branch: item.meta.branch ?? '-', age: age(lang, now - item.meta.created)}),
       next: item.fields.next ? t(lang, 'list.next', {next: item.fields.next}) : '',
       facts: facts.map((fact) => factText(lang, fact)),
@@ -362,19 +377,28 @@ async function writeEndNote($, e, next) {
   }
 }
 
+/** D22: write the new key and every copy's old path key. The new key decides success; an old key that fails is only traced. */
+async function writeState($, item, record) {
+  const [first, ...old] = item.stateKeys;
+  await $.store.set(first, record);
+  for (const key of old) {
+    try { await $.store.set(key, record); } catch (error) { trace($, `old state key not written: ${key}: ${String(error?.message ?? error)}`); }
+  }
+}
+
 /** Resume one handoff: claim it, remember that, and put a prompt in the input box for the user to send. */
 async function resume($, item) {
   const lang = config.lang;
   const now = await $.clock.now();
   const sessionId = await $.session.id();
-  const claim = await tryClaim({id: item.id, sessionId, now, store: {get: (key) => $.store.get(key), set: (key, value) => $.store.set(key, value)}});
+  const claim = await tryClaim({keys: item.claimKeys, sessionId, now, store: {get: (key) => $.store.get(key), set: (key, value) => $.store.set(key, value)}});
   if (!claim.won) {
     $.ui.toast(t(lang, 'resume.claimedElsewhere'));
     return;
   }
-  try { await $.store.set(`state:${item.id}`, {status: 'resumed', at: now, sessionId}); } catch { /* Resuming still works without the record. */ }
+  try { await writeState($, item, {status: 'resumed', at: now, sessionId}); } catch { /* Resuming still works without the record. */ }
   await bumpStat($, 'resumed');
-  await $.prompt.fill({text: t(lang, 'resume.prompt', {path: item.id})});
+  await $.prompt.fill({text: t(lang, 'resume.prompt', {path: item.path})});
   await update($, listDone, () => true);
   await clearList($);
 }
@@ -382,7 +406,7 @@ async function resume($, item) {
 /** D17: mark a handoff abandoned on this machine. Only the store record changes; the file is never touched (invariant 6). */
 async function abandon($, item, now, sessionId) {
   try {
-    await $.store.set(`state:${item.id}`, {status: 'abandoned', at: now, sessionId});
+    await writeState($, item, {status: 'abandoned', at: now, sessionId});
     return true;
   } catch {
     return false;

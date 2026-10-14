@@ -10,16 +10,19 @@ export function claimView(entry, sessionId, now) {
 }
 
 /**
- * Claim a handoff for this session. A get followed by a set is not atomic, so the claim is read back and the winner is whoever is there.
- * If the store fails, resuming is still allowed: `degraded` says the duplicate guard is off.
+ * Claim a handoff for this session under every key in `keys` (the new key first, then each copy's old path key, D22).
+ * A live claim by another session under any key wins. A get followed by a set is not atomic, so the first key is read
+ * back and the winner is whoever is there. If the store fails, resuming is still allowed: `degraded` says the duplicate
+ * guard is off.
  */
-export async function tryClaim({id, sessionId, now, store}) {
-  const key = `claim:${id}`;
+export async function tryClaim({keys, sessionId, now, store}) {
   try {
-    const view = claimView(await store.get(key), sessionId, now);
-    if (view.state === 'other') return {won: false, holder: view.holder};
-    await store.set(key, {sessionId, at: now});
-    const back = await store.get(key);
+    for (const key of keys) {
+      const view = claimView(await store.get(key), sessionId, now);
+      if (view.state === 'other') return {won: false, holder: view.holder};
+    }
+    for (const key of keys) await store.set(key, {sessionId, at: now});
+    const back = await store.get(keys[0]);
     return valid(back) && back.sessionId === sessionId ? {won: true} : {won: false, holder: valid(back) ? back.sessionId : undefined};
   } catch {
     return {won: true, degraded: true};

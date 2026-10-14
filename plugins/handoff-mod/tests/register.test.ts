@@ -855,3 +855,53 @@ test('a record left behind by a crash is swept after a week, a recent one is kep
   expect(w.store.get('last:new')).toBeDefined();
   expect(w.store.get('stats')).toBeDefined();
 });
+
+// --- 0.2.0: one handoff, many copies (D20 to D22) -------------------------------------------------------------------
+const WT_DIR = '/work/wt/.claude/handoffs';
+const wtCopyA = `${WT_DIR}/feat-login-timeout--20261006-183000.md`;
+const KEY_A = 'feat-login-timeout--20261006-183000.md|2026-10-06T10:30:00.000Z';
+const TWO_TREES = {'worktree list --porcelain': [0, 'worktree /work/app\nHEAD 781ac6b\nbranch refs/heads/feat/login-timeout\n\nworktree /work/wt\nHEAD 781ac6b\nbranch refs/heads/feat/wt\n\n'] as [number, string]};
+const bothCopies = {[fileA]: handoffText(), [wtCopyA]: handoffText()};
+
+test('copies of one handoff in two working trees are listed once, from this working tree (D20)', async ($, on) => {
+  const w = world(on, {git: TWO_TREES, files: bothCopies});
+  await startSession($);
+  await w.flush();
+  expect(w.lastStatus()).toBe('有 1 筆未完成交接，輸入 /handoff-resume 查看');
+  await (await mountBand($)).press({key: 'resume-0'});
+  expect(w.rec.fills[0]).toContain(fileA);
+  expect(w.rec.fills[0]).not.toContain(wtCopyA);
+});
+test('a copy whose own file says resumed closes the other copies (D20)', async ($, on) => {
+  const w = world(on, {git: TWO_TREES, files: {[fileA]: handoffText(), [wtCopyA]: handoffText({status: 'resumed'})}});
+  await startSession($);
+  await w.flush();
+  expect(w.rec.statuses.filter((s) => s !== undefined).length).toBe(0);
+});
+test("a 0.1.x record under one copy's path still hides the handoff (D21)", async ($, on) => {
+  const w = world(on, {git: TWO_TREES, files: bothCopies, store: {[`state:${wtCopyA}`]: {status: 'abandoned', at: NOW - 1000, sessionId: 'old'}}});
+  await startSession($);
+  await w.flush();
+  expect(w.rec.statuses.filter((s) => s !== undefined).length).toBe(0);
+});
+test('drop writes the new key and the old key of every copy (D22)', async ($, on) => {
+  const w = world(on, {git: TWO_TREES, files: bothCopies});
+  await $.command.run({command: 'handoff-resume', args: 'drop 1'});
+  for (const key of [`state:id:${KEY_A}`, `state:${fileA}`, `state:${wtCopyA}`]) expect(w.store.get(key)).toMatchObject({status: 'abandoned', sessionId: 'sess-A'});
+});
+test('resuming claims and records under the new key and every old key (D22)', async ($, on) => {
+  const w = world(on, {git: TWO_TREES, files: bothCopies});
+  await startSession($);
+  await w.flush();
+  await (await mountBand($)).press({key: 'resume-0'});
+  for (const key of [`claim:id:${KEY_A}`, `claim:${fileA}`, `claim:${wtCopyA}`]) expect(w.store.get(key)).toMatchObject({sessionId: 'sess-A'});
+  for (const key of [`state:id:${KEY_A}`, `state:${fileA}`, `state:${wtCopyA}`]) expect(w.store.get(key)).toMatchObject({status: 'resumed'});
+});
+test("a 0.1.x claim on one copy blocks resuming the handoff (D22)", async ($, on) => {
+  const w = world(on, {git: TWO_TREES, files: bothCopies, store: {[`claim:${wtCopyA}`]: {sessionId: 'sess-B', at: NOW - 1000}}});
+  await startSession($);
+  await w.flush();
+  const band = await mountBand($);
+  expect(await band.find({key: 'resume-0'})).toBeUndefined();
+  expect(await band.find({type: 'Text', text: '另一個 session 正在接續'})).toBeDefined();
+});
