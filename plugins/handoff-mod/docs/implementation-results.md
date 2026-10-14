@@ -238,4 +238,6 @@ Task 14 的其餘驗收、Task 15（文件與 marketplace）。L1 已通過；`s
 | `claude plugin validate --strict .` | ✔ Validation passed |
 | 變異檢查 | 10 項全部有測試變紅：1 `handoffKey` 加亂數 → 13；2 只查新 key → 2；3 不寫舊 key → 8；4 `tryClaim` 只查第一個 key → 2（claim 單元測試與「畫完清單後輸掉 claim」；計畫原本寫的「0.1.x claim 擋下接續」不會紅，因為清單的 `claimedByOther` 已先把按鈕藏起來，走不到 `tryClaim`）；5 T1 改回不問 → 11；6 每次都重建快照 → 2；7 比對逾時改成不寫 → 1；8 刪除也當成讀不到 → 3；9 不跳過 rename 的舊路徑 → 1；10 不收已處理的副本 → 1。還原後 222 pass |
 | 實作前 PoC | 見 [poc-results.md](poc-results.md) 的「0.2.0 實作前 PoC」 |
-| 實機 | 見下方（Task 14） |
+| 實機（作者 macOS，`--plugin-dir`，期間停用已安裝的 0.1.6） | 5 項全部通過：1 只問問題、`GEMINI.md` 仍是 untracked → 沒有留下筆記；2 請 Claude 建立 `scratch-handoff-test.txt` → 留下 `--auto.md`，「有改動的檔案」列出 `GEMINI.md` 與 `scratch-handoff-test.txt`；3 同一份筆記複製到 `agent-skills-production` → 清單 5 筆（4 + 1），沒有變成 6 筆；4 在乾淨的 `agent-skills-production` 用 `HANDOFF_THRESHOLD_PCT=1` → 回合結束出現提示與三個按鈕；5 `drop` 後 inline store 同時有 `state:id:<檔名>\|<ISO>` 與兩個副本路徑的 `state:` key。測試筆記事後刪除 |
+
+`--plugin-dir` 用的是 inline store，讀不到已安裝版本記錄的接續與放棄，所以實機時啟動清單會多列出在已安裝版本裡已處理的交接（這次多 2 筆）。這是兩個 store 不共用，不是 0.2.0 的行為。
