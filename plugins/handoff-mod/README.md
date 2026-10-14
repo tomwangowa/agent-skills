@@ -4,7 +4,7 @@
 
 Claude Code Mod。在 session 即將失去狀態之前（context 快滿、`/clear`、結束）協助你留下一份交接檔；下次在同一個專案開新 session 時，列出還沒做完的交接，讓你一鍵接續。零模型成本：Mod 本身不呼叫模型，只有你自己執行交接 skill 時才花一個回合。
 
-> **狀態：原型。** marketplace 條目已加入，但 marketplace 讀的是預設分支，**這個 PR 合併後才會生效**；`claude plugin install` 的流程我沒有實際跑過。 在作者的 macOS（Claude Code 2.1.292）和 Cloud container（Linux）驗證過，見最下方「驗證狀態」。其他環境、終端機與預設的 60% 門檻實際用起來的感覺，還沒有人驗證。
+> **狀態：原型。** 可以從 marketplace 安裝。`claude plugin update` 的更新流程實際跑過（0.1.6 → 0.2.0）；第一次用 `claude plugin install` 安裝的流程我還沒實際跑過。在作者的 macOS（Claude Code 2.1.292）和 Cloud container（Linux）驗證過，見最下方「驗證狀態」。其他環境、終端機與預設的 60% 門檻實際用起來的感覺，還沒有人驗證。
 
 ## 它做什麼
 
@@ -23,14 +23,23 @@ Claude Code Mod。在 session 即將失去狀態之前（context 快滿、`/clea
 
 作者測的是 Claude Code 2.1.291 與 2.1.292，**最低可用版本沒有驗證**。
 
-**合併後**可從 marketplace 安裝（**這條流程沒有驗證過**）：
+從 marketplace 安裝（**第一次安裝的流程沒有驗證過**）：
 
 ```sh
 claude plugin marketplace add tomwangowa/agent-skills
 claude plugin install handoff-mod@tomwangowa --scope user
 ```
 
-**合併前**，或只想試用，用本機載入：
+已經裝過、要更新到新版（這條流程驗證過）：
+
+```sh
+claude plugin marketplace update tomwangowa
+claude plugin update handoff-mod@tomwangowa
+```
+
+更新完要重新開一個 session 才會生效。
+
+只想試用，用本機載入：
 
 ```sh
 git clone https://github.com/tomwangowa/agent-skills.git
@@ -84,7 +93,8 @@ claude plugin test .
 | `/handoff-stats` 的寫入計數、新 session 啟動清單對自動筆記的標示 | **作者的 macOS 驗證過。** |
 | `/clear` 對話框「打字後再按 Enter」 | macOS 只確認 Enter 選到預設的取消；是否有先打字沒有記錄。 |
 | `/handoff-resume <編號>` 與接續計數 | **作者的 macOS 驗證過一次**（`/handoff-resume 2` 填入輸入框，接續次數 2 變 3，與 store 紀錄一致）。第一次試（第 1 筆）沒有任何效果也沒有留下紀錄，**原因不明、無法重現**。 |
-| 預設 60% 門檻、Warp 以外的終端機、Windows、非 git 目錄、真實 worktree | **沒有驗證**。 |
+| 真實 worktree：同一份交接在兩個 worktree 只列一筆，`drop` 寫入兩個副本的狀態 | **作者的 macOS 驗證過**（0.2.0）。 |
+| 預設 60% 門檻、Warp 以外的終端機、Windows、非 git 目錄 | **沒有驗證**。 |
 | 交接內容的準確度與成本 | **沒有量測。** |
 
 測試結果、限制與每項決定的依據在 [docs/implementation-results.md](docs/implementation-results.md)、[docs/poc-results.md](docs/poc-results.md)、[設計](docs/superpowers/specs/2026-10-06-handoff-mod-design.md)、[實作計畫](docs/superpowers/plans/2026-10-07-handoff-mod.md)。
