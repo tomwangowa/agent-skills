@@ -91,6 +91,7 @@ Followed by markdown content containing:
 - `~/.codex/skills` and `~/.omp/agent/skills` are rsync mirrors written by `skill-sync`. After `production` changes, run `skill-sync --dry-run`, review every write and deletion, and sync only after confirmation.
 - New or modified Codex hooks (`~/.codex/hooks.json`) run only after they are approved in Codex.
 - SessionStart hooks for `session-preferences` and `control-return` read the runtime's own installed copy, so a Codex rule change is live only after `skill-sync`.
+- A plugin under `plugins/<name>/` is installed through the `tomwangowa` marketplace, which reads `main`; it does not go through `production`. After a merge, users update with `claude plugin marketplace update tomwangowa` and `claude plugin update <name>@tomwangowa`, then start a new session.
 - A plugin release under `plugins/<name>/` is tagged `<name>-v<version>` (for example `handoff-mod-v0.2.0`), because one repository holds several skills and plugins with separate version numbers.
 
 ## Creating New Skills

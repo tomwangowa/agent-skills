@@ -93,7 +93,8 @@ claude plugin test .
 | `/handoff-stats` 的寫入計數、新 session 啟動清單對自動筆記的標示 | **作者的 macOS 驗證過。** |
 | `/clear` 對話框「打字後再按 Enter」 | macOS 只確認 Enter 選到預設的取消；是否有先打字沒有記錄。 |
 | `/handoff-resume <編號>` 與接續計數 | **作者的 macOS 驗證過一次**（`/handoff-resume 2` 填入輸入框，接續次數 2 變 3，與 store 紀錄一致）。第一次試（第 1 筆）沒有任何效果也沒有留下紀錄，**原因不明、無法重現**。 |
-| 預設 60% 門檻、Warp 以外的終端機、Windows、非 git 目錄、真實 worktree | **沒有驗證**。 |
+| 真實 worktree：同一份交接在兩個 worktree 只列一筆，`drop` 寫入兩個副本的狀態 | **作者的 macOS 驗證過**（0.2.0）。 |
+| 預設 60% 門檻、Warp 以外的終端機、Windows、非 git 目錄 | **沒有驗證**。 |
 | 交接內容的準確度與成本 | **沒有量測。** |
 
 測試結果、限制與每項決定的依據在 [docs/implementation-results.md](docs/implementation-results.md)、[docs/poc-results.md](docs/poc-results.md)、[設計](docs/superpowers/specs/2026-10-06-handoff-mod-design.md)、[實作計畫](docs/superpowers/plans/2026-10-07-handoff-mod.md)。

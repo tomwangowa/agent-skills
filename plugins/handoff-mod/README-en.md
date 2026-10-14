@@ -93,7 +93,8 @@ claude plugin test .
 | The `/handoff-stats` write count, and the start-up list's label on an automatic note | **Verified on the author's macOS.** |
 | Typing then Enter in the `/clear` dialog | On macOS only that Enter picks the default "cancel" is confirmed; whether text was typed first was not recorded. |
 | `/handoff-resume <n>` and the resumed count | **Verified once on the author's macOS** (`/handoff-resume 2` filled the input box, the resumed count went 2 to 3, matching the store records). A first try (item 1) had no effect and left no trace; **the cause is unknown and it could not be reproduced**. |
-| The default 60% threshold, terminals other than Warp, Windows, directories outside git, real worktrees | **Not verified.** |
+| Real worktrees: one handoff in two worktrees is listed once, and `drop` records the state of both copies | **Verified on the author's macOS** (0.2.0). |
+| The default 60% threshold, terminals other than Warp, Windows, directories outside git | **Not verified.** |
 | Accuracy of the handoff content, and cost | **Not measured.** |
 
 Test results, limits and the reason behind each decision are in [docs/implementation-results.md](docs/implementation-results.md), [docs/poc-results.md](docs/poc-results.md), the [design](docs/superpowers/specs/2026-10-06-handoff-mod-design.md) and the [implementation plan](docs/superpowers/plans/2026-10-07-handoff-mod.md).
