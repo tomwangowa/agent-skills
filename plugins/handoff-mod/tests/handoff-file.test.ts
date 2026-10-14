@@ -72,3 +72,20 @@ test('values from the file are returned as plain strings and never evaluated', (
   const r: any = parseHandoff(handoffText({omit: ['branch'], extra: 'branch: --upload-pack=touch /tmp/pwned'}));
   expect(r.meta.branch).toBe('--upload-pack=touch /tmp/pwned');
 });
+test('a closed file is not ok, but carries its meta so that it can close its copies (D20)', () => {
+  const r: any = parseHandoff(handoffText({status: 'resumed'}));
+  expect(r.ok).toBe(false);
+  expect(r.reason).toBe('status');
+  expect(r.meta.status).toBe('resumed');
+  expect(r.meta.created).toBe(Date.parse('2026-10-06T18:30:00+08:00'));
+  expect(r.fields.task).toBe('修正登入逾時');
+});
+test('a missing status, or a closed file with a bad created, carries no meta', () => {
+  const missing: any = parseHandoff(handoffText({omit: ['status']}));
+  expect(missing).toMatchObject({ok: false, reason: 'status'});
+  expect(missing.meta).toBeUndefined();
+  const badCreated: any = parseHandoff(handoffText({status: 'resumed', created: 'yesterday'}));
+  expect(badCreated).toMatchObject({ok: false, reason: 'status'});
+  expect(badCreated.meta).toBeUndefined();
+  expect((parseHandoff(handoffText({created: 'yesterday'})) as any).reason).toBe('created');
+});
