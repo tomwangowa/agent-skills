@@ -229,3 +229,13 @@ V-3 的可能原因（都沒驗證）：認領輸掉而 toast（只停 4 秒）�
 ## 尚未做
 
 Task 14 的其餘驗收、Task 15（文件與 marketplace）。L1 已通過；`stats.written`、排除功能在無全域 gitignore 時的行為、P4 沒有確認。
+
+## 0.2.0（D20 至 D24，2026-10-14）
+
+| 項目 | 結果 |
+| --- | --- |
+| `claude plugin test .` | 222 pass、0 fail；開工前 baseline 183 pass |
+| `claude plugin validate --strict .` | ✔ Validation passed |
+| 變異檢查 | 10 項全部有測試變紅：1 `handoffKey` 加亂數 → 13；2 只查新 key → 2；3 不寫舊 key → 8；4 `tryClaim` 只查第一個 key → 2（claim 單元測試與「畫完清單後輸掉 claim」；計畫原本寫的「0.1.x claim 擋下接續」不會紅，因為清單的 `claimedByOther` 已先把按鈕藏起來，走不到 `tryClaim`）；5 T1 改回不問 → 11；6 每次都重建快照 → 2；7 比對逾時改成不寫 → 1；8 刪除也當成讀不到 → 3；9 不跳過 rename 的舊路徑 → 1；10 不收已處理的副本 → 1。還原後 222 pass |
+| 實作前 PoC | 見 [poc-results.md](poc-results.md) 的「0.2.0 實作前 PoC」 |
+| 實機 | 見下方（Task 14） |
