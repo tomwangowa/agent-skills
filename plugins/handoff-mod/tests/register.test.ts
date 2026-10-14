@@ -586,25 +586,26 @@ test('at the threshold with unfinished work, a status line and a band with three
   expect(await band.find({type: 'Text', text: QUESTION(60)})).toBeDefined();
   for (const key of t1Keys) expect(await band.find({key})).toBeDefined();
 });
-test('nothing is asked below the threshold, without a percentage, on a clean tree, or outside git', async ($, on) => {
+test('nothing is asked below the threshold or without a percentage', async ($, on) => {
   const below = world(on, {git: DIRTY});
   await startSession($);
   await turnAt($, below, 59);
   await turnAt($, below, undefined);
   expect(below.lastStatus()).toBe(undefined);
 });
-test('a clean working tree is not unfinished work', async ($, on) => {
+test('a clean working tree is asked too, and git status is not run for it (D24)', async ($, on) => {
   const w = world(on, {git: {'status --porcelain': [0, '']}});
   await startSession($);
   await turnAt($, w, 80);
-  expect(w.lastStatus()).toBe(undefined);
-  expect(await (await mountBand($)).find({key: 't1-agree'})).toBeUndefined();
+  expect(w.lastStatus()).toBe(STATUS(80));
+  expect(await (await mountBand($)).find({key: 't1-agree'})).toBeDefined();
+  expect(w.rec.git.some((call) => call.startsWith('status'))).toBe(false);
 });
-test('outside a git tree nothing is asked', async ($, on) => {
-  const w = world(on, {git: {'status --porcelain': [128, '']}});
+test('outside a git tree it is asked too (D24)', async ($, on) => {
+  const w = world(on, {git: {'rev-parse --show-toplevel': [128, ''], 'worktree list --porcelain': [128, '']}, repo: null});
   await startSession($);
   await turnAt($, w, 80);
-  expect(w.lastStatus()).toBe(undefined);
+  expect(w.lastStatus()).toBe(STATUS(80));
 });
 test('a threshold is asked once: later turns neither stack nor reopen it', async ($, on) => {
   const w = world(on, {git: DIRTY});

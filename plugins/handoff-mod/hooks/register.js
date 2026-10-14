@@ -234,8 +234,8 @@ const readT1 = async ($) => ({
 });
 
 /**
- * T1: after a turn, ask once per threshold when the context is filling up and there is unfinished work (D1, design
- * component 2). "Unfinished" is a dirty working tree; every unknown (no percentage, not a git tree) means do not ask.
+ * T1: after a turn, ask once per threshold when the context is filling up (D1, design component 2). Since D24 the working
+ * tree is not looked at: a clean tree and a folder outside git are asked too. No percentage still means do not ask.
  */
 async function checkThreshold($) {
   const percent = (await $.session.usage())?.context?.percent;
@@ -248,13 +248,12 @@ async function checkThreshold($) {
     if ((await read($, t1Percent)) > 0) await closeT1($);
   }
   if (typeof percent !== 'number' || percent < effectiveThreshold(seen, config)) return;
-  const dirty = await git($, ['status', '--porcelain']);
   const decision = decideTrigger({
     percent, config, state: seen, idle: true,
-    hasUnfinishedSign: hasUnfinishedSign({gitDirty: dirty.exitCode === 0 && dirty.stdout.trim() !== ''}),
+    hasUnfinishedSign: true,
     handoffRunning: (await read($, handoffStartedAt)) > 0,
   });
-  trace($, `threshold: percent=${percent} at=${decision.at} dirty=${dirty.exitCode === 0 && dirty.stdout.trim() !== ''} -> ${decision.action}`);
+  trace($, `threshold: percent=${percent} at=${decision.at} -> ${decision.action}`);
   if (decision.action !== 'ask') return;
   await update($, askedAt, () => decision.at);
   await update($, t1Percent, () => Math.max(1, percent));
