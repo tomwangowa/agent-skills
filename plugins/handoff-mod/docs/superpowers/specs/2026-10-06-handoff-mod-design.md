@@ -1,7 +1,7 @@
 # Handoff Mod 設計
 
 日期：2026-10-06  
-狀態：**草案。** 待決項目 D1 至 D14 已於 2026-10-07 全部決定（D15、D16 於 2026-10-08 增補，見 [啟動清單展開與自動筆記折疊](2026-10-08-handoff-list-expand-design.md)；D17、D18 見 [放棄交接與「本 session 忽略」](2026-10-08-handoff-drop-design.md)；D19 補清單標頭的 drop 提示），整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）；同日 Cloud 補驗後再修訂（Tom 選 A，見文末「補驗後的修訂」），其中 3 項建議已由 Tom 全部採用，記為 D12 至 D14。  
+狀態：**草案。** 待決項目 D1 至 D14 已於 2026-10-07 全部決定（D15、D16 於 2026-10-08 增補，見 [啟動清單展開與自動筆記折疊](2026-10-08-handoff-list-expand-design.md)；D17、D18 見 [放棄交接與「本 session 忽略」](2026-10-08-handoff-drop-design.md)；D19 補清單標頭的 drop 提示；D20 至 D24 見 [交接的識別與「本 session 有變化」](2026-10-14-handoff-identity-and-session-change-design.md)），整份設計仍待 Tom 最後確認；標「未驗證」的行為 PoC 沒測到。2026-10-07 最後確認前的核對補了 6 點（Tom 選 A，彙整見文末「最後確認前的補充」）；同日 Cloud 補驗後再修訂（Tom 選 A，見文末「補驗後的修訂」），其中 3 項建議已由 Tom 全部採用，記為 D12 至 D14。  
 plugin 暫名 `handoff-mod`，面板與提示的繁體中文文案暫定「接著做」。  
 證據：[micro-PoC 結果](../../poc-results.md)（Cloud 與 Tom 本機實測：macOS、Warp、Claude Code 2.1.291 至 2.1.292）；驗證計畫：[micro-PoC 計畫](../plans/2026-10-06-handoff-mod-poc.md)。
 
@@ -79,7 +79,7 @@ skill 不依賴 mod；沒有 mod 時使用者仍可手動 `/handoff-mod:handoff`
 | T3 手動 | 使用者自己下 `/handoff-mod:handoff` | 無，skill 直接執行 |
 | T4 壓縮前 | **日後，第一版不含。** `session.compact` 在壓縮前觸發且可否決，但 hook 內 `$.ui.ask` 未驗證 | 無 |
 
-**未完成跡象**（假設，未驗證）：本 session 有成功的 `Edit`／`Write`／`NotebookEdit`，或 `git status` 不乾淨。純問答的 session 不需要交接，沒有這個條件使用者會一直被問。這個條件用在 T1 與結束筆記；T2 依 D3 不看它。
+**未完成跡象**（假設，未驗證）：本 session 有成功的 `Edit`／`Write`／`NotebookEdit`，或 `git status` 不乾淨。純問答的 session 不需要交接，沒有這個條件使用者會一直被問。這個條件用在 T1 與結束筆記；T2 依 D3 不看它。（2026-10-14 修訂：T1 依 D24 不再看這個條件；結束筆記依 D23 改成「這個 session 造成變化」。）
 
 **T1 的三個選項：**
 
@@ -269,7 +269,7 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | D1 | 門檻的語意與預設值。你的原意是「剩餘低於 40%」（原文寫成 60%，是筆誤），等於已用 60%；在 1M window 是 60 萬 token，在 200k 模型約 12 萬 | **已決（Tom，2026-10-07）：** 預設已用 60%，純百分比、可設定，不加絕對 token 上限（L1：`percent` 與 `/context` 一致，可用）。測試階段用環境變數 `HANDOFF_THRESHOLD_PCT` 覆寫，測試時設 `10`（1M window 下新 session 約 4%，10% 約十萬 token，不會一開始就達標）；其他觸發條件不因測試而繞過 |
 | D2 | 交接檔放 repo 內 `.claude/handoffs/`（跟著 worktree、刪 repo 就沒了）還是使用者目錄（不污染 repo、換機不跟）；跨 worktree 看不看得到 | **已決（Tom，2026-10-07）：** repo 內 `<toplevel>/.claude/handoffs/`，加 `.git/info/exclude`；啟動讀回時用 `git worktree list` 把同 repo 其他 worktree 的交接列在下面並標來源；不做使用者目錄、不另做索引（L2：skill 寫進該 worktree 自己的目錄） |
 | D3 | `/clear` 在沒有未完成跡象時也要問嗎？取消 `/clear` 的做法（不呼叫 `next`）你能接受嗎？ | **已決（Tom，2026-10-07）：一律都問**（與我的傾向「沒跡象就放行」不同）；取消做法隨選項接受，文案要清楚。後果：純問答的 session 也會在 `/clear` 時被問一次 |
-| D4 | 結束時用 `session.end` 自動留一份只含事實的接續筆記（最後一個要求原文、最後一段話原文、branch、有改動的檔案），不呼叫模型 | **已決（Tom，2026-10-07）：做，含對話原文。** 設計見元件 8；五條緩解措施已確認，預設開啟（`HANDOFF_AUTO_NOTE=off` 關閉）。L6：`/exit`、`Ctrl-C` 兩次、關分頁都觸發 `session.end`（`kill -9`、當機沒有）。**未驗證：** `session.end` 內能否讀 `$.session.messages()`、在約 1.5 秒預算內讀完並寫入 |
+| D4 | 結束時用 `session.end` 自動留一份只含事實的接續筆記（最後一個要求原文、最後一段話原文、branch、有改動的檔案），不呼叫模型 | **已決（Tom，2026-10-07）：做，含對話原文。** 設計見元件 8；五條緩解措施已確認，預設開啟（`HANDOFF_AUTO_NOTE=off` 關閉）。L6：`/exit`、`Ctrl-C` 兩次、關分頁都觸發 `session.end`（`kill -9`、當機沒有）。**未驗證：** `session.end` 內能否讀 `$.session.messages()`、在約 1.5 秒預算內讀完並寫入；寫入條件 2026-10-14 改為 D23 |
 | D5 | 要不要記錄「交接寫了幾次、最後接續了幾次」來判斷有沒有價值？這需要持久化 | **已決（Tom，2026-10-07）：** 要，只放 `$.store`，本機計數，不外傳 |
 | D6 | plugin 與 skill 的名稱（暫 `handoff-mod`、`handoff-mod:handoff`） | **已決（Tom，2026-10-07，最後確認前核對選項 A）：** `handoff-mod`、`handoff-mod:handoff`，另有指令 `/handoff-resume`（見元件 3） |
 | D7 | 偵測到使用者自己的 `handoff` 時，優先用它還是一律用內建？ | **已決（Tom，2026-10-07）：一律用內建。** 你自己的 skill 格式只有 Tom 一個人保證相容。L2：你的 `handoff` 能由 `$.command.run` 啟動、Review Gate 與寫檔都成立，但不觸發 `skill.prompt`，且曾把沒跑過的指令標成已驗證 |
@@ -285,6 +285,11 @@ classic.SessionStart(startup｜clear) ─▶ 掃描 ─▶ 解析 ─▶ 新鮮�
 | D17 | 一份不打算接續的交接，怎麼讓它不再出現 | **已決（Tom，2026-10-08）：** 指令 `/handoff-resume drop <編號>` 與 `drop all`，只在 `$.store` 寫 `state:<path>` = `{status: 'abandoned', ...}`，交接檔不動；必須打完整的 `all`、逐筆列出放棄了哪些、被別的 session 正在接續的不動；不做復原指令。詳見 [放棄交接與「本 session 忽略」](2026-10-08-handoff-drop-design.md) |
 | D18 | 按鈕「略過」的名稱 | **已決（Tom，2026-10-08）：** 改名為「本 session 忽略」（英文 `Ignore for this session`），行為不變。原名讓人以為「別再提醒我」，實際上新 session 會重新出現 |
 | D19 | 啟動清單怎麼讓人知道有 `drop` 可用 | **已決（Tom，2026-10-08）：** 在清單框標頭那一行，計數旁邊加一段淡色小字 `（若想放棄交接檔：/handoff-resume drop <編號\|all>）`（英文 `(To abandon a handoff: /handoff-resume drop <n\|all>)`），整句放進括號，寫完整指令。不加按鈕，D17 不動。起因是作者看到清單只有「接續」，不知道能放棄；原本的提示只在執行 `/handoff-resume` 後的輸出裡。放標頭是因為清單過長時終端機會從底部切掉內容；窄終端機上這段字會換到計數下面 |
+| D20 | 怎麼判斷兩個檔案是同一份交接 | **已決（Tom，2026-10-14）：** 檔名加 frontmatter 的 `created`（正規化成 ISO）；不改檔案格式。詳見 [交接的識別與「本 session 有變化」](2026-10-14-handoff-identity-and-session-change-design.md) |
+| D21 | 0.1.x 以絕對路徑當 key 的 `state:` 紀錄怎麼辦 | **已決（Tom，2026-10-14）：** 讀取時先查新 key，查不到再用每個副本現在的路徑查舊 key；檔案已搬走的不處理 |
+| D22 | 對已安裝的使用者相容到什麼程度 | **已決（Tom，2026-10-14）：** 雙向相容，接續、放棄、claim 都同時寫新 key 與每個副本的舊 key；0.2.x 全系列雙寫 |
+| D23 | 結束筆記什麼時候寫 | **已決（Tom，2026-10-14）：** 這個 session 造成變化才寫；第一次 prompt 記快照，結束時比對；沒有快照、被截斷或比對逾時就照 D4 的舊規則 |
+| D24 | 60% 提示看不看 git 狀態 | **已決（Tom，2026-10-14）：** 不看，到門檻就問；乾淨工作樹與非 git 目錄也問 |
 
 ## 驗證與測試
 

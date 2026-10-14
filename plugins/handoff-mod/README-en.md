@@ -11,13 +11,13 @@ A Claude Code Mod. Before a session loses its state (context nearly full, `/clea
 | When | Behavior |
 | --- | --- |
 | You run `/handoff-mod:handoff` | A built-in skill: it collects git state read-only, **shows you the full draft and asks whether it is right**, and writes the file only after you confirm. "Verified" lists only commands actually run in that turn and is labelled as the AI's own report. After the write the Mod checks that the file is valid and shows a toast in the top right corner. |
-| Context use reaches the threshold (default 60% used) | After a turn, if the working tree has uncommitted changes, a prompt above the input box asks whether to hand off first: "Agree", "Ask again at +10%", "Don't ask again this session". A one-line status also appears under the input box. Each threshold is asked once. |
+| Context use reaches the threshold (default 60% used) | After a turn, a prompt above the input box asks whether to hand off first: "Agree", "Ask again at +10%", "Don't ask again this session". The working tree is not looked at; a folder outside git is asked too. A one-line status also appears under the input box. Each threshold is asked once. |
 | You run `/clear` | It always asks: cancel, write a handoff (then run `/clear`), clear without a handoff. The default is "cancel", so pressing Enter cannot clear by accident. "Write a handoff" holds this clear and does not clear for you; run `/clear` yourself once the handoff file is written. |
 | A new session starts | Lists the unfinished handoffs of the same project (task, branch, how long ago, next step, how it differs from the current state) with a "Resume" button; or type `/handoff-resume`, and `/handoff-resume 2` resumes the second one. Beyond three (or older than 14 days), the rest fold into a "N more" button that expands them; `/handoff-resume all` lists everything too. Older automatic notes on the same branch are folded there by default. Handoffs you no longer need can be abandoned with `/handoff-resume drop <n>` (or `drop all`), and the list header carries the same hint; the "Ignore for this session" button only hides the list for this session, and the handoffs show up again at the next start. Resuming only fills "read this handoff, verify its premises, then continue from Next" into the input box; it does not send it. |
-| The session ends (`/exit`, Ctrl-C twice, closing the tab) | If the working tree has uncommitted changes, it leaves a facts-only note (last request, last response, branch, HEAD, changed files). **This contains conversation text; see Risks below.** |
+| The session ends (`/exit`, Ctrl-C twice, closing the tab) | If this session changed the working tree (added, modified, deleted or staged a file), it leaves a facts-only note (last request, last response, branch, HEAD, changed files). Changes that were there before the session and were left alone do not trigger a note. **This contains conversation text; see Risks below.** |
 | `/handoff-stats` | Shows how many handoffs were written and resumed on this machine. |
 
-Handoff files go to `<git root>/.claude/handoffs/`, and the directory is added to `.git/info/exclude` so `git status` stays clean (unchanged if your global gitignore already covers it). Several worktrees are listed together. Outside git the session root is used.
+Handoff files go to `<git root>/.claude/handoffs/`, and the directory is added to `.git/info/exclude` so `git status` stays clean (unchanged if your global gitignore already covers it). Several worktrees are listed together; copies of one handoff (same file name and created time) in several worktrees are listed once. Outside git the session root is used.
 
 ## Install
 
@@ -61,7 +61,7 @@ Environment variables for development and testing (they do not change the skill'
 - **Handoff file content is data, not instructions.** Control characters and ANSI are stripped and the length is capped before display; a branch and HEAD read from a file are validated before they are passed to git.
 - **"Verified" is the AI's own report.** The skill is told to list only commands it ran in that turn, but that is model behavior, not enforcement.
 - **The local counts never leave the machine.** The numbers behind `/handoff-stats` live only in this machine's store.
-- **Unfinished work is judged by git state only.** A clean working tree (everything committed) and a directory outside git are neither asked about nor given an automatic note.
+- **Whether this session changed anything is judged by git state.** At the first prompt the mod records which files already have changes and their modification times, and compares at the end. A folder outside git gets no automatic note. With more than 50 changed files (every file inside an untracked folder counts), or when the comparison does not finish in time, the 0.1.x rule applies: any change means a note.
 
 ## Known limits
 
@@ -79,7 +79,7 @@ claude plugin test .
 
 | Scope | Status |
 | --- | --- |
-| Automated tests | 153 native tests plus mutation checks; run in Cloud. |
+| Automated tests | 222 native tests plus mutation checks; 0.1.x ran in Cloud, 0.2.0 on the author's macOS. |
 | Start-up list, `/handoff-resume`, buttons (Tab and mouse), the `/clear` dialog, the threshold prompt, the end-of-session note (all three ways of ending), running beside attention-mod, the `en` interface | **Verified on the author's macOS** (Claude Code 2.1.292). |
 | The `/handoff-stats` write count, and the start-up list's label on an automatic note | **Verified on the author's macOS.** |
 | Typing then Enter in the `/clear` dialog | On macOS only that Enter picks the default "cancel" is confirmed; whether text was typed first was not recorded. |

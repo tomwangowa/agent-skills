@@ -5,6 +5,8 @@ import {parseHandoff} from './handoff-file.js';
 import {rankHandoffs} from './rank.js';
 import {freshnessFacts} from './freshness.js';
 import {tryClaim, claimView} from './claim.js';
+import {mergeCopies, stateKeys, claimKeys, newestState} from './identity.js';
+import {parseStatusZ, takeBaseline, hasNewEntry, changedSince, BASELINE_MAX} from './snapshot.js';
 import {ensureExcluded} from './exclude.js';
 import {cleanForNote} from './sanitize.js';
 import {shouldWriteNote, buildEndNote, withDeadline} from './note.js';
@@ -31,6 +33,10 @@ const LAST_PREFIX = 'last:';
 const QUOTE_MAX = 2000;
 const RECORD_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const NOTE_DEADLINE_MS = 1500;
+// D23: -z keeps non-ASCII names unquoted so that they can be stat-ed; all untracked files, because a folder's mtime does
+// not move when a file inside it changes.
+const STATUS_ARGS = ['status', '--porcelain', '-z', '--untracked-files=all'];
+const COMPARE_DEADLINE_MS = 500;
 
 // Session-scoped state, kept in $.state: it survives a module reload and is reset by /clear, /resume and /branch.
 const handoffStartedAt = atom({plugin: 'handoff-mod', key: 'handoffStartedAt'}, 0);
@@ -128,7 +134,9 @@ async function readHandoffs($, dirs) {
         const path = `${dir}/${name}`;
         try {
           const parsed = parseHandoff(await $.fs.read(path));
-          if (parsed.ok) found.push({path, meta: parsed.meta, fields: parsed.fields});
+          if (parsed.ok) found.push({path, meta: parsed.meta, fields: parsed.fields, closed: false});
+          // D20: a closed copy is kept so that it can close its copies in other working trees; it is never listed.
+          else if (parsed.reason === 'status' && parsed.meta) found.push({path, meta: parsed.meta, fields: parsed.fields, closed: true});
         } catch { /* An unreadable file is skipped. */ }
       }
     } catch { /* An unreadable directory counts as no handoffs. */ }
@@ -157,7 +165,14 @@ async function storeGet($, key) {
   }
 }
 
-/** Collect, rank and describe the unfinished handoffs for this working tree and its repository. */
+/** Read `keys` one by one; a failed read is undefined. */
+async function storeGetAll($, keys) {
+  const values = [];
+  for (const key of keys) values.push(await storeGet($, key));
+  return values;
+}
+
+/** Collect, merge (D20), rank and describe the unfinished handoffs for this working tree and its repository. */
 async function buildList($) {
   const lang = config.lang;
   const sessionId = await $.session.id();
@@ -166,12 +181,14 @@ async function buildList($) {
   const repo = await repoRoot($);
   const found = await readHandoffs($, await candidateDirs($, base, repo));
   const items = [];
-  for (const f of found) {
-    const override = await storeGet($, `state:${f.path}`);
+  for (const group of mergeCopies(found, {base, repo, dir: DIR})) {
+    // D21: the new key first, then each copy's old path key, so that records written by 0.1.x still count.
+    const record = newestState(await storeGetAll($, stateKeys(group)));
+    const claims = await storeGetAll($, claimKeys(group));
     items.push({
-      path: f.path, meta: f.meta, fields: f.fields,
-      effectiveStatus: override && typeof override.status === 'string' ? override.status : f.meta.status,
-      claimedByOther: claimView(await storeGet($, `claim:${f.path}`), sessionId, now).state === 'other',
+      ...group,
+      effectiveStatus: record ? record.status : group.fileClosed ? 'closed' : group.meta.status,
+      claimedByOther: claims.some((claim) => claimView(claim, sessionId, now).state === 'other'),
     });
   }
   const ranked = rankHandoffs(items, {base, repo, now});
@@ -180,7 +197,10 @@ async function buildList($) {
   for (const item of picked) {
     const facts = await freshnessFacts({meta: item.meta, git: (args) => git($, args)});
     views.push({
-      id: item.path,
+      id: item.key,
+      path: item.path,
+      stateKeys: stateKeys(item),
+      claimKeys: claimKeys(item),
       title: t(lang, 'list.item', {n: views.length + 1, task: item.fields.task || item.path.split('/').pop(), branch: item.meta.branch ?? '-', age: age(lang, now - item.meta.created)}),
       next: item.fields.next ? t(lang, 'list.next', {next: item.fields.next}) : '',
       facts: facts.map((fact) => factText(lang, fact)),
@@ -219,8 +239,8 @@ const readT1 = async ($) => ({
 });
 
 /**
- * T1: after a turn, ask once per threshold when the context is filling up and there is unfinished work (D1, design
- * component 2). "Unfinished" is a dirty working tree; every unknown (no percentage, not a git tree) means do not ask.
+ * T1: after a turn, ask once per threshold when the context is filling up (D1, design component 2). Since D24 the working
+ * tree is not looked at: a clean tree and a folder outside git are asked too. No percentage still means do not ask.
  */
 async function checkThreshold($) {
   const percent = (await $.session.usage())?.context?.percent;
@@ -233,13 +253,12 @@ async function checkThreshold($) {
     if ((await read($, t1Percent)) > 0) await closeT1($);
   }
   if (typeof percent !== 'number' || percent < effectiveThreshold(seen, config)) return;
-  const dirty = await git($, ['status', '--porcelain']);
   const decision = decideTrigger({
     percent, config, state: seen, idle: true,
-    hasUnfinishedSign: hasUnfinishedSign({gitDirty: dirty.exitCode === 0 && dirty.stdout.trim() !== ''}),
+    hasUnfinishedSign: true,
     handoffRunning: (await read($, handoffStartedAt)) > 0,
   });
-  trace($, `threshold: percent=${percent} at=${decision.at} dirty=${dirty.exitCode === 0 && dirty.stdout.trim() !== ''} -> ${decision.action}`);
+  trace($, `threshold: percent=${percent} at=${decision.at} -> ${decision.action}`);
   if (decision.action !== 'ask') return;
   await update($, askedAt, () => decision.at);
   await update($, t1Percent, () => Math.max(1, percent));
@@ -286,10 +305,48 @@ async function bumpStat($, field) {
   } catch { /* Counts are local and optional. */ }
 }
 
-/** Keep the newest request, masked and cut, for the end-of-session note. One record per session; each prompt replaces it. */
+/** stat each entry under `root`. A deletion is null without a stat; any other failure throws when `strict`, else is null. */
+async function statEntries($, root, entries, {strict}) {
+  const out = [];
+  for (const entry of entries) {
+    if (entry.code.includes('D')) {
+      out.push({...entry, mtimeMs: null});
+      continue;
+    }
+    try {
+      out.push({...entry, mtimeMs: (await $.fs.stat(`${root}/${entry.path}`)).mtimeMs});
+    } catch (error) {
+      if (strict) throw error;
+      out.push({...entry, mtimeMs: null});
+    }
+  }
+  return out;
+}
+
+/** D23: what was already dirty before this session did anything, or null when that cannot be told (the old rule then applies). */
+async function takeSessionBaseline($) {
+  try {
+    const status = await git($, STATUS_ARGS);
+    if (status.exitCode !== 0) return null;
+    const entries = parseStatusZ(status.stdout);
+    return takeBaseline(await statEntries($, await projectBase($), entries.slice(0, BASELINE_MAX), {strict: true}), entries.length);
+  } catch (error) {
+    trace($, `baseline not taken: ${String(error?.message ?? error)}`);
+    return null;
+  }
+}
+
+/**
+ * Keep the newest request, masked and cut, for the end-of-session note. One record per session; each prompt replaces it.
+ * The first request also fixes the baseline (D23); later requests keep it, even when it is null, so that a baseline is
+ * never taken after the session has started changing files.
+ */
 async function recordRequest($, text) {
   if (!config.autoNote || !text.trim() || (await $.session.surfaces()).length === 0) return;
-  await $.store.set(`${LAST_PREFIX}${await $.session.id()}`, {request: cleanForNote(text, QUOTE_MAX), response: '', at: await $.clock.now()});
+  const key = `${LAST_PREFIX}${await $.session.id()}`;
+  const previous = await storeGet($, key);
+  const baseline = previous && typeof previous === 'object' && 'baseline' in previous ? previous.baseline : await takeSessionBaseline($);
+  await $.store.set(key, {request: cleanForNote(text, QUOTE_MAX), response: '', at: await $.clock.now(), baseline});
 }
 
 /** Attach the answer to the request it belongs to. With no recorded request there is nothing to attach it to. */
@@ -311,10 +368,26 @@ async function sweepOldRecords($) {
   }
 }
 
-const dirtyPaths = (porcelain) => porcelain.split('\n').filter((line) => line.trim()).map((line) => line.slice(3).split(' -> ').pop());
+/**
+ * D23: did this session change the working tree? With no usable baseline, or when git status and the stats miss the
+ * sub-deadline, the answer is yes: the old rule (dirty means write) is kept rather than losing a note.
+ * `statusRun` is the git status already started by the caller, so that the sub-deadline covers it too.
+ */
+async function sessionChanged($, baseline, statusRun, root, budget) {
+  if (!baseline || typeof baseline !== 'object' || baseline.truncated || !Array.isArray(baseline.entries)) return true;
+  const verdict = await withDeadline(async () => {
+    const status = await statusRun;
+    if (status.exitCode !== 0) return true;
+    const current = parseStatusZ(status.stdout);
+    if (current.length > BASELINE_MAX || hasNewEntry(baseline, current)) return true;
+    return changedSince(baseline, await statEntries($, root, current, {strict: false}));
+  }, Math.min(COMPARE_DEADLINE_MS, budget / 2), (ms, callback) => $.clock.after(ms, callback));
+  if (!('value' in verdict)) trace($, `end note: comparison ${verdict.timedOut ? 'ran out of time' : 'failed'}, writing as before`);
+  return 'value' in verdict ? verdict.value : true;
+}
 
 /**
- * D4: at the end of an interactive session that left unfinished work, write the facts-only note (the last request and
+ * D4, D23: at the end of an interactive session that changed the working tree, write the facts-only note (the last request and
  * answer, git state, changed files) without asking a model. Gives up at the exit's short budget and writes nothing then.
  * The record is always deleted afterwards: it holds the only copy of that text outside the note.
  */
@@ -328,14 +401,16 @@ async function writeEndNote($, e, next) {
     if (budget < 200) { trace($, `end note skipped: ${remaining} ms left`); return; }
     let abandoned = false;
     const outcome = await withDeadline(async () => {
-      const status = await git($, ['status', '--porcelain']);
-      const dirty = status.exitCode === 0 ? dirtyPaths(status.stdout) : [];
-      const write = shouldWriteNote({interactive: true, turns: 1, hasUnfinishedSign: hasUnfinishedSign({gitDirty: dirty.length > 0}), reason: e.reason, config});
-      trace($, `end note: reason=${e.reason} dirty=${dirty.length} write=${write}`);
+      const base = await projectBase($);
+      const statusRun = git($, STATUS_ARGS);
+      const changed = await sessionChanged($, record.baseline, statusRun, base, budget);
+      const status = await statusRun;
+      const dirty = status.exitCode === 0 ? parseStatusZ(status.stdout).map((entry) => entry.path) : [];
+      const write = shouldWriteNote({interactive: true, turns: 1, hasUnfinishedSign: hasUnfinishedSign({gitDirty: dirty.length > 0 && changed}), reason: e.reason, config});
+      trace($, `end note: reason=${e.reason} dirty=${dirty.length} changed=${changed} write=${write}`);
       if (!write) return false;
       const branch = (await git($, ['branch', '--show-current'])).stdout.trim();
       const head = (await git($, ['rev-parse', '--short', 'HEAD'])).stdout.trim();
-      const base = await projectBase($);
       let root = base;
       try { root = (await $.session.root()) || base; } catch { /* The git toplevel stands in. */ }
       const note = buildEndNote({
@@ -362,19 +437,28 @@ async function writeEndNote($, e, next) {
   }
 }
 
+/** D22: write the new key and every copy's old path key. The new key decides success; an old key that fails is only traced. */
+async function writeState($, item, record) {
+  const [first, ...old] = item.stateKeys;
+  await $.store.set(first, record);
+  for (const key of old) {
+    try { await $.store.set(key, record); } catch (error) { trace($, `old state key not written: ${key}: ${String(error?.message ?? error)}`); }
+  }
+}
+
 /** Resume one handoff: claim it, remember that, and put a prompt in the input box for the user to send. */
 async function resume($, item) {
   const lang = config.lang;
   const now = await $.clock.now();
   const sessionId = await $.session.id();
-  const claim = await tryClaim({id: item.id, sessionId, now, store: {get: (key) => $.store.get(key), set: (key, value) => $.store.set(key, value)}});
+  const claim = await tryClaim({keys: item.claimKeys, sessionId, now, store: {get: (key) => $.store.get(key), set: (key, value) => $.store.set(key, value)}});
   if (!claim.won) {
     $.ui.toast(t(lang, 'resume.claimedElsewhere'));
     return;
   }
-  try { await $.store.set(`state:${item.id}`, {status: 'resumed', at: now, sessionId}); } catch { /* Resuming still works without the record. */ }
+  try { await writeState($, item, {status: 'resumed', at: now, sessionId}); } catch { /* Resuming still works without the record. */ }
   await bumpStat($, 'resumed');
-  await $.prompt.fill({text: t(lang, 'resume.prompt', {path: item.id})});
+  await $.prompt.fill({text: t(lang, 'resume.prompt', {path: item.path})});
   await update($, listDone, () => true);
   await clearList($);
 }
@@ -382,7 +466,7 @@ async function resume($, item) {
 /** D17: mark a handoff abandoned on this machine. Only the store record changes; the file is never touched (invariant 6). */
 async function abandon($, item, now, sessionId) {
   try {
-    await $.store.set(`state:${item.id}`, {status: 'abandoned', at: now, sessionId});
+    await writeState($, item, {status: 'abandoned', at: now, sessionId});
     return true;
   } catch {
     return false;

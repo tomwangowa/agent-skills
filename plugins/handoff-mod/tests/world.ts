@@ -12,7 +12,7 @@ const GIT_DEFAULTS: Record<string, [number, string]> = {
 };
 
 /** Stub every host call the wiring makes: in-memory files and store, a scripted git, and recorders for what the mod shows. */
-export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => string; askDelay?: number; turns?: number; env?: Record<string, string>; git?: Record<string, [number, string]>; files?: Record<string, string>; store?: Record<string, any>; repo?: any; surfaces?: string[]; percent?: number; gitDelay?: number} = {}) {
+export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => string; askDelay?: number; turns?: number; env?: Record<string, string>; git?: Record<string, [number, string]>; files?: Record<string, string>; store?: Record<string, any>; repo?: any; surfaces?: string[]; percent?: number; gitDelay?: number; gitDelays?: Record<string, number>} = {}) {
   const clock = mock.clock(on, {now: NOW});
   let percent: number | undefined = o.percent;
   mock.env(on, o.env ?? {});
@@ -45,8 +45,10 @@ export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => s
   on('prompt.fill', ($: any, e: any) => { rec.fills.push(e.text); return {isFilled: true, text: '', cursor: 0}; });
   on('process.run', async ($: any, e: any) => {
     if (e.argv[0] === 'chmod') { rec.chmods.push(e.argv.slice(1)); return {value: {exitCode: 0, stdout: '', stderr: ''}}; }
-    if (o.gitDelay) await clock.sleep(o.gitDelay);
     const key = e.argv.slice(1).join(' ');
+    // gitDelays slows one command only; gitDelay slows every git call.
+    const delay = o.gitDelays?.[key] ?? o.gitDelay;
+    if (delay) await clock.sleep(delay);
     rec.git.push(key);
     const [exitCode, stdout] = (o.git ?? {})[key] ?? GIT_DEFAULTS[key] ?? [128, ''];
     return {value: {exitCode, stdout, stderr: ''}};

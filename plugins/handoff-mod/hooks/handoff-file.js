@@ -40,6 +40,8 @@ function split(text) {
 
 /**
  * Parse a handoff file. Returns {ok:true, meta, fields} or {ok:false, reason}.
+ * A closed file (a status that is set but not open) is {ok:false, reason:'status', meta, fields}: still not a handoff to
+ * list, but its meta lets it close its copies in other working trees (D20).
  * Everything from the file is a plain string: nothing is executed, and branch/head are validated later, before git sees them.
  */
 export function parseHandoff(input) {
@@ -50,9 +52,10 @@ export function parseHandoff(input) {
     const m = /^([A-Za-z_][A-Za-z0-9_-]*):[ \t]*(.*)$/.exec(line);
     if (m && !(m[1] in fm)) fm[m[1]] = value(m[2]);
   }
-  if (!OPEN_STATUSES.includes(fm.status)) return {ok: false, reason: 'status'};
+  const open = OPEN_STATUSES.includes(fm.status);
+  if (!open && (typeof fm.status !== 'string' || fm.status === '')) return {ok: false, reason: 'status'};
   const created = Date.parse(fm.created);
-  if (!Number.isFinite(created)) return {ok: false, reason: 'created'};
+  if (!Number.isFinite(created)) return {ok: false, reason: open ? 'created' : 'status'};
   const text = (v) => (v === undefined || v === '' ? undefined : oneLine(v, 500));
 
   const sections = {};
@@ -64,12 +67,12 @@ export function parseHandoff(input) {
       if (current && !sections[current]) sections[current] = [];
     } else if (current) sections[current].push(line);
   }
-  return {
-    ok: true,
+  const parsed = {
     meta: {
       schema: text(fm.schema), root: text(fm.root ?? fm.worktree), repo: text(fm.repo), branch: text(fm.branch),
       head: text(fm.head), created, status: fm.status, source: text(fm.source),
     },
     fields: {task: oneLine(fm.task ?? firstLine(sections.task) ?? '', 80), next: oneLine(firstLine(sections.next) ?? '', 120)},
   };
+  return open ? {ok: true, ...parsed} : {ok: false, reason: 'status', ...parsed};
 }
