@@ -256,3 +256,16 @@ band 開著（`/poc-band`），請 Claude 呼叫 `AskUserQuestion`，等選項�
 ## 清理
 
 2026-10-07 Tom 最後確認設計後，`poc/` 已刪除（`git rm -r plugins/handoff-mod/poc`）。探針不是產品，不會進 marketplace。實作前驗證需要探針時，從 commit `0d319f4` 取回，或另寫新的。
+
+## 0.2.0 實作前 PoC（2026-10-14，作者 macOS）
+
+用拋棄式 plugin `handoff-poc`（`--plugin-dir` 載入，量完已刪除）量測；量測期間停用已安裝的 0.1.6，量完重新啟用。
+
+| # | 問題 | 結果 | 判定 |
+| --- | --- | --- | --- |
+| 1 | 兩個 session 同時寫同一個 store，資料會不會互相蓋掉；開著的 session 看不看得到另一個 session 的寫入 | 檔案：`{'A': 300, 'B': 300}`；A 的 `/poc-count`：`{"A":300,"B":300}`；B 的 `/poc-count`：同上 | 通過；看得到 |
+| 2 | 結束時 `git status -z --untracked-files=all` 加 50 個 `stat` 的耗時；第一個 prompt 建立快照的耗時 | agent-skills（1 至 2 項）：gitMs=149、152、158、200，statMs=1 至 2，remainingMs=1498 至 1499，submit gitStatMs=128、234；工作 repo A（0 項）：gitMs=138，statMs=0，remainingMs=1499，submit gitStatMs=123、184。另在 shell 直接量 `rev-parse` 加 `status -uall`：工作 repo C（26 項）102 至 116 ms，工作 repo B（21 項）113 至 122 ms，agent-skills 126 至 136 ms | 通過（≤ 250 ms）。沒有量到上百個 untracked 檔案的 repo |
+| 3 | `prompt.submit` hook 是否在第一個工具呼叫之前跑完 | 不是。4 個 session 的第一個工具呼叫都在 hook 的 8 秒暫停結束前發生（送出後 2367、2854、3287、4168 ms）；快照本身在 123 至 234 ms 完成 | 不通過；Tom 選擇接受競態（餘裕約 10 倍），快照仍在第一個 prompt 建立 |
+| 4 | `/clear` 後 session id 是否改變 | 改變（`d216f6cb…` → `aed639c1…`），且新 session 不觸發這個 plugin 的 `session.start`；`classic.SessionStart` 在 `--plugin-dir` 下一筆都沒記到，原因未查明 | 記錄 |
+
+推翻的假設：「`prompt.submit` hook 可以回傳 `drop`，所以引擎一定等 hook 跑完才開始回合」。實測引擎不等。

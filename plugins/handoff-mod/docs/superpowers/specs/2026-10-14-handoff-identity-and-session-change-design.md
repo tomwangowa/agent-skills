@@ -182,6 +182,13 @@
 | 3 | 快照比第一個工具呼叫早完成 | trace 記快照完成時間，比對第一回合寫出檔案的修改時間 | 快照改到 `session.start` |
 | 4 | `/clear` 後 session id 是否改變 | `/clear` 前後各記 `$.session.id()` | 兩種結果都可接受，記錄即可 |
 
+**結果（2026-10-14，詳見 [poc-results.md](../../poc-results.md) 的「0.2.0 實作前 PoC」）：**
+
+1. 通過。兩個 session 各寫 300 個 key，store 檔裡兩組都完整；兩個還開著的 session 也都看得到對方的寫入。
+2. 通過。`remainingMs` 約 1500；結束時 git 耗時 138 至 200 ms，`stat` 0 至 2 ms。耗時主要是啟動 git 的 process，跟 dirty 項目數關係不大（作者機器上最多 26 項的 repo，shell 直接量 102 至 122 ms）。沒有量到上百個 untracked 檔案的 repo。
+3. **不通過，Tom 決定接受（選項 A）。** Claude Code 不等 `prompt.submit` hook 跑完就開始回合：hook 還在暫停時，第一個工具呼叫已經發生。原本以為「hook 能回傳 `drop`，所以引擎會等」，這個推論是錯的。實測 4 個 session，快照 123 至 234 ms 完成，第一個工具呼叫在送出後 2367 至 4168 ms，約 10 倍餘裕，所以快照仍在第一個 prompt 建立，競態列入已知限制。改到 `session.start` 也無法完全避免：`/clear` 之後的新 session 不會觸發 `session.start`（見 4）。
+4. `/clear` 後 session id 會改變，而且新 session 不觸發這個 plugin 的 `session.start`。`classic.SessionStart` 在 `--plugin-dir` 下一筆都沒記到，原因未查明。
+
 「不同版本共用同一個 store 檔」不另做 PoC：API 文件寫 store 是「this plugin's own key-value store, kept between sessions and hot reloads」，檔名 `handoff-mod_tomwangowa-5f441db4b8b2.json` 沒有版號，且 0.1.6 讀得到 0.1.6 之前寫入的 `state:` 紀錄。
 
 ## 文件與版號
@@ -197,4 +204,5 @@
 - 兩個 worktree 同一秒、同 branch 名稱各寫一份交接時，會被當成同一份（D20）。
 - 舊版 session 仍會分開列出副本，直到它結束。
 - 純討論、沒動過檔案的 session，結束時不會留自動筆記，要自己執行 `/handoff-mod:handoff`。
+- 快照和第一個回合同時進行（PoC 3）。模型的第一個工具呼叫如果比 `git status` 加 `stat` 還快（實測差約 10 倍，正常不會發生），那次改動會被算成「本來就有」，可能少寫一份筆記。
 - `--untracked-files=all` 會把 untracked 資料夾展開成逐檔。一個超過 50 個檔案、又沒被 gitignore 的 untracked 資料夾，會讓快照每次都 `truncated`，那個 repo 就一直照舊行為（dirty 就寫）。

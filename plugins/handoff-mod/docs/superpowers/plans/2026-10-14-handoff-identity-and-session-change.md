@@ -1774,4 +1774,4 @@ git commit -m "docs(handoff-mod): record the 0.2.0 checks on macOS"
 
 **型別與名稱一致性：** `stateKeys`／`claimKeys` 在 Task 4 定義、Task 7 使用，清單項目的欄位名也是 `stateKeys`、`claimKeys`；`takeBaseline(statted, total)` 在 Task 5 定義、Task 10 用兩個參數呼叫；`statEntries($, root, entries, {strict})` 在 Task 10 定義、Task 11 以 `{strict: false}` 呼叫；`STATUS_Z` 與 `tree` 在 Task 10 定義於 slice f，Task 11 使用。
 
-**已知風險：** PoC 3 不通過時，Task 10 要改成在 `session.start` 建立快照，屆時先改計畫再繼續。實機上無法讓 0.1.6 與 0.2.0 共用同一個 store（`--plugin-dir` 用 inline store），所以「新舊版本同時運作」只有 Task 7 的測試涵蓋，實機只驗證雙寫確實寫出兩種 key。
+**已知風險：** PoC 3 實測不通過（hook 不會擋住回合），Tom 於 2026-10-14 選擇接受競態，Task 10 照原樣在第一個 prompt 建立快照，競態已列入 spec 的已知限制。實機上無法讓 0.1.6 與 0.2.0 共用同一個 store（`--plugin-dir` 用 inline store），所以「新舊版本同時運作」只有 Task 7 的測試涵蓋，實機只驗證雙寫確實寫出兩種 key。
