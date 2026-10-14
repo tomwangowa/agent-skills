@@ -6,6 +6,7 @@ import {rankHandoffs} from './rank.js';
 import {freshnessFacts} from './freshness.js';
 import {tryClaim, claimView} from './claim.js';
 import {mergeCopies, stateKeys, claimKeys, newestState} from './identity.js';
+import {parseStatusZ, takeBaseline, hasNewEntry, changedSince, BASELINE_MAX} from './snapshot.js';
 import {ensureExcluded} from './exclude.js';
 import {cleanForNote} from './sanitize.js';
 import {shouldWriteNote, buildEndNote, withDeadline} from './note.js';
@@ -32,6 +33,10 @@ const LAST_PREFIX = 'last:';
 const QUOTE_MAX = 2000;
 const RECORD_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const NOTE_DEADLINE_MS = 1500;
+// D23: -z keeps non-ASCII names unquoted so that they can be stat-ed; all untracked files, because a folder's mtime does
+// not move when a file inside it changes.
+const STATUS_ARGS = ['status', '--porcelain', '-z', '--untracked-files=all'];
+const COMPARE_DEADLINE_MS = 500;
 
 // Session-scoped state, kept in $.state: it survives a module reload and is reset by /clear, /resume and /branch.
 const handoffStartedAt = atom({plugin: 'handoff-mod', key: 'handoffStartedAt'}, 0);
@@ -300,10 +305,48 @@ async function bumpStat($, field) {
   } catch { /* Counts are local and optional. */ }
 }
 
-/** Keep the newest request, masked and cut, for the end-of-session note. One record per session; each prompt replaces it. */
+/** stat each entry under `root`. A deletion is null without a stat; any other failure throws when `strict`, else is null. */
+async function statEntries($, root, entries, {strict}) {
+  const out = [];
+  for (const entry of entries) {
+    if (entry.code.includes('D')) {
+      out.push({...entry, mtimeMs: null});
+      continue;
+    }
+    try {
+      out.push({...entry, mtimeMs: (await $.fs.stat(`${root}/${entry.path}`)).mtimeMs});
+    } catch (error) {
+      if (strict) throw error;
+      out.push({...entry, mtimeMs: null});
+    }
+  }
+  return out;
+}
+
+/** D23: what was already dirty before this session did anything, or null when that cannot be told (the old rule then applies). */
+async function takeSessionBaseline($) {
+  try {
+    const status = await git($, STATUS_ARGS);
+    if (status.exitCode !== 0) return null;
+    const entries = parseStatusZ(status.stdout);
+    return takeBaseline(await statEntries($, await projectBase($), entries.slice(0, BASELINE_MAX), {strict: true}), entries.length);
+  } catch (error) {
+    trace($, `baseline not taken: ${String(error?.message ?? error)}`);
+    return null;
+  }
+}
+
+/**
+ * Keep the newest request, masked and cut, for the end-of-session note. One record per session; each prompt replaces it.
+ * The first request also fixes the baseline (D23); later requests keep it, even when it is null, so that a baseline is
+ * never taken after the session has started changing files.
+ */
 async function recordRequest($, text) {
   if (!config.autoNote || !text.trim() || (await $.session.surfaces()).length === 0) return;
-  await $.store.set(`${LAST_PREFIX}${await $.session.id()}`, {request: cleanForNote(text, QUOTE_MAX), response: '', at: await $.clock.now()});
+  const key = `${LAST_PREFIX}${await $.session.id()}`;
+  const previous = await storeGet($, key);
+  const baseline = previous && typeof previous === 'object' && 'baseline' in previous ? previous.baseline : await takeSessionBaseline($);
+  await $.store.set(key, {request: cleanForNote(text, QUOTE_MAX), response: '', at: await $.clock.now(), baseline});
 }
 
 /** Attach the answer to the request it belongs to. With no recorded request there is nothing to attach it to. */
@@ -325,10 +368,26 @@ async function sweepOldRecords($) {
   }
 }
 
-const dirtyPaths = (porcelain) => porcelain.split('\n').filter((line) => line.trim()).map((line) => line.slice(3).split(' -> ').pop());
+/**
+ * D23: did this session change the working tree? With no usable baseline, or when git status and the stats miss the
+ * sub-deadline, the answer is yes: the old rule (dirty means write) is kept rather than losing a note.
+ * `statusRun` is the git status already started by the caller, so that the sub-deadline covers it too.
+ */
+async function sessionChanged($, baseline, statusRun, root, budget) {
+  if (!baseline || typeof baseline !== 'object' || baseline.truncated || !Array.isArray(baseline.entries)) return true;
+  const verdict = await withDeadline(async () => {
+    const status = await statusRun;
+    if (status.exitCode !== 0) return true;
+    const current = parseStatusZ(status.stdout);
+    if (current.length > BASELINE_MAX || hasNewEntry(baseline, current)) return true;
+    return changedSince(baseline, await statEntries($, root, current, {strict: false}));
+  }, Math.min(COMPARE_DEADLINE_MS, budget / 2), (ms, callback) => $.clock.after(ms, callback));
+  if (!('value' in verdict)) trace($, `end note: comparison ${verdict.timedOut ? 'ran out of time' : 'failed'}, writing as before`);
+  return 'value' in verdict ? verdict.value : true;
+}
 
 /**
- * D4: at the end of an interactive session that left unfinished work, write the facts-only note (the last request and
+ * D4, D23: at the end of an interactive session that changed the working tree, write the facts-only note (the last request and
  * answer, git state, changed files) without asking a model. Gives up at the exit's short budget and writes nothing then.
  * The record is always deleted afterwards: it holds the only copy of that text outside the note.
  */
@@ -342,14 +401,16 @@ async function writeEndNote($, e, next) {
     if (budget < 200) { trace($, `end note skipped: ${remaining} ms left`); return; }
     let abandoned = false;
     const outcome = await withDeadline(async () => {
-      const status = await git($, ['status', '--porcelain']);
-      const dirty = status.exitCode === 0 ? dirtyPaths(status.stdout) : [];
-      const write = shouldWriteNote({interactive: true, turns: 1, hasUnfinishedSign: hasUnfinishedSign({gitDirty: dirty.length > 0}), reason: e.reason, config});
-      trace($, `end note: reason=${e.reason} dirty=${dirty.length} write=${write}`);
+      const base = await projectBase($);
+      const statusRun = git($, STATUS_ARGS);
+      const changed = await sessionChanged($, record.baseline, statusRun, base, budget);
+      const status = await statusRun;
+      const dirty = status.exitCode === 0 ? parseStatusZ(status.stdout).map((entry) => entry.path) : [];
+      const write = shouldWriteNote({interactive: true, turns: 1, hasUnfinishedSign: hasUnfinishedSign({gitDirty: dirty.length > 0 && changed}), reason: e.reason, config});
+      trace($, `end note: reason=${e.reason} dirty=${dirty.length} changed=${changed} write=${write}`);
       if (!write) return false;
       const branch = (await git($, ['branch', '--show-current'])).stdout.trim();
       const head = (await git($, ['rev-parse', '--short', 'HEAD'])).stdout.trim();
-      const base = await projectBase($);
       let root = base;
       try { root = (await $.session.root()) || base; } catch { /* The git toplevel stands in. */ }
       const note = buildEndNote({

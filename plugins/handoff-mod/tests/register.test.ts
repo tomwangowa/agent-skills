@@ -755,6 +755,95 @@ const talk = async ($: any, w: any, request = 'fix the login timeout', answer = 
   await w.flush();
 };
 
+const STATUS_Z = 'status --porcelain -z --untracked-files=all';
+const tree = (stdout: string): Record<string, [number, string]> => ({[STATUS_Z]: [0, stdout]});
+
+test('the first request records what was already dirty, and later requests keep it (D23)', async ($, on) => {
+  const w = world(on, {git: tree('?? GEMINI.md\0 D gone.ts\0'), files: {'/work/app/GEMINI.md': 'notes'}});
+  await startSession($);
+  await talk($, w);
+  const first = w.store.get('last:sess-A').baseline;
+  expect(first).toEqual({entries: [{code: '??', path: 'GEMINI.md', mtimeMs: NOW - 3600_000}, {code: ' D', path: 'gone.ts', mtimeMs: null}], truncated: false});
+  w.files.set('/work/app/GEMINI.md', {text: 'edited', mtimeMs: NOW + 5});
+  await talk($, w, 'second request', 'second answer');
+  expect(w.store.get('last:sess-A').baseline).toEqual(first);
+});
+test('an unreadable dirty file leaves no baseline, and later requests do not take one (D23)', async ($, on) => {
+  const w = world(on, {git: tree(' M missing.ts\0')});
+  await startSession($);
+  await talk($, w);
+  expect(w.store.get('last:sess-A').baseline).toBe(null);
+  w.files.set('/work/app/missing.ts', {text: 'here now', mtimeMs: NOW});
+  await talk($, w, 'again', 'ok');
+  expect(w.store.get('last:sess-A').baseline).toBe(null);
+});
+test('more than 50 dirty entries: the baseline is cut and says so (D23)', async ($, on) => {
+  const names = Array.from({length: 51}, (_, i) => `f${i}.ts`);
+  const w = world(on, {git: tree(names.map((n) => `?? ${n}\0`).join('')), files: Object.fromEntries(names.map((n) => [`/work/app/${n}`, 'x']))});
+  await startSession($);
+  await talk($, w);
+  const baseline = w.store.get('last:sess-A').baseline;
+  expect(baseline.truncated).toBe(true);
+  expect(baseline.entries.length).toBe(50);
+});
+test('a file that was dirty before the session and left alone writes no note (D23)', async ($, on) => {
+  const w = world(on, {git: tree('?? GEMINI.md\0'), files: {'/work/app/GEMINI.md': 'notes'}});
+  await startSession($);
+  await talk($, w, 'what does handoff-mod do?', 'it hands work off');
+  await $.session.end(END);
+  expect(notePath(w)).toBeUndefined();
+  expect(w.store.get('last:sess-A')).toBeUndefined();
+});
+test('a deletion from before the session, left alone, writes no note (D23)', async ($, on) => {
+  const w = world(on, {git: tree(' D gone.ts\0')});
+  await startSession($);
+  await talk($, w);
+  await $.session.end(END);
+  expect(notePath(w)).toBeUndefined();
+});
+test('a new file written during the session writes a note, with its Chinese name intact (D23)', async ($, on) => {
+  const git = tree('?? GEMINI.md\0');
+  const w = world(on, {git, files: {'/work/app/GEMINI.md': 'notes'}});
+  await startSession($);
+  await talk($, w);
+  git[STATUS_Z] = [0, '?? GEMINI.md\0?? 筆記.md\0'];
+  w.files.set('/work/app/筆記.md', {text: 'new', mtimeMs: NOW + 1});
+  await $.session.end(END);
+  expect(w.files.get(notePath(w)).text).toContain('- 筆記.md');
+});
+test('staging a file during the session counts as a change (D23)', async ($, on) => {
+  const git = tree(' M a.ts\0');
+  const w = world(on, {git, files: {'/work/app/a.ts': 'x'}});
+  await startSession($);
+  await talk($, w);
+  git[STATUS_Z] = [0, 'M  a.ts\0'];
+  await $.session.end(END);
+  expect(notePath(w)).toBeDefined();
+});
+test('without a baseline, as in a record from 0.1.x, a dirty tree writes as before (D23)', async ($, on) => {
+  const w = world(on, {git: tree('?? GEMINI.md\0'), files: {'/work/app/GEMINI.md': 'notes'}});
+  await startSession($);
+  w.store.set('last:sess-A', {request: 'fix it', response: 'ok', at: NOW});
+  await $.session.end(END);
+  expect(notePath(w)).toBeDefined();
+});
+test('a cut baseline writes as before (D23)', async ($, on) => {
+  const w = world(on, {git: tree('?? GEMINI.md\0'), files: {'/work/app/GEMINI.md': 'notes'}});
+  await startSession($);
+  w.store.set('last:sess-A', {request: 'fix it', response: 'ok', at: NOW, baseline: {entries: [], truncated: true}});
+  await $.session.end(END);
+  expect(notePath(w)).toBeDefined();
+});
+test('a comparison that misses its sub-deadline writes as before (D23)', async ($, on) => {
+  const w = world(on, {git: tree('?? GEMINI.md\0'), gitDelays: {[STATUS_Z]: 700}, files: {'/work/app/GEMINI.md': 'notes'}});
+  await startSession($);
+  w.store.set('last:sess-A', {request: 'fix it', response: 'ok', at: NOW, baseline: {entries: [{code: '??', path: 'GEMINI.md', mtimeMs: NOW - 3600_000}], truncated: false}});
+  const ending = $.session.end(END);
+  await w.clock.advance(1000);
+  await ending;
+  expect(notePath(w)).toBeDefined();
+});
+
 test('the last request and answer are kept masked and cut, one record for the session', async ($, on) => {
   const w = world(on);
   await startSession($);
@@ -786,10 +875,11 @@ test('with HANDOFF_AUTO_NOTE=off nothing is recorded', async ($, on) => {
   await talk($, w);
   expect(w.store.get('last:sess-A')).toBeUndefined();
 });
-test('ending with unfinished work writes a facts-only note that the list can read back', async ($, on) => {
-  const w = world(on, {git: DIRTY});
+test('ending a session that changed a file writes a facts-only note that the list can read back', async ($, on) => {
+  const w = world(on, {git: tree(' M src/login.ts\0'), files: {'/work/app/src/login.ts': 'old'}});
   await startSession($);
   await talk($, w, `fix it, password = ${SECRET}`, 'changed src/login.ts');
+  w.files.set('/work/app/src/login.ts', {text: 'new', mtimeMs: NOW + 1});
   await $.session.end(END);
   const path = notePath(w);
   expect(path).toMatch(/\/work\/app\/\.claude\/handoffs\/feat-login-timeout--\d{8}-\d{6}--auto\.md$/);
@@ -804,7 +894,7 @@ test('ending with unfinished work writes a facts-only note that the list can rea
   expect(w.store.get('last:sess-A')).toBeUndefined();
 });
 test('no note when the tree is clean, when /clear ended the session, or when there was no request; the record is deleted anyway', async ($, on) => {
-  const clean = world(on, {git: {'status --porcelain': [0, '']}});
+  const clean = world(on, {git: tree('')});
   await startSession($);
   await talk($, clean);
   await $.session.end(END);
@@ -812,7 +902,7 @@ test('no note when the tree is clean, when /clear ended the session, or when the
   expect(clean.store.get('last:sess-A')).toBeUndefined();
 });
 test('a /clear writes no note (T2 owns it) and drops the record', async ($, on) => {
-  const w = world(on, {git: DIRTY});
+  const w = world(on, {git: tree(' M src/login.ts\0')});
   await startSession($);
   await talk($, w);
   await $.session.end({...END, reason: 'clear'});
@@ -820,19 +910,19 @@ test('a /clear writes no note (T2 owns it) and drops the record', async ($, on) 
   expect(w.store.get('last:sess-A')).toBeUndefined();
 });
 test('a session with no recorded request writes nothing', async ($, on) => {
-  const w = world(on, {git: DIRTY});
+  const w = world(on, {git: tree(' M src/login.ts\0')});
   await startSession($);
   await $.session.end(END);
   expect(notePath(w)).toBeUndefined();
 });
 test('with HANDOFF_AUTO_NOTE=off ending the session writes nothing', async ($, on) => {
-  const w = world(on, {git: DIRTY, env: {HANDOFF_AUTO_NOTE: 'off'}, store: {'last:sess-A': {request: 'x', response: 'y', at: NOW}}});
+  const w = world(on, {git: tree(' M src/login.ts\0'), env: {HANDOFF_AUTO_NOTE: 'off'}, store: {'last:sess-A': {request: 'x', response: 'y', at: NOW}}});
   await startSession($);
   await $.session.end(END);
   expect(notePath(w)).toBeUndefined();
 });
 test('out of time means no file at all, and the record is still deleted', async ($, on) => {
-  const w = world(on, {git: DIRTY, gitDelay: 1000});
+  const w = world(on, {git: tree(' M src/login.ts\0'), gitDelay: 1000});
   await startSession($);
   w.store.set('last:sess-A', {request: 'fix it', response: 'ok', at: NOW});
   const ending = $.session.end(END);
