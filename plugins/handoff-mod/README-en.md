@@ -4,7 +4,7 @@
 
 A Claude Code Mod. Before a session loses its state (context nearly full, `/clear`, exit) it helps you leave a handoff file; the next time you open a session in the same project it lists the handoffs that are still unfinished and lets you resume one. The Mod itself costs no model usage: it never calls a model. Only when you run the handoff skill yourself does it take one turn.
 
-> **Status: prototype.** The marketplace entry is added, but the marketplace reads the default branch, so **it only takes effect once this PR is merged**; I have not actually run `claude plugin install`. Verified on the author's macOS (Claude Code 2.1.292) and in a Cloud container (Linux); see "Verification status" at the end. Other environments, other terminals, and how the default 60% threshold feels in daily use have not been verified.
+> **Status: prototype.** It can be installed from the marketplace. The `claude plugin update` flow has been run for real (0.1.6 → 0.2.0); a first install with `claude plugin install` has not. Verified on the author's macOS (Claude Code 2.1.292) and in a Cloud container (Linux); see "Verification status" at the end. Other environments, other terminals, and how the default 60% threshold feels in daily use have not been verified.
 
 ## What it does
 
@@ -23,14 +23,23 @@ Handoff files go to `<git root>/.claude/handoffs/`, and the directory is added t
 
 Tested on Claude Code 2.1.291 and 2.1.292; **the minimum working version is not verified**.
 
-**After the merge** you can install it from the marketplace (**this flow is not verified**):
+Install it from the marketplace (**a first install is not verified**):
 
 ```sh
 claude plugin marketplace add tomwangowa/agent-skills
 claude plugin install handoff-mod@tomwangowa --scope user
 ```
 
-**Before the merge**, or just to try it, load it locally:
+Already installed and updating to a new version (this flow is verified):
+
+```sh
+claude plugin marketplace update tomwangowa
+claude plugin update handoff-mod@tomwangowa
+```
+
+Start a new session afterwards for the update to take effect.
+
+To just try it, load it locally:
 
 ```sh
 git clone https://github.com/tomwangowa/agent-skills.git

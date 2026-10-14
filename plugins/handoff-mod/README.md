@@ -4,7 +4,7 @@
 
 Claude Code Mod。在 session 即將失去狀態之前（context 快滿、`/clear`、結束）協助你留下一份交接檔；下次在同一個專案開新 session 時，列出還沒做完的交接，讓你一鍵接續。零模型成本：Mod 本身不呼叫模型，只有你自己執行交接 skill 時才花一個回合。
 
-> **狀態：原型。** marketplace 條目已加入，但 marketplace 讀的是預設分支，**這個 PR 合併後才會生效**；`claude plugin install` 的流程我沒有實際跑過。 在作者的 macOS（Claude Code 2.1.292）和 Cloud container（Linux）驗證過，見最下方「驗證狀態」。其他環境、終端機與預設的 60% 門檻實際用起來的感覺，還沒有人驗證。
+> **狀態：原型。** 可以從 marketplace 安裝。`claude plugin update` 的更新流程實際跑過（0.1.6 → 0.2.0）；第一次用 `claude plugin install` 安裝的流程我還沒實際跑過。在作者的 macOS（Claude Code 2.1.292）和 Cloud container（Linux）驗證過，見最下方「驗證狀態」。其他環境、終端機與預設的 60% 門檻實際用起來的感覺，還沒有人驗證。
 
 ## 它做什麼
 
@@ -23,14 +23,23 @@ Claude Code Mod。在 session 即將失去狀態之前（context 快滿、`/clea
 
 作者測的是 Claude Code 2.1.291 與 2.1.292，**最低可用版本沒有驗證**。
 
-**合併後**可從 marketplace 安裝（**這條流程沒有驗證過**）：
+從 marketplace 安裝（**第一次安裝的流程沒有驗證過**）：
 
 ```sh
 claude plugin marketplace add tomwangowa/agent-skills
 claude plugin install handoff-mod@tomwangowa --scope user
 ```
 
-**合併前**，或只想試用，用本機載入：
+已經裝過、要更新到新版（這條流程驗證過）：
+
+```sh
+claude plugin marketplace update tomwangowa
+claude plugin update handoff-mod@tomwangowa
+```
+
+更新完要重新開一個 session 才會生效。
+
+只想試用，用本機載入：
 
 ```sh
 git clone https://github.com/tomwangowa/agent-skills.git
