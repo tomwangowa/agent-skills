@@ -18,9 +18,17 @@ re-applies them. This is session-scoped, not a global runtime setting.
 
 On `$session-preferences` or `/session-preferences`:
 
-1. Read `references/INDEX.md`, then read every module listed there.
+1. Locate this installation's package root: the source repository contains
+   `runtime/`; a plugin contains `skills/session-preferences/` and its own
+   `runtime/`. Put that `runtime/` on `PYTHONPATH` and run
+   `python3 -m agent_skills_runtime.preferences load --default-dir <this-skill>/references`.
+   Read the returned effective content and warnings; do not load only the
+   packaged INDEX and bypass personal copies.
 2. Apply those modules from this response onward until the session ends.
-3. Reply once: `已啟用 session-preferences；本 session 後續回應會套用目前規則。`
+3. If there are no warnings, reply once:
+   `已啟用 session-preferences；本 session 後續回應會套用目前規則。`
+   Otherwise apply readable modules and name the inactive ones; do not claim
+   complete activation.
 
 New sessions already get these modules from the SessionStart hook (see
 Automatic loading). Use the manual command when the hook did not run, for
@@ -31,14 +39,30 @@ An active module may direct conditional reading of a reference intentionally
 absent from `INDEX.md`. Read that reference before producing the matching
 content. If it cannot be read, name the missing path and do not claim that its
 rules were applied. `INDEX.md` remains the complete list of always-loaded
-modules.
+modules in the packaged INDEX plus explicitly indexed personal additions.
+
+## Shared Configuration
+
+Resolve the personal root using `AGENT_SKILLS_CONFIG_DIR`, otherwise
+`XDG_CONFIG_HOME/agent-skills`, otherwise `~/.config/agent-skills` for the
+current user. Explicit environment roots must be absolute or `~/` paths.
+Personal rules live under `preferences/` outside plugin caches.
+
+The packaged INDEX defines default active modules. A same-name personal file
+replaces the whole default; a new module in the personal INDEX is appended.
+Deferred references use the personal copy when present, without becoming
+always-loaded modules. `preferences/control-return.md` belongs only to the
+control-return hook and must not be added to this INDEX.
+
+An invalid personal copy is reported as inactive; never silently substitute
+the packaged default. Apply readable modules and identify each failed one.
 
 ## Automatic loading
 
 `scripts/session_start_hook.py` runs as a SessionStart hook in Claude Code
-(`~/.claude/settings.json`) and Codex (`~/.codex/hooks.json`) with matcher
-`startup|clear|compact`. It injects `INDEX.md` modules verbatim, plus the
-absolute paths of deferred references. In hook mode the activation reply is
+and Codex. Register it for `startup|resume|clear|compact`. It injects the
+effective INDEX modules with whole-file personal substitutions, plus absolute
+paths of deferred references. In hook mode the activation reply is
 not sent. Setting `AGENT_SESSION_PREFS=off` before starting a session skips
 injection. If a file is unreadable, the hook names the path in a warning and
 the missing rules must not be claimed as applied.
@@ -71,9 +95,33 @@ Before writing, show the user:
 - whether a new module and index row are needed;
 - that confirmation makes it effective immediately for this session.
 
-Write only after explicit confirmation. Then update the module and, if needed,
-`INDEX.md`; reread the modified reference; and state that the rule is now
-active for the rest of the session. Run `skill-auditor` after any such change.
+Before showing the preview, record the SHA-256 of the existing personal file
+bytes, or absence if there is no personal file. On a first override, copy the
+packaged content and record its SHA-256 as the base hash. Show the complete
+proposed content and personal destination; do not edit installed references.
+
+Write only after explicit confirmation, using the shared runtime's `save`
+command with `--module <filename.md>`, `--content-file`, and the preview's `--expected-hash`
+when a personal file exists. For a first override of an existing default,
+also pass `--base-hash`; omit it for a newly proposed module. The command
+preserves the original base hash, atomically replaces files under a writer
+lock, and adds a personal INDEX row only for a new module. Editing a deferred
+reference does not make it always loaded.
+
+For example, after confirming an edit of an existing personal translation file:
+
+```sh
+PYTHONPATH="<package-root>/runtime" python3 -m agent_skills_runtime.preferences save --module deai-translation.md --content-file "<complete-proposal-file>" --expected-hash "<preview-sha256>"
+```
+
+Replace the placeholders with the resolved package path, preview file and
+recorded hash. The result names the saved `path` and new `sha256`.
+
+If the file changed since preview, stop, reread it, show a new preview and
+obtain fresh confirmation. Never retry with a newly computed hash under the
+old approval. Reread the saved file and apply it to this session as already
+specified by the confirmed request. Run `skill-auditor` after skill instruction
+changes; personal rule edits must also be inspected for conflicts and secrets.
 Never infer and save a rule from ordinary conversation.
 
 ## Conflicts and limits
@@ -83,18 +131,24 @@ If active modules conflict, identify the conflict and ask the user to choose;
 `skill-sync`, change global policy, or modify a live runtime as part of this
 skill.
 
-If `INDEX.md` or a listed module cannot be read, report the missing path and
-do not claim the policy is enabled.
+If an INDEX or listed module cannot be read, report the path and do not claim
+the whole policy is enabled. Readable modules remain active.
 
 ## Error Handling
 
 The SessionStart hook always exits 0 so a rule problem never blocks a session.
 
-- `INDEX.md` unreadable or listing no modules: nothing is injected, and a
+- Packaged `INDEX.md` unreadable or listing no modules: any readable personal
+  additions may still load; otherwise nothing is injected, and a
   `systemMessage` names the path.
 - A listed module unreadable, not valid UTF-8, or with an invalid filename
   in `INDEX.md`: the other modules are injected, the context lists the
   missing path as not loaded, and a `systemMessage` repeats it.
+- Missing bundled runtime, invalid config root, invalid personal INDEX or
+  personal override: warnings identify the inactive components. Neither
+  missing modules nor missing runtime is treated as a complete activation.
+- A stale preview, malformed base-hash metadata, unsafe filename or unreadable
+  proposed content blocks writing; reread and obtain a new confirmed preview.
 - Any other failure: a `systemMessage` reports it and nothing is injected.
 
 When a warning appears, treat the named rules as inactive until the file is
@@ -111,8 +165,13 @@ fixed or the manual command succeeds.
   outside `references/` and cannot disappear silently.
 - Output is built with `json.dumps`, which escapes quotes, newlines, and
   control characters in rule text, so rule content cannot break the hook JSON.
-- The hook reads only files inside this skill directory, makes no network
-  calls, does not execute file content, and ignores its stdin payload.
+- The hook reads packaged defaults and the resolved personal preferences
+  directory, makes no network calls, does not execute file content, and ignores
+  its stdin payload. Symlink rule files are rejected. Keep both locations
+  writable only by the user.
+- Python's POSIX writer lock supports macOS, Linux and WSL. Native Windows
+  writing is not supported by this runtime. A stale content hash prevents
+  competing writers from silently replacing each other's changes.
 - Rules must not contain secrets; they are sent to the model every session.
 
 ## Examples

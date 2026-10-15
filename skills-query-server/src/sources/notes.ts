@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join, basename } from 'path';
-import matter from 'gray-matter';
+import { parseDocument } from 'yaml';
 import type { QANote, NotesConfig } from '../types.js';
 
 function walkMarkdown(dir: string, recursive: boolean, excludeHidden: boolean): string[] {
@@ -32,6 +32,32 @@ function walkMarkdown(dir: string, recursive: boolean, excludeHidden: boolean): 
   return results;
 }
 
+function parseFrontmatter(raw: string): { data: Record<string, unknown>; content: string } {
+  const text = raw.replace(/^\uFEFF/, '');
+  const opening = text.match(/^---([^\r\n]*)\r?\n/);
+  if (!opening) return { data: {}, content: text };
+  const language = opening[1].trim();
+  // Notes are data; never dispatch an executable frontmatter engine.
+  if (!['', 'yaml', 'yml', 'json'].includes(language)) throw new Error('Unsupported frontmatter language');
+  const rest = text.slice(opening[0].length);
+  const closing = /^---[ \t]*(?:\r?\n|$)/m.exec(rest);
+  if (!closing) throw new Error('Unclosed frontmatter');
+  const header = rest.slice(0, closing.index);
+  let value: unknown;
+  if (language === 'json') {
+    value = JSON.parse(header);
+  } else {
+    const document = parseDocument(header, { customTags: ['timestamp'], prettyErrors: false });
+    if (document.errors.length || document.warnings.length) throw new Error('Invalid frontmatter');
+    value = document.toJS({ maxAliasCount: 100 });
+  }
+  if (value != null && (typeof value !== 'object' || Array.isArray(value))) {
+    throw new Error('Frontmatter must be a mapping');
+  }
+  return { data: (value ?? {}) as Record<string, unknown>,
+    content: rest.slice(closing.index + closing[0].length) };
+}
+
 export function loadNotes(config: NotesConfig): QANote[] {
   const allFiles: string[] = [];
   for (const root of config.paths) {
@@ -42,7 +68,7 @@ export function loadNotes(config: NotesConfig): QANote[] {
   for (const filepath of allFiles) {
     try {
       const raw = readFileSync(filepath, 'utf-8');
-      const { data, content } = matter(raw);
+      const { data, content } = parseFrontmatter(raw);
 
       // Extract title from first H1
       const titleMatch = content.match(/^#\s+(.+)$/m);

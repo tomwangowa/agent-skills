@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "marketplace": "agent-skills-acceptance-29c04873",
+  "status": "verified_with_unresolved_native_registry_fingerprints",
+  "native_cleanup_commands": {
+    "count": 48,
+    "failures": 0,
+    "passes": 48
+  },
+  "final_inventory": {
+    "claude_selected_installed_entries": 0,
+    "codex_selected_installed_or_available_entries": 0,
+    "selected_marketplace_in_native_registry_files": false
+  },
+  "fixture_data": {
+    "personal_files_checked": 7,
+    "fingerprints_unchanged": true,
+    "user_config_values_copied": false
+  },
+  "configuration_comparison": {
+    "initial_to_before_first_cleanup_unrelated_hash_changes": [],
+    "before_to_after_first_cleanup_unrelated_hash_changes": [
+      "~/.codex/config.toml"
+    ],
+    "first_to_second_cleanup_unrelated_hash_changes": [],
+    "second_to_final_cleanup_unrelated_hash_changes": [
+      "~/.claude/plugins/installed_plugins.json",
+      "~/.claude/plugins/known_marketplaces.json"
+    ],
+    "resolution": "The first cleanup changed the unselected semantic fingerprint of ~/.codex/config.toml. The final native install/cleanup cycle also changed ~/.claude/plugins/installed_plugins.json and ~/.claude/plugins/known_marketplaces.json semantic fingerprints. The test marketplace and package identifiers are absent from current CLI inventories and registry files. The hash-only baseline does not include prior values, so these differences cannot be attributed safely. No manual restore, prune or trust-state rewrite was performed."
+  },
+  "excluded_experiments": {
+    "reason": "Two unconstrained ordinary-question probes read the source checkout and read-only Git diffs; they executed no sync and made no writes, and were excluded from native package evidence. The subsequent no-tool fixture-only questions are recorded as passing manual-checkpoint evidence.",
+    "private_evidence": [
+      {
+        "record": "claude-manual-general.jsonl",
+        "sha256": "bb5e69317539838187ec054529d7d2cc03ae30976d39acacdcd088ea8ee444f8",
+        "storage": "local acceptance fixture; raw record excluded"
+      },
+      {
+        "record": "codex-manual-general.jsonl",
+        "sha256": "65ac34d01f77747fba124722080d0508de3be6be21702d0e8725bce1d30c148d",
+        "storage": "local acceptance fixture; raw record excluded"
+      }
+    ]
+  },
+  "private_evidence": [
+    {
+      "record": "native-install.jsonl",
+      "sha256": "a74a87f05f6e5badd4a1224cee2a8e2f200b925c60c63d8052f4ed9068fa7201",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "native-install-completion-rerun.jsonl",
+      "sha256": "1fdce11756e53d0886a02debc48fe1c9cfc72c65c4adb3948802eea66e0518ae",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "native-install-manual-guard.jsonl",
+      "sha256": "1fdce11756e53d0886a02debc48fe1c9cfc72c65c4adb3948802eea66e0518ae",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "native-cleanup.jsonl",
+      "sha256": "a5e91c610ecef357d776a435e0dd0c9999e772f12af9be28391d8ea8711289db",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "native-cleanup-completion-rerun.jsonl",
+      "sha256": "a5e91c610ecef357d776a435e0dd0c9999e772f12af9be28391d8ea8711289db",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "native-cleanup-manual-guard.jsonl",
+      "sha256": "a5e91c610ecef357d776a435e0dd0c9999e772f12af9be28391d8ea8711289db",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "state-before.json",
+      "sha256": "47a9c5daef0812848c0151ef67bf01ae5a58e6786ea59442eb221bb34b7ac2ad",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "state-before-cleanup.json",
+      "sha256": "0b7e7a8a5e534d89d1fab4058c36b0939060426e378a3fe05b08453d17e8bfbe",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "state-after-cleanup.json",
+      "sha256": "ba40dc5d3313981cd738c0825a9a5234850c2a93604aac0f3eb815268194d57c",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "state-after-completion-rerun.json",
+      "sha256": "ba40dc5d3313981cd738c0825a9a5234850c2a93604aac0f3eb815268194d57c",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "state-after-manual-guard.json",
+      "sha256": "022ad9abd34b4614ad435262908b0d966fa06ab3e390eec14da2755578d8a6b8",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "pre-update-personal-fingerprints.json",
+      "sha256": "dc65c1d4ddf978302f829819ade02e3bd84acf5316bae8b28bfbf50a3ec4a1d8",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "claude-manual-question-isolated.jsonl",
+      "sha256": "8741deacc45c952e3b89268329141a8bff329b245bf2d22873d3afae55c5ef69",
+      "storage": "local acceptance fixture; raw record excluded"
+    },
+    {
+      "record": "codex-manual-question-isolated.jsonl",
+      "sha256": "bfb51f7e59a322ef4864f790bac8990134d27ea849bbb121e45cee690fe4db5d",
+      "storage": "local acceptance fixture; raw record excluded"
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "surface": "claude-cli",
+      "package": "quality-gates",
+      "version": "0.1.0",
+      "matcher": "startup|resume|clear|compact",
+      "commands": [
+        "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/policy.py\""
+      ],
+      "resources": {
+        "hooks/hooks.json": "fe7aba0aa409520388511aa631b7b53e22d9135c0c74f442dec775e6915fce85",
+        "hooks/policy.md": "2a2abac68558148cad50a7c69e6eea65673df6b8d94b42642a4fa66eccd93164",
+        "hooks/policy.py": "78e2ee5af9a5c78985259e1e29ca8fc78687431304e1a467abd60e675c0eb3c0",
+        "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
+        "runtime/agent_skills_runtime/policy.py": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a",
+        ".claude-plugin/plugin.json": "262abe64afb20f73ad2d7cbc5dea5aca98fd8eb9891fc2ba685f756cc54c59ba"
+      },
+      "native_trust": "not_verified"
+    },
+    {
+      "surface": "claude-cli",
+      "package": "technical-decisions",
+      "version": "0.1.0",
+      "matcher": "startup|resume|clear|compact",
+      "commands": [
+        "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/policy.py\""
+      ],
+      "resources": {
+        "hooks/hooks.json": "fe7aba0aa409520388511aa631b7b53e22d9135c0c74f442dec775e6915fce85",
+        "hooks/policy.md": "365cc099436630fa37429df7783fc5739c911790a5e551afdf4f0d76525853b3",
+        "hooks/policy.py": "78e2ee5af9a5c78985259e1e29ca8fc78687431304e1a467abd60e675c0eb3c0",
+        "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
+        "runtime/agent_skills_runtime/policy.py": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a",
+        ".claude-plugin/plugin.json": "2cfbd4398073d0b1f43f3fa911419eea28b37eda61bab2837edd8047627a534b"
+      },
+      "native_trust": "not_verified"
+    },
+    {
+      "surface": "claude-cli",
+      "package": "session-preferences",
+      "version": "0.1.0",
+      "matcher": "startup|resume|clear|compact",
+      "commands": [
+        "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/session-preferences/scripts/session_start_hook.py\"",
+        "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/control-return/scripts/session_start_hook.py\""
+      ],
+      "resources": {
+        "hooks/hooks.json": "e40714921f19d5be824a61ffc340efc3ef67f42205003c2dadaddaa99593ef21",
+        "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
+        "runtime/agent_skills_runtime/config.py": "2b1a56b181b89f0c2d92b99e07e284cf0c16d2d2b025fa3c15a43a58f98f3a60",
+        "runtime/agent_skills_runtime/doctor.py": "03f8f955d964a106e869ec14c97caace19fa40da88da0eb11c048a84d91d428c",
+        "runtime/agent_skills_runtime/journal_cli.py": "d31c041c3277bc8ce8d75f69978edb8d822ccc08433e19cdcf67213f447627bd",
+        "runtime/agent_skills_runtime/migration.py": "f295b3c848490e315a808d162dfa5534c1f4fe6715bf7a37eb46b8eaecb24a7f",
+        "runtime/agent_skills_runtime/preferences.py": "0becc33662c35ea8aa9939bd8366e90df1f6b886213c5ae1ba1ebf0be678f3ec",
+        "runtime/agent_skills_runtime/setup.py": "829ced45bf3175504485178d0449a9129a4e081f43665013d518d8179505180a",
+        "skills/control-return/SKILL.md": "75feb27e37949eaa0a38dd04ec572fc7dbc046e1fab0cafee439d2b737bd0696",
+        "skills/control-return/agents/openai.yaml": "7796d7e2d792d00fac486ae0b6cad7a5f4ebb00ab9117141b2f610ea012a2433",
+        "skills/control-return/scripts/session_start_hook.py": "0ef7db8c43a62a28c95b286582dd8ff983af09c8870639773556de8ed03ea4fe",
+        "skills/session-preferences/README.md": "62deb80f9dd795ddbc166772f85e7ea05f6efd446ac734ff13a9ad97b1d2b976",
+        "skills/session-preferences/SKILL.md": "28c7df823714caf00fb06d140890059d4df6c074c96c7888844f1c6738d6e33f",
+        "skills/session-preferences/agents/openai.yaml": "2d1c1af7736464a13109e0a5d5467db4fe25e1681c36b9d0e69879fa55835bd8",
+        "skills/session-preferences/references/INDEX.md": "23a4f15b67a269c681594be2bbab732f8da2af20179a58a25c11138d31ddf92b",
+        "skills/session-preferences/references/deai-longform.md": "196e4240d81fae078d8298d5803473dcdda2fb48e67368f9ec5110b6b9ab77f1",
+        "skills/session-preferences/references/deai-translation.md": "83fa3f6a35f567301847c32caa1868b6d46daa3741a28cadba3d2ab9c211a851",
+        "skills/session-preferences/references/deai-voice.md": "27e1777e8291077d242493c4ceb7853a830d476acef41526e7f5f5836f94a782",
+        "skills/session-preferences/references/explanation-depth.md": "6534600a806d83ac50eff47015e43614a62bacdb27c662c626f2dc8d97e5131c",
+        "skills/session-preferences/references/socratic-dialogue.md": "4fba99c200c2d3a45031ed666d3ccb89d3c17788f7fd4eb8bbd2b28cda1f2220",
+        "skills/session-preferences/references/taiwan-zh.md": "81de1c054d790302fedbf4bc92d6cfe8fdf956ea16a2cce967abbdb242d5d167",
+        "skills/session-preferences/scripts/session_start_hook.py": "e845d235dbcaf90ed7bf48fda7aca7c10cdf23cfd91e3ef98f0e80bbc95e095d",
+        "skills/skills-catalog.json": "7965d6e4be5647dace6a4abc2dcaa13d92cfa2e931b7d496cd168bd0499b7575",
+        ".claude-plugin/plugin.json": "c5370eb9892c9b2f1e517451062d4253dc1012002ce22c5b4bd9ffdd36fe07e8"
+      },
+      "native_trust": "not_verified"
+    },
+    {
+      "surface": "claude-cli",
+      "package": "skill-toolbox",
+      "version": "0.1.0",
+      "matcher": "startup|resume|clear|compact",
+      "commands": [
+        "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/policy.py\""
+      ],
+      "resources": {
+        "hooks/hooks.json": "fe7aba0aa409520388511aa631b7b53e22d9135c0c74f442dec775e6915fce85",
+        "hooks/policy.md": "29cda31007e421053d17f5148dfedee23357301450a1d291dbf7f3c8da7344ec",
+        "hooks/policy.py": "78e2ee5af9a5c78985259e1e29ca8fc78687431304e1a467abd60e675c0eb3c0",
+        "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
+        "runtime/agent_skills_runtime/policy.py": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a",
+        ".claude-plugin/plugin.json": "c0ba37480bbc44c63004b053ae64beeb46321fabc8264598e4b5779105f20b8f"
+      },
+      "native_trust": "not_verified"
+    },
+    {
+      "surface": "codex-cli",
+      "package": "quality-gates",
+      "version": "0.1.0",
+      "matcher": "startup|resume|clear|compact",
+      "commands": [
+        "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/policy.py\""
+      ],
+      "resources": {
+        "hooks/hooks.json": "fe7aba0aa409520388511aa631b7b53e22d9135c0c74f442dec775e6915fce85",
+        "hooks/policy.md": "f6ba0676bef45a0b5427d75d5451855e1a64d029a1049ad221a6226cac4bf508",
+        "hooks/policy.py": "78e2ee5af9a5c78985259e1e29ca8fc78687431304e1a467abd60e675c0eb3c0",
+        "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
+        "runtime/agent_skills_runtime/policy.py": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a",
+        ".codex-plugin/plugin.json": "4f64186cb7d151481a50ca76bc55cb8fd062f23766c0bcd26da34a4706a5eb82"
+      },
+      "native_trust": "not_verified"
+    },
+    {
+      "surface": "codex-cli",
+      "package": "technical-decisions",
+      "version": "0.1.0",
+      "matcher": "startup|resume|clear|compact",
+      "commands": [
+        "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/policy.py\""
+      ],
+      "resources": {
+        "hooks/hooks.json": "fe7aba0aa409520388511aa631b7b53e22d9135c0c74f442dec775e6915fce85",
+        "hooks/policy.md": "365cc099436630fa37429df7783fc5739c911790a5e551afdf4f0d76525853b3",
+        "hooks/policy.py": "78e2ee5af9a5c78985259e1e29ca8fc78687431304e1a467abd60e675c0eb3c0",
+        "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
+        "runtime/agent_skills_runtime/policy.py": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a",
+        ".codex-plugin/plugin.json": "97e46b6b1e2459a2f123527e30a4d7679e48f46071e22df56f2c76f531eab378"
+      },
+      "native_trust": "not_verified"
+    },
+    {
+      "surface": "codex-cli",
+      "package": "session-preferences",
+      "version": "0.1.0",
+      "matcher": "startup|resume|clear|compact",
+      "commands": [
+        "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/session-preferences/scripts/session_start_hook.py\"",
+        "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/control-return/scripts/session_start_hook.py\""
+      ],
+      "resources": {
+        "hooks/hooks.json": "e40714921f19d5be824a61ffc340efc3ef67f42205003c2dadaddaa99593ef21",
+        "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
+        "runtime/agent_skills_runtime/config.py": "2b1a56b181b89f0c2d92b99e07e284cf0c16d2d2b025fa3c15a43a58f98f3a60",
+        "runtime/agent_skills_runtime/doctor.py": "03f8f955d964a106e869ec14c97caace19fa40da88da0eb11c048a84d91d428c",
+        "runtime/agent_skills_runtime/journal_cli.py": "d31c041c3277bc8ce8d75f69978edb8d822ccc08433e19cdcf67213f447627bd",
+        "runtime/agent_skills_runtime/migration.py": "f295b3c848490e315a808d162dfa5534c1f4fe6715bf7a37eb46b8eaecb24a7f",
+        "runtime/agent_skills_runtime/preferences.py": "0becc33662c35ea8aa9939bd8366e90df1f6b886213c5ae1ba1ebf0be678f3ec",
+        "runtime/agent_skills_runtime/setup.py": "829ced45bf3175504485178d0449a9129a4e081f43665013d518d8179505180a",
+        "skills/control-return/SKILL.md": "75feb27e37949eaa0a38dd04ec572fc7dbc046e1fab0cafee439d2b737bd0696",
+        "skills/control-return/agents/openai.yaml": "7796d7e2d792d00fac486ae0b6cad7a5f4ebb00ab9117141b2f610ea012a2433",
+        "skills/control-return/scripts/session_start_hook.py": "0ef7db8c43a62a28c95b286582dd8ff983af09c8870639773556de8ed03ea4fe",
+        "skills/session-preferences/README.md": "62deb80f9dd795ddbc166772f85e7ea05f6efd446ac734ff13a9ad97b1d2b976",
+        "skills/session-preferences/SKILL.md": "28c7df823714caf00fb06d140890059d4df6c074c96c7888844f1c6738d6e33f",
+        "skills/session-preferences/agents/openai.yaml": "2d1c1af7736464a13109e0a5d5467db4fe25e1681c36b9d0e69879fa55835bd8",
+        "skills/session-preferences/references/INDEX.md": "23a4f15b67a269c681594be2bbab732f8da2af20179a58a25c11138d31ddf92b",
+        "skills/session-preferences/references/deai-longform.md": "196e4240d81fae078d8298d5803473dcdda2fb48e67368f9ec5110b6b9ab77f1",
+        "skills/session-preferences/references/deai-translation.md": "83fa3f6a35f567301847c32caa1868b6d46daa3741a28cadba3d2ab9c211a851",
+        "skills/session-preferences/references/deai-voice.md": "27e1777e8291077d242493c4ceb7853a830d476acef41526e7f5f5836f94a782",
+        "skills/session-preferences/references/explanation-depth.md": "6534600a806d83ac50eff47015e43614a62bacdb27c662c626f2dc8d97e5131c",
+        "skills/session-preferences/references/socratic-dialogue.md": "4fba99c200c2d3a45031ed666d3ccb89d3c17788f7fd4eb8bbd2b28cda1f2220",
+        "skills/session-preferences/references/taiwan-zh.md": "81de1c054d790302fedbf4bc92d6cfe8fdf956ea16a2cce967abbdb242d5d167",
+        "skills/session-preferences/scripts/session_start_hook.py": "e845d235dbcaf90ed7bf48fda7aca7c10cdf23cfd91e3ef98f0e80bbc95e095d",
+        "skills/skills-catalog.json": "7965d6e4be5647dace6a4abc2dcaa13d92cfa2e931b7d496cd168bd0499b7575",
+        ".codex-plugin/plugin.json": "8b67d8d2b52e826e0874b04c7766ba106b7746c59dcfe1a10c2c08d43dc39874"
+      },
+      "native_trust": "not_verified"
+    },
+    {
+      "surface": "codex-cli",
+      "package": "skill-toolbox",
+      "version": "0.1.0",
+      "matcher": "startup|resume|clear|compact",
+      "commands": [
+        "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/policy.py\""
+      ],
+      "resources": {
+        "hooks/hooks.json": "fe7aba0aa409520388511aa631b7b53e22d9135c0c74f442dec775e6915fce85",
+        "hooks/policy.md": "29cda31007e421053d17f5148dfedee23357301450a1d291dbf7f3c8da7344ec",
+        "hooks/policy.py": "78e2ee5af9a5c78985259e1e29ca8fc78687431304e1a467abd60e675c0eb3c0",
+        "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
+        "runtime/agent_skills_runtime/policy.py": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a",
+        ".codex-plugin/plugin.json": "09083b0631f8daf6664d7be5b3e8d6c351df19360dd63841fbf61f5b1f47ce75"
+      },
+      "native_trust": "not_verified"
+    }
+  ],
+  "notice": "Hashes are reviewed resource-file SHA-256 values, not fabricated native trust hashes. Only normal CLI trust controls may approve new hooks."
+}

@@ -12,3 +12,5 @@ __pycache__/
 plugins
 .claude-plugin
 /synced
+.agents
+/plugin-packages.json

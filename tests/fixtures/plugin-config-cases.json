@@ -1,0 +1,10 @@
+[
+  {"name":"home fallback","home":"/fixture/home user","env":{},"root":"/fixture/home user/.config/agent-skills","activities":"/fixture/home user/.config/agent-skills/data/activities"},
+  {"name":"XDG root","home":"/fixture/home","env":{"XDG_CONFIG_HOME":"/fixture/xdg"},"root":"/fixture/xdg/agent-skills","activities":"/fixture/xdg/agent-skills/data/activities"},
+  {"name":"explicit root wins","home":"/fixture/home","env":{"AGENT_SKILLS_CONFIG_DIR":"/fixture/custom","XDG_CONFIG_HOME":"/fixture/xdg"},"root":"/fixture/custom","activities":"/fixture/custom/data/activities"},
+  {"name":"tilde root","home":"/fixture/home","env":{"AGENT_SKILLS_CONFIG_DIR":"~/settings"},"root":"/fixture/home/settings","activities":"/fixture/home/settings/data/activities"},
+  {"name":"legacy activity override wins","home":"/fixture/home","env":{"CLAUDE_ACTIVITIES_DIR":"~/legacy journal"},"root":"/fixture/home/.config/agent-skills","activities":"/fixture/home/legacy journal"},
+  {"name":"relative override anchors to config","home":"/fixture/home","env":{"AGENT_SKILLS_CONFIG_DIR":"/fixture/custom","CLAUDE_ACTIVITIES_DIR":"../journal"},"root":"/fixture/custom","activities":"/fixture/journal"},
+  {"name":"settings home path","home":"/fixture/home","env":{},"settings_activity":"~/journal","root":"/fixture/home/.config/agent-skills","activities":"/fixture/home/journal"},
+  {"name":"settings absolute path","home":"/fixture/home","env":{},"settings_activity":"/fixture/journal","root":"/fixture/home/.config/agent-skills","activities":"/fixture/journal"}
+]

@@ -1,0 +1,3 @@
+RETIRED: the user removed desktop support on 2026-10-13.
+Do not rerun the former desktop test: it collided with a live MCP server.
+The failed observation is retained in runtime-contracts.json historical_excluded_surfaces.

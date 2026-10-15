@@ -1,0 +1,7 @@
+{
+  "description": "quality-gates skills for codex CLI",
+  "hooks": "./hooks/hooks.json",
+  "name": "quality-gates",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

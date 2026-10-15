@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/session-preferences/scripts/session_start_hook.py\"",
+            "type": "command"
+          },
+          {
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/control-return/scripts/session_start_hook.py\"",
+            "type": "command"
+          }
+        ],
+        "matcher": "startup|resume|clear|compact"
+      }
+    ]
+  }
+}

@@ -31,23 +31,31 @@ By default this is a **mirror** (`rsync --delete`). Pass `--no-delete` to run in
 
 ## Instructions
 
+Resolve `<skill_base_directory>` from this skill's installed location. Select
+`<standalone_source>` explicitly with the user: it is their editable standalone
+skills tree, commonly `~/.claude/skills`, and never a plugin cache. Plugin
+installation, update and removal belong to the host's plugin manager; this
+script only mirrors standalone user skills. It rejects a plugin source even
+for dry-run. Read `.skill-sync-targets` and `.skill-sync-ignore` from the selected
+source; do not write configuration into this installed skill.
+
 When triggered, run:
 
 ```bash
-bash ~/.claude/skills/skill-sync/scripts/sync.sh
+bash "<skill_base_directory>/scripts/sync.sh" --source "<standalone_source>"
 ```
 
 To preserve target-only skills (additive sync, no deletion), pass `--no-delete`:
 
 ```bash
-bash ~/.claude/skills/skill-sync/scripts/sync.sh --no-delete
+bash "<skill_base_directory>/scripts/sync.sh" --source "<standalone_source>" --no-delete
 ```
 
 To inspect either mode without any filesystem changes, pass `--dry-run`:
 
 ```bash
-bash ~/.claude/skills/skill-sync/scripts/sync.sh --dry-run
-bash ~/.claude/skills/skill-sync/scripts/sync.sh --dry-run --no-delete
+bash "<skill_base_directory>/scripts/sync.sh" --source "<standalone_source>" --dry-run
+bash "<skill_base_directory>/scripts/sync.sh" --source "<standalone_source>" --dry-run --no-delete
 ```
 
 If the user says anything like "don't delete the target's existing skills" / "不要刪除目標既有的 skills" / "additive sync", use `--no-delete`. If they ask to preview, inspect, or dry-run without making any change, use `--dry-run`; combine it with `--no-delete` when target-only files must be preserved. `--help` prints usage; an unknown argument exits with code 2.
@@ -65,7 +73,7 @@ User: "preview the skill sync, but do not change anything"
 Run:
 
 ```bash
-bash ~/.claude/skills/skill-sync/scripts/sync.sh --dry-run
+bash "<skill_base_directory>/scripts/sync.sh" --source "<standalone_source>" --dry-run
 ```
 
 The command invokes `rsync --dry-run` only for target directories that already exist. A missing target is printed as `skipped`; it is not created. The command exits after the preview without a confirmation prompt or real sync. Add `--no-delete` to inspect additive mode.
@@ -125,7 +133,7 @@ User: "sync skills, but don't delete the target's existing skills"
 Run with `--no-delete`:
 
 ```bash
-bash ~/.claude/skills/skill-sync/scripts/sync.sh --no-delete
+bash "<skill_base_directory>/scripts/sync.sh" --source "<standalone_source>" --no-delete
 ```
 
 Expected behavior:
@@ -139,7 +147,7 @@ This is the right mode when targets legitimately hold agent-specific skills that
 
 ## Config Files (optional)
 
-Both files live in `~/.claude/skills/`. If absent **or empty/comments-only**, defaults are used.
+Both files live in the explicitly selected `<standalone_source>`. If absent **or empty/comments-only**, defaults are used.
 
 **`.skill-sync-targets`** — one target path per line (`~` is expanded, `#` starts a comment):
 ```

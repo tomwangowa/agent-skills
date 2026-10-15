@@ -1,0 +1,41 @@
+{
+  "catalog_sha256": "3c901cb49798aadeb8661bff67cd6f8ae56899fed271ab68a42838328b7af871",
+  "contracts_sha256": "75c99ca57e6f47a514dc1cf8c2d2a14c0d93b93368905150b86fb4410be9c3f7",
+  "package": {
+    "dependencies": [],
+    "name": "repo-workflow",
+    "platforms": [
+      "claude",
+      "codex"
+    ],
+    "requirements": {
+      "commands": [],
+      "config": []
+    },
+    "runtime_resources": [
+      "code-story-teller/README.md",
+      "handoff/agents/openai.yaml",
+      "docs/plugins/installation.md",
+      "docs/plugins/migration.md",
+      "docs/plugins/team-instructions.md",
+      "docs/plugins/superpowers-compatibility.md"
+    ],
+    "skills": [
+      "code-story-teller",
+      "repo-sync",
+      "handoff"
+    ],
+    "version": "0.1.0"
+  },
+  "resources": {
+    "code-story-teller/README.md": "a2301984e17aec2646f9d71cd88036a20f36048fc59381a56bd64f455dab422e",
+    "code-story-teller/SKILL.md": "f68939f9ea5d6516463b3da0dcfb4aa6ab529779dd06432ef8c46359eea3497c",
+    "docs/plugins/installation.md": "de62189cb94789d647592b66171db8d8b812f0091144c129e34d58ccef807595",
+    "docs/plugins/migration.md": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50",
+    "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
+    "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",
+    "handoff/SKILL.md": "5e681cf66e71465017356f0f1a0796823c0da5a607da243515a6dd52abf3f61d",
+    "handoff/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+    "repo-sync/SKILL.md": "727b02e1fae0f7989548578c7314c3afca986f66a3da972bcb07715419582814"
+  }
+}

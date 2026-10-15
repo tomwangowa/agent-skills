@@ -5,8 +5,22 @@
 
 set -euo pipefail
 
-# Configuration
-ACTIVITIES_DIR="${CLAUDE_ACTIVITIES_DIR:-$HOME/.claude/activities}"
+# Resolve only this source or plugin's bundled runtime; do not borrow another installation.
+resolve_journal_paths() {
+    local skill_dir package_root runtime_dir
+    skill_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+    package_root="$(dirname "$skill_dir")"
+    if [[ "$(basename "$package_root")" == "skills" ]] &&
+       [[ -f "$package_root/../.claude-plugin/plugin.json" || -f "$package_root/../.codex-plugin/plugin.json" ]]; then
+        package_root="$(dirname "$package_root")"
+    fi
+    runtime_dir="$package_root/runtime"
+    if [[ ! -f "$runtime_dir/agent_skills_runtime/journal_cli.py" ]]; then
+        echo "Bundled journal runtime is missing; no data was accessed" >&2
+        return 1
+    fi
+    ACTIVITIES_DIR=$(PYTHONPATH="$runtime_dir${PYTHONPATH:+:$PYTHONPATH}" python3 -m agent_skills_runtime.journal_cli activities-dir) || return 1
+}
 
 # Colors for output
 RED='\033[0;31m'
@@ -491,6 +505,7 @@ main() {
         esac
     done
 
+    resolve_journal_paths
     aggregate_activities "$mode" "$date_range" "$project_filter" "$type_filter" "$tag_filter"
 }
 

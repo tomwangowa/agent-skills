@@ -1,0 +1,57 @@
+{
+  "files": {
+    ".codex-plugin/plugin.json": {
+      "mode": 420,
+      "sha256": "b353c1df8f1787c776a0827a15e6d212d80ab64d136a64efb525a958b6dc5fc4"
+    },
+    ".source.json": {
+      "mode": 420,
+      "sha256": "e21e676180fc8ee6b2bd16359eb59f68cffcc2350a905a7c79ac98968f12e0b6"
+    },
+    "README.md": {
+      "mode": 420,
+      "sha256": "2d329500edf4e897c269deef8cca6c7140f9b132e77e3b16593747dc331804d9"
+    },
+    "installation.md": {
+      "mode": 420,
+      "sha256": "de62189cb94789d647592b66171db8d8b812f0091144c129e34d58ccef807595"
+    },
+    "migration.md": {
+      "mode": 420,
+      "sha256": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50"
+    },
+    "skills/code-story-teller/README.md": {
+      "mode": 420,
+      "sha256": "a2301984e17aec2646f9d71cd88036a20f36048fc59381a56bd64f455dab422e"
+    },
+    "skills/code-story-teller/SKILL.md": {
+      "mode": 420,
+      "sha256": "f68939f9ea5d6516463b3da0dcfb4aa6ab529779dd06432ef8c46359eea3497c"
+    },
+    "skills/handoff/SKILL.md": {
+      "mode": 420,
+      "sha256": "5e681cf66e71465017356f0f1a0796823c0da5a607da243515a6dd52abf3f61d"
+    },
+    "skills/handoff/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+    },
+    "skills/repo-sync/SKILL.md": {
+      "mode": 420,
+      "sha256": "727b02e1fae0f7989548578c7314c3afca986f66a3da972bcb07715419582814"
+    },
+    "skills/skills-catalog.json": {
+      "mode": 420,
+      "sha256": "3495f4cf805826a7baeb77ba190c3dc0357e96c5a9e0088e760d1f3cccf83a31"
+    },
+    "superpowers-compatibility.md": {
+      "mode": 420,
+      "sha256": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a"
+    },
+    "team-instructions.md": {
+      "mode": 420,
+      "sha256": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0"
+    }
+  },
+  "schema_version": 1
+}

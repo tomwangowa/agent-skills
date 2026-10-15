@@ -5,6 +5,27 @@ description: "Use when unsure which skill to use, want to browse available skill
 
 # Skill Router
 
+## Installed resources and availability
+
+Resolve `<skill_base_directory>` from this skill's actual installed location.
+Read `skill-registry.yaml` in that directory and `skills-catalog.json` in its
+parent skills directory. A packaged catalog describes this package, not every
+skill installed on the machine. Do not fall back to a maintainer's global paths.
+
+Compare registry entries with the runtime's actual exposed skills before
+recommending an invocation. Classify each entry as **installed** (exposed now),
+**available to install** (a known package or upstream provider, currently absent),
+or **unavailable** (no confirmed provider or unsupported on this runtime).
+Only installed entries can be invoked or chained. A mention in Related Skills
+or a workflow is not installation evidence. Keep missing workflow steps visible
+with their status, provider and affected step; do not silently skip them.
+When another installed plugin supplies a skill, use its exposed namespaced
+identifier. User-only invocation intent and manual checkpoints still apply.
+For another installed package, inspect its exposed metadata or scoped catalog
+before recommending a call. If invocation intent cannot be determined, report
+that uncertainty and do not treat it as a model-invoked step. A known package
+index describes installable members; it does not make them installed.
+
 A unified entry point for discovering, browsing, and invoking skills. Reads from a central registry to recommend skills and workflows based on user intent.
 
 ## Mode Detection
@@ -48,8 +69,8 @@ The router itself may be invoked by the agent when the task needs skill discover
 
 For a model-invokable downstream skill, continue through the existing routing flow. For a user-only downstream skill, stop at a manual checkpoint and wait for the user to explicitly invoke `$skill-name` or `/skill-name`. A reply such as「好」、「開始」or「繼續」does not count as explicit invocation.
 
-1. Read the registry file at `~/.claude/skills/skill-router/skill-registry.yaml` and
-   `~/.claude/skills/skills-catalog.json`. The catalog is authoritative for a local
+1. Read the registry file at `<skill_base_directory>/skill-registry.yaml` and
+   `<skill_base_directory>/../skills-catalog.json`. The catalog is authoritative for a local
    skill's `invocation_intent`; registry membership only makes it discoverable.
 2. Take the user's ARGUMENTS as the search query.
 3. **Prefer workflow matches first**: compare the query against each workflow's `when` field. If the query aligns with a workflow scenario, recommend that workflow.
@@ -174,8 +195,8 @@ Use this mode when the user wants to see all available skills organized by categ
 ### Steps
 
 1. Read both sources:
-   - `~/.claude/skills/skill-router/skill-registry.yaml` for skills that can be automatically routed and their router categories.
-   - `~/.claude/skills/skills-catalog.json` for the complete local skill inventory and its lifecycle/surface policy.
+   - `<skill_base_directory>/skill-registry.yaml` for skills that can be automatically routed and their router categories.
+   - `<skill_base_directory>/../skills-catalog.json` for the complete local skill inventory and its lifecycle/surface policy.
 2. List every non-deprecated local catalog entry. Keep the router categories as the main tables, including the active external skills already registered there. Then add a separate table for catalog entries with `routable: false` that are not already shown. These skills are available when named directly, but must not be recommended by smart routing.
 3. For each table, print a compact table:
 
@@ -210,8 +231,8 @@ Use this mode when the user wants to see predefined multi-skill workflows.
 
 ### Steps
 
-1. Read the registry file at `~/.claude/skills/skill-router/skill-registry.yaml`
-   and `~/.claude/skills/skills-catalog.json`.
+1. Read the registry file at `<skill_base_directory>/skill-registry.yaml`
+   and `<skill_base_directory>/../skills-catalog.json`.
 2. For each workflow in the registry, look up every local step's
    `invocation_intent`. Print a user-only step as `$skill-name`（manual
    checkpoint；需 explicit user invocation）; retain a model step as its normal
@@ -275,7 +296,7 @@ User: /skill-router workflows
 
 ## Error Handling
 
-- **Registry file not found**: If `skill-registry.yaml` cannot be read, inform the user: "Registry 檔案無法讀取，請確認 `~/.claude/skills/skill-router/skill-registry.yaml` 存在。" and fall back to listing skills from memory.
+- **Registry file not found**: If `skill-registry.yaml` cannot be read, inform the user: "Registry 檔案無法讀取，請確認 `<skill_base_directory>/skill-registry.yaml` 存在。" and stop registry-based routing; only report skills exposed by the current runtime.
 - **No match found**: Present the no-match message with alternative actions (list, workflows, rephrase).
 - **Invalid ARGUMENTS**: If arguments cannot be parsed, default to Mode 1 (smart routing) with the raw text as query.
 - **Skill invocation failure**: If a recommended skill fails to invoke, report the error and suggest trying the next skill in the chain or using `/skill-router list` to find alternatives.

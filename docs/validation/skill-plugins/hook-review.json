@@ -1,0 +1,53 @@
+{
+  "plugin_id": "skill-plugins-probe-codex-cli@skill-plugins-runtime-probe",
+  "version": "0.0.2",
+  "hook_definition": {
+    "hooks": {
+      "SessionStart": [
+        {
+          "matcher": "startup|resume|clear|compact",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/session-preferences/scripts/session_start_hook.py\""
+            },
+            {
+              "type": "command",
+              "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/control-return/scripts/session_start_hook.py\""
+            },
+            {
+              "type": "command",
+              "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/routing.py\""
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "resources": [
+    {
+      "path": "hooks/hooks.json",
+      "sha256": "eb1f361589f43e9156f780c9d4589d94b90afd43f1e7827edc07b58fd6bd148a"
+    },
+    {
+      "path": "skills/session-preferences/scripts/session_start_hook.py",
+      "sha256": "818515f1af0052dac2d56c1304d3646e7e863a3a8fb67ff4d27d7055c6d85f1c"
+    },
+    {
+      "path": "skills/control-return/scripts/session_start_hook.py",
+      "sha256": "cb0af2e6b53491bd3af9bc03d91d485d968599b1fe70c5dacccce02cefaf9bf3"
+    },
+    {
+      "path": "hooks/routing.py",
+      "sha256": "9ea536cbe57e36d176370ea447cfd82e8f4e0822c07fe5929fc55902e421b4c3"
+    },
+    {
+      "path": "hooks/policy.md",
+      "sha256": "03639c637197c0da8120537c93baa309d8c59f026b8303e4140d0c2c53b48769"
+    }
+  ],
+  "behavior": "Read packaged markdown and emit SessionStart additionalContext JSON. Preference hooks honor AGENT_SESSION_PREFS=off. No file writes or network requests in these hook scripts.",
+  "trust_granted": true,
+  "trust_method": "Codex 0.162.1 normal /hooks flow; each of the three selected probe hooks trusted separately after hash verification",
+  "observed_active": "SessionStart Installed 5 / Active 5: two pre-existing user hooks plus the three reviewed probe hooks"
+}

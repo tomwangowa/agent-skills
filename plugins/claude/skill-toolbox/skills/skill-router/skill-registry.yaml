@@ -1,0 +1,113 @@
+# Generated scoped registry; verify actual runtime availability.
+# ============================================================
+# Skill Registry — single source of truth for skill routing
+# ============================================================
+
+categories:
+
+  # ── 1. 研究與驗證 ──────────────────────────────────────────
+  research:
+    label: 研究與驗證
+    skills: []
+  code-review:
+    label: 程式碼審查
+    skills: []
+  dev-process:
+    label: 開發流程
+    skills:
+      - id: claude-workflow-designer
+        triggers:
+          - "Claude Code workflow"
+          - "設計 Claude workflow"
+          - "workflow 機制"
+          - "hook skill MCP"
+          - "hook 或 skill"
+          - "/sos"
+
+  roles:
+    label: 角色協作
+    skills: []
+  delegation:
+    label: 平行執行
+    skills: []
+  code-history:
+    label: 程式碼歷史
+    skills: []
+  presentation:
+    label: 簡報與溝通
+    skills: []
+  knowledge:
+    label: 知識管理
+    skills: []
+  content:
+    label: 內容策展
+    skills: []
+  meta:
+    label: 工具與維護
+    skills:
+      - id: skill-auditor
+        triggers:
+          - "audit skill"
+          - "檢查 skill"
+          - "skill quality"
+          - "skill 品質"
+          - "validate skill"
+          - "skill audit"
+
+      - id: skill-sync
+        triggers:
+          - "sync skills"
+          - "同步 skills"
+          - "skill-sync"
+          - "push skills to agents"
+          - "更新其他 agent"
+          - "sync to codex"
+          - "sync to gemini"
+          - "sync to omp"
+
+workflows:
+
+  - id: tech-evaluation
+    label: 技術評估（快速）
+    when: 評估一個技術方案是否可行，需要驗證假設
+    steps:
+      - tech-feasibility
+      - assumption-extractor
+      - micro-poc-validator
+
+  - id: full-research
+    label: 完整研究流程（8 階段）
+    when: 重大技術決策，需要嚴謹求證與多方交叉驗證
+    steps:
+      - tech-research-pipeline
+
+  - id: feature-dev
+    label: 功能開發全流程
+    when: 從需求探索到交付的完整開發週期
+    steps:
+      - brainstorming
+      - superpowers:writing-plans
+      - superpowers:executing-plans
+      - completion-gate
+      # Review is selected by skill-router from the active runtime.
+
+  - id: presentation
+    label: 簡報製作
+    when: 準備演講、分享、或任何簡報
+    steps:
+      - presentation-planner
+      - interactive-presentation-generator
+
+  - id: post-implementation
+    label: 實作完成後驗收
+    when: 代碼寫完，準備 review 和合併
+    steps:
+      - completion-gate
+      # Review is selected by skill-router from the active runtime.
+      - superpowers:finishing-a-development-branch
+
+  - id: role-pipeline
+    label: PM→RD 角色協作
+    when: 需要完整的需求分析到技術設計流程
+    steps:
+      - role-orchestrator

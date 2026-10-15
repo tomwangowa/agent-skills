@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "skills": [
+    {
+      "category": "content-generation",
+      "id": "interactive-presentation-generator",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "content-generation",
+      "id": "md-translate",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": false,
+        "sync": true
+      }
+    },
+    {
+      "category": "content-generation",
+      "id": "pptx-to-md",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": false,
+        "sync": true
+      }
+    },
+    {
+      "category": "content-generation",
+      "id": "presentation-planner",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "content-generation",
+      "id": "sepia",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    }
+  ]
+}

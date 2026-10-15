@@ -82,7 +82,7 @@ Then customize for your skill's needs.
 
 **Problem:**
 ```markdown
-Style directory: /Users/tom_wang/Development/styles
+Style directory: <selected-style-directory>
 ```
 
 **Quick Fix:**
@@ -242,7 +242,7 @@ When Readiness is `Ready` (0 Critical and 0 Important findings):
 Run skill-auditor on your skill and see what it finds!
 
 ```bash
-bash ~/.claude/skills/skill-auditor/scripts/audit_skill.sh YOUR_SKILL_DIR
+bash "<skill_base_directory>/scripts/audit_skill.sh" YOUR_SKILL_DIR
 ```
 
 Then use the templates here to quickly fix any issues.

@@ -1,0 +1,27 @@
+{
+  "name": "skills-query-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "test": "npm run build && npm run test:unit && npm run test:smoke",
+    "test:unit": "vitest run --exclude 'scripts/*.test.mjs' --exclude 'dist/**'",
+    "smoke": "node scripts/smoke_client.mjs",
+    "test:smoke": "node --test scripts/*.test.mjs",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "glob": "^13.0.5",
+    "yaml": "^2.9.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.4"
+  }
+}

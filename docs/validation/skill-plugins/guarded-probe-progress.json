@@ -1,0 +1,13 @@
+{
+  "initial_process_result": "timed_out_after_150_seconds",
+  "identity_call_succeeded": true,
+  "unique_server": "agent_skills_probe_codex_cli",
+  "activity_write_succeeded": true,
+  "write_path": "installed_probe/data/activities",
+  "query_round_trip": "pending",
+  "raw_artifact": {
+    "file": "codex-guarded-initial-timeout-rollout.jsonl",
+    "sha256": "a98764330662409541c88472dfda57b240ca972ef8d55be14bbaaeac51bdbd32"
+  },
+  "note": "Actual code-mode tool records confirm guarded identity and fixture write; process timed out before the query. No call to the live server was found."
+}

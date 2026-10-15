@@ -39,6 +39,8 @@ class HookFixture(unittest.TestCase):
         (self.skill_dir / "scripts").mkdir(parents=True)
         self.installed = self.skill_dir / "scripts" / "session_start_hook.py"
         shutil.copy(self.script, self.installed)
+        shutil.copytree(SOURCE_ROOT / "runtime", Path(self.temporary_directory.name) / "runtime",
+                        ignore=shutil.ignore_patterns("__pycache__"))
 
     def tearDown(self) -> None:
         self.temporary_directory.cleanup()
@@ -46,6 +48,7 @@ class HookFixture(unittest.TestCase):
     def run_hook(self, **env_overrides: str) -> tuple[int, str]:
         env = {k: v for k, v in os.environ.items() if k != "AGENT_SESSION_PREFS"}
         env.update(env_overrides)
+        env.setdefault("AGENT_SKILLS_CONFIG_DIR", str(Path(self.temporary_directory.name) / "config"))
         result = subprocess.run(
             [sys.executable, str(self.installed)],
             input=HOOK_INPUT,

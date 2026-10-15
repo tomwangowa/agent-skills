@@ -1,0 +1,6 @@
+interface:
+  display_name: "Session Preferences"
+  short_description: "Session response rules, auto-applied at session start"
+  default_prompt: "Use $session-preferences to enable my session response preferences."
+policy:
+  allow_implicit_invocation: false

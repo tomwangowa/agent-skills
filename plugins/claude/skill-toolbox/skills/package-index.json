@@ -1,0 +1,523 @@
+{
+  "schema_version": 1,
+  "skills": [
+    {
+      "availability": "available_to_install",
+      "category": "quality-gates",
+      "id": "code-review-claude",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "quality-gates",
+      "provider": "quality-gates:code-review-claude",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "quality-gates",
+      "id": "completion-gate",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "quality-gates",
+      "provider": "quality-gates:completion-gate",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "quality-gates",
+      "id": "codebase-audit",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "quality-gates",
+      "provider": "quality-gates:codebase-audit",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "quality-gates",
+      "id": "pr-review-assistant",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "quality-gates",
+      "provider": "quality-gates:pr-review-assistant",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "quality-gates",
+      "id": "secure-ai-development-gate",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "quality-gates",
+      "provider": "quality-gates:secure-ai-development-gate",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "design-planning",
+      "id": "brainstorming",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:brainstorming",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "assumption-extractor",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:assumption-extractor",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "critical-research",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:critical-research",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "deep-reading",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:deep-reading",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "micro-poc-validator",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:micro-poc-validator",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "narrative-auditor",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:narrative-auditor",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "research-cross-validator",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:research-cross-validator",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "research-synthesis",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:research-synthesis",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "tech-feasibility",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:tech-feasibility",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "tech-research-pipeline",
+      "invocation_intent": "user",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:tech-research-pipeline",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "multi-agent-roles",
+      "id": "role-orchestrator",
+      "invocation_intent": "user",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:role-orchestrator",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "multi-agent-roles",
+      "id": "role-pm",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:role-pm",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "multi-agent-roles",
+      "id": "role-rd",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:role-rd",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "design-planning",
+      "id": "spec-gap-finder",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:spec-gap-finder",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "design-planning",
+      "id": "technical-proposal-review",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:technical-proposal-review",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "design-planning",
+      "id": "ui-design-analyzer",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "technical-decisions",
+      "provider": "technical-decisions:ui-design-analyzer",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": false,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "productivity-tracking",
+      "id": "code-story-teller",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "repo-workflow",
+      "provider": "repo-workflow:code-story-teller",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "productivity-tracking",
+      "id": "repo-sync",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "repo-workflow",
+      "provider": "repo-workflow:repo-sync",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "productivity-tracking",
+      "id": "handoff",
+      "invocation_intent": "user",
+      "lifecycle": "promoted",
+      "package": "repo-workflow",
+      "provider": "repo-workflow:handoff",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "content-generation",
+      "id": "presentation-planner",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "content-tools",
+      "provider": "content-tools:presentation-planner",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "content-generation",
+      "id": "interactive-presentation-generator",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "content-tools",
+      "provider": "content-tools:interactive-presentation-generator",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "content-generation",
+      "id": "sepia",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "content-tools",
+      "provider": "content-tools:sepia",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "content-generation",
+      "id": "md-translate",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "content-tools",
+      "provider": "content-tools:md-translate",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": false,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "content-generation",
+      "id": "pptx-to-md",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "content-tools",
+      "provider": "content-tools:pptx-to-md",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": false,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "productivity-tracking",
+      "id": "activity-logger",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "work-journal",
+      "provider": "work-journal:activity-logger",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "productivity-tracking",
+      "id": "work-log-analyzer",
+      "invocation_intent": "model",
+      "lifecycle": "personal",
+      "package": "work-journal",
+      "provider": "work-journal:work-log-analyzer",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "tools-meta",
+      "id": "session-preferences",
+      "invocation_intent": "user",
+      "lifecycle": "experimental",
+      "package": "session-preferences",
+      "provider": "session-preferences:session-preferences",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "tools-meta",
+      "id": "control-return",
+      "invocation_intent": "user",
+      "lifecycle": "experimental",
+      "package": "session-preferences",
+      "provider": "session-preferences:control-return",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "tools-meta",
+      "id": "skill-auditor",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "skill-toolbox",
+      "provider": "skill-toolbox:skill-auditor",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "tools-meta",
+      "id": "skill-router",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "package": "skill-toolbox",
+      "provider": "skill-toolbox:skill-router",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": false,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "tools-meta",
+      "id": "skill-sync",
+      "invocation_intent": "user",
+      "lifecycle": "promoted",
+      "package": "skill-toolbox",
+      "provider": "skill-toolbox:skill-sync",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "design-planning",
+      "id": "claude-workflow-designer",
+      "invocation_intent": "user",
+      "lifecycle": "promoted",
+      "package": "skill-toolbox",
+      "provider": "skill-toolbox:claude-workflow-designer",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    }
+  ]
+}

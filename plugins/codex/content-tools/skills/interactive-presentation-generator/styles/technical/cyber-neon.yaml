@@ -1,0 +1,162 @@
+# Cyber Neon Template
+# Dark background with neon accent colors, tech aesthetic
+# Category: Technical Series
+
+template_metadata:
+  id: "cyber-neon"
+  version: "1.0.0"
+  category: "technical"
+  name:
+    en: "Cyber Neon"
+    zh_tw: "賽博霓虹"
+    ja: "サイバーネオン"
+  description:
+    en: "Dark futuristic aesthetic with vibrant neon accents for tech and gaming presentations"
+    zh_tw: "深色未來美學，搭配鮮豔霓虹強調色，適合科技和遊戲簡報"
+    ja: "ダークな未来的美学と鮮やかなネオンアクセント、テックとゲームプレゼン向け"
+  tags:
+    en: ["technical", "cyber", "neon", "dark", "futuristic", "tech"]
+    zh_tw: ["技術", "賽博", "霓虹", "深色", "未來", "科技"]
+    ja: ["テクニカル", "サイバー", "ネオン", "ダーク", "未来的", "テック"]
+  recommended_for:
+    en: ["Tech launches", "Gaming presentations", "Cybersecurity topics", "Future trends"]
+    zh_tw: ["科技發表", "遊戲簡報", "資安主題", "未來趨勢"]
+    ja: ["テック発表", "ゲームプレゼン", "サイバーセキュリティ", "未来トレンド"]
+
+overall_design_settings:
+  tone: "Futuristic, Energetic, Technical"
+  design_philosophy: "Digital Aesthetic - Neon Light in Cyber Space"
+
+  color_palette:
+    base: "#0A0E27"
+    primary: "#00F0FF"
+    text: "#E0E7FF"
+    background: "#0D1117"
+    accent_1: "#FF006E"
+    accent_2: "#8338EC"
+    highlight: "#3A86FF"
+
+  typography:
+    heading:
+      font_family: "JetBrains Mono, Fira Code, monospace"
+      font_description: "Monospace font with tech aesthetic, sharp and futuristic"
+      size_philosophy: "Bold and impactful - tech conference style"
+      font_weight: 700
+      font_size: "48pt"
+      line_height: 1.1
+      text_transform: "uppercase"
+      letter_spacing: "0.1em"
+    body:
+      font_family: "Inter, -apple-system, sans-serif"
+      font_description: "Clean sans-serif for readability on dark background"
+      readability_notes: "16pt with high contrast (#E0E7FF on dark) for screen readability"
+      font_weight: 400
+      font_size: "16pt"
+      line_height: 1.7
+
+  common_layout_rules:
+    grid_system: "Flexible tech grid with neon guide lines"
+    spacing_philosophy: "Compact but breathable - tech density with strategic whitespace"
+    alignment_principle: "Left-aligned tech aesthetic with neon accent alignment guides"
+    whitespace_approach: "Dark space as canvas - emptiness emphasizes neon elements"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "line"
+        description: "Glowing neon lines (2-3px with blur effect) in cyan (#00F0FF) or magenta (#FF006E)"
+        usage: "Section dividers, tech aesthetic accents, creating cyberpunk atmosphere"
+        color: "#00F0FF"
+      - type: "shape"
+        description: "Geometric tech elements - hexagons, circuit patterns, angular brackets"
+        usage: "Visual interest, tech branding, futuristic atmosphere"
+        color: "#8338EC"
+      - type: "glow"
+        description: "Subtle glow effects (box-shadow blur 20-40px) on neon elements"
+        usage: "Creating depth and neon light effect"
+    material_metaphor: "Digital screen with neon lighting - cyberpunk aesthetic"
+    visual_rhythm: "Pulsing and energetic - neon accents create dynamic visual flow"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Futuristic title with neon accents"
+    design: |
+      Dark dramatic composition with neon-lit typography.
+      Main title: Massive 80pt monospace (JetBrains Mono), cyan (#00F0FF), uppercase, font-weight 700.
+      Title positioned: 120px from top, 100px from left, creating tech aesthetic.
+      Letter-spacing: 0.15em for futuristic spacing.
+      Neon glow effect: Cyan box-shadow (0 0 30px #00F0FF, 0 0 60px #00F0FF) creating light effect.
+      Subtitle: 18pt sans-serif, light text (#E0E7FF), positioned below title with 40px gap.
+      Accent elements: Geometric brackets or angular shapes in magenta (#FF006E) framing title.
+      Tech details: Small text elements (version, date, code) in corners using monospace 12pt.
+      Background: Deep dark (#0D1117) with subtle grid pattern (1px, #1A1F3A, 10% opacity).
+      Neon line accents: Thin glowing lines (2px, cyan or magenta) creating tech frame.
+      Overall atmosphere: Futuristic, energetic, cyberpunk, tech conference vibe.
+      Visual weight: 80% on glowing title, 20% on neon accent elements.
+    component: "title_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "100px"
+      right: "100px"
+
+  - type: "Content Slide"
+    description: "Tech content with neon highlights"
+    design: |
+      Dark technical layout with neon-highlighted sections.
+      Section header: 32pt monospace uppercase, cyan (#00F0FF) with glow effect.
+      Header positioned: 80px from top, with neon underline (3px, magenta #FF006E).
+      Content: Single column or asymmetric layout, light text (#E0E7FF) on dark (#0D1117).
+      Code blocks or technical content: Monospace 14pt, subtle background (#1A1F3A), neon border.
+      Bullet points: Neon colored markers - small squares or arrows in cyan (#00F0FF).
+      Bullet spacing: 20px vertical for readability on dark background.
+      Visual accents: Angular bracket shapes or circuit-like decorative elements in purple (#8338EC).
+      Highlight boxes: Important content in bordered boxes with neon glow (magenta or cyan).
+      Background: Dark (#0D1117) with optional subtle tech pattern or grid.
+      Overall atmosphere: Technical, futuristic, high-tech presentation.
+      Visual weight: Content 70%, neon visual accents 30%.
+    component: "content_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "100px"
+      right: "100px"
+
+  - type: "Data Slide"
+    description: "Neon data visualization"
+    design: |
+      Dark data viz with vibrant neon chart colors.
+      Chart title: 28pt monospace, cyan (#00F0FF) with glow effect.
+      Chart: Bold lines (2-3px), using neon palette (cyan, magenta, purple, blue).
+      Data visualization style: High-contrast on dark background, neon colors pop.
+      Grid: Subtle dark grid (#1A1F3A) at 20% opacity, or neon grid lines at 10% opacity.
+      Data labels: Neon colored text matching their data series, 14pt monospace.
+      Emphasis: Key data points with pulsing glow effect (animation suggestion).
+      Background: Deep dark (#0D1117) making neon colors vibrant.
+      Overall atmosphere: Futuristic data, cyberpunk analytics, tech visualization.
+      Visual weight: Chart 85%, neon accents and labels 15%.
+    component: "data_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "100px"
+      right: "100px"
+
+  - type: "Summary Slide"
+    description: "Neon summary with tech aesthetic"
+    design: |
+      Dark summary with neon numbered points.
+      Heading: Large 36pt monospace uppercase, cyan (#00F0FF), glowing.
+      Numbers: Huge 48pt, magenta (#FF006E) with glow, positioned left.
+      Point text: 20pt sans-serif, light (#E0E7FF), positioned right of numbers.
+      Neon connecting lines: Thin glowing lines connecting numbers vertically (cyan, 2px).
+      Maximum 4 points for impact and focus.
+      Tech border: Neon frame around summary area (2px, cyan/magenta gradient).
+      Background: Dark (#0D1117) with tech pattern or circuit design at 5% opacity.
+      Overall atmosphere: Futuristic conclusion, tech emphasis, memorable closing.
+      Visual weight: 70% on content, 30% on neon visual system.
+    component: "summary_slide"
+    safe_area:
+      top: "80px"
+      bottom: "80px"
+      left: "100px"
+      right: "100px"

@@ -1,0 +1,6 @@
+{
+  "description": "content-tools skills for codex CLI",
+  "name": "content-tools",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

@@ -29,6 +29,10 @@ CURRENT_REPO="$TMP_DIR/current-repo"
 REFERENCE_REPO="$TMP_DIR/reference-repo"
 NON_GIT_DIR="$TMP_DIR/non-git"
 ACTIVITIES_DIR="$TMP_DIR/activities"
+export AGENT_SKILLS_CONFIG_DIR="$TMP_DIR/config"
+mkdir -p "$AGENT_SKILLS_CONFIG_DIR" "$TMP_DIR/notes"
+jq -n --arg activities "$ACTIVITIES_DIR" --arg notes "$TMP_DIR/notes" \
+    '{sources:{activities:$activities,notes:{paths:[$notes]}}}' > "$AGENT_SKILLS_CONFIG_DIR/work-journal.json"
 
 init_fixture_repo "$CURRENT_REPO"
 init_fixture_repo "$REFERENCE_REPO"

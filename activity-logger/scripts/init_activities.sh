@@ -5,12 +5,24 @@
 
 set -euo pipefail
 
-# Configuration
-ACTIVITIES_DIR="${CLAUDE_ACTIVITIES_DIR:-$HOME/.claude/activities}"
-SESSION_FILE="$ACTIVITIES_DIR/.session_id"
-PROCESSED_DIR="$ACTIVITIES_DIR/processed"
-CONFIG_DIR="$HOME/.claude/config"
-CONFIG_FILE="$CONFIG_DIR/activity-config.json"
+# Resolve only this source or plugin's bundled runtime; do not borrow another installation.
+resolve_journal_paths() {
+    local skill_dir package_root runtime_dir
+    skill_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+    package_root="$(dirname "$skill_dir")"
+    if [[ "$(basename "$package_root")" == "skills" ]] &&
+       [[ -f "$package_root/../.claude-plugin/plugin.json" || -f "$package_root/../.codex-plugin/plugin.json" ]]; then
+        package_root="$(dirname "$package_root")"
+    fi
+    runtime_dir="$package_root/runtime"
+    if [[ ! -f "$runtime_dir/agent_skills_runtime/journal_cli.py" ]]; then
+        echo "Bundled journal runtime is missing; no data was accessed" >&2
+        return 1
+    fi
+    ACTIVITIES_DIR=$(PYTHONPATH="$runtime_dir${PYTHONPATH:+:$PYTHONPATH}" python3 -m agent_skills_runtime.journal_cli activities-dir) || return 1
+    SESSION_FILE="$ACTIVITIES_DIR/.session_id"
+    PROCESSED_DIR="$ACTIVITIES_DIR/processed"
+}
 
 # Colors for output
 RED='\033[0;31m'
@@ -49,22 +61,9 @@ check_jq() {
 init_dirs() {
     log_header "Initializing Activity Logger"
 
-    # Create directories
-    mkdir -p "$ACTIVITIES_DIR" "$PROCESSED_DIR" "$CONFIG_DIR"
-    log_info "Created directory structure"
-
-    # Create default config if it doesn't exist
-    if [[ ! -f "$CONFIG_FILE" ]]; then
-        cat > "$CONFIG_FILE" <<EOF
-{
-  "activities_dir": "$ACTIVITIES_DIR",
-  "auto_archive_days": 30,
-  "default_activity_type": "task_completed",
-  "tracked_projects": []
-}
-EOF
-        log_info "Created default configuration: $CONFIG_FILE"
-    fi
+    # Shared settings are created by the explicit setup CLI, never inside a plugin cache.
+    mkdir -p "$ACTIVITIES_DIR" "$PROCESSED_DIR"
+    log_info "Created selected activity directories"
 
     log_info "Initialization complete"
 }
@@ -204,6 +203,10 @@ show_stats() {
 main() {
     local command="${1:-init}"
 
+    if [[ "$command" != "help" && "$command" != "--help" && "$command" != "-h" ]]; then
+        resolve_journal_paths
+    fi
+
     case "$command" in
         init)
             init_dirs
@@ -239,7 +242,7 @@ Commands:
   help              Show this help message
 
 Environment Variables:
-  CLAUDE_ACTIVITIES_DIR   Override activities directory (default: ~/.claude/activities)
+  CLAUDE_ACTIVITIES_DIR   Override the shared selected activity directory
 
 Examples:
   init_activities.sh init              # Initialize directories

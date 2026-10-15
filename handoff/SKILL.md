@@ -19,7 +19,7 @@ disable-model-invocation: true
 由 `session-start`（在有掛這個讀回的 repo）在下次開工時讀回（列出讓使用者挑一份、
 重驗前提）。
 
-> 本 skill 是 user-level（`~/.claude/skills/handoff/`），任何 repo 都能用。
+> 本 skill 可由 user-level skills 或 plugin 安裝，任何 repo 都能用。腳本與 references 以目前安裝位置為準。
 > 落點固定為「當前 repo」的 `.claude/handoffs/`，交接跟著它所屬的 repo 走。
 > 為避免別的 repo 被交接檔弄髒 git status，請在全域 gitignore
 > （`git config --global core.excludesFile`）加一行 `.claude/handoffs/`。

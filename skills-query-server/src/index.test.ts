@@ -1,40 +1,47 @@
-import { describe, it, expect } from 'vitest';
-import { loadConfig } from './config.js';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { loadRuntimeConfig } from './config.js';
 import { loadActivities } from './sources/activities.js';
 import { loadNotes } from './sources/notes.js';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { existsSync } from 'fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const configPath = resolve(__dirname, '..', 'config.json');
+describe('integration: disposable external data sources', () => {
+  let root: string;
+  beforeEach(() => {
+    root = mkdtempSync(join(tmpdir(), 'skills-query-source-fixture '));
+    mkdirSync(join(root, 'journal'));
+    mkdirSync(join(root, 'notes'));
+    writeFileSync(join(root, 'work-journal.json'), JSON.stringify({ sources: {
+      activities: 'journal', notes: { paths: ['notes'] },
+    } }));
+  });
+  afterEach(() => rmSync(root, { recursive: true, force: true }));
 
-describe('integration: real data sources', () => {
-  it('loads config from config.json', () => {
-    if (!existsSync(configPath)) return; // Skip in CI
-    const config = loadConfig(configPath);
-    expect(config.sources.activities).toBeTruthy();
-    expect(config.sources.notes).toBeTruthy();
+  it('resolves external sources independently of launch cwd', () => {
+    const config = loadRuntimeConfig({ AGENT_SKILLS_CONFIG_DIR: root }, '/fixture/home');
+    expect(config.sources.activities).toBe(join(root, 'journal'));
+    expect(config.sources.notes.paths).toEqual([join(root, 'notes')]);
   });
 
-  it('reads real activities if available', () => {
-    if (!existsSync(configPath)) return;
-    const config = loadConfig(configPath);
-    if (!existsSync(config.sources.activities)) return;
+  it('reads a known activity from the selected fixture directory', () => {
+    writeFileSync(join(root, 'journal/fixture.json'), JSON.stringify({
+      session_id: 'fixture', timestamp: '2026-10-14T12:00:00Z', project_name: 'fixture',
+      project_path: '/fixture', git_branch: 'fixture', git_remote: '', context: '', tags: [],
+      activities: [{ type: 'documentation', description: 'Known fixture activity', files_changed: [], commits: [] }],
+    }));
+    const config = loadRuntimeConfig({ AGENT_SKILLS_CONFIG_DIR: root }, '/fixture/home');
     const activities = loadActivities(config.sources.activities);
-    expect(Array.isArray(activities)).toBe(true);
-    expect(activities.length).toBeGreaterThan(0);
+    expect(activities).toHaveLength(1);
+    expect(activities[0].activities[0].description).toBe('Known fixture activity');
   });
 
-  it('reads real notes if available', () => {
-    if (!existsSync(configPath)) return;
-    const config = loadConfig(configPath);
-    const firstPath = config.sources.notes.paths[0];
-    if (!firstPath || !existsSync(firstPath)) return;
+  it('reads a known note without accessing private user sources', () => {
+    writeFileSync(join(root, 'notes/fixture.md'), '---\ntitle: Fixture note\ntags: [fixture]\n---\n\n# Fixture note\n\nKnown fixture body.\n');
+    const config = loadRuntimeConfig({ AGENT_SKILLS_CONFIG_DIR: root }, '/fixture/home');
     const notes = loadNotes(config.sources.notes);
-    expect(Array.isArray(notes)).toBe(true);
-    expect(notes.length).toBeGreaterThan(0);
-    expect(notes[0].title).toBeTruthy();
-    expect(notes[0].tags).toBeDefined();
+    expect(notes).toHaveLength(1);
+    expect(notes[0].title).toBe('Fixture note');
+    expect(notes[0].tags).toContain('fixture');
   });
 });

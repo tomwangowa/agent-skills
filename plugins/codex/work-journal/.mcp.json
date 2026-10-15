@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "agent_skills_work_journal_codex": {
+      "args": [
+        "launch.mjs"
+      ],
+      "command": "node",
+      "cwd": "./server/",
+      "env_vars": [
+        "AGENT_SKILLS_CONFIG_DIR",
+        "XDG_CONFIG_HOME",
+        "CLAUDE_ACTIVITIES_DIR"
+      ]
+    }
+  }
+}

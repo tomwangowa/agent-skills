@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "surfaces": {
+    "claude-cli": {
+      "status": "verified",
+      "client_version": "2.1.296 (Claude Code)",
+      "manifest_format": ".claude-plugin/plugin.json",
+      "mcp_launch": {
+        "status": "verified",
+        "command": "node",
+        "args": [
+          "${CLAUDE_PLUGIN_ROOT}/server/launch.mjs"
+        ],
+        "tools": [
+          "dashboard",
+          "log_activity",
+          "query_activities",
+          "query_decisions",
+          "query_timeline",
+          "query_todos",
+          "search"
+        ],
+        "round_trip": true,
+        "fixture_isolation": {
+          "status": "verified",
+          "server": "agent_skills_probe_claude_cli",
+          "probe_id": "2b39f8049579457e9af4a13b2e3637e7",
+          "write_inside_fixture": true
+        },
+        "binding_fixture_version": "0.0.3",
+        "hook_fixture_versions": "Earlier unchanged hook resources plus confirmed 0.0.3 startup injection"
+      },
+      "hook_events": {
+        "startup": "verified",
+        "resume": "verified",
+        "clear": "verified",
+        "compact": "verified"
+      },
+      "routing_result": {
+        "status": "verified",
+        "preference_off": true,
+        "native_reviewer": true
+      },
+      "superpowers_version": "7.0.0",
+      "evidence": [
+        {
+          "path": "runtime-observations.json",
+          "sha256": "b199b25bf7d1b0cf71b2857b9c69783dac588738c3d18756517ae83a5aa6c3e9"
+        },
+        {
+          "path": "guarded-cli-observations.json",
+          "sha256": "6f29762d00021e66cf759c65fee6992422f05a12d2a66e10184f6ef32b237c84"
+        }
+      ]
+    },
+    "codex-cli": {
+      "status": "verified",
+      "client_version": "codex-cli 0.162.1",
+      "manifest_format": ".codex-plugin/plugin.json",
+      "mcp_launch": {
+        "status": "verified",
+        "command": "node",
+        "args": [
+          "launch.mjs"
+        ],
+        "cwd": "./server/",
+        "tools": [
+          "dashboard",
+          "log_activity",
+          "query_activities",
+          "query_decisions",
+          "query_timeline",
+          "query_todos",
+          "search"
+        ],
+        "round_trip": true,
+        "fixture_isolation": {
+          "status": "verified",
+          "server": "agent_skills_probe_codex_cli",
+          "probe_id": "c2beae22d3094a67b94a66f14b62d64e",
+          "write_inside_fixture": true
+        },
+        "binding_fixture_version": "0.0.3",
+        "hook_fixture_versions": "Earlier unchanged hook resources plus confirmed 0.0.3 startup injection"
+      },
+      "hook_events": {
+        "startup": "verified",
+        "resume": "verified",
+        "clear": "verified",
+        "compact": "verified"
+      },
+      "routing_result": {
+        "status": "verified",
+        "preference_off": true,
+        "native_reviewer": true
+      },
+      "superpowers_version": "7.0.0",
+      "evidence": [
+        {
+          "path": "runtime-observations.json",
+          "sha256": "b199b25bf7d1b0cf71b2857b9c69783dac588738c3d18756517ae83a5aa6c3e9"
+        },
+        {
+          "path": "codex-hook-observations.json",
+          "sha256": "6e0369c979e8b05f304b37f1078e100e028ce6ed46fdc1fe154bb56c644fbc60"
+        },
+        {
+          "path": "codex-mcp-inventory.json",
+          "sha256": "25e817d0023e906e711169c4831ca3425f2e492acadc1984cad78376df7417b2"
+        },
+        {
+          "path": "hook-review.json",
+          "sha256": "8fa363cda304d1a00fb69512c6c6b94f3a10a0aff50edfae21a8b6c030e8ce68"
+        },
+        {
+          "path": "guarded-cli-observations.json",
+          "sha256": "6f29762d00021e66cf759c65fee6992422f05a12d2a66e10184f6ef32b237c84"
+        }
+      ]
+    }
+  },
+  "historical_excluded_surfaces": {
+    "codex-desktop": {
+      "status": "failed",
+      "evidence": [
+        {
+          "path": "runtime-observations.json",
+          "sha256": "b199b25bf7d1b0cf71b2857b9c69783dac588738c3d18756517ae83a5aa6c3e9"
+        }
+      ],
+      "blocker": "cua.getApp('com.openai.codex') denied: Computer Use is not allowed to use the app for safety reasons.",
+      "discovery": {
+        "status": "user_reported",
+        "observed_plugin": "skill-plugins-probe-codex-desktop 0.0.2",
+        "installation": "not_verified"
+      },
+      "failure": "Tool call reached the real activity source, while injected routing referenced the CLI probe. User explicitly removed desktop from support scope.",
+      "recorded_runtime_version": "0.160.0",
+      "operator_confirmed_surface": "independent desktop app",
+      "unintended_test_file_cleanup": "user reports unique test file removed; no real activity query performed"
+    }
+  },
+  "supported_surfaces": [
+    "claude-cli",
+    "codex-cli"
+  ],
+  "scope_change": "User explicitly selected CLI-only support on 2026-10-13"
+}

@@ -1,0 +1,41 @@
+{
+  "supported_surfaces": [
+    "claude-cli",
+    "codex-cli"
+  ],
+  "fixture_version": "0.0.3",
+  "claude-cli": {
+    "server": "agent_skills_probe_claude_cli",
+    "identity_precedes_write": true,
+    "probe_id": "2b39f8049579457e9af4a13b2e3637e7",
+    "isolated": true,
+    "write_inside_fixture": true,
+    "round_trip": true,
+    "marker": "claude-guarded-45db023a2ac241689472f09d4fb78bba"
+  },
+  "codex-cli": {
+    "server": "agent_skills_probe_codex_cli",
+    "normal_user_mcp_configuration_retained": true,
+    "identity_precedes_write": true,
+    "probe_id": "c2beae22d3094a67b94a66f14b62d64e",
+    "isolated": true,
+    "write_inside_fixture": true,
+    "round_trip": true,
+    "marker": "guarded-host-4d0d79322a8b43ec821139d3cd0f873d",
+    "initial_process": "timed out before query; successful query performed after identity recheck on resumed thread"
+  },
+  "raw_artifacts": [
+    {
+      "file": "claude-guarded-host.jsonl",
+      "sha256": "e8815ee891240c99315c8c1dbc23c3ebfed8512eb77213ff18f3cbe55c81730d"
+    },
+    {
+      "file": "codex-guarded-initial-timeout-rollout.jsonl",
+      "sha256": "a98764330662409541c88472dfda57b240ca972ef8d55be14bbaaeac51bdbd32"
+    },
+    {
+      "file": "codex-guarded-normal-query.jsonl",
+      "sha256": "d51fb0c5f80e31aa2c4cd820322e9bc199768b25712bca4d83b27d4662db4748"
+    }
+  ]
+}
