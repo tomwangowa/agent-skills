@@ -86,7 +86,7 @@
     "runtime/agent_skills_runtime/config.py": "2b1a56b181b89f0c2d92b99e07e284cf0c16d2d2b025fa3c15a43a58f98f3a60",
     "runtime/agent_skills_runtime/doctor.py": "03f8f955d964a106e869ec14c97caace19fa40da88da0eb11c048a84d91d428c",
     "runtime/agent_skills_runtime/journal_cli.py": "d31c041c3277bc8ce8d75f69978edb8d822ccc08433e19cdcf67213f447627bd",
-    "runtime/agent_skills_runtime/migration.py": "f295b3c848490e315a808d162dfa5534c1f4fe6715bf7a37eb46b8eaecb24a7f",
+    "runtime/agent_skills_runtime/migration.py": "046253103a6f027478e77b4a67dcab180329cbc4e186442087dd97bfea9b8a3f",
     "runtime/agent_skills_runtime/preferences.py": "0becc33662c35ea8aa9939bd8366e90df1f6b886213c5ae1ba1ebf0be678f3ec",
     "runtime/agent_skills_runtime/setup.py": "829ced45bf3175504485178d0449a9129a4e081f43665013d518d8179505180a",
     "skills-query-server/package-lock.json": "3f5dc16f0baa66796e844111889dc14dd938c1ab7b0030cc03235e9467789a38",

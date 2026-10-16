@@ -10,7 +10,7 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "3c72d60bd7c2339dda49dc739dee1a83193ea738358f66df7e75b732b30497d4"
+      "sha256": "54fecf44e0836dd638e82c8180186ab4315516559961fcd10563c9e924e8068d"
     },
     "README.md": {
       "mode": 420,
@@ -42,7 +42,7 @@
     },
     "runtime/agent_skills_runtime/migration.py": {
       "mode": 420,
-      "sha256": "f295b3c848490e315a808d162dfa5534c1f4fe6715bf7a37eb46b8eaecb24a7f"
+      "sha256": "046253103a6f027478e77b4a67dcab180329cbc4e186442087dd97bfea9b8a3f"
     },
     "runtime/agent_skills_runtime/preferences.py": {
       "mode": 420,

@@ -48,8 +48,22 @@ def _legacy(command: str | list[str], roots: list[str], component: str) -> bool:
     if (not isinstance(tokens, list) or not tokens or not all(isinstance(t, str) for t in tokens)
             or Path(tokens[0]).name not in {'python', 'python3', 'bash', 'sh', 'node', 'npx', 'npm', 'tsx'}):
         return False
-    return any(str(Path(token).expanduser()).startswith(f'{root.rstrip("/")}/{component}/')
-               for token in tokens[1:] for root in roots)
+    for token in tokens[1:]:
+        candidate = Path(token).expanduser()
+        if not candidate.is_absolute():
+            continue
+        candidate = Path(os.path.normpath(candidate))
+        for root in roots:
+            base = Path(os.path.normpath(Path(root) / component))
+            if not base.is_absolute():
+                continue
+            try:
+                relative = candidate.relative_to(base)
+            except ValueError:
+                continue
+            if relative.parts:
+                return True
+    return False
 
 
 def _edit_json(text: str, item: dict, selected: set[str]) -> tuple[str, list[dict]]:

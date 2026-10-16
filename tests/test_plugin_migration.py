@@ -98,6 +98,51 @@ class MigrationTests(unittest.TestCase):
         existing={'files':[{'path':str(unrelated),'format':'json','legacy_roots':['/fixture/old-skills']}]}
         self.assertEqual(plan_migration(existing,['work-journal'])['operations'],[])
 
+    def test_parent_traversal_paths_are_not_treated_as_legacy_entries(self):
+        config = self.root / 'escaped.json'
+        config.write_text(json.dumps({
+            'hooks': {'SessionStart': [{'hooks': [{
+                'type': 'command',
+                'command': 'python3 /fixture/old-skills/session-preferences/../../other/session_start_hook.py',
+            }]}]},
+            'mcpServers': {'skills-query': {
+                'command': 'node',
+                'args': ['/fixture/old-skills/skills-query-server/../../other/index.js'],
+            }},
+        }))
+        existing = {'files': [{
+            'path': str(config),
+            'format': 'json',
+            'legacy_roots': ['/fixture/old-skills'],
+        }]}
+
+        plan = plan_migration(existing, ['session-preferences', 'work-journal'])
+
+        self.assertEqual(plan['operations'], [])
+
+    def test_normalized_paths_inside_legacy_root_are_still_recognized(self):
+        config = self.root / 'normalized.json'
+        config.write_text(json.dumps({
+            'hooks': {'SessionStart': [{'hooks': [{
+                'type': 'command',
+                'command': 'python3 /fixture/old-skills/session-preferences/scripts/temporary/../session_start_hook.py',
+            }]}]},
+        }))
+        existing = {'files': [{
+            'path': str(config),
+            'format': 'json',
+            'legacy_roots': ['/fixture/old-skills'],
+        }]}
+
+        plan = plan_migration(existing, ['session-preferences'])
+
+        self.assertEqual(len(plan['operations']), 1)
+        self.assertEqual(plan['operations'][0]['changes'], [{
+            'component': 'session-preferences',
+            'selector': 'hooks.SessionStart',
+            'action': 'remove_entry',
+        }])
+
     def test_toml_and_explicit_routing_changes_keep_other_content(self):
         config=self.root/'config.toml'
         config.write_text('model = "keep"\n# retained\n[mcp_servers.skills-query]\ncommand="npx"\n'
