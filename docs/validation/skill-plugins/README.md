@@ -3,9 +3,12 @@
 Supported surfaces: Claude Code CLI and Codex CLI. On 2026-10-15 the seven
 packages passed bounded native acceptance on macOS with Claude Code CLI 2.1.300
 and Codex CLI 0.162.1 using a unique local marketplace and disposable fixtures.
-See `acceptance.json` for source-bound checks, scope and remaining limits. Remote
-Git marketplace installation and release approval remain pending. The user
-explicitly removed Codex desktop support on 2026-10-13.
+A 2026-10-17 follow-up verified GitHub marketplace installation and no-op
+updates with Claude Code CLI 2.1.302; a positive version transition used a
+temporary local Git remote. Codex CLI remote Git marketplace installation and
+update remain untested. See `remote-marketplace-validation.md` and
+`acceptance.json` for evidence and remaining limits. The user explicitly
+removed Codex desktop support on 2026-10-13.
 
 The desktop failure remains in runtime-contracts.json historical_excluded_surfaces:
 its tool call reached the live activity source and its injected policy named the
@@ -81,5 +84,6 @@ npm --prefix skills-query-server run smoke -- --contract \
 
 The current production and development dependency audits have zero reported
 vulnerabilities. This does not certify other platforms, minimum tool versions,
-remote Git marketplace installation or a full third-party legal review. Commit,
-push and publication each still require explicit user approval.
+Codex CLI remote Git marketplace installation/update, a positive version
+transition from GitHub, or a full third-party legal review. Commit, push and
+publication each still require explicit user approval.
