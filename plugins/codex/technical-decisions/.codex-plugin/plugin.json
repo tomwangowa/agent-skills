@@ -1,0 +1,7 @@
+{
+  "description": "technical-decisions skills for codex CLI",
+  "hooks": "./hooks/hooks.json",
+  "name": "technical-decisions",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

@@ -1,7 +1,8 @@
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, statSync, accessSync, constants } from 'fs';
 import { homedir } from 'os';
 import { resolve } from 'path';
 import type { Config } from './types.js';
+import { readWorkJournal, resolveConfigRoot, resolveActivitiesDir, resolveDataPath } from './runtime-config.js';
 
 function expandHome(p: string): string {
   if (p.startsWith('~/')) {
@@ -10,6 +11,7 @@ function expandHome(p: string): string {
   return resolve(p);
 }
 
+/** Load an explicitly selected development config; never use it as a hidden runtime fallback. */
 export function loadConfig(configPath: string): Config {
   if (!existsSync(configPath)) {
     throw new Error(
@@ -38,4 +40,30 @@ export function loadConfig(configPath: string): Config {
       },
     },
   };
+}
+
+/** Resolve the same external settings and activity override as the Python logger. */
+export function loadRuntimeConfig(env: NodeJS.ProcessEnv, home: string): Config {
+  const root = resolveConfigRoot(env, home);
+  let settings;
+  try {
+    settings = readWorkJournal(root);
+  } catch (error) {
+    throw new Error(`Journal settings error at ${resolve(root, 'work-journal.json')}: ${String(error)}. Run work-journal setup first.`);
+  }
+  const activities = resolveActivitiesDir(env, settings, root, home);
+  try {
+    if (!statSync(activities).isDirectory()) throw new Error('Not a directory');
+    accessSync(activities, constants.R_OK | constants.W_OK | constants.X_OK);
+  } catch {
+    throw new Error(`Selected activity directory is missing or not writable: ${activities}. Run work-journal setup or fix its permissions.`);
+  }
+  return { sources: {
+    activities,
+    notes: {
+      paths: settings.sources.notes.paths.map(path => resolveDataPath(path, root, home)),
+      recursive: settings.sources.notes.recursive ?? true,
+      exclude_hidden: settings.sources.notes.exclude_hidden ?? true,
+    },
+  } };
 }

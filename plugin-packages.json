@@ -1,0 +1,411 @@
+{
+  "schema_version": 1,
+  "packages": [
+    {
+      "name": "quality-gates",
+      "version": "0.1.0",
+      "skills": [
+        "code-review-claude",
+        "code-review-codex",
+        "completion-gate",
+        "codebase-audit",
+        "pr-review-assistant",
+        "secure-ai-development-gate"
+      ],
+      "platforms": [
+        "claude",
+        "codex"
+      ],
+      "runtime_resources": [
+        "code-review-claude/README.md",
+        "code-review-claude/references/language-checklists.md",
+        "pr-review-assistant/README.md",
+        "pr-review-assistant/scripts/review_pr.sh",
+        "secure-ai-development-gate/references/secret-patterns.md",
+        "secure-ai-development-gate/scripts/scan-secrets.sh",
+        "secure-ai-development-gate/scripts/scan-staged-secrets.sh",
+        "runtime/agent_skills_runtime/__init__.py",
+        "runtime/agent_skills_runtime/policy.py",
+        "docs/plugins/installation.md",
+        "docs/plugins/migration.md",
+        "docs/plugins/team-instructions.md",
+        "docs/plugins/superpowers-compatibility.md"
+      ],
+      "requirements": {
+        "commands": [
+          "python3"
+        ],
+        "config": []
+      },
+      "dependencies": [
+        {
+          "kind": "conditional",
+          "provider": "superpowers",
+          "skills": [
+            "test-driven-development",
+            "requesting-code-review",
+            "finishing-a-development-branch"
+          ],
+          "condition": "Only when the selected integrated development workflow uses these steps",
+          "tested_versions": []
+        }
+      ]
+    },
+    {
+      "name": "technical-decisions",
+      "version": "0.1.0",
+      "skills": [
+        "brainstorming",
+        "assumption-extractor",
+        "critical-research",
+        "deep-reading",
+        "micro-poc-validator",
+        "narrative-auditor",
+        "research-cross-validator",
+        "research-synthesis",
+        "tech-feasibility",
+        "tech-research-pipeline",
+        "role-orchestrator",
+        "role-pm",
+        "role-rd",
+        "spec-gap-finder",
+        "technical-proposal-review",
+        "ui-design-analyzer"
+      ],
+      "platforms": [
+        "claude",
+        "codex"
+      ],
+      "runtime_resources": [
+        "brainstorming/scripts/frame-template.html",
+        "brainstorming/scripts/helper.js",
+        "brainstorming/scripts/server.cjs",
+        "brainstorming/scripts/start-server.sh",
+        "brainstorming/scripts/stop-server.sh",
+        "brainstorming/spec-document-reviewer-prompt.md",
+        "brainstorming/visual-companion.md",
+        "deep-reading/references/modes.md",
+        "deep-reading/references/output-contract.md",
+        "deep-reading/references/progressive-reading.md",
+        "deep-reading/references/synthesis.md",
+        "tech-research-pipeline/agents/openai.yaml",
+        "role-orchestrator/agents/openai.yaml",
+        "role-orchestrator/pm-agent-prompt.md",
+        "role-orchestrator/project-profile-template.yaml",
+        "role-orchestrator/rd-agent-prompt.md",
+        "spec-gap-finder/references/checklist.md",
+        "technical-proposal-review/README.md",
+        "ui-design-analyzer/README.md",
+        "ui-design-analyzer/examples/analysis-report-template.md",
+        "runtime/agent_skills_runtime/__init__.py",
+        "runtime/agent_skills_runtime/policy.py",
+        "docs/plugins/installation.md",
+        "docs/plugins/migration.md",
+        "docs/plugins/team-instructions.md",
+        "docs/plugins/superpowers-compatibility.md"
+      ],
+      "requirements": {
+        "commands": [
+          "python3"
+        ],
+        "config": []
+      },
+      "dependencies": [
+        {
+          "kind": "conditional",
+          "provider": "superpowers",
+          "skills": [
+            "writing-plans"
+          ],
+          "condition": "Before a multi-step design hands off to implementation planning",
+          "tested_versions": []
+        },
+        {
+          "kind": "conditional",
+          "provider": "superpowers",
+          "skills": [
+            "subagent-driven-development",
+            "executing-plans"
+          ],
+          "condition": "Only the chosen execution branch after PM/RD or research planning",
+          "tested_versions": []
+        }
+      ]
+    },
+    {
+      "name": "repo-workflow",
+      "version": "0.1.0",
+      "skills": [
+        "code-story-teller",
+        "repo-sync",
+        "handoff"
+      ],
+      "platforms": [
+        "claude",
+        "codex"
+      ],
+      "runtime_resources": [
+        "code-story-teller/README.md",
+        "handoff/agents/openai.yaml",
+        "docs/plugins/installation.md",
+        "docs/plugins/migration.md",
+        "docs/plugins/team-instructions.md",
+        "docs/plugins/superpowers-compatibility.md"
+      ],
+      "requirements": {
+        "commands": [],
+        "config": []
+      },
+      "dependencies": []
+    },
+    {
+      "name": "content-tools",
+      "version": "0.1.0",
+      "skills": [
+        "presentation-planner",
+        "interactive-presentation-generator",
+        "sepia",
+        "md-translate",
+        "pptx-to-md"
+      ],
+      "platforms": [
+        "claude",
+        "codex"
+      ],
+      "runtime_resources": [
+        "interactive-presentation-generator/QUICKSTART.md",
+        "interactive-presentation-generator/README.md",
+        "interactive-presentation-generator/examples/README.md",
+        "interactive-presentation-generator/examples/docker-introduction.html",
+        "interactive-presentation-generator/examples/sample-presentation.html",
+        "interactive-presentation-generator/scripts/marp-template.md",
+        "interactive-presentation-generator/scripts/revealjs-template.html",
+        "interactive-presentation-generator/scripts/slidev-template.md",
+        "interactive-presentation-generator/styles/artistic/oneline-chic.yaml",
+        "interactive-presentation-generator/styles/avant-garde/neon-collage.yaml",
+        "interactive-presentation-generator/styles/creative/digital-pop.yaml",
+        "interactive-presentation-generator/styles/editorial/fashion-layout.yaml",
+        "interactive-presentation-generator/styles/editorial/kinfolk-editorial.yaml",
+        "interactive-presentation-generator/styles/editorial/red-editorial.yaml",
+        "interactive-presentation-generator/styles/energetic/sports-active.yaml",
+        "interactive-presentation-generator/styles/experimental/sculpture-pop.yaml",
+        "interactive-presentation-generator/styles/futuristic/digital-twin.yaml",
+        "interactive-presentation-generator/styles/material/stone-glass.yaml",
+        "interactive-presentation-generator/styles/minimalist/blue-mono.yaml",
+        "interactive-presentation-generator/styles/minimalist/japanese-minimal.yaml",
+        "interactive-presentation-generator/styles/minimalist/swiss-clean.yaml",
+        "interactive-presentation-generator/styles/product/premium-mockup.yaml",
+        "interactive-presentation-generator/styles/technical/blueprint.yaml",
+        "interactive-presentation-generator/styles/technical/cyber-neon.yaml",
+        "interactive-presentation-generator/styles/traditional/byobu.yaml",
+        "interactive-presentation-generator/styles/traditional/japonism-flow.yaml",
+        "interactive-presentation-generator/styles/traditional/kabuki-gold.yaml",
+        "interactive-presentation-generator/styles/traditional/ukiyo-e.yaml",
+        "sepia/agents/openai.yaml",
+        "sepia/references/discourse-pass.md",
+        "sepia/references/domains/dev-replies.md",
+        "sepia/references/domains/postmortems.md",
+        "sepia/references/domains/release-notes.md",
+        "sepia/references/domains/tech-articles.md",
+        "sepia/references/domains/tickets.md",
+        "sepia/references/model-fingerprints.md",
+        "sepia/references/narrative-pass.md",
+        "sepia/references/professional-pass.md",
+        "sepia/references/rubric.md",
+        "sepia/references/style-pass.md",
+        "docs/plugins/installation.md",
+        "docs/plugins/migration.md",
+        "docs/plugins/team-instructions.md",
+        "docs/plugins/superpowers-compatibility.md"
+      ],
+      "requirements": {
+        "commands": [],
+        "config": []
+      },
+      "dependencies": [
+        {
+          "kind": "optional",
+          "provider": "external",
+          "skills": [
+            "report-generator"
+          ],
+          "condition": "Only when selected and installed",
+          "tested_versions": []
+        }
+      ]
+    },
+    {
+      "name": "work-journal",
+      "version": "0.1.0",
+      "skills": [
+        "activity-logger",
+        "work-log-analyzer"
+      ],
+      "platforms": [
+        "claude",
+        "codex"
+      ],
+      "runtime_resources": [
+        "activity-logger/scripts/init_activities.sh",
+        "activity-logger/scripts/log_activity.sh",
+        "work-log-analyzer/README.md",
+        "work-log-analyzer/agents/openai.yaml",
+        "work-log-analyzer/references/examples.md",
+        "work-log-analyzer/references/log-formats.md",
+        "work-log-analyzer/scripts/aggregate_activities.sh",
+        "work-log-analyzer/scripts/find_referenced_documents.py",
+        "runtime/agent_skills_runtime/__init__.py",
+        "runtime/agent_skills_runtime/config.py",
+        "runtime/agent_skills_runtime/doctor.py",
+        "runtime/agent_skills_runtime/journal_cli.py",
+        "runtime/agent_skills_runtime/preferences.py",
+        "runtime/agent_skills_runtime/setup.py",
+        "skills-query-server/package.json",
+        "skills-query-server/package-lock.json",
+        "skills-query-server/src/config.ts",
+        "skills-query-server/src/index.ts",
+        "skills-query-server/src/runtime-config.ts",
+        "skills-query-server/src/sources/activities.ts",
+        "skills-query-server/src/sources/notes.ts",
+        "skills-query-server/src/tools/dashboard.ts",
+        "skills-query-server/src/tools/log-activity.ts",
+        "skills-query-server/src/tools/query-activities.ts",
+        "skills-query-server/src/tools/query-decisions.ts",
+        "skills-query-server/src/tools/query-timeline.ts",
+        "skills-query-server/src/tools/query-todos.ts",
+        "skills-query-server/src/tools/search.ts",
+        "skills-query-server/src/types.ts",
+        "skills-query-server/src/utils/date-range.ts",
+        "skills-query-server/src/utils/text-search.ts",
+        "skills-query-server/tsconfig.json",
+        "docs/plugins/installation.md",
+        "docs/plugins/migration.md",
+        "docs/plugins/team-instructions.md",
+        "docs/plugins/superpowers-compatibility.md",
+        "runtime/agent_skills_runtime/migration.py"
+      ],
+      "requirements": {
+        "commands": [
+          "node",
+          "python3",
+          "jq",
+          "bash"
+        ],
+        "config": [
+          "work-journal"
+        ]
+      },
+      "dependencies": [
+        {
+          "kind": "optional",
+          "provider": "external",
+          "skills": [
+            "lesson"
+          ],
+          "condition": "Record lessons only when explicitly requested and installed",
+          "tested_versions": []
+        }
+      ]
+    },
+    {
+      "name": "session-preferences",
+      "version": "0.1.0",
+      "skills": [
+        "session-preferences",
+        "control-return"
+      ],
+      "platforms": [
+        "claude",
+        "codex"
+      ],
+      "runtime_resources": [
+        "session-preferences/README.md",
+        "session-preferences/agents/openai.yaml",
+        "session-preferences/references/INDEX.md",
+        "session-preferences/references/deai-longform.md",
+        "session-preferences/references/deai-translation.md",
+        "session-preferences/references/deai-voice.md",
+        "session-preferences/references/explanation-depth.md",
+        "session-preferences/references/socratic-dialogue.md",
+        "session-preferences/references/taiwan-zh.md",
+        "session-preferences/scripts/session_start_hook.py",
+        "control-return/agents/openai.yaml",
+        "control-return/scripts/session_start_hook.py",
+        "runtime/agent_skills_runtime/__init__.py",
+        "runtime/agent_skills_runtime/config.py",
+        "runtime/agent_skills_runtime/doctor.py",
+        "runtime/agent_skills_runtime/journal_cli.py",
+        "runtime/agent_skills_runtime/preferences.py",
+        "runtime/agent_skills_runtime/setup.py",
+        "docs/plugins/installation.md",
+        "docs/plugins/migration.md",
+        "docs/plugins/team-instructions.md",
+        "docs/plugins/superpowers-compatibility.md",
+        "runtime/agent_skills_runtime/migration.py"
+      ],
+      "requirements": {
+        "commands": [
+          "python3"
+        ],
+        "config": [
+          "preferences"
+        ]
+      },
+      "dependencies": []
+    },
+    {
+      "name": "skill-toolbox",
+      "version": "0.1.0",
+      "skills": [
+        "skill-auditor",
+        "skill-router",
+        "skill-sync",
+        "claude-workflow-designer"
+      ],
+      "platforms": [
+        "claude",
+        "codex"
+      ],
+      "runtime_resources": [
+        "skill-auditor/README.md",
+        "skill-auditor/examples/README.md",
+        "skill-auditor/examples/templates/error-handling-template.md",
+        "skill-auditor/examples/templates/security-section-template.md",
+        "skill-auditor/scripts/audit_skill.sh",
+        "skill-router/agents/openai.yaml",
+        "skill-router/skill-registry.yaml",
+        "skill-sync/agents/openai.yaml",
+        "skill-sync/scripts/sync.sh",
+        "claude-workflow-designer/agents/openai.yaml",
+        "claude-workflow-designer/references/successful-patterns.md",
+        "runtime/agent_skills_runtime/__init__.py",
+        "runtime/agent_skills_runtime/policy.py",
+        "docs/plugins/installation.md",
+        "docs/plugins/migration.md",
+        "docs/plugins/team-instructions.md",
+        "docs/plugins/superpowers-compatibility.md"
+      ],
+      "requirements": {
+        "commands": [
+          "bash",
+          "python3",
+          "rsync"
+        ],
+        "config": []
+      },
+      "dependencies": [
+        {
+          "kind": "optional",
+          "provider": "superpowers",
+          "skills": [
+            "writing-plans",
+            "subagent-driven-development",
+            "executing-plans"
+          ],
+          "condition": "Only when recommending a selected upstream workflow",
+          "tested_versions": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "files": {
+    ".codex-plugin/plugin.json": {
+      "mode": 420,
+      "sha256": "09083b0631f8daf6664d7be5b3e8d6c351df19360dd63841fbf61f5b1f47ce75"
+    },
+    ".source.json": {
+      "mode": 420,
+      "sha256": "ba256caec166bd587b499ceea6219b24bfe8c99d6bf4fb2086e48e7cb829aba6"
+    },
+    "README.md": {
+      "mode": 420,
+      "sha256": "b673c780b251f31df5d0f40c7c1c528a548d1c15b2a41fcd8b51d1ef2abdbfc9"
+    },
+    "hooks/hooks.json": {
+      "mode": 420,
+      "sha256": "fe7aba0aa409520388511aa631b7b53e22d9135c0c74f442dec775e6915fce85"
+    },
+    "hooks/policy.md": {
+      "mode": 420,
+      "sha256": "29cda31007e421053d17f5148dfedee23357301450a1d291dbf7f3c8da7344ec"
+    },
+    "hooks/policy.py": {
+      "mode": 420,
+      "sha256": "78e2ee5af9a5c78985259e1e29ca8fc78687431304e1a467abd60e675c0eb3c0"
+    },
+    "installation.md": {
+      "mode": 420,
+      "sha256": "de62189cb94789d647592b66171db8d8b812f0091144c129e34d58ccef807595"
+    },
+    "migration.md": {
+      "mode": 420,
+      "sha256": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50"
+    },
+    "runtime/agent_skills_runtime/__init__.py": {
+      "mode": 420,
+      "sha256": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd"
+    },
+    "runtime/agent_skills_runtime/policy.py": {
+      "mode": 420,
+      "sha256": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a"
+    },
+    "skills/package-index.json": {
+      "mode": 420,
+      "sha256": "3a07ddaf80f2a4c58e9b5410ab0199ec5bec575c0b4b801106c2b43cdfcb62d8"
+    },
+    "skills/skill-auditor/README.md": {
+      "mode": 420,
+      "sha256": "ed7fb84f75473b4f3559f75994851fb79fdb1069bc1766b4947df6c128d2710b"
+    },
+    "skills/skill-auditor/SKILL.md": {
+      "mode": 420,
+      "sha256": "d7382693ce25c5ffc34fca877a7c23aa7b2a1a4e3f6838b41c7a4af8a81501fb"
+    },
+    "skills/skill-auditor/examples/README.md": {
+      "mode": 420,
+      "sha256": "0c2afbac0538b8697d08d3a8b58d8a501361ddd7769f2ae3e32bb10cc9b2dda1"
+    },
+    "skills/skill-auditor/examples/templates/error-handling-template.md": {
+      "mode": 420,
+      "sha256": "00e7f303333aa641a5b5d12290b3d4bdb0a1cc7b5342762e736cadd3924183fe"
+    },
+    "skills/skill-auditor/examples/templates/security-section-template.md": {
+      "mode": 420,
+      "sha256": "37adcdfaa70858dfa0f9ec0eeef32fa46047885c924198120eb0e09a0e53b4a6"
+    },
+    "skills/skill-auditor/scripts/audit_skill.sh": {
+      "mode": 493,
+      "sha256": "cdf936f91c69c9429d605700b1798f2e7ee058b4a06f784e850661286b385ed9"
+    },
+    "skills/skill-router/SKILL.md": {
+      "mode": 420,
+      "sha256": "6480a4ec73e72f0f4b35a08df39d1c7e4825d0b19ecb1963642e164e77e84868"
+    },
+    "skills/skill-router/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "skills/skill-router/skill-registry.yaml": {
+      "mode": 420,
+      "sha256": "c5a44afb5371e5676866d61e1e47ebe09b7fcd20a66035c83fdf7cb7684d9ce9"
+    },
+    "skills/skill-sync/SKILL.md": {
+      "mode": 420,
+      "sha256": "56a0dda220cdb11b9a787747ba3bc4e4e97250de04fa1c7d0beb247c861d8356"
+    },
+    "skills/skill-sync/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+    },
+    "skills/skill-sync/scripts/sync.sh": {
+      "mode": 493,
+      "sha256": "91dadec06f2b0bbedf220d559fc28e45dde2e7dd6699b5c28c5d93097313148a"
+    },
+    "skills/skills-catalog.json": {
+      "mode": 420,
+      "sha256": "8a381747ae1742e67a4a3ef8778b0bfe1e0b51b89abc01e4bfab957ace5a6f86"
+    },
+    "superpowers-compatibility.md": {
+      "mode": 420,
+      "sha256": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a"
+    },
+    "team-instructions.md": {
+      "mode": 420,
+      "sha256": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0"
+    }
+  },
+  "schema_version": 1
+}

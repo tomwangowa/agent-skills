@@ -1,0 +1,129 @@
+{
+  "catalog_sha256": "3c901cb49798aadeb8661bff67cd6f8ae56899fed271ab68a42838328b7af871",
+  "contracts_sha256": "75c99ca57e6f47a514dc1cf8c2d2a14c0d93b93368905150b86fb4410be9c3f7",
+  "package": {
+    "dependencies": [
+      {
+        "condition": "Before a multi-step design hands off to implementation planning",
+        "kind": "conditional",
+        "provider": "superpowers",
+        "skills": [
+          "writing-plans"
+        ],
+        "tested_versions": []
+      },
+      {
+        "condition": "Only the chosen execution branch after PM/RD or research planning",
+        "kind": "conditional",
+        "provider": "superpowers",
+        "skills": [
+          "subagent-driven-development",
+          "executing-plans"
+        ],
+        "tested_versions": []
+      }
+    ],
+    "name": "technical-decisions",
+    "platforms": [
+      "claude",
+      "codex"
+    ],
+    "requirements": {
+      "commands": [
+        "python3"
+      ],
+      "config": []
+    },
+    "runtime_resources": [
+      "brainstorming/scripts/frame-template.html",
+      "brainstorming/scripts/helper.js",
+      "brainstorming/scripts/server.cjs",
+      "brainstorming/scripts/start-server.sh",
+      "brainstorming/scripts/stop-server.sh",
+      "brainstorming/spec-document-reviewer-prompt.md",
+      "brainstorming/visual-companion.md",
+      "deep-reading/references/modes.md",
+      "deep-reading/references/output-contract.md",
+      "deep-reading/references/progressive-reading.md",
+      "deep-reading/references/synthesis.md",
+      "tech-research-pipeline/agents/openai.yaml",
+      "role-orchestrator/agents/openai.yaml",
+      "role-orchestrator/pm-agent-prompt.md",
+      "role-orchestrator/project-profile-template.yaml",
+      "role-orchestrator/rd-agent-prompt.md",
+      "spec-gap-finder/references/checklist.md",
+      "technical-proposal-review/README.md",
+      "ui-design-analyzer/README.md",
+      "ui-design-analyzer/examples/analysis-report-template.md",
+      "runtime/agent_skills_runtime/__init__.py",
+      "runtime/agent_skills_runtime/policy.py",
+      "docs/plugins/installation.md",
+      "docs/plugins/migration.md",
+      "docs/plugins/team-instructions.md",
+      "docs/plugins/superpowers-compatibility.md"
+    ],
+    "skills": [
+      "brainstorming",
+      "assumption-extractor",
+      "critical-research",
+      "deep-reading",
+      "micro-poc-validator",
+      "narrative-auditor",
+      "research-cross-validator",
+      "research-synthesis",
+      "tech-feasibility",
+      "tech-research-pipeline",
+      "role-orchestrator",
+      "role-pm",
+      "role-rd",
+      "spec-gap-finder",
+      "technical-proposal-review",
+      "ui-design-analyzer"
+    ],
+    "version": "0.1.0"
+  },
+  "resources": {
+    "assumption-extractor/SKILL.md": "baded6842af910b0abbef9692dc2eb16a5a41dd507af02e963cabbc168449080",
+    "brainstorming/SKILL.md": "dbf3136603c731058e68881ec91389a0d56f9904c2b632b72d04ed12a5738e82",
+    "brainstorming/scripts/frame-template.html": "fb22ba9d47f3b83b56e0a95d52a3c2727db03b0d4365078d92c850293a62457b",
+    "brainstorming/scripts/helper.js": "e763d82f32b4ebb320be2f0d08449d3e5a0585778edf5c407c1fdab3f39976a5",
+    "brainstorming/scripts/server.cjs": "ea81185f581897c67d4b417eeb9bc7a158c50e0932c73047054fe53efc2683ef",
+    "brainstorming/scripts/start-server.sh": "3442a54b5ee5511637d27bf696e092b72f94c2324f40b5ba4410da4dd0c23bc8",
+    "brainstorming/scripts/stop-server.sh": "f65b7634a27343eab2086bdb6c59ba78695685f471b5a577b08a8817f7c50600",
+    "brainstorming/spec-document-reviewer-prompt.md": "12cb5ed58aef41b8da6fbb505547c71ca3f5658c83b66ca6e556c936308b3189",
+    "brainstorming/visual-companion.md": "a2bc6fc47d0df1df981d02f707a16225b147f462e7059175ad2bc5e6dd29fcae",
+    "critical-research/SKILL.md": "04a9d6f0eeed96beca2b0eaf3b41203aeda0a25a8153d7014ce30f1166417b84",
+    "deep-reading/SKILL.md": "d79ffb25bf599a232a68d1094a66a2e6ab8ca520fc79e0040bb1e120268939d1",
+    "deep-reading/references/modes.md": "c96add8cc363de447313c1d7427b6c1a41a3da958ef6b833ecf4b97a58ddd728",
+    "deep-reading/references/output-contract.md": "a3985cbb6e36c58fc0deb4242cd3eb6c7130da66bffb6fc9b61b882256e803c4",
+    "deep-reading/references/progressive-reading.md": "fdb7a3cff8e4ab8c99fe1376e49bdf44d6e44b10676286bdecbfedbb3bd18f35",
+    "deep-reading/references/synthesis.md": "38eb05a1a4e8544a8418723555f1a34ffad9288243a0b74b608b059684aeee88",
+    "docs/plugins/installation.md": "de62189cb94789d647592b66171db8d8b812f0091144c129e34d58ccef807595",
+    "docs/plugins/migration.md": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50",
+    "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
+    "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",
+    "micro-poc-validator/SKILL.md": "efe88a633ef73cc84468a5486c1e65fc685034377fbb824177da9396482e89f2",
+    "narrative-auditor/SKILL.md": "657304779ad551a93b3100c838e82d48af1867bc58a201f209dd7de73a69864e",
+    "research-cross-validator/SKILL.md": "681f2708a6ff55a9c69a0d462532a17c5139962fa1045978d424f02f9b292222",
+    "research-synthesis/SKILL.md": "2bca1e8fdf21e754d7e1a1ac3ed5fd4c70960916062ab616c7435ccd99a84ae4",
+    "role-orchestrator/SKILL.md": "6337b046ad35d803c51b276e94f43b545c94cb9afea3f9ac53e204fd8e294c81",
+    "role-orchestrator/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+    "role-orchestrator/pm-agent-prompt.md": "c6cb042c243de2f4ba09b0193da4746a909d07f85e903b53b8266a1c3c823b7e",
+    "role-orchestrator/project-profile-template.yaml": "b14df5974543c3a1563863a1fc9623a7b0d926f8d88f11d492d9e6ee753a5579",
+    "role-orchestrator/rd-agent-prompt.md": "c9c77f670d581b96992f2ec60ea443d21e88a536027e15b63fbac66dd92412a8",
+    "role-pm/SKILL.md": "1cda3a937c770d54ac0caf197520643eaf7a54987d41e466451a54e386c8b8a5",
+    "role-rd/SKILL.md": "8d9971be6149c03b70e276fa9483effa5c94996a2323ff6b716d2e89f366bd2a",
+    "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
+    "runtime/agent_skills_runtime/policy.py": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a",
+    "spec-gap-finder/SKILL.md": "afc142e0877e8e7b06b8286dccfb3b1dc201a5eb009cdb01c773a70644da9189",
+    "spec-gap-finder/references/checklist.md": "a9c65f20cbe11394b36b4d481c8a60766e1fef900ef3de82c59b828c98723521",
+    "tech-feasibility/SKILL.md": "af4b0403ef1e7e1a170b544e7c90b97e344be20be16e95746ae8cadc45ddac1d",
+    "tech-research-pipeline/SKILL.md": "a2ed8393fdb24fb6020eab83744b797f9d9177e92e02a46538086e8730665893",
+    "tech-research-pipeline/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+    "technical-proposal-review/README.md": "3cc9fd8b41d5726a8a6204ce965987b2e672c083aef9ff1511d6949391c5b9cd",
+    "technical-proposal-review/SKILL.md": "83578debf0fcf529c226a7dc7fe015fcd12d97298ec2f18a1e23f1ac9c87f8aa",
+    "ui-design-analyzer/README.md": "6df02a62d729368a179fa0b4dc951b884cf93a7fb84c46c6b2ded7cf7253962d",
+    "ui-design-analyzer/SKILL.md": "805f86a92407e49d0158aecc3ee34a25e27bdac68c28396a13a28d5ee04f040b",
+    "ui-design-analyzer/examples/analysis-report-template.md": "cc08d996c449e7c989b8faf5d2705a14819f60c5609d3996cf6a93ac15f58dcf"
+  }
+}

@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TARGETS_FILE="$SKILLS_DIR/.skill-sync-targets"
-IGNORE_FILE="$SKILLS_DIR/.skill-sync-ignore"
+SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
+explicit_source=false
 
 # ── Parse args ─────────────────────────────────────────────────
 # Default is mirror mode (rsync --delete). --no-delete switches to
@@ -12,8 +11,18 @@ IGNORE_FILE="$SKILLS_DIR/.skill-sync-ignore"
 # mode and is expanded with the set -u-safe ${arr[@]+"${arr[@]}"} idiom.
 delete_args=("--delete")
 dry_run=false
-for arg in "$@"; do
+while [[ $# -gt 0 ]]; do
+    arg="$1"
     case "$arg" in
+        --source)
+            if [[ $# -lt 2 || ! -d "$2" ]]; then
+                echo "--source requires an existing standalone skills directory." >&2
+                exit 2
+            fi
+            SKILLS_DIR="$(cd "$2" && pwd -P)"
+            explicit_source=true
+            shift
+            ;;
         --no-delete)
             delete_args=()
             ;;
@@ -22,9 +31,12 @@ for arg in "$@"; do
             ;;
         -h|--help)
             cat <<'EOF'
-Usage: sync.sh [--dry-run] [--no-delete]
+Usage: sync.sh [--source DIRECTORY] [--dry-run] [--no-delete]
 
 Mirror ~/.claude/skills/ to configured agent skill folders.
+
+  --source DIR  Explicit standalone source; required when this script is
+                installed in a plugin. Plugin caches cannot be a source.
 
   (default)     Mirror mode: rsync --delete removes target-side files
                 that are not present in the source.
@@ -44,7 +56,22 @@ EOF
             exit 2
             ;;
     esac
+    shift
 done
+
+# Plugin caches are managed by the host, never by a standalone mirror.
+for plugin_root in "$SKILLS_DIR" "$(dirname "$SKILLS_DIR")"; do
+    if [[ -f "$plugin_root/.claude-plugin/plugin.json" || -f "$plugin_root/.codex-plugin/plugin.json" || -f "$plugin_root/plugin.json" ]]; then
+        echo "Plugin caches cannot be synced. Use --source with your standalone skills directory." >&2
+        exit 2
+    fi
+done
+if [[ "$explicit_source" == true ]] && ! find "$SKILLS_DIR" -mindepth 2 -maxdepth 2 -name SKILL.md -type f -print -quit | read -r _; then
+    echo "--source must contain standalone skill directories with SKILL.md." >&2
+    exit 2
+fi
+TARGETS_FILE="$SKILLS_DIR/.skill-sync-targets"
+IGNORE_FILE="$SKILLS_DIR/.skill-sync-ignore"
 
 # Trim CR, inline comment, surrounding whitespace; echo cleaned line.
 clean_line() {

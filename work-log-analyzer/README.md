@@ -44,7 +44,7 @@ Aggregate structured activity records from activity-logger into readable work lo
 ```
 
 **Features:**
-- Aggregates activity records from `~/.claude/activities/`
+- Aggregates activity records from the selected external `work-journal.json` activity path
 - Supports filtering by date range, project, activity type, and tags
 - Multiple output formats: by-date, by-project, by-type, or raw JSON
 - Integrates with activity-logger skill for cross-session tracking
@@ -52,7 +52,7 @@ Aggregate structured activity records from activity-logger into readable work lo
 **Example:**
 ```bash
 # Command line usage
-~/.claude/skills/work-log-analyzer/scripts/aggregate_activities.sh -r this-week
+"<skill_base_directory>/scripts/aggregate_activities.sh" -r this-week
 
 # Or via Claude Code
 User: Aggregate my activities from this week

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "agent_skills_work_journal_claude": {
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/server/launch.mjs"
+      ],
+      "command": "node"
+    }
+  }
+}

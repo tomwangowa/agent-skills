@@ -16,6 +16,10 @@ These principles don't require you to agree with my approach — they're indepen
 
 ---
 
+## CLI Plugin Packages
+
+Seven package definitions cover 38 source skills for Claude Code CLI and Codex CLI. Native acceptance passed on macOS with isolated fixtures using Claude Code CLI 2.1.300 and Codex CLI 0.162.1; remote marketplace installation and release approval remain pending. See the [acceptance record](docs/validation/skill-plugins/acceptance.json) and [plugin installation and migration](docs/plugins/README.md). Source lifecycle is unchanged. Standalone hooks and journal tools now also require the bundled runtime and external shared settings described below.
+
 ## Skills Catalog
 
 The complete, generated inventory and its lifecycle/surface policy live in [SKILLS_CATALOG.md](./SKILLS_CATALOG.md). Use `skill-router` when you want a recommendation rather than a list.
@@ -63,8 +67,14 @@ Structures skill data query capabilities as MCP tools, letting Claude Code direc
 **Quick setup:**
 
 ```bash
-cd ~/.claude/skills/skills-query-server && npm install
-claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-server/src/index.ts
+# From a standalone clone, configure the selected data directories first.
+# Review the preview; repeat without --preview to create missing settings.
+export AGENT_SKILLS_CONFIG_DIR="$HOME/.config/agent-skills"
+PYTHONPATH="$HOME/.claude/skills/runtime" python3 -m agent_skills_runtime.setup \
+  --activities "/absolute/activities" --notes "/absolute/notes" --preview
+npm --prefix "$HOME/.claude/skills/skills-query-server" ci
+npm --prefix "$HOME/.claude/skills/skills-query-server" run build
+claude mcp add -s user skills-query -- node "$HOME/.claude/skills/skills-query-server/dist/index.js"
 ```
 
 See [skills-query-server/README.md](./skills-query-server/README.md) for details.
@@ -117,7 +127,7 @@ Superpowers plugin skills (writing-plans, executing-plans, systematic-debugging,
 ### Prerequisites
 
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
-- [Node.js](https://nodejs.org/) (only if you want to use Gemini-powered skills)
+- Python 3 for standalone hooks and journal scripts; [Node.js](https://nodejs.org/) for the journal MCP server
 - Git
 
 ### Installation
@@ -197,7 +207,12 @@ The default trigger invokes `code-review-claude` in Claude Code or `code-review-
 ### Activity Logger
 
 ```bash
-# Initialize (first time)
+# First run: select data paths, review the preview, then repeat without --preview.
+export AGENT_SKILLS_CONFIG_DIR="$HOME/.config/agent-skills"
+PYTHONPATH="$HOME/.claude/skills/runtime" python3 -m agent_skills_runtime.setup \
+  --activities "/absolute/activities" --notes "/absolute/notes" --preview
+
+# Once shared settings exist, initialize the selected activity directory.
 ~/.claude/skills/activity-logger/scripts/init_activities.sh init
 
 # Log via Claude Code
@@ -220,7 +235,7 @@ The default trigger invokes `code-review-claude` in Claude Code or `code-review-
 
 **Activity types**: `task_completed`, `bug_fixed`, `refactoring`, `research`, `documentation`, `review`
 
-**Record locations**: `~/.claude/activities/` (active), `~/.claude/activities/processed/` (archived)
+**Record locations**: `sources.activities` in the external `work-journal.json` (active), with `processed/` underneath (archived). `CLAUDE_ACTIVITIES_DIR` explicitly overrides the activity path; relative paths resolve from the settings root. Use the same environment for shell and MCP. Existing settings are preserved; setup does not move old records.
 
 Activity records can be used with `work-log-analyzer` for cross-project and cross-session aggregation analysis.
 
@@ -236,12 +251,12 @@ Activity records can be used with `work-log-analyzer` for cross-project and cros
 | pr-review-assistant | [GitHub CLI](https://cli.github.com/), Git |
 | ui-design-analyzer | No external dependencies (uses Claude's native multimodal capabilities) |
 | interactive-presentation-generator | No external dependencies (20 built-in theme templates) |
-| activity-logger | `jq`, Git |
+| activity-logger | Python 3, `jq`, Git, bundled runtime and external journal settings |
 | lesson | Python 3 (standard library only), Git |
-| work-log-analyzer | `jq`, `date` (core functionality has no external dependencies) |
+| work-log-analyzer | Python 3, `jq`, `date`, bundled runtime and external journal settings |
 | skill-auditor | Bash 4.0+ (optional: Gemini CLI for semantic analysis) |
 | newsletter-digest | Python 3 (bundled `parse_emls.py` script) |
-| skills-query-server | Node.js, `tsx` (registered via `claude mcp add`) |
+| skills-query-server | Node.js; source builds need lockfile dependencies and TypeScript (see server README for the supported test toolchain) |
 | pptx-to-md | Python 3 + `uv` or `pip` (for markitdown; `uvx` runs ephemerally with no install) |
 | repo-sync | Git |
 | skill-sync | `rsync` (preinstalled on macOS/Linux) |

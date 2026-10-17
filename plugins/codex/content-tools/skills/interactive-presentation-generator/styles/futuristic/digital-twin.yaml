@@ -1,0 +1,196 @@
+# Digital Twin Template
+# Style: Future / Digital Twin / Urban / 3D Isometric
+# Concept: Urban OS (City Operating System)
+
+template_metadata:
+  id: "digital-twin"
+  version: "1.0.0"
+  category: "futuristic"
+  name:
+    en: "Digital Twin"
+    zh_tw: "數位孿生"
+    ja: "デジタルツイン"
+  description:
+    en: "A futuristic and structural aesthetic featuring isometric 3D clay models, wireframes, and simulation data overlays."
+    zh_tw: "充滿未來感與結構性的美學，特色為等角投影 (Isometric) 的 3D 白模、線框圖與模擬數據疊加層。"
+    ja: "未来的、緻密、構造的。アイソメトリックな3Dクレイモデル、ワイヤーフレーム、シミュレーションデータのオーバーレイを特徴とする美学。"
+  tags:
+    en: ["futuristic", "3d", "isometric", "urban", "data", "simulation"]
+    zh_tw: ["未來", "3D", "等角投影", "城市", "數據", "模擬"]
+    ja: ["未来的", "3D", "アイソメトリック", "アーバン", "データ", "シミュレーション"]
+  recommended_for:
+    en: ["Smart city projects", "Logistics", "Urban planning", "Architecture tech", "Infrastructure"]
+    zh_tw: ["智慧城市專案", "物流", "都市計畫", "建築科技", "基礎建設"]
+    ja: ["スマートシティ", "物流", "都市計画", "建築テック", "インフラ"]
+
+overall_design_settings:
+  tone: "Futuristic, Precise, Structural, Simulation"
+  design_philosophy: "Objectivity - 3D CAD Viewport Aesthetic"
+
+  color_palette:
+    base: "#F5F7FA" # Light Mode (Day) or #0F172A (Night)
+    primary: "#0F172A" # Dark Blue structure
+    text: "#0F172A"
+    background: "#F5F7FA"
+    accent_1: "#00E5FF" # Neon Cyan (Data)
+    accent_2: "#FFAB00" # Amber (Warning)
+    accent_3: "#FFFFFF" # Pure White (Buildings)
+    gradient: "Light particles (Traffic simulation)"
+    note: "Mix of Matte White Clay and Wireframe. Colors indicate status (Data/Warning), not decoration."
+
+  typography:
+    heading:
+      font_family: "DIN, Roboto Mono, sans-serif"
+      font_description: "Technical, Industrial Sans-serif."
+      size_philosophy: "System font aesthetic. English titles massive (Outline only), Japanese small."
+      font_weight: 700
+      font_size: "56pt"
+      line_height: 1.0
+      style: "outline-mixed" # Large outline text
+    body:
+      font_family: "Roboto, Inter, sans-serif"
+      font_description: "High readability Gothic."
+      readability_notes: "Small size, high density."
+      font_weight: 400
+      font_size: "10pt"
+      line_height: 1.5
+    numbers:
+      font_family: "DIN, monospace"
+      style: "Technical data display."
+
+  common_layout_rules:
+    grid_system: "Isometric Grid"
+    spacing_philosophy: "Spatial Scale - Grid lines on the floor"
+    alignment_principle: "3D Coordinate System"
+    visual_balance: "Birds-eye view objectivity"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "3d_model"
+        description: "Clay Model"
+        usage: "White matte buildings, vehicles, infrastructure"
+        style: "Isometric projection, Ambient Occlusion shadows"
+      - type: "3d_model"
+        description: "Wireframe"
+        usage: "Under construction elements or data overlays"
+        color: "primary"
+      - type: "ui"
+        description: "HUD Overlay"
+        usage: "Corner decorations imitating CAD software (Axis, Zoom, Layers)"
+        color: "primary"
+        opacity: 0.5
+      - type: "line"
+        description: "Floating Label"
+        usage: "Leader lines extending from 3D objects to tags in mid-air"
+    image_style:
+      characteristics: "Isometric, Tilt-shift (Miniature effect), Clean 3D render"
+      shadows: "Realistic ambient occlusion (contact shadows)"
+    color_temperature: "Neutral with Digital Accents"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "City Overview"
+    design: |
+      Layout: Full Screen Isometric.
+      Visual: Sprawling cityscape in white clay style.
+      Highlight: One specific district colored in Cyan.
+      Pop-up: Data tag floating above the highlighted district.
+      Text: DIN Font title overlay (Outline style).
+      Overall atmosphere: Macro management, God mode.
+    component: "title_slide"
+    safe_area:
+      top: "40px"
+      bottom: "40px"
+      left: "40px"
+      right: "40px"
+
+  - type: "Layer Slide"
+    description: "Layer Decomposition"
+    design: |
+      Layout: Vertical Exploded View.
+      Layers: 3 Distinct layers floating above each other.
+        1. Drone Airspace (Top)
+        2. Traffic/Ground (Middle)
+        3. Infrastructure/Pipe (Bottom)
+      Connection: Dashed lines connecting the layers.
+      Overall atmosphere: Structural analysis.
+    component: "layer_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "100px"
+      right: "100px"
+
+  - type: "Data Slide"
+    description: "Building Data Heatmap"
+    design: |
+      Layout: Single Object Focus.
+      Subject: One skyscraper close-up.
+      Data: The windows act as a grid/heatmap cells (colored from Cyan to Amber).
+      Legend: Palette showing Energy Consumption or Vacancy Rate.
+      Overall atmosphere: Granular data monitoring.
+    component: "data_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Simulation Slide"
+    description: "Traffic Simulation"
+    design: |
+      Layout: Network Flow.
+      Visual: Road network on the grid floor.
+      Effect: Particle flow (Light streaks) representing traffic.
+      Alert: Red pulsing circle at a bottleneck intersection.
+      Overall atmosphere: Real-time dynamic simulation.
+    component: "simulation_slide"
+    safe_area:
+      top: "50px"
+      bottom: "50px"
+      left: "50px"
+      right: "50px"
+
+  - type: "Network Slide"
+    description: "Connectivity Lines"
+    design: |
+      Layout: Node Connection.
+      Visual: Multiple buildings.
+      Lines: Parabolic arcs (Arc-lines) connecting rooftops.
+      Density: Shows network strength/traffic.
+      Overall atmosphere: Smart city connectivity.
+    component: "network_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"
+
+  - type: "Comparison Slide"
+    description: "A/B Simulation"
+    design: |
+      Layout: Split Screen Isometric.
+      Left: Current State (Wireframe).
+      Right: Future State (Completed Clay Model).
+      Divider: Vertical laser line.
+      Overall atmosphere: Impact assessment.
+    component: "comparison_slide"
+    safe_area:
+      top: "50px"
+      bottom: "50px"
+      left: "50px"
+      right: "50px"
+
+  - type: "Process Slide"
+    description: "Construction Process"
+    design: |
+      Layout: Evolution.
+      Visual: A building transitioning from Wireframe (Left) to Solid (Right).
+      Gradient: Color gradient indicates progress %.
+      Overall atmosphere: Project management.
+    component: "process_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "60px"
+      right: "60px"

@@ -1,0 +1,92 @@
+{
+  "interface": {
+    "displayName": "Agent Skills"
+  },
+  "name": "tomwangowa",
+  "plugins": [
+    {
+      "category": "Developer Tools",
+      "name": "quality-gates",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/codex/quality-gates",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Developer Tools",
+      "name": "technical-decisions",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/codex/technical-decisions",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Developer Tools",
+      "name": "repo-workflow",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/codex/repo-workflow",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Developer Tools",
+      "name": "content-tools",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/codex/content-tools",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Developer Tools",
+      "name": "work-journal",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/codex/work-journal",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Developer Tools",
+      "name": "session-preferences",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/codex/session-preferences",
+        "source": "local"
+      }
+    },
+    {
+      "category": "Developer Tools",
+      "name": "skill-toolbox",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/codex/skill-toolbox",
+        "source": "local"
+      }
+    }
+  ]
+}

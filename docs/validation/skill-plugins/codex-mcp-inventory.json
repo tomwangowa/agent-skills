@@ -1,0 +1,21 @@
+{
+  "client_version": "codex-cli 0.162.1",
+  "observed_commands": [
+    "/mcp",
+    "/mcp verbose"
+  ],
+  "plugin": "skill-plugins-probe-codex-cli@skill-plugins-runtime-probe",
+  "plugin_version": "0.0.2",
+  "server": "skills-query",
+  "status": "connected",
+  "tools": [
+    "dashboard",
+    "log_activity",
+    "query_activities",
+    "query_decisions",
+    "query_timeline",
+    "query_todos",
+    "search"
+  ],
+  "terminal_excerpt": "skills-query: connectd (7tools)    • Auth: Unsupported    • Tools: dashboard, log_activity,query_activities,query_decisions,query_timeline, query_todos, search    • Resources: (none)•Resourcetemplates:(none) "
+}

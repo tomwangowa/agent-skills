@@ -1,17 +1,61 @@
 {
-  "name": "tomwangowa",
   "description": "Tom's Claude Code plugins and mods",
-  "owner": { "name": "Tom Wang" },
+  "name": "tomwangowa",
+  "owner": {
+    "name": "Tom Wang"
+  },
   "plugins": [
     {
+      "description": "A source-backed attention panel for the current Claude Code session.",
       "name": "attention-mod",
-      "source": "./plugins/attention-mod",
-      "description": "A source-backed attention panel for the current Claude Code session."
+      "source": "./plugins/attention-mod"
     },
     {
+      "description": "Hand off unfinished work before a session loses it, and pick it up at the next start.",
       "name": "handoff-mod",
-      "source": "./plugins/handoff-mod",
-      "description": "Hand off unfinished work before a session loses it, and pick it up at the next start."
+      "source": "./plugins/handoff-mod"
+    },
+    {
+      "description": "quality-gates skills",
+      "name": "quality-gates",
+      "source": "./plugins/claude/quality-gates",
+      "version": "0.1.0"
+    },
+    {
+      "description": "technical-decisions skills",
+      "name": "technical-decisions",
+      "source": "./plugins/claude/technical-decisions",
+      "version": "0.1.0"
+    },
+    {
+      "description": "repo-workflow skills",
+      "name": "repo-workflow",
+      "source": "./plugins/claude/repo-workflow",
+      "version": "0.1.0"
+    },
+    {
+      "description": "content-tools skills",
+      "name": "content-tools",
+      "source": "./plugins/claude/content-tools",
+      "version": "0.1.0"
+    },
+    {
+      "description": "work-journal skills",
+      "name": "work-journal",
+      "source": "./plugins/claude/work-journal",
+      "version": "0.1.0"
+    },
+    {
+      "description": "session-preferences skills",
+      "name": "session-preferences",
+      "source": "./plugins/claude/session-preferences",
+      "version": "0.1.0"
+    },
+    {
+      "description": "skill-toolbox skills",
+      "name": "skill-toolbox",
+      "source": "./plugins/claude/skill-toolbox",
+      "version": "0.1.0"
     }
   ]
 }

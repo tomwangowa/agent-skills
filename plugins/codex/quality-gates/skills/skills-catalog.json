@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "skills": [
+    {
+      "category": "quality-gates",
+      "id": "code-review-codex",
+      "invocation_intent": "model",
+      "lifecycle": "personal",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "quality-gates",
+      "id": "codebase-audit",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "quality-gates",
+      "id": "completion-gate",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "quality-gates",
+      "id": "pr-review-assistant",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "quality-gates",
+      "id": "secure-ai-development-gate",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    }
+  ]
+}

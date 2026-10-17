@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "skills": [
+    {
+      "category": "research-critical-thinking",
+      "id": "assumption-extractor",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "design-planning",
+      "id": "brainstorming",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "research-critical-thinking",
+      "id": "critical-research",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "research-critical-thinking",
+      "id": "deep-reading",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "research-critical-thinking",
+      "id": "micro-poc-validator",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "research-critical-thinking",
+      "id": "narrative-auditor",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "research-critical-thinking",
+      "id": "research-cross-validator",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "research-critical-thinking",
+      "id": "research-synthesis",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "multi-agent-roles",
+      "id": "role-orchestrator",
+      "invocation_intent": "user",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "multi-agent-roles",
+      "id": "role-pm",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "multi-agent-roles",
+      "id": "role-rd",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "design-planning",
+      "id": "spec-gap-finder",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "research-critical-thinking",
+      "id": "tech-feasibility",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "research-critical-thinking",
+      "id": "tech-research-pipeline",
+      "invocation_intent": "user",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "design-planning",
+      "id": "technical-proposal-review",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "design-planning",
+      "id": "ui-design-analyzer",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": false,
+        "sync": true
+      }
+    }
+  ]
+}

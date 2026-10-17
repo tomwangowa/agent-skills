@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "skills": [
+    {
+      "category": "productivity-tracking",
+      "id": "activity-logger",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "productivity-tracking",
+      "id": "work-log-analyzer",
+      "invocation_intent": "model",
+      "lifecycle": "personal",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    }
+  ]
+}

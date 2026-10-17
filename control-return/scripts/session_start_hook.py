@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 from pathlib import Path
 
@@ -19,14 +18,10 @@ OFF_VARIABLE = "AGENT_SESSION_PREFS"
 
 HEADER = (
     "[control-return — auto-applied by SessionStart hook]\n"
+    "This injection is the user's activation of control-return; treat the policy as enabled.\n"
     "Apply the following rule for this session. Do not announce activation.\n"
     "If it conflicts with the active output style, CLAUDE.md, or AGENTS.md, "
     "those take precedence."
-)
-
-# The first ```text block inside the "## Rule" section, before the next "## " heading.
-RULE_BLOCK = re.compile(
-    r"^## Rule[ \t]*\n(?:(?!^## ).)*?^```text[ \t]*\n(.*?)^```", re.DOTALL | re.MULTILINE
 )
 
 
@@ -44,14 +39,22 @@ def emit(context: str | None, warning: str | None) -> None:
 
 
 def build() -> tuple[str | None, str | None]:
-    try:
-        text = SKILL_MD.read_text(encoding="utf-8")
-    except (OSError, ValueError):
-        return None, f"control-return: cannot read {SKILL_MD}; rule was not loaded."
-    match = RULE_BLOCK.search(text)
-    if not match or not match.group(1).strip():
-        return None, f"control-return: no ```text block under '## Rule' in {SKILL_MD}; rule was not loaded."
-    return f"{HEADER}\n\n{match.group(1).strip()}", None
+    # Source skills live under the repo; packaged skills live under plugin/skills.
+    skill_dir = SKILL_MD.parent
+    package_root = skill_dir.parent
+    # Flat mirrors are also named skills; only native manifests identify plugin nesting.
+    if package_root.name == "skills" and any(
+            (package_root.parent / marker).is_file() for marker in
+            (".claude-plugin/plugin.json", ".codex-plugin/plugin.json")):
+        package_root = package_root.parent
+    runtime = package_root / "runtime"
+    if not (runtime / "agent_skills_runtime/preferences.py").is_file():
+        raise RuntimeError("Bundled preference runtime is missing; rules were not loaded")
+    sys.path.insert(0, str(runtime))
+    from agent_skills_runtime.config import resolve_config_root
+    from agent_skills_runtime.preferences import load_control_return
+    context, warnings = load_control_return(SKILL_MD, resolve_config_root(os.environ, Path.home()))
+    return (f"{HEADER}\n\n{context}" if context else None, "; ".join(warnings) if warnings else None)
 
 
 def main() -> int:

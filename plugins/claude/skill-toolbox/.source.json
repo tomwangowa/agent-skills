@@ -1,0 +1,81 @@
+{
+  "catalog_sha256": "3c901cb49798aadeb8661bff67cd6f8ae56899fed271ab68a42838328b7af871",
+  "contracts_sha256": "75c99ca57e6f47a514dc1cf8c2d2a14c0d93b93368905150b86fb4410be9c3f7",
+  "package": {
+    "dependencies": [
+      {
+        "condition": "Only when recommending a selected upstream workflow",
+        "kind": "optional",
+        "provider": "superpowers",
+        "skills": [
+          "writing-plans",
+          "subagent-driven-development",
+          "executing-plans"
+        ],
+        "tested_versions": []
+      }
+    ],
+    "name": "skill-toolbox",
+    "platforms": [
+      "claude",
+      "codex"
+    ],
+    "requirements": {
+      "commands": [
+        "bash",
+        "python3",
+        "rsync"
+      ],
+      "config": []
+    },
+    "runtime_resources": [
+      "skill-auditor/README.md",
+      "skill-auditor/examples/README.md",
+      "skill-auditor/examples/templates/error-handling-template.md",
+      "skill-auditor/examples/templates/security-section-template.md",
+      "skill-auditor/scripts/audit_skill.sh",
+      "skill-router/agents/openai.yaml",
+      "skill-router/skill-registry.yaml",
+      "skill-sync/agents/openai.yaml",
+      "skill-sync/scripts/sync.sh",
+      "claude-workflow-designer/agents/openai.yaml",
+      "claude-workflow-designer/references/successful-patterns.md",
+      "runtime/agent_skills_runtime/__init__.py",
+      "runtime/agent_skills_runtime/policy.py",
+      "docs/plugins/installation.md",
+      "docs/plugins/migration.md",
+      "docs/plugins/team-instructions.md",
+      "docs/plugins/superpowers-compatibility.md"
+    ],
+    "skills": [
+      "skill-auditor",
+      "skill-router",
+      "skill-sync",
+      "claude-workflow-designer"
+    ],
+    "version": "0.1.0"
+  },
+  "resources": {
+    "claude-workflow-designer/SKILL.md": "7223029f9c2cf8dc8ad3d2e2f3fbfb4f2c9033ad80484e2f3c6b9d8f38ba6c23",
+    "claude-workflow-designer/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+    "claude-workflow-designer/references/successful-patterns.md": "5709640b5bd463ac6ba84787088c5461b638ea1977cd701e2064dfec3ef4d391",
+    "docs/plugins/installation.md": "de62189cb94789d647592b66171db8d8b812f0091144c129e34d58ccef807595",
+    "docs/plugins/migration.md": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50",
+    "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
+    "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",
+    "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
+    "runtime/agent_skills_runtime/policy.py": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a",
+    "skill-auditor/README.md": "ed7fb84f75473b4f3559f75994851fb79fdb1069bc1766b4947df6c128d2710b",
+    "skill-auditor/SKILL.md": "d7382693ce25c5ffc34fca877a7c23aa7b2a1a4e3f6838b41c7a4af8a81501fb",
+    "skill-auditor/examples/README.md": "0c2afbac0538b8697d08d3a8b58d8a501361ddd7769f2ae3e32bb10cc9b2dda1",
+    "skill-auditor/examples/templates/error-handling-template.md": "00e7f303333aa641a5b5d12290b3d4bdb0a1cc7b5342762e736cadd3924183fe",
+    "skill-auditor/examples/templates/security-section-template.md": "37adcdfaa70858dfa0f9ec0eeef32fa46047885c924198120eb0e09a0e53b4a6",
+    "skill-auditor/scripts/audit_skill.sh": "cdf936f91c69c9429d605700b1798f2e7ee058b4a06f784e850661286b385ed9",
+    "skill-router/SKILL.md": "6480a4ec73e72f0f4b35a08df39d1c7e4825d0b19ecb1963642e164e77e84868",
+    "skill-router/agents/openai.yaml": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "skill-router/skill-registry.yaml": "a9661acafb3b5db0b28909db563dbb70ef4538062ef8b7b9161f6f39588d5f3f",
+    "skill-sync/SKILL.md": "56a0dda220cdb11b9a787747ba3bc4e4e97250de04fa1c7d0beb247c861d8356",
+    "skill-sync/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+    "skill-sync/scripts/sync.sh": "91dadec06f2b0bbedf220d559fc28e45dde2e7dd6699b5c28c5d93097313148a"
+  }
+}

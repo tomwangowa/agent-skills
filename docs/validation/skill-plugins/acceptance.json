@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "status": "verified",
+  "supported_surfaces": [
+    "claude-cli",
+    "codex-cli"
+  ],
+  "artifact_version": "0.1.0",
+  "production_security": {
+    "status": "verified",
+    "evidence": [
+      {
+        "path": "production-audit.json",
+        "sha256": "3583097d77394a3bac1433c8f6ebb9d69d29d94385f553272debf258f0fc30c8"
+      }
+    ]
+  },
+  "surfaces": {
+    "claude-cli": {
+      "status": "verified",
+      "observed_client_version": "2.1.300",
+      "checks": {
+        "installation": "verified",
+        "mcp_round_trip": "verified",
+        "startup": "verified",
+        "resume": "verified",
+        "clear": "verified",
+        "compact": "verified",
+        "preference_off": "verified",
+        "owned_routing": "verified",
+        "manual_invocation": "verified",
+        "superpowers": "verified",
+        "update": "verified",
+        "migration": "verified"
+      },
+      "artifact_bindings": {
+        "quality-gates": {
+          "sha256": "7f33d59d3db0fb8cfe06516bc375637c493790c4b7debf54af96b6ed2078d041",
+          "resource_count": 19
+        },
+        "technical-decisions": {
+          "sha256": "c7bf186b5620bdac32ab6252835bc1bbe202b8f4cd28977f65c041491f49c4df",
+          "resource_count": 43
+        },
+        "repo-workflow": {
+          "sha256": "b52c5db1ad8d8777ddf71ca7f0f562f211daf835cba99256e8860ec5edc7b849",
+          "resource_count": 7
+        },
+        "content-tools": {
+          "sha256": "69df55fa55f1b5cf1e61d272ca3c863dc7590ebf2e623d70a3d8be0f2e342f7d",
+          "resource_count": 47
+        },
+        "work-journal": {
+          "sha256": "bc8a68a7d18d03371a8c5cc54049cec3086c25a293559a0895e32bf5bb24ed30",
+          "resource_count": 3971
+        },
+        "session-preferences": {
+          "sha256": "baf469dbeb928eef3459e28a47039b15918179f1eaa53a02172861087271f98d",
+          "resource_count": 24
+        },
+        "skill-toolbox": {
+          "sha256": "6dc5da70fafcb26fbbf6b8cff397c2e9d3aa10343810ad5e4031085183a6d988",
+          "resource_count": 23
+        }
+      },
+      "evidence": [
+        {
+          "path": "native-acceptance-claude.json",
+          "sha256": "24c2631723f6b6fbc9f89225676c20fcca5dfc4821a41ab0a749cc07cf320e29"
+        }
+      ]
+    },
+    "codex-cli": {
+      "status": "verified",
+      "observed_client_version": "0.162.1",
+      "checks": {
+        "installation": "verified",
+        "mcp_round_trip": "verified",
+        "startup": "verified",
+        "resume": "verified",
+        "clear": "verified",
+        "compact": "verified",
+        "preference_off": "verified",
+        "owned_routing": "verified",
+        "manual_invocation": "verified",
+        "superpowers": "verified",
+        "update": "verified",
+        "migration": "verified"
+      },
+      "artifact_bindings": {
+        "quality-gates": {
+          "sha256": "aba7b30c12aa48688ffccda79f510943446c59e174d51ee1864dc4a65db6bd7a",
+          "resource_count": 17
+        },
+        "technical-decisions": {
+          "sha256": "b2d7d3549a18d61f938c4e91af5e6e4d3af9bd80996762be53dbdb7ca8f5347a",
+          "resource_count": 43
+        },
+        "repo-workflow": {
+          "sha256": "548950054df66362dae37393294b7daf02dc0708ce189173a7af23dc450d55ec",
+          "resource_count": 7
+        },
+        "content-tools": {
+          "sha256": "fc8eb21baeaf6bbc7b65fc719e7d89055b7a51c7cab5dd7965d17adb4fd58cbd",
+          "resource_count": 47
+        },
+        "work-journal": {
+          "sha256": "c72ae1177b922b6b5cf67c8aa80cd71af60bd7f33bfb6445d37400347ab1a55e",
+          "resource_count": 3971
+        },
+        "session-preferences": {
+          "sha256": "8dba9c80d07089334fed0fda4ce616f9269bc0aa849be7713fc4b1e2f97b78cc",
+          "resource_count": 24
+        },
+        "skill-toolbox": {
+          "sha256": "4656bb5e77d5b3c0fa3f285f111c4c4e04e5b0e627e0696d10ae10592b18fd7c",
+          "resource_count": 20
+        }
+      },
+      "evidence": [
+        {
+          "path": "native-acceptance-codex.json",
+          "sha256": "4e312cc04f744d198c3c4070d12635bd807e1097d9b0098606c5f7de4443fd28"
+        }
+      ]
+    }
+  },
+  "native_cleanup": {
+    "status": "verified_with_unresolved_native_registry_fingerprints",
+    "evidence": [
+      {
+        "path": "native-acceptance-cleanup.json",
+        "sha256": "2bd252e5696a69fe0ef3714d131679d04617eeca7a85202f722da0d7e8962c6e"
+      }
+    ]
+  },
+  "limits": [
+    "Native acceptance used Claude Code 2.1.300 and Codex 0.162.1 on macOS with a unique local fixture marketplace.",
+    "Remote Git marketplace installation was not tested; Codex marketplace upgrade did not support the local filesystem source, while native plugin add refreshed the local fixture.",
+    "Claude MCP round-trip used a strict isolated fixture config derived from the installed package entry; automatic plugin MCP discovery with normal settings was not established.",
+    "Superpowers tests cover selected workflow boundaries only; tested_versions remains empty for broader branches.",
+    "Publication, commit and production sync remain separate approval steps.",
+    "Native cleanup left semantic fingerprint differences in Codex config.toml and Claude plugin registry files. Current CLI inventories contain no selected package or marketplace, but hash-only snapshots cannot attribute the changed fields; no manual prune or restore was performed."
+  ]
+}

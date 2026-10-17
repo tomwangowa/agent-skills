@@ -1,0 +1,164 @@
+# Red Editorial Template
+# Magazine-style bold typography with red accents
+# Category: Editorial Series
+
+template_metadata:
+  id: "red-editorial"
+  version: "1.0.0"
+  category: "editorial"
+  name:
+    en: "Red Editorial"
+    zh_tw: "紅色編輯"
+    ja: "レッドエディトリアル"
+  description:
+    en: "Magazine-style bold typography with dramatic red accents and dynamic layouts"
+    zh_tw: "雜誌風格的大膽排版，搭配戲劇性的紅色強調和動態版面"
+    ja: "雑誌スタイルの大胆なタイポグラフィとドラマチックな赤のアクセント"
+  tags:
+    en: ["editorial", "magazine", "bold", "dynamic", "modern"]
+    zh_tw: ["編輯", "雜誌", "大膽", "動態", "現代"]
+    ja: ["エディトリアル", "雑誌", "大胆", "ダイナミック", "モダン"]
+  recommended_for:
+    en: ["Magazine layouts", "Creative pitches", "Brand stories", "Event announcements"]
+    zh_tw: ["雜誌排版", "創意提案", "品牌故事", "活動公告"]
+    ja: ["雑誌レイアウト", "クリエイティブピッチ", "ブランドストーリー", "イベント告知"]
+
+overall_design_settings:
+  tone: "Bold, Dynamic, Editorial"
+  design_philosophy: "Visual Storytelling - Design as Narrative Through Bold Typography"
+
+  color_palette:
+    base: "#FFFFFF"
+    primary: "#1A1A1A"
+    text: "#2D2D2D"
+    background: "#FFFFFF"
+    accent_1: "#E63946"
+    accent_2: "#F1FAEE"
+    highlight: "#FFE5E7"
+
+  typography:
+    heading:
+      font_family: "Playfair Display, Georgia, serif"
+      font_description: "High-contrast serif with dramatic personality for impactful headlines"
+      size_philosophy: "Large and bold - headlines dominate the visual hierarchy"
+      font_weight: 900
+      font_size: "64pt"
+      line_height: 1.0
+      letter_spacing: "-0.03em"
+    body:
+      font_family: "Inter, sans-serif"
+      font_description: "Clean sans-serif for readability contrast with decorative headlines"
+      readability_notes: "16pt, generous leading for comfortable reading in editorial context"
+      font_weight: 400
+      font_size: "16pt"
+      line_height: 1.6
+
+  common_layout_rules:
+    grid_system: "Flexible modular grid - allows dramatic layouts and rule-breaking"
+    spacing_philosophy: "Dynamic spacing - larger gaps for emphasis, tighter for intensity"
+    alignment_principle: "Mixed alignment - creating visual tension and interest"
+    whitespace_approach: "Strategic density - balance impact with breathing room"
+
+  visual_motifs:
+    decorative_elements:
+      - type: "shape"
+        description: "Bold geometric shapes - large rectangles or circles in accent color as visual anchors"
+        usage: "Creating focal points, framing content, adding editorial drama"
+        color: "#E63946"
+      - type: "line"
+        description: "Thick accent lines (3-5px) defining content zones"
+        usage: "Framing, visual structure, editorial emphasis"
+        color: "#E63946"
+    material_metaphor: "Magazine print - high contrast ink on paper, editorial sophistication"
+    visual_rhythm: "Varied and dynamic - rhythm follows editorial narrative, not mathematical precision"
+
+layout_variations:
+  - type: "Title Slide"
+    description: "Bold editorial-style opening with dominant typography"
+    design: |
+      Dramatic asymmetric layout with oversized typography dominating the frame.
+      Main title: Massive 72pt, using heading serif font (Playfair), black (#1A1A1A), font-weight 900.
+      Title positioned dramatically - top third of canvas, flush-left at 80px, or creative angle/position.
+      Title may break into 2-3 lines for visual impact - line breaks create rhythm.
+      Large red accent shape: Geometric rectangle or circle (200-300px), accent_1 (#E63946), positioned behind or beside title.
+      Accent shape: 40% opacity or solid - creating visual drama and focal point.
+      Subtitle: Small and understated (14pt, sans-serif), positioned with generous offset from title (60px+ away).
+      Subtitle color: Text color (#2D2D2D) at 60% opacity for hierarchy.
+      Editorial mark: Issue number, date, or category label in upper corner (12pt, uppercase, letter-spacing 0.15em).
+      Brand element: Minimal, bottom corner, black or red, editorial sophistication.
+      Background: Pure white (#FFFFFF) for maximum contrast and magazine aesthetic.
+      Overall atmosphere: Bold, confident, editorial, modern magazine cover.
+      Visual weight: 85% on title and red accent (dramatic impact), 15% supporting elements.
+    component: "title_slide"
+    safe_area:
+      top: "60px"
+      bottom: "60px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Content Slide"
+    description: "Editorial content with bold section headers"
+    design: |
+      Magazine-style multi-column layout with bold visual hierarchy.
+      Section header: Large 36pt serif (Playfair), black (#1A1A1A), positioned at top with red underline.
+      Red underline: 3px thick, accent_1 (#E63946), 100px wide, 8px below headline.
+      Content in 2-3 column layout: Left column 50%, middle 25%, right 25% (or 65-35 two-column).
+      Body text: 15pt sans-serif (Inter), text color (#2D2D2D), line-height 1.6, justified or left-aligned.
+      Column gutters: 40px for clear separation.
+      Pull quote (optional): Enlarged text (28pt serif) in accent_1 red, positioned in column break.
+      Visual elements: High-contrast images or geometric shapes in red accent color.
+      Captions: Small 12pt, italic, text color 60% opacity, positioned tight to images.
+      Page number: Editorial style - large (18pt), bottom center or corner, with decorative element.
+      Background: White with optional subtle gray zones (#F8F8F8) for visual areas.
+      Overall atmosphere: Dynamic, editorial, modern magazine spread.
+      Visual weight: Balanced across columns with strategic red accents creating focal points.
+    component: "content_slide"
+    safe_area:
+      top: "64px"
+      bottom: "64px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Data Slide"
+    description: "Editorial-style data presentation"
+    design: |
+      Bold data visualization with editorial drama and red accent highlighting.
+      Chart title: Large 32pt serif (Playfair), black (#1A1A1A), positioned top-left with red accent bar.
+      Red accent bar: 4px height, 120px width, accent_1 (#E63946), below title.
+      Chart: Centered or asymmetrically placed, using bold visual style.
+      Chart colors: Primary black (#1A1A1A) for main data, red (#E63946) for key highlights.
+      Background shapes: Large geometric forms in pale red (#FFE5E7) behind chart for editorial impact.
+      Data labels: Bold 14pt sans-serif, black, positioned dynamically (not rigidly gridded).
+      Grid: Minimal or removed - editorial style favors clean data over technical grids.
+      Chart style: Bold lines (2-3px), high contrast, modern editorial aesthetic.
+      Caption: Positioned as pull quote style - larger 16pt, may use red accent color.
+      Overall atmosphere: Impactful, editorial, data tells a story.
+      Visual weight: Chart dominates (80%), red accents create visual interest (20%).
+    component: "data_slide"
+    safe_area:
+      top: "64px"
+      bottom: "64px"
+      left: "80px"
+      right: "80px"
+
+  - type: "Summary Slide"
+    description: "Bold editorial summary"
+    design: |
+      Dramatic summary with large typography and red accent structure.
+      Heading: "Key Points" or "Takeaways" in large 40pt serif, black (#1A1A1A), font-weight 900.
+      Large red numeral markers: 56pt, accent_1 (#E63946), bold, positioned left of each point.
+      Point text: 20pt sans-serif, black (#1A1A1A), positioned with 60px left margin from edge.
+      Point spacing: Generous 56px vertical between items for editorial impact.
+      Maximum 3-4 points - editorial restraint, focus on essential messages.
+      Red accent shape: Large geometric form (300px+) in background, accent_1 at 20% opacity.
+      Accent shape creates visual drama without competing with content.
+      Call-to-action: Bold editorial style - large text (24pt), red background, white text, positioned bottom-right.
+      CTA box: 20px padding, sharp corners, high contrast for editorial emphasis.
+      Overall atmosphere: Bold conclusion, editorial impact, memorable closing.
+      Visual weight: 75% on numbered points, 25% on dramatic red accents.
+    component: "summary_slide"
+    safe_area:
+      top: "64px"
+      bottom: "64px"
+      left: "80px"
+      right: "80px"

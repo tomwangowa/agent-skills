@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { loadNotes, searchNotes } from './notes.js';
-import { writeFileSync, mkdirSync, rmSync } from 'fs';
+import { writeFileSync, mkdirSync, rmSync, mkdtempSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
@@ -22,10 +22,10 @@ Thin client vs 本地推理的差異。
 `;
 
 describe('loadNotes', () => {
-  const testDir = join(tmpdir(), 'skills-query-test-notes');
+  let testDir: string;
 
   beforeEach(() => {
-    mkdirSync(testDir, { recursive: true });
+    testDir = mkdtempSync(join(tmpdir(), 'skills-query-test-notes-'));
   });
 
   afterEach(() => {
@@ -40,6 +40,30 @@ describe('loadNotes', () => {
     expect(notes[0].date).toBe('2026-02-16');
     expect(notes[0].tags).toContain('fact-check');
     expect(notes[0].source).toBe('claude-code');
+  });
+
+  it('never evaluates a JavaScript frontmatter engine', () => {
+    const scope = globalThis as typeof globalThis & { notesFixtureExecuted?: boolean };
+    delete scope.notesFixtureExecuted;
+    try {
+      writeFileSync(join(testDir, 'executable.md'), '---javascript\n'
+        + '(globalThis.notesFixtureExecuted = true, { date: "2026-02-16" })\n---\n# Unsafe fixture');
+      const notes = loadNotes({ paths: [testDir], recursive: false, exclude_hidden: true });
+      expect(scope.notesFixtureExecuted).toBeUndefined();
+      expect(notes).toEqual([]);
+    } finally { delete scope.notesFixtureExecuted; }
+  });
+
+  it('preserves YAML timestamps, BOM and CRLF metadata and explicit JSON data', () => {
+    writeFileSync(join(testDir, 'yaml.md'), '\uFEFF---\r\ndate: 2026-02-16T12:00:00Z\r\n'
+      + 'tags: [fixture]\r\nsource: test\r\n---\r\n# YAML fixture\r\n');
+    writeFileSync(join(testDir, 'json.md'), '---json\n{"date":"2026-02-15","tags":["json"]}\n---\n# JSON fixture');
+    const notes = loadNotes({ paths: [testDir], recursive: false, exclude_hidden: true });
+    expect(notes).toHaveLength(2);
+    expect(notes[0].date).toBe('2026-02-16');
+    expect(notes[0].tags).toEqual(['fixture']);
+    expect(notes[1].date).toBe('2026-02-15');
+    expect(notes[1].tags).toEqual(['json']);
   });
 
   it('extracts summary from 概述 section', () => {

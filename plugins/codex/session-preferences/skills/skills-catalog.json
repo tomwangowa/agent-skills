@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "skills": [
+    {
+      "category": "tools-meta",
+      "id": "control-return",
+      "invocation_intent": "user",
+      "lifecycle": "experimental",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "tools-meta",
+      "id": "session-preferences",
+      "invocation_intent": "user",
+      "lifecycle": "experimental",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    }
+  ]
+}

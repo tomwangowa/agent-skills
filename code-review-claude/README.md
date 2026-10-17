@@ -96,7 +96,7 @@ Files: 2 | High: 1 | Medium: 1 | Adversarial: 1 | Assumptions: 2
 
 - 📦 No external dependencies
 - 🔑 No API keys
-- 🛠️ No installation beyond having the skill file in `~/.claude/skills/`
+- 🛠️ Install as a standalone skill or through the quality-gates plugin
 
 ---
 

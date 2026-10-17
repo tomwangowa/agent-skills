@@ -1,0 +1,7 @@
+{
+  "description": "skill-toolbox skills for codex CLI",
+  "hooks": "./hooks/hooks.json",
+  "name": "skill-toolbox",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

@@ -1,0 +1,125 @@
+{
+  "observed_date": "2026-10-13",
+  "raw_artifacts": [
+    {
+      "file": "claude-host-mcp-corrected.jsonl",
+      "sha256": "618567bc239e9e12fa314de88a91d8237c1026155dd379a6c40d63dba10eb44f"
+    },
+    {
+      "file": "claude-host-off.jsonl",
+      "sha256": "ca055c57e10e5fa59b7b57856af03fb282dc0c43d7215af9184016ecba25316a"
+    },
+    {
+      "file": "claude-host-persistent-start.jsonl",
+      "sha256": "9e2bf502d9c41b89978f406f48cff8681ab210d2b72f3f02206601e6cef5bc7b"
+    },
+    {
+      "file": "claude-host-resume.jsonl",
+      "sha256": "1942073c56e495c41cea6838657b6edfb5ebc5a6b67ea2ccd704a2292d701089"
+    },
+    {
+      "file": "claude-host-clear.jsonl",
+      "sha256": "e0488d902f7cea9353d76c8015027811df795fc99ac659a213ab4abd69c51d10"
+    },
+    {
+      "file": "claude-host-compact.jsonl",
+      "sha256": "d255ad4a95ce9dc746a2274a52876a54d6e6de2f13c8f364f827a9e5f6e77afc"
+    },
+    {
+      "file": "claude-host-superpowers-corrected.jsonl",
+      "sha256": "b63383b91b9cc60c4b80707ea85fcd92e8a24bd5cfabce04210f2aa7c50a21a4"
+    },
+    {
+      "file": "codex-host-mcp-scoped-id.jsonl",
+      "sha256": "c783eadedae7f73914467b0c644fc8d74d00ac89ba52de41037622173fff26af"
+    },
+    {
+      "file": "codex-legacy-host-mcp-corrected.jsonl",
+      "sha256": "976535005300d496a9ceca997c78ad6f55b5f981676c9204fbce721a683143ee"
+    }
+  ],
+  "claude_cli": {
+    "client_version": "2.1.296 (Claude Code)",
+    "model": "claude-opus-5-5",
+    "tools": [
+      "dashboard",
+      "log_activity",
+      "query_activities",
+      "query_decisions",
+      "query_timeline",
+      "query_todos",
+      "search"
+    ],
+    "mcp_round_trip": true,
+    "marker": "host-probe-c254fbf5d4c041958646eb150a5d9f02",
+    "hook_events": {
+      "startup": {
+        "responses": 3,
+        "all_succeeded": true
+      },
+      "resume": {
+        "responses": 3,
+        "all_succeeded": true
+      },
+      "clear": {
+        "responses": 3,
+        "all_succeeded": true
+      },
+      "compact": {
+        "responses": 3,
+        "all_succeeded": true
+      }
+    },
+    "preference_off": true,
+    "engineering_routing_when_off": true,
+    "native_reviewer": [
+      "skill-plugins-probe-claude-cli:code-review-claude"
+    ],
+    "superpowers_version": "7.0.0",
+    "upstream_skills": [
+      "superpowers:brainstorming",
+      "superpowers:diagnosing-superpowers",
+      "superpowers:dispatching-parallel-agents",
+      "superpowers:executing-plans",
+      "superpowers:finishing-a-development-branch",
+      "superpowers:receiving-code-review",
+      "superpowers:requesting-code-review",
+      "superpowers:subagent-driven-development",
+      "superpowers:systematic-debugging",
+      "superpowers:test-driven-development",
+      "superpowers:using-git-worktrees",
+      "superpowers:using-superpowers",
+      "superpowers:verification-before-completion",
+      "superpowers:writing-plans",
+      "superpowers:writing-skills"
+    ]
+  },
+  "codex_cli": {
+    "client_version": "codex-cli 0.162.1",
+    "formats": {
+      "agent-plugins-1.0.0": {
+        "mcp_round_trip": true,
+        "marker": "codex-host-probe-77158188e17d4c36ab275f14d69e745a",
+        "completed_tools": [
+          "log_activity",
+          "query_activities"
+        ],
+        "hooks": "not_discovered"
+      },
+      "codex-legacy": {
+        "mcp_round_trip": true,
+        "marker": "codex-legacy-probe-e187f62830024459ab89316252187c10",
+        "completed_tools": [
+          "log_activity",
+          "query_activities"
+        ],
+        "hooks": "discovered_requires_trust"
+      }
+    },
+    "source": "https://github.com/openai/codex/blob/rust-v0.162.1/codex-rs/core-plugins/src/loader.rs#L897"
+  },
+  "codex_desktop": {
+    "status": "not_verified",
+    "blocker": "cua.getApp('com.openai.codex') denied: Computer Use is not allowed to use the app for safety reasons."
+  }
+}

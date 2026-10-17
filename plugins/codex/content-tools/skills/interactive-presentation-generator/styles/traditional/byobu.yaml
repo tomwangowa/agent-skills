@@ -1,0 +1,26 @@
+# Byobu Template
+# Folding screen aesthetic with layered panels
+template_metadata:
+  id: "byobu"
+  version: "1.0.0"
+  category: "traditional"
+  name: {en: "Byobu", zh_tw: "屏風", ja: "屏風"}
+  description: {en: "Folding screen aesthetic with layered panel divisions", zh_tw: "屏風美學，分層面板分割", ja: "屏風の美学、レイヤーパネル分割"}
+
+overall_design_settings:
+  tone: "Elegant, Layered, Traditional"
+  design_philosophy: "Byobu Aesthetic - Layered Panels and Spatial Divisions"
+  color_palette: {base: "#EDE7D9", primary: "#3D2E1F", text: "#2A2419", background: "#F5F0E6", accent_1: "#8B7355", accent_2: "#C9B896", highlight: "#FFF9F0"}
+  typography:
+    heading: {font_family: "Noto Serif JP, serif", font_description: "Traditional with panel-appropriate weight", size_philosophy: "Harmonious with panel structure", font_weight: 600, font_size: "40pt", line_height: 1.3}
+    body: {font_family: "Noto Sans JP, sans-serif", font_description: "Clean for panel readability", readability_notes: "16pt comfortable spacing", font_weight: 400, font_size: "16pt", line_height: 1.8}
+  common_layout_rules: {grid_system: "Multi-panel division - folding screen structure", spacing_philosophy: "Panel-based spacing with traditional gaps", alignment_principle: "Panel-aligned content zones", whitespace_approach: "Panel gaps as structural elements"}
+  visual_motifs:
+    decorative_elements: [{type: "line", description: "Vertical panel dividers (thin gold or brown lines)", usage: "Panel separation, traditional structure", color: "#8B7355"}]
+    material_metaphor: "Lacquered folding screen - layered panels with gold hinges"
+    visual_rhythm: "Paneled and structured - rhythmic divisions"
+layout_variations:
+  - {type: "Title Slide", description: "Byobu panel opening", design: "Multi-panel composition. Title spans 2-3 panels. Vertical divider lines creating panel structure. Traditional panel aesthetic with gold accents. Layered visual depth.", component: "title_slide", safe_area: {top: "60px", bottom: "60px", left: "80px", right: "80px"}}
+  - {type: "Content Slide", description: "Paneled content", design: "Content divided into panel zones. Vertical dividers. Panel-based content organization. Traditional layered structure.", component: "content_slide", safe_area: {top: "60px", bottom: "60px", left: "80px", right: "80px"}}
+  - {type: "Data Slide", description: "Paneled data", design: "Chart within panel structure. Panel dividers frame data. Traditional composition.", component: "data_slide", safe_area: {top: "60px", bottom: "60px", left: "80px", right: "80px"}}
+  - {type: "Summary Slide", description: "Paneled summary", design: "Points divided across panels. Panel structure creates organization. Traditional closing.", component: "summary_slide", safe_area: {top: "60px", bottom: "60px", left: "80px", right: "80px"}}

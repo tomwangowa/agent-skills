@@ -5,6 +5,16 @@ description: Use when reviewing SKILL.md files, checking skill quality standards
 
 # Skill Auditor
 
+## Installed location
+
+Resolve `<skill_base_directory>` from this skill's actual installed location.
+Run `scripts/audit_skill.sh` from that directory with an explicit target and
+`--output` destination outside any plugin cache. A packaged copy can audit
+another skill without requiring `~/.claude/skills` to exist. For "all skills",
+ask for or use the runtime's exposed installed skill directories; do not scan
+unrelated caches or assume the source repository is installed. Reports belong
+to a user-selected workspace, not a generated release package.
+
 Comprehensive quality audit for Claude Code skills to ensure they meet security, portability, and documentation standards.
 
 ## Background & Context
@@ -271,7 +281,7 @@ Follow this workflow to audit a skill for production readiness.
 
 Determine the skill base directory from the skill invocation context, then execute the automated audit script:
 ```bash
-bash <skill_base_directory>/scripts/audit_skill.sh <skill-directory>
+bash "<skill_base_directory>/scripts/audit_skill.sh" "<skill-directory>" --output "<selected-output-file>"
 ```
 
 **Important**: Always use the full absolute path to the script based on the skill base directory,
@@ -664,7 +674,7 @@ Expected behavior:
 User: "audit all skills in my skills directory"
 
 Expected behavior:
-1. Find all skills in ~/.claude/skills/
+1. Use the explicitly selected skills directory or the runtime's exposed installed locations
 2. Audit each one
 3. Generate summary report
 4. Highlight skills with critical issues
@@ -676,7 +686,7 @@ Expected behavior:
 
 - Automated checks complete in < 5 seconds; semantic review is performed by the active agent
 - External reviewers require an explicit request, current runtime-policy check, and approved diff/data scope
-- Reports are saved to `~/.claude/audits/` for reference
+- Reports are saved to the explicitly selected output directory outside plugin caches
 - Can be integrated into CI/CD or pre-commit hooks
 - Critical issues must be fixed before sharing skills with team
 - This skill itself should pass its own audit (meta-validation)

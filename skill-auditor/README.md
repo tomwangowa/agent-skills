@@ -145,7 +145,7 @@ Checks: Structure, Security, Error Handling, Portability, Quality & Clarity, Doc
 ✅ Security keywords found (XSS, validate, sanitize)
 
 ### 4. Portability
-❌ Hardcoded path found (Line 45): /Users/tom_wang/...
+❌ Hardcoded path found (Line 45): <personal-absolute-path>
 **Fix**: Use $MY_VAR environment variable
 
 ### 5. Quality & Clarity
@@ -161,7 +161,7 @@ Fix the hardcoded path and Important findings before declaring the skill Ready.
 ## Common Issues & Fixes
 
 ### Issue: Hardcoded Paths
-**Example**: `/Users/tom_wang/Development/styles`
+**Example**: `<selected-style-directory>`
 
 **Fix**:
 ```markdown
@@ -224,7 +224,7 @@ CHANGED_SKILLS=$(git diff --staged --name-only | grep "SKILL.md" | sed 's|/SKILL
 for skill in $CHANGED_SKILLS; do
     if [[ -f "$skill/SKILL.md" ]]; then
         echo "Auditing $skill..."
-        bash ~/.claude/skills/skill-auditor/scripts/audit_skill.sh "$skill"
+        bash "<skill_base_directory>/scripts/audit_skill.sh" "$skill"
 
         if [[ $? -ne 0 ]]; then
             echo "❌ Skill audit failed. Fix critical issues before committing."

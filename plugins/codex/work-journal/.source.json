@@ -1,0 +1,118 @@
+{
+  "catalog_sha256": "3c901cb49798aadeb8661bff67cd6f8ae56899fed271ab68a42838328b7af871",
+  "contracts_sha256": "75c99ca57e6f47a514dc1cf8c2d2a14c0d93b93368905150b86fb4410be9c3f7",
+  "package": {
+    "dependencies": [
+      {
+        "condition": "Record lessons only when explicitly requested and installed",
+        "kind": "optional",
+        "provider": "external",
+        "skills": [
+          "lesson"
+        ],
+        "tested_versions": []
+      }
+    ],
+    "name": "work-journal",
+    "platforms": [
+      "claude",
+      "codex"
+    ],
+    "requirements": {
+      "commands": [
+        "node",
+        "python3",
+        "jq",
+        "bash"
+      ],
+      "config": [
+        "work-journal"
+      ]
+    },
+    "runtime_resources": [
+      "activity-logger/scripts/init_activities.sh",
+      "activity-logger/scripts/log_activity.sh",
+      "work-log-analyzer/README.md",
+      "work-log-analyzer/agents/openai.yaml",
+      "work-log-analyzer/references/examples.md",
+      "work-log-analyzer/references/log-formats.md",
+      "work-log-analyzer/scripts/aggregate_activities.sh",
+      "work-log-analyzer/scripts/find_referenced_documents.py",
+      "runtime/agent_skills_runtime/__init__.py",
+      "runtime/agent_skills_runtime/config.py",
+      "runtime/agent_skills_runtime/doctor.py",
+      "runtime/agent_skills_runtime/journal_cli.py",
+      "runtime/agent_skills_runtime/preferences.py",
+      "runtime/agent_skills_runtime/setup.py",
+      "skills-query-server/package.json",
+      "skills-query-server/package-lock.json",
+      "skills-query-server/src/config.ts",
+      "skills-query-server/src/index.ts",
+      "skills-query-server/src/runtime-config.ts",
+      "skills-query-server/src/sources/activities.ts",
+      "skills-query-server/src/sources/notes.ts",
+      "skills-query-server/src/tools/dashboard.ts",
+      "skills-query-server/src/tools/log-activity.ts",
+      "skills-query-server/src/tools/query-activities.ts",
+      "skills-query-server/src/tools/query-decisions.ts",
+      "skills-query-server/src/tools/query-timeline.ts",
+      "skills-query-server/src/tools/query-todos.ts",
+      "skills-query-server/src/tools/search.ts",
+      "skills-query-server/src/types.ts",
+      "skills-query-server/src/utils/date-range.ts",
+      "skills-query-server/src/utils/text-search.ts",
+      "skills-query-server/tsconfig.json",
+      "docs/plugins/installation.md",
+      "docs/plugins/migration.md",
+      "docs/plugins/team-instructions.md",
+      "docs/plugins/superpowers-compatibility.md",
+      "runtime/agent_skills_runtime/migration.py"
+    ],
+    "skills": [
+      "activity-logger",
+      "work-log-analyzer"
+    ],
+    "version": "0.1.0"
+  },
+  "resources": {
+    "activity-logger/SKILL.md": "b0df5b887e8993174876d73e636ff09cc8303791e83642231004bb2b5edcb424",
+    "activity-logger/scripts/init_activities.sh": "467bca995ed8b33db8a145fa84efb56f0ef71e8a174b1b10dd85d8151b944b31",
+    "activity-logger/scripts/log_activity.sh": "2e9105646731d9919765f60ff707b1cc969f1124d60af11922a2c045466148ad",
+    "docs/plugins/installation.md": "de62189cb94789d647592b66171db8d8b812f0091144c129e34d58ccef807595",
+    "docs/plugins/migration.md": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50",
+    "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
+    "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",
+    "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
+    "runtime/agent_skills_runtime/config.py": "2b1a56b181b89f0c2d92b99e07e284cf0c16d2d2b025fa3c15a43a58f98f3a60",
+    "runtime/agent_skills_runtime/doctor.py": "03f8f955d964a106e869ec14c97caace19fa40da88da0eb11c048a84d91d428c",
+    "runtime/agent_skills_runtime/journal_cli.py": "d31c041c3277bc8ce8d75f69978edb8d822ccc08433e19cdcf67213f447627bd",
+    "runtime/agent_skills_runtime/migration.py": "046253103a6f027478e77b4a67dcab180329cbc4e186442087dd97bfea9b8a3f",
+    "runtime/agent_skills_runtime/preferences.py": "0becc33662c35ea8aa9939bd8366e90df1f6b886213c5ae1ba1ebf0be678f3ec",
+    "runtime/agent_skills_runtime/setup.py": "829ced45bf3175504485178d0449a9129a4e081f43665013d518d8179505180a",
+    "skills-query-server/package-lock.json": "3f5dc16f0baa66796e844111889dc14dd938c1ab7b0030cc03235e9467789a38",
+    "skills-query-server/package.json": "868c51dcfe0d5bd059b0d2716fa818d7e25b54d541257bdd812be9698af0913b",
+    "skills-query-server/src/config.ts": "02f5e58420029345d3dcef49088c03230401d22298a010ae5ab9366c387ec9bb",
+    "skills-query-server/src/index.ts": "5f0648a59241a85ef66684ce6e2814f8579305784dc2aeab44d19eca004dcb63",
+    "skills-query-server/src/runtime-config.ts": "c41e5ae1aca048275f69d18b3cf00e950ef9b45b4c80328d364c4d23813d42aa",
+    "skills-query-server/src/sources/activities.ts": "42ac03fb997d13181d0852da3babae3b192cc6ec78eaa580bbdd0133ff833fc1",
+    "skills-query-server/src/sources/notes.ts": "0797f73be659f621b26fa5ab1aed2de04607dc8d3f914914669ce8fb1350d3ad",
+    "skills-query-server/src/tools/dashboard.ts": "d501d0d1414159916cc054974e22f572b43d9ea0aac8f2a69b35dc15bfcaf130",
+    "skills-query-server/src/tools/log-activity.ts": "ddf2b7cd399783e7edc3ef36e38ab92b36f1c660aeab9c9452b105f78f0250a6",
+    "skills-query-server/src/tools/query-activities.ts": "3af4fb07a362bca200579e83853cb211ea96da341c62d853f62fe70ce18473e6",
+    "skills-query-server/src/tools/query-decisions.ts": "537cc8b9672b0e0033b8da8aa421dad882bf458d667fd23ae82e326eb711694c",
+    "skills-query-server/src/tools/query-timeline.ts": "fb9635f543c48a52048055764ea7e750f4940b1f71b2f3d53a911e664e3900da",
+    "skills-query-server/src/tools/query-todos.ts": "83eeeaedf7f947f7b2589b605ca86931edc36ff014db786e5534e77ca4f35c31",
+    "skills-query-server/src/tools/search.ts": "d913d3d2bf13da68c3322acadbbbdb0233343c5cbaaa596c6afd1448f3d1c689",
+    "skills-query-server/src/types.ts": "81d88699f137d98b07254b37d8ef8247d485daf774b603505d4217172ccb49f2",
+    "skills-query-server/src/utils/date-range.ts": "8b51ea45b222d455edc36734fc72d7f67e629d139f04af8aa48f908b388d4650",
+    "skills-query-server/src/utils/text-search.ts": "fe49aee3f9643515924bb3e006ca404ca328267c1c2e31ddb5f8afef13da4663",
+    "skills-query-server/tsconfig.json": "3bd1f48f0097eaa066f1475fe19fde3a9d2a86a277f0dc443200f60dde7c34ca",
+    "work-log-analyzer/README.md": "83baef28f725910867eeba1b422dd9dec85890ea7740a40942d1fd7862c46b47",
+    "work-log-analyzer/SKILL.md": "233773a95831b9d19ec033256f48a303348c4f68686d83c5512ea9aaba12f63d",
+    "work-log-analyzer/agents/openai.yaml": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work-log-analyzer/references/examples.md": "1e7bce41132abcb6e530f344c93dc45d7d2d87ae6740843db44213b93591e93b",
+    "work-log-analyzer/references/log-formats.md": "77486848719e72ccf69cbc779650b960ac4b1b3b407a28fbeaaf91c7bf97effa",
+    "work-log-analyzer/scripts/aggregate_activities.sh": "4947fa96bf736ae688039d590fa470c5acc3338080e731dffaadbf64291466c4",
+    "work-log-analyzer/scripts/find_referenced_documents.py": "91093d74948f5bbe78e7dd33e4b9d9909099e99f348e798938431e68adeb4817"
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "client_version": "codex-cli 0.162.1",
+  "plugin_version": "0.0.2",
+  "manifest_format": ".codex-plugin/plugin.json",
+  "mcp_inventory": [
+    "dashboard",
+    "log_activity",
+    "query_activities",
+    "query_decisions",
+    "query_timeline",
+    "query_todos",
+    "search"
+  ],
+  "hook_trust": "normal /hooks; three selected probe hooks only",
+  "startup_and_resume": {
+    "command": "codex exec / codex exec resume",
+    "developer_hook_messages": [
+      {
+        "index": 8,
+        "header": "[session-preferences — auto-applied",
+        "packaged_reference_path": true
+      },
+      {
+        "index": 9,
+        "header": "[control-return — auto-applied",
+        "packaged_reference_path": false
+      },
+      {
+        "index": 10,
+        "header": "Runtime probe routing:",
+        "packaged_reference_path": false
+      },
+      {
+        "index": 27,
+        "header": "[session-preferences — auto-applied",
+        "packaged_reference_path": true
+      },
+      {
+        "index": 28,
+        "header": "[control-return — auto-applied",
+        "packaged_reference_path": false
+      },
+      {
+        "index": 29,
+        "header": "Runtime probe routing:",
+        "packaged_reference_path": false
+      }
+    ]
+  },
+  "clear_and_compact": {
+    "commands": [
+      "/clear",
+      "first subsequent prompt",
+      "/compact",
+      "first subsequent prompt"
+    ],
+    "compacted_record_index": 22,
+    "developer_hook_messages": [
+      {
+        "index": 8,
+        "header": "[session-preferences — auto-applied",
+        "packaged_reference_path": false
+      },
+      {
+        "index": 9,
+        "header": "[control-return — auto-applied",
+        "packaged_reference_path": false
+      },
+      {
+        "index": 10,
+        "header": "[session-preferences — auto-applied",
+        "packaged_reference_path": true
+      },
+      {
+        "index": 11,
+        "header": "[control-return — auto-applied",
+        "packaged_reference_path": false
+      },
+      {
+        "index": 12,
+        "header": "Runtime probe routing:",
+        "packaged_reference_path": false
+      },
+      {
+        "index": 32,
+        "header": "[session-preferences — auto-applied",
+        "packaged_reference_path": false
+      },
+      {
+        "index": 33,
+        "header": "[control-return — auto-applied",
+        "packaged_reference_path": false
+      },
+      {
+        "index": 34,
+        "header": "[session-preferences — auto-applied",
+        "packaged_reference_path": true
+      },
+      {
+        "index": 35,
+        "header": "[control-return — auto-applied",
+        "packaged_reference_path": false
+      },
+      {
+        "index": 36,
+        "header": "Runtime probe routing:",
+        "packaged_reference_path": false
+      }
+    ],
+    "pre_existing_user_hooks_also_present": true
+  },
+  "preference_off": {
+    "developer_hook_messages": [
+      {
+        "index": 8,
+        "header": "Runtime probe routing:",
+        "packaged_reference_path": false
+      }
+    ],
+    "routing_remains": true
+  },
+  "native_reviewer": {
+    "read_from_installed_probe": true,
+    "read_exit_code": 0,
+    "external_reviewer_called": false
+  },
+  "superpowers_version": "7.0.0",
+  "required_upstream_skills_registered": [
+    "writing-plans",
+    "executing-plans",
+    "subagent-driven-development",
+    "systematic-debugging"
+  ],
+  "isolation_note": "exec probes ignored user config and reused only the three trust hashes actually saved by the approved normal /hooks flow. TUI clear/compact kept two existing user preference hooks alongside probe hooks; packaged reference paths distinguish the probe output.",
+  "raw_artifacts": [
+    {
+      "file": "codex-startup-resume-rollout.jsonl",
+      "sha256": "0b4637045e56ff881a8c8e9f1e1b55261c889d573ddb289f3fad622d46c78db0"
+    },
+    {
+      "file": "codex-off-rollout.jsonl",
+      "sha256": "f2f343f25a44409c45de75cdd63f0b675e8a59f38df234929a14b90b2360513a"
+    },
+    {
+      "file": "codex-clear-compact-rollout.jsonl",
+      "sha256": "288704857427785b9773b4f7a9a203f9c141c474872510c2c73f09ce5957b0d8"
+    },
+    {
+      "file": "codex-superpowers-routing-rollout.jsonl",
+      "sha256": "4b93dafda5a2a9b69ccebffd2f58f29d5f5aac20a32051348ae7bd490e3104f9"
+    }
+  ]
+}

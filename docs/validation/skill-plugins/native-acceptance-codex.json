@@ -1,0 +1,302 @@
+{
+  "schema_version": 1,
+  "surface": "codex-cli",
+  "status": "verified",
+  "observed_client_version": "0.162.1",
+  "artifact_version": "0.1.0",
+  "artifact_bindings": {
+    "quality-gates": {
+      "sha256": "aba7b30c12aa48688ffccda79f510943446c59e174d51ee1864dc4a65db6bd7a",
+      "resource_count": 17
+    },
+    "technical-decisions": {
+      "sha256": "b2d7d3549a18d61f938c4e91af5e6e4d3af9bd80996762be53dbdb7ca8f5347a",
+      "resource_count": 43
+    },
+    "repo-workflow": {
+      "sha256": "548950054df66362dae37393294b7daf02dc0708ce189173a7af23dc450d55ec",
+      "resource_count": 7
+    },
+    "content-tools": {
+      "sha256": "fc8eb21baeaf6bbc7b65fc719e7d89055b7a51c7cab5dd7965d17adb4fd58cbd",
+      "resource_count": 47
+    },
+    "work-journal": {
+      "sha256": "c72ae1177b922b6b5cf67c8aa80cd71af60bd7f33bfb6445d37400347ab1a55e",
+      "resource_count": 3971
+    },
+    "session-preferences": {
+      "sha256": "8dba9c80d07089334fed0fda4ce616f9269bc0aa849be7713fc4b1e2f97b78cc",
+      "resource_count": 24
+    },
+    "skill-toolbox": {
+      "sha256": "4656bb5e77d5b3c0fa3f285f111c4c4e04e5b0e627e0696d10ae10592b18fd7c",
+      "resource_count": 20
+    }
+  },
+  "checks": {
+    "installation": "verified",
+    "mcp_round_trip": "verified",
+    "startup": "verified",
+    "resume": "verified",
+    "clear": "verified",
+    "compact": "verified",
+    "preference_off": "verified",
+    "owned_routing": "verified",
+    "manual_invocation": "verified",
+    "superpowers": "verified",
+    "update": "verified",
+    "migration": "verified"
+  },
+  "native_test_environment": "macOS; unique local acceptance marketplace; disposable fixture settings, activity records and test project.",
+  "isolation": "Codex ran with the normal user config plus per-invocation isolation overrides; no user-config values were copied into public evidence.",
+  "scenarios": {
+    "installation": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "native-install.jsonl",
+          "sha256": "a74a87f05f6e5badd4a1224cee2a8e2f200b925c60c63d8052f4ed9068fa7201",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-installed-inventory.json",
+          "sha256": "bb57f8a9a758f1c306a97f3f4962e14891cee7420558f80caca6ddbaa1ccfd6f",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-actual-cache-bindings-base.json",
+          "sha256": "81e7b59619fac8dc5ca3d58a2f5f1d9b486daaeeccce83353089d8580ffed865",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "restored-native-base-bindings.json",
+          "sha256": "4bd844ed497fdf79ee20ebd5d603287ca5f55477203957ec736c3e4051e53604",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ]
+    },
+    "mcp_round_trip": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "codex-mcp-codex.jsonl",
+          "sha256": "e955fd0781a3e308abcde9dd5354f4a928783cef0a608b80c4330f15d992c28e",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-mcp-codex.process.json",
+          "sha256": "97b43356d5d80337e967c16d960d42af52a2be7f90f49d65f269bb92fa5d922e",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "The native installed Codex plugin launched its packaged MCP server, listed seven tools, wrote a unique fixture marker and queried it back."
+    },
+    "startup": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "codex-startup.jsonl",
+          "sha256": "b219b7de5fa16d183ba9ff43247ca43d71f6868f0ff391293c580c232fbbb06c",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "The selected packages ran in Codex with fixture settings; pre-existing user plugins, MCP servers and hooks were disabled only through per-invocation overrides."
+    },
+    "resume": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "codex-resume-real.jsonl",
+          "sha256": "6ba34dd9f2a681500abf948e24841e9b992776c7f124fc3136b0ceeb36fb16f6",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "native-session-ids.json",
+          "sha256": "5807bffe28c99de230a85146ff5b76174a87165b61f3c2ec48b67083d235b8fa",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Resumed the actual observed test session and received the expected fixture routing/preferences headers."
+    },
+    "clear": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "codex-clear-rollout-observations.json",
+          "sha256": "8e597c5d62833f3b76a75187af48a079a3114b9a7fa9728f64c57e9e485fc3de",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-clear-ui-base.json",
+          "sha256": "6a5545317a941f050f249fa45fd0645546ca50f3873a59ebe00af229f4cefbc9",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Used native /clear, opened a new thread and received the expected headers."
+    },
+    "compact": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "codex-compact-rollout-observations.json",
+          "sha256": "28b53b0b4d6c344b7b82190846456512593aae41d5cda2d240a879b794774c81",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-compact-ui-base.json",
+          "sha256": "f7f6507915e8994ddc2b3c6ae18e6fe10f8483d6255c5c69541e7d30f3474f75",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Used native /compact; the process completed and subsequent prompt retained the expected markers. Codex re-injected the same five markers twice after compaction; the instructions are idempotent."
+    },
+    "preference_off": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "codex-off.jsonl",
+          "sha256": "1d88ba573ce7090136cef7288e7da56b650409c3730a639dba87532c2c7cc3f0",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ]
+    },
+    "owned_routing": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "codex-routing.jsonl",
+          "sha256": "88a18c60b39939d613da16c6e477327106363ce903c0fd8d14ef78d91b436036",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-review.jsonl",
+          "sha256": "e710e458d9c30d8482b7381880f853a3c7e6a120c13f69fdc4102552cfb1f5bd",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-completion-natural.jsonl",
+          "sha256": "cc8c7bcbef3e69c658f1eb2582676bc7fe3fad2500ed20e35dab79b62d0e1869",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Native routing loaded technical-decisions:brainstorming and quality-gates:code-review-codex from the installed cache. A natural-language completion request read the installed completion-gate skill and rejected the unsupported claim."
+    },
+    "manual_invocation": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "codex-manual.jsonl",
+          "sha256": "c289b8021948bc8c120f90d29833ea6efd1a652e2e720cfa4e5e4155ffc170c7",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-manual-question-isolated.jsonl",
+          "sha256": "bfb51f7e59a322ef4864f790bac8990134d27ea849bbb121e45cee690fe4db5d",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "The ordinary question produced no skill/tool calls and no sync; the separate explicit /$skill-toolbox:skill-sync call loaded the package instruction and stopped at the user-only checkpoint."
+    },
+    "superpowers": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "codex-superpowers.jsonl",
+          "sha256": "be336b6abcbe9f8b8a0f24ef30415aa6fc0797e977d9be7f306b571ea7f120e6",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "superpowers-native-inventory.json",
+          "sha256": "e15922ee8b0ef303b00f1e549c66302687b029e93883492496bf77181d9a5c73",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "The existing registered Superpowers 7.0.0 provider was available; the selected writing-plans scenario loaded it and stopped at its planning boundary."
+    },
+    "update": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "native-update.jsonl",
+          "sha256": "c34e48bb50246e581fe61d1b83b3a4054e5db82558f8414d671cbf03c892fd4b",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-local-native-update.jsonl",
+          "sha256": "f57ed5fdfe3083158cecdf6116cb892f029b10e4767b7fc8f8c3a3a0e102c91c",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-updated.jsonl",
+          "sha256": "8add254491cf44985e5c5c9065f5c6475e747732573211b0861a530ca0fe314d",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "native-update-default-observations.json",
+          "sha256": "0d8af39ae554f828fc05056e8260f21c112d134e1f3c90372a9e8aa21246edbf",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "installed-bindings-updated.json",
+          "sha256": "be9abff4abb16b82b72a33c70748d375aa140d7a9309fae5bfdde60e9e467087",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-normal-native-trust-updated.json",
+          "sha256": "5dba29e8876df5230e6af4c53b32a5ac6da0d2ef049555786ba8b414feea05e6",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "The local filesystem marketplace rejected marketplace upgrade because that operation requires a Git source; native plugin add refreshed the installed 0.1.1 cohort and changed resource hashes. The remote Git marketplace update flow remains unverified. Personal defaults and journal settings were retained."
+    },
+    "migration": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "native-migration-observations.json",
+          "sha256": "d22dcdf0f553e78888599cd63337e149d1be019701d509979b0a25fcc2fa2d00",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-migration-plan.json",
+          "sha256": "0a82b05538f5d43d309cee275a39094847224f1a375a817cbd064ef1781c88f7",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "codex-migration-inventory-verified.json",
+          "sha256": "92bbfe230d793ed74d954cc776d8f1593cd3a9114819b7f3fb0ad7a8904bfbe4",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Fixture-only preview/apply/restore returned exact original bytes and retained unrelated settings."
+    },
+    "completion_trace": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "Codex native completion session trace (local only)",
+          "sha256": "fec41a4f9ce45d6980aec6d2b6dfa63299404375475888b3c78eb470507cc056",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Natural-language request loaded the exact installed quality-gates/0.1.0/skills/completion-gate/SKILL.md, read-only; no test or write command ran."
+    }
+  },
+  "limits": [
+    "Git-hosted remote marketplace install/update was not verified.",
+    "Only the recorded macOS client versions were exercised; Linux, WSL, Windows and minimum-version behavior were not tested.",
+    "Superpowers evidence covers the selected brainstorming/review/planning branch only; full upstream implementation workflows were not tested, so tested_versions remains empty.",
+    "Native cleanup left unselected semantic fingerprint differences in Codex config.toml and Claude plugin registry files; selected test entries are absent, but hash-only snapshots cannot attribute the changed fields. No manual prune or restore was performed."
+  ],
+  "excluded_experiments": {
+    "reason": "Earlier exploratory ordinary-question runs were not counted because they read the source checkout and a read-only Git diff instead of proving isolated package behavior. They executed no sync and made no writes.",
+    "private_evidence": [
+      {
+        "record": "codex-manual-general.jsonl",
+        "sha256": "65ac34d01f77747fba124722080d0508de3be6be21702d0e8725bce1d30c148d",
+        "storage": "local acceptance fixture; raw record excluded"
+      }
+    ]
+  }
+}

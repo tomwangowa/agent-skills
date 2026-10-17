@@ -16,6 +16,10 @@
 
 ---
 
+## CLI Plugin 套件
+
+七包定義涵蓋 38 個來源 skills，支援 Claude Code CLI 與 Codex CLI。已在 macOS 隔離 fixture，使用 Claude Code CLI 2.1.300 與 Codex CLI 0.162.1 完成原生驗收；Git 遠端 marketplace 安裝尚未實測，發布也尚未核准。詳見[驗收紀錄](docs/validation/skill-plugins/acceptance.json)與 [plugin 文件](docs/plugins/README.md)。來源生命週期保留；standalone hooks 與 journal 工具也需要 bundled runtime 和下方的外部共用設定。
+
 ## Skills Catalog
 
 完整、生成式的 inventory，以及 lifecycle／surface 政策，都在 [SKILLS_CATALOG.md](./SKILLS_CATALOG.md)。若想依需求取得推薦，請用 `skill-router`。
@@ -63,8 +67,14 @@
 **快速設定：**
 
 ```bash
-cd ~/.claude/skills/skills-query-server && npm install
-claude mcp add -s user skills-query -- npx tsx ~/.claude/skills/skills-query-server/src/index.ts
+# From a standalone clone, configure the selected data directories first.
+# Review the preview; repeat without --preview to create missing settings.
+export AGENT_SKILLS_CONFIG_DIR="$HOME/.config/agent-skills"
+PYTHONPATH="$HOME/.claude/skills/runtime" python3 -m agent_skills_runtime.setup \
+  --activities "/absolute/activities" --notes "/absolute/notes" --preview
+npm --prefix "$HOME/.claude/skills/skills-query-server" ci
+npm --prefix "$HOME/.claude/skills/skills-query-server" run build
+claude mcp add -s user skills-query -- node "$HOME/.claude/skills/skills-query-server/dist/index.js"
 ```
 
 詳見 [skills-query-server/README.md](./skills-query-server/README.md)。
@@ -198,7 +208,12 @@ git add src/app.js
 ### Activity Logger
 
 ```bash
-# 初始化（首次使用）
+# 首次使用：替換資料路徑，確認預覽後以相同參數移除 --preview 執行一次。
+export AGENT_SKILLS_CONFIG_DIR="$HOME/.config/agent-skills"
+PYTHONPATH="$HOME/.claude/skills/runtime" python3 -m agent_skills_runtime.setup \
+  --activities "/absolute/activities" --notes "/absolute/notes" --preview
+
+# 共用設定建立後，初始化選定的活動目錄。
 ~/.claude/skills/activity-logger/scripts/init_activities.sh init
 
 # 透過 Claude Code 記錄
@@ -221,7 +236,7 @@ git add src/app.js
 
 **活動類型**：`task_completed`、`bug_fixed`、`refactoring`、`research`、`documentation`、`review`
 
-**紀錄位置**：`~/.claude/activities/`（進行中）、`~/.claude/activities/processed/`（已歸檔）
+**紀錄位置**：外部 `work-journal.json` 的 `sources.activities`（進行中），其下的 `processed/`（已歸檔）。`CLAUDE_ACTIVITIES_DIR` 可明確覆寫活動路徑；相對路徑從設定根目錄解析。Shell 與 MCP 須使用相同環境。Setup 保留既有設定，不搬移舊紀錄。
 
 Activity records 可與 `work-log-analyzer` 搭配使用，跨專案和 session 聚合分析。
 
@@ -237,11 +252,11 @@ Activity records 可與 `work-log-analyzer` 搭配使用，跨專案和 session 
 | pr-review-assistant | [GitHub CLI](https://cli.github.com/)、Git |
 | ui-design-analyzer | 無外部依賴（使用 Claude 原生多模態能力） |
 | interactive-presentation-generator | 無外部依賴（內建 20 種樣式模板） |
-| activity-logger | `jq`、Git |
-| work-log-analyzer | `jq`、`date`（核心功能無外部依賴） |
+| activity-logger | Python 3、`jq`、Git、bundled runtime 與外部 journal 設定 |
+| work-log-analyzer | Python 3、`jq`、`date`、bundled runtime 與外部 journal 設定 |
 | skill-auditor | Bash 4.0+（可選：Gemini CLI 用於語義分析） |
 | newsletter-digest | Python 3（內建 `parse_emls.py` 腳本） |
-| skills-query-server | Node.js、`tsx`（透過 `claude mcp add` 註冊） |
+| skills-query-server | Node.js；來源編譯需要 lockfile 依賴與 TypeScript，測試工具版本見 server README |
 | pptx-to-md | Python 3 + `uv` 或 `pip`（markitdown；`uvx` 可免安裝直接執行） |
 | repo-sync | Git |
 | skill-sync | `rsync`（macOS/Linux 預裝） |

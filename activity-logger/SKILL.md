@@ -7,7 +7,7 @@ description: Use when recording work activities, preserving explicitly consulted
 
 ## Purpose
 
-Records activities from the current Claude Code session to enable cross-session activity aggregation and work log generation. This skill is designed to work with multiple concurrent Claude Code instances across different projects.
+Records activities from the current coding-agent session to enable cross-session activity aggregation and work log generation. Claude Code CLI and Codex CLI share the same selected local journal configuration.
 
 ## When to Use
 
@@ -27,6 +27,7 @@ Records activities from the current Claude Code session to enable cross-session 
 When triggered, this skill will:
 
 1. **Collect session information:**
+   - Resolve the shared settings and activity directory before any data access
    - Generate or retrieve session ID
    - Record current timestamp
    - Identify current project (from git repo or directory name)
@@ -40,7 +41,7 @@ When triggered, this skill will:
    - Record task context
 
 3. **Save activity record:**
-   - Create JSON file in `~/.claude/activities/`
+   - Create JSON file in the resolved activity directory
    - Filename format: `{session_id}_{timestamp}.json`
    - Ensure directory structure exists
 
@@ -134,15 +135,43 @@ read into the activity record.
 
 ## Configuration
 
-Activity logger uses the following directory structure:
+Resolve the personal settings root from `AGENT_SKILLS_CONFIG_DIR`, otherwise
+`XDG_CONFIG_HOME/agent-skills`, otherwise the current user's
+`~/.config/agent-skills`. The external `work-journal.json` supplies
+`sources.activities` and a non-empty `sources.notes.paths`. Relative data
+paths resolve from that settings root; `~/` resolves from the current home.
+
+The logger, initializer, local aggregator and normal MCP startup use the same
+root resolver. `CLAUDE_ACTIVITIES_DIR` overrides the selected activity path in
+all of them; a relative override also resolves from the settings root, never
+the current working directory. Existing data can be selected directly without
+moving it.
+
+From the source repo root, resolve the path without writing a record:
+
+```sh
+PYTHONPATH=runtime python3 -m agent_skills_runtime.journal_cli activities-dir
+```
+
+In an installed plugin, use that plugin's bundled `runtime/` on `PYTHONPATH`.
+Do not borrow another installation or infer a data root from an MCP tool name.
+Missing or invalid shared settings require explicit first-time setup before
+logging; an environment activity override does not hide invalid note settings.
+Preview the selected activity/note directories before setting them up:
+
+```sh
+PYTHONPATH=runtime python3 -m agent_skills_runtime.setup --activities "<selected-activity-directory>" --notes "<selected-notes-directory>"
+```
+
+Replace the placeholders with the user's selected directories. Setup preserves
+an existing configuration. The initializer creates only the selected activity
+and processed directories; it does not create legacy private configuration.
 
 ```
-~/.claude/
-├── activities/           # Activity records
-│   ├── session_*.json   # Unprocessed activities
-│   └── processed/       # Processed activities (archived)
-└── config/
-    └── activity-config.json  # Configuration (optional)
+<settings-root>/work-journal.json
+<selected-activity-directory>/
+├── session_*.json
+└── processed/
 ```
 
 ## Integration with work-log-analyzer
@@ -160,11 +189,19 @@ The `work-log-analyzer` `referenced-documents` query uses the structured
 
 ## Environment Variables
 
-- `CLAUDE_ACTIVITIES_DIR` - Override default activities directory (default: `~/.claude/activities`)
+- `AGENT_SKILLS_CONFIG_DIR` - Explicit shared settings root
+- `XDG_CONFIG_HOME` - Fallback settings parent when no explicit root is selected
+- `CLAUDE_ACTIVITIES_DIR` - Override the shared selected activity directory
 - `CLAUDE_SESSION_ID` - Provide custom session ID (auto-generated if not set)
 
 ## Error Handling
 
+- Missing bundled runtime, missing `work-journal.json`, invalid JSON or empty
+  note paths fail before logging with a concrete setup message. Never fall back
+  to an unrelated private `config.json` or the old default data directory.
+- A non-writable selected directory reports the filesystem error and fails;
+  do not claim the activity was recorded. Restart the MCP process after changing
+  settings or environment overrides so its startup snapshot matches the logger.
 - A missing `--reference` value exits with an error before an activity record
   is written.
 - A missing, non-Git, or deleted reference does not abort logging. The logger
@@ -193,6 +230,7 @@ The `work-log-analyzer` `referenced-documents` query uses the structured
 ## Dependencies
 
 ### Required
+- Python 3 and this installation's bundled runtime for shared path resolution
 - `jq` - JSON processor (install: `brew install jq` on macOS, `apt-get install jq` on Ubuntu)
 - `git` - Version control system (required for project context)
 

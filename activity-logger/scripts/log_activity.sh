@@ -1,14 +1,28 @@
 #!/bin/bash
 
 # Activity Logger Script
-# Records current session activities to ~/.claude/activities/
+# Records current session activities in the shared selected journal directory.
 
 set -euo pipefail
 
-# Configuration
-ACTIVITIES_DIR="${CLAUDE_ACTIVITIES_DIR:-$HOME/.claude/activities}"
-SESSION_FILE="$ACTIVITIES_DIR/.session_id"
-PROCESSED_DIR="$ACTIVITIES_DIR/processed"
+# Resolve only this source or plugin's bundled runtime; do not borrow another installation.
+resolve_journal_paths() {
+    local skill_dir package_root runtime_dir
+    skill_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+    package_root="$(dirname "$skill_dir")"
+    if [[ "$(basename "$package_root")" == "skills" ]] &&
+       [[ -f "$package_root/../.claude-plugin/plugin.json" || -f "$package_root/../.codex-plugin/plugin.json" ]]; then
+        package_root="$(dirname "$package_root")"
+    fi
+    runtime_dir="$package_root/runtime"
+    if [[ ! -f "$runtime_dir/agent_skills_runtime/journal_cli.py" ]]; then
+        echo "Bundled journal runtime is missing; no data was accessed" >&2
+        return 1
+    fi
+    ACTIVITIES_DIR=$(PYTHONPATH="$runtime_dir${PYTHONPATH:+:$PYTHONPATH}" python3 -m agent_skills_runtime.journal_cli activities-dir) || return 1
+    SESSION_FILE="$ACTIVITIES_DIR/.session_id"
+    PROCESSED_DIR="$ACTIVITIES_DIR/processed"
+}
 
 # Colors for output
 RED='\033[0;31m'
@@ -33,7 +47,7 @@ log_error() {
 check_dependencies() {
     local missing=()
 
-    for cmd in jq git; do
+    for cmd in jq git python3; do
         if ! command -v "$cmd" &> /dev/null; then
             missing+=("$cmd")
         fi
@@ -509,7 +523,7 @@ Options:
   -h, --help              Show this help message
 
 Environment Variables:
-  CLAUDE_ACTIVITIES_DIR   Override activities directory (default: ~/.claude/activities)
+  CLAUDE_ACTIVITIES_DIR   Override the shared selected activity directory
   CLAUDE_SESSION_ID       Use custom session ID
 
 Examples:
@@ -533,6 +547,8 @@ HELP
         echo "Use -h or --help for usage information"
         exit 1
     fi
+
+    resolve_journal_paths
 
     if [[ ${#references[@]} -gt 0 ]]; then
         log_activity "$description" "$activity_type" "$context" "$tags" "${references[@]}"

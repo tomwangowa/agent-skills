@@ -1,0 +1,6 @@
+{
+  "description": "repo-workflow skills for codex CLI",
+  "name": "repo-workflow",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

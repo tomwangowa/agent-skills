@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "surface": "claude-cli",
+  "status": "verified",
+  "observed_client_version": "2.1.300",
+  "artifact_version": "0.1.0",
+  "artifact_bindings": {
+    "quality-gates": {
+      "sha256": "7f33d59d3db0fb8cfe06516bc375637c493790c4b7debf54af96b6ed2078d041",
+      "resource_count": 19
+    },
+    "technical-decisions": {
+      "sha256": "c7bf186b5620bdac32ab6252835bc1bbe202b8f4cd28977f65c041491f49c4df",
+      "resource_count": 43
+    },
+    "repo-workflow": {
+      "sha256": "b52c5db1ad8d8777ddf71ca7f0f562f211daf835cba99256e8860ec5edc7b849",
+      "resource_count": 7
+    },
+    "content-tools": {
+      "sha256": "69df55fa55f1b5cf1e61d272ca3c863dc7590ebf2e623d70a3d8be0f2e342f7d",
+      "resource_count": 47
+    },
+    "work-journal": {
+      "sha256": "bc8a68a7d18d03371a8c5cc54049cec3086c25a293559a0895e32bf5bb24ed30",
+      "resource_count": 3971
+    },
+    "session-preferences": {
+      "sha256": "baf469dbeb928eef3459e28a47039b15918179f1eaa53a02172861087271f98d",
+      "resource_count": 24
+    },
+    "skill-toolbox": {
+      "sha256": "6dc5da70fafcb26fbbf6b8cff397c2e9d3aa10343810ad5e4031085183a6d988",
+      "resource_count": 23
+    }
+  },
+  "checks": {
+    "installation": "verified",
+    "mcp_round_trip": "verified",
+    "startup": "verified",
+    "resume": "verified",
+    "clear": "verified",
+    "compact": "verified",
+    "preference_off": "verified",
+    "owned_routing": "verified",
+    "manual_invocation": "verified",
+    "superpowers": "verified",
+    "update": "verified",
+    "migration": "verified"
+  },
+  "native_test_environment": "macOS; unique local acceptance marketplace; disposable fixture settings, activity records and test project.",
+  "isolation": "Claude used fixture settings with only the seven selected plugins and an explicit MCP config derived from the installed work-journal .mcp.json. No private user prompt or data was supplied.",
+  "scenarios": {
+    "installation": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "native-install.jsonl",
+          "sha256": "a74a87f05f6e5badd4a1224cee2a8e2f200b925c60c63d8052f4ed9068fa7201",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "claude-installed-inventory.json",
+          "sha256": "047aeb6aaec478a42e345a5272eb785a1e8a676388e6b43484121af7b66bd68b",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "restored-native-base-bindings.json",
+          "sha256": "4bd844ed497fdf79ee20ebd5d603287ca5f55477203957ec736c3e4051e53604",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ]
+    },
+    "mcp_round_trip": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "claude-mcp-claude.jsonl",
+          "sha256": "8b373ad12a2ed7948d6ce2decb341fd5be24a1f7f51553c9d45b681a0dc27d5a",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "claude-mcp-claude.process.json",
+          "sha256": "ffcc46d2b6227cc8e19231206011cde7bf3751146f34007b07ac12091ab4da4c",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "The installed bundle entry was resolved into an isolated strict MCP config; the native host listed seven tools, wrote a unique fixture marker and queried it back. This verifies the packaged launcher, not automatic plugin MCP discovery under strict isolation."
+    },
+    "startup": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "claude-startup.jsonl",
+          "sha256": "069f6aff2cca6eeb10e67d3a4f4bb5b4ae524e0a9fa8b6d8ee4514121f66daf6",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Only the seven selected test plugins were enabled in fixture settings; existing settings sources were excluded for the run."
+    },
+    "resume": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "claude-resume-real.jsonl",
+          "sha256": "14a319e12b538853aee544cb9dce2d741a32d62b7fce2b6b071f7b61c5cf5643",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "native-session-ids.json",
+          "sha256": "5807bffe28c99de230a85146ff5b76174a87165b61f3c2ec48b67083d235b8fa",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Resumed the actual observed test session and received the expected fixture routing/preferences headers."
+    },
+    "clear": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "claude-clear.jsonl",
+          "sha256": "9aff76855f7ab525a224d3d8fcca100daa32bfa949f6711cc5d0d3752b7290ce",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Started a new native session after /clear and received the expected headers."
+    },
+    "compact": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "claude-compact.jsonl",
+          "sha256": "4213297209d10e87df5b547f19fa34464fddced6dcab1a0f2bde91a725d8647a",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "A native compact event completed and emitted the expected hook response without an error."
+    },
+    "preference_off": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "claude-off.jsonl",
+          "sha256": "045d871028d099b0cc93908d6b958d9139d468480102668ae1d12d879aac3d50",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ]
+    },
+    "owned_routing": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "claude-routing.jsonl",
+          "sha256": "9d656f456c1bc46c2808918fd3f3cca600146eafc93bb1235ab88453286a2634",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "claude-review.jsonl",
+          "sha256": "a379aa6f38ea580492ec4033fa096eec82b71ae3e23afc19c5164347bb4d605a",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "claude-completion.jsonl",
+          "sha256": "f1b89019eb482f480e4d254e2da1610839fed0e3f7d6f8f44866a314905b1d92",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Native Skill selection used technical-decisions:brainstorming, quality-gates:code-review-claude and quality-gates:completion-gate."
+    },
+    "manual_invocation": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "claude-manual-claude.jsonl",
+          "sha256": "341394085108644db4ef7caa9efd195cf86f9393ae2d0a9392751be46a4a95f3",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "claude-manual-question-isolated.jsonl",
+          "sha256": "8741deacc45c952e3b89268329141a8bff329b245bf2d22873d3afae55c5ef69",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "The ordinary question produced no skill/tool calls and no sync; the separate explicit /$skill-toolbox:skill-sync call loaded the package instruction and stopped at the user-only checkpoint."
+    },
+    "superpowers": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "claude-superpowers.jsonl",
+          "sha256": "9f1d4991e39ca02e22a282eceb1a73ddc50153c1643a01d80b27af2029cddb1f",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "superpowers-native-inventory.json",
+          "sha256": "e15922ee8b0ef303b00f1e549c66302687b029e93883492496bf77181d9a5c73",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "The existing registered Superpowers 7.0.0 provider exposed writing-plans; the selected scenario loaded it and stopped at its planning boundary."
+    },
+    "update": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "native-update.jsonl",
+          "sha256": "c34e48bb50246e581fe61d1b83b3a4054e5db82558f8414d671cbf03c892fd4b",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "claude-updated.jsonl",
+          "sha256": "840d13d0d37a090c0f56039852d498c5b683798ddb3cb62eba4538a02a5c9b3c",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "native-update-default-observations.json",
+          "sha256": "0d8af39ae554f828fc05056e8260f21c112d134e1f3c90372a9e8aa21246edbf",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "installed-bindings-updated.json",
+          "sha256": "be9abff4abb16b82b72a33c70748d375aa140d7a9309fae5bfdde60e9e467087",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "pre-update-personal-fingerprints.json",
+          "sha256": "dc65c1d4ddf978302f829819ade02e3bd84acf5316bae8b28bfbf50a3ec4a1d8",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Native update to fixture-only 0.1.1 reported the packaged default change while retaining the personal override and journal settings; the source release remains 0.1.0."
+    },
+    "migration": {
+      "result": "verified",
+      "private_evidence": [
+        {
+          "record": "native-migration-observations.json",
+          "sha256": "d22dcdf0f553e78888599cd63337e149d1be019701d509979b0a25fcc2fa2d00",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "claude-migration-plan.json",
+          "sha256": "6716489ceb559b552d386d39d37bce92cb0b85686fc1d7366c5c14b3930cd9c3",
+          "storage": "local acceptance fixture; raw record excluded"
+        },
+        {
+          "record": "claude-migration-inventory-verified.json",
+          "sha256": "92bbfe230d793ed74d954cc776d8f1593cd3a9114819b7f3fb0ad7a8904bfbe4",
+          "storage": "local acceptance fixture; raw record excluded"
+        }
+      ],
+      "observation": "Fixture-only preview/apply/restore returned exact original bytes and retained unrelated settings."
+    }
+  },
+  "limits": [
+    "Git-hosted remote marketplace install/update was not verified.",
+    "Only the recorded macOS client versions were exercised; Linux, WSL, Windows and minimum-version behavior were not tested.",
+    "Superpowers evidence covers the selected brainstorming/review/planning branch only; full upstream implementation workflows were not tested, so tested_versions remains empty.",
+    "Native cleanup left unselected semantic fingerprint differences in Codex config.toml and Claude plugin registry files; selected test entries are absent, but hash-only snapshots cannot attribute the changed fields. No manual prune or restore was performed."
+  ],
+  "excluded_experiments": {
+    "reason": "Earlier exploratory ordinary-question runs were not counted because they read the source checkout and a read-only Git diff instead of proving isolated package behavior. They executed no sync and made no writes.",
+    "private_evidence": [
+      {
+        "record": "claude-manual-general.jsonl",
+        "sha256": "bb5e69317539838187ec054529d7d2cc03ae30976d39acacdcd088ea8ee444f8",
+        "storage": "local acceptance fixture; raw record excluded"
+      }
+    ]
+  }
+}

@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 from pathlib import Path
 
@@ -27,9 +26,6 @@ HEADER = (
     "those take precedence."
 )
 
-# A bare filename inside references/; path separators are rejected.
-MODULE_NAME = re.compile(r"[\w.-]+\.md")
-
 
 def emit(context: str | None, warning: str | None) -> None:
     payload: dict = {}
@@ -44,63 +40,24 @@ def emit(context: str | None, warning: str | None) -> None:
         print(json.dumps(payload, ensure_ascii=False))
 
 
-def listed_modules(index_text: str) -> tuple[list[str], list[str]]:
-    """Return (valid names, invalid File cells) from the INDEX.md table.
-
-    Invalid cells are returned instead of dropped so the caller can warn; a
-    silently skipped row would load in manual mode but not in hook mode.
-    """
-    names: list[str] = []
-    invalid: list[str] = []
-    for line in index_text.splitlines():
-        cells = line.strip().strip("|").split("|")
-        if not line.lstrip().startswith("|") or len(cells) < 2:
-            continue
-        cell = cells[1].strip().strip("`").strip()
-        if cell == "File" or set(cell) <= set("-: "):
-            continue  # header or separator row
-        (names if MODULE_NAME.fullmatch(cell) else invalid).append(cell)
-    return names, invalid
-
-
 def build() -> tuple[str | None, str | None]:
-    index = REFERENCES / "INDEX.md"
-    try:
-        names, invalid = listed_modules(index.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None, f"session-preferences: cannot read {index}; rules were not loaded."
-    if not names and not invalid:
-        return None, f"session-preferences: {index} lists no modules; rules were not loaded."
-
-    sections: list[str] = []
-    missing: list[str] = [f"{entry} (invalid INDEX.md entry)" for entry in invalid]
-    for name in names:
-        path = REFERENCES / name
-        try:
-            sections.append(f"<!-- module: {name} -->\n{path.read_text(encoding='utf-8').strip()}")
-        except (OSError, ValueError):
-            missing.append(str(path))
-    if not sections:
-        return None, "session-preferences: no module could be read: " + ", ".join(missing)
-
-    parts = [HEADER, *sections]
-    # Modules refer to deferred references by bare filename; give the model a readable path.
-    deferred = sorted(
-        p for p in REFERENCES.glob("*.md") if p.name != "INDEX.md" and p.name not in names
-    )
-    if deferred:
-        parts.append(
-            "Deferred references (read only when an active module calls for it):\n"
-            + "\n".join(f"- {p.name}: {p}" for p in deferred)
-        )
-    warning = None
-    if missing:
-        parts.append(
-            "Not loaded (unreadable; do not claim these rules are applied):\n"
-            + "\n".join(f"- {m}" for m in missing)
-        )
-        warning = "session-preferences: some modules were not loaded: " + ", ".join(missing)
-    return "\n\n".join(parts), warning
+    # Source skills live under the repo; packaged skills live under plugin/skills.
+    skill_dir = SKILL_DIR
+    package_root = skill_dir.parent
+    # Flat mirrors are also named skills; only native manifests identify plugin nesting.
+    if package_root.name == "skills" and any(
+            (package_root.parent / marker).is_file() for marker in
+            (".claude-plugin/plugin.json", ".codex-plugin/plugin.json")):
+        package_root = package_root.parent
+    runtime = package_root / "runtime"
+    if not (runtime / "agent_skills_runtime/preferences.py").is_file():
+        raise RuntimeError("Bundled preference runtime is missing; rules were not loaded")
+    sys.path.insert(0, str(runtime))
+    from agent_skills_runtime.config import resolve_config_root
+    from agent_skills_runtime.preferences import load_preferences
+    context, warnings = load_preferences(REFERENCES, resolve_config_root(os.environ, Path.home()))
+    return (f"{HEADER}\n\n{context}" if context else None,
+            "session-preferences: " + "; ".join(warnings) if warnings else None)
 
 
 def main() -> int:

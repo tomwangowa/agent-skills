@@ -1,0 +1,105 @@
+{
+  "files": {
+    ".claude-plugin/plugin.json": {
+      "mode": 420,
+      "sha256": "262abe64afb20f73ad2d7cbc5dea5aca98fd8eb9891fc2ba685f756cc54c59ba"
+    },
+    ".source.json": {
+      "mode": 420,
+      "sha256": "ad2540a314a5bdbaee570629ec8d29a72eb7556b05a510467c1ade76e23a3bd3"
+    },
+    "README.md": {
+      "mode": 420,
+      "sha256": "0d775e656992486592f917cdae1a75009c77eecb475d40e27d9cb08d701ad557"
+    },
+    "hooks/hooks.json": {
+      "mode": 420,
+      "sha256": "fe7aba0aa409520388511aa631b7b53e22d9135c0c74f442dec775e6915fce85"
+    },
+    "hooks/policy.md": {
+      "mode": 420,
+      "sha256": "2a2abac68558148cad50a7c69e6eea65673df6b8d94b42642a4fa66eccd93164"
+    },
+    "hooks/policy.py": {
+      "mode": 420,
+      "sha256": "78e2ee5af9a5c78985259e1e29ca8fc78687431304e1a467abd60e675c0eb3c0"
+    },
+    "installation.md": {
+      "mode": 420,
+      "sha256": "de62189cb94789d647592b66171db8d8b812f0091144c129e34d58ccef807595"
+    },
+    "migration.md": {
+      "mode": 420,
+      "sha256": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50"
+    },
+    "runtime/agent_skills_runtime/__init__.py": {
+      "mode": 420,
+      "sha256": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd"
+    },
+    "runtime/agent_skills_runtime/policy.py": {
+      "mode": 420,
+      "sha256": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a"
+    },
+    "skills/code-review-claude/README.md": {
+      "mode": 420,
+      "sha256": "9dd90f16634e075512f702092f9bcba8f5f8cb32e3c6531ac97a67bad916c90b"
+    },
+    "skills/code-review-claude/SKILL.md": {
+      "mode": 420,
+      "sha256": "1cb6818d64e4ba980134e4d570ae8e7e4dd27ac237a01fcd4b1aae0f0086949f"
+    },
+    "skills/code-review-claude/references/language-checklists.md": {
+      "mode": 420,
+      "sha256": "8e0165f779f293a94ca4dcb2753f2af2f6b0997363941c880210ba83688fd314"
+    },
+    "skills/codebase-audit/SKILL.md": {
+      "mode": 420,
+      "sha256": "78a5e8990216743b1850f1b5075af03585537eecf5b93288532a9c8ba3ac571a"
+    },
+    "skills/completion-gate/SKILL.md": {
+      "mode": 420,
+      "sha256": "e8ebc33785fbf42bcd614a002674f7c7d1de0769b550d493bd5bbebba82900bd"
+    },
+    "skills/pr-review-assistant/README.md": {
+      "mode": 420,
+      "sha256": "01bf20ce053afa030169f3b5981cc6ab0ac7b51e15ab270893fbb44fd3c162c0"
+    },
+    "skills/pr-review-assistant/SKILL.md": {
+      "mode": 420,
+      "sha256": "43406539bddf59429f87b98d1c2d8eb55989023814d607ea1e97a1f6d94fc9cb"
+    },
+    "skills/pr-review-assistant/scripts/review_pr.sh": {
+      "mode": 493,
+      "sha256": "624fc964d9a614f13a3bb5522b09817da43f5618411058b762142eff25f7f717"
+    },
+    "skills/secure-ai-development-gate/SKILL.md": {
+      "mode": 420,
+      "sha256": "4d3360a99c1b835065631fa1c6957012109c99b85e2c045521706db62f0b4728"
+    },
+    "skills/secure-ai-development-gate/references/secret-patterns.md": {
+      "mode": 420,
+      "sha256": "7239e6fb6d1eb4749f02c244bd86a9d8165b88bbaa7636e42b336214b8965558"
+    },
+    "skills/secure-ai-development-gate/scripts/scan-secrets.sh": {
+      "mode": 493,
+      "sha256": "cccd5db07209b3b70d991d5d97737527d4a57fc382f2b507b23fc03f404d87fe"
+    },
+    "skills/secure-ai-development-gate/scripts/scan-staged-secrets.sh": {
+      "mode": 493,
+      "sha256": "4ef69945474f92fde2d3e16d8d42dccc912b0cb6d596379ccc0d73417ec11d3a"
+    },
+    "skills/skills-catalog.json": {
+      "mode": 420,
+      "sha256": "2b362352843791c7125a89e370f68a358c72f64482d475e41f574ffab6c7bc91"
+    },
+    "superpowers-compatibility.md": {
+      "mode": 420,
+      "sha256": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a"
+    },
+    "team-instructions.md": {
+      "mode": 420,
+      "sha256": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0"
+    }
+  },
+  "schema_version": 1
+}

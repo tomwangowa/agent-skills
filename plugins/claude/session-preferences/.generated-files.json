@@ -1,0 +1,125 @@
+{
+  "files": {
+    ".claude-plugin/plugin.json": {
+      "mode": 420,
+      "sha256": "c5370eb9892c9b2f1e517451062d4253dc1012002ce22c5b4bd9ffdd36fe07e8"
+    },
+    ".source.json": {
+      "mode": 420,
+      "sha256": "5ac163cabef8de77a372595c02500c444a74f2f2f7b3bc8321ece247c53c5e3d"
+    },
+    "README.md": {
+      "mode": 420,
+      "sha256": "a97dc852b2f89097cbdafd6703f697342f30a8662c5d34d1ddd63743de27fce0"
+    },
+    "hooks/hooks.json": {
+      "mode": 420,
+      "sha256": "e40714921f19d5be824a61ffc340efc3ef67f42205003c2dadaddaa99593ef21"
+    },
+    "installation.md": {
+      "mode": 420,
+      "sha256": "de62189cb94789d647592b66171db8d8b812f0091144c129e34d58ccef807595"
+    },
+    "migration.md": {
+      "mode": 420,
+      "sha256": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50"
+    },
+    "runtime/agent_skills_runtime/__init__.py": {
+      "mode": 420,
+      "sha256": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd"
+    },
+    "runtime/agent_skills_runtime/config.py": {
+      "mode": 420,
+      "sha256": "2b1a56b181b89f0c2d92b99e07e284cf0c16d2d2b025fa3c15a43a58f98f3a60"
+    },
+    "runtime/agent_skills_runtime/doctor.py": {
+      "mode": 420,
+      "sha256": "03f8f955d964a106e869ec14c97caace19fa40da88da0eb11c048a84d91d428c"
+    },
+    "runtime/agent_skills_runtime/journal_cli.py": {
+      "mode": 420,
+      "sha256": "d31c041c3277bc8ce8d75f69978edb8d822ccc08433e19cdcf67213f447627bd"
+    },
+    "runtime/agent_skills_runtime/migration.py": {
+      "mode": 420,
+      "sha256": "046253103a6f027478e77b4a67dcab180329cbc4e186442087dd97bfea9b8a3f"
+    },
+    "runtime/agent_skills_runtime/preferences.py": {
+      "mode": 420,
+      "sha256": "0becc33662c35ea8aa9939bd8366e90df1f6b886213c5ae1ba1ebf0be678f3ec"
+    },
+    "runtime/agent_skills_runtime/setup.py": {
+      "mode": 420,
+      "sha256": "829ced45bf3175504485178d0449a9129a4e081f43665013d518d8179505180a"
+    },
+    "skills/control-return/SKILL.md": {
+      "mode": 420,
+      "sha256": "75feb27e37949eaa0a38dd04ec572fc7dbc046e1fab0cafee439d2b737bd0696"
+    },
+    "skills/control-return/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "7796d7e2d792d00fac486ae0b6cad7a5f4ebb00ab9117141b2f610ea012a2433"
+    },
+    "skills/control-return/scripts/session_start_hook.py": {
+      "mode": 493,
+      "sha256": "0ef7db8c43a62a28c95b286582dd8ff983af09c8870639773556de8ed03ea4fe"
+    },
+    "skills/session-preferences/README.md": {
+      "mode": 420,
+      "sha256": "62deb80f9dd795ddbc166772f85e7ea05f6efd446ac734ff13a9ad97b1d2b976"
+    },
+    "skills/session-preferences/SKILL.md": {
+      "mode": 420,
+      "sha256": "28c7df823714caf00fb06d140890059d4df6c074c96c7888844f1c6738d6e33f"
+    },
+    "skills/session-preferences/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "2d1c1af7736464a13109e0a5d5467db4fe25e1681c36b9d0e69879fa55835bd8"
+    },
+    "skills/session-preferences/references/INDEX.md": {
+      "mode": 420,
+      "sha256": "23a4f15b67a269c681594be2bbab732f8da2af20179a58a25c11138d31ddf92b"
+    },
+    "skills/session-preferences/references/deai-longform.md": {
+      "mode": 420,
+      "sha256": "196e4240d81fae078d8298d5803473dcdda2fb48e67368f9ec5110b6b9ab77f1"
+    },
+    "skills/session-preferences/references/deai-translation.md": {
+      "mode": 420,
+      "sha256": "83fa3f6a35f567301847c32caa1868b6d46daa3741a28cadba3d2ab9c211a851"
+    },
+    "skills/session-preferences/references/deai-voice.md": {
+      "mode": 420,
+      "sha256": "27e1777e8291077d242493c4ceb7853a830d476acef41526e7f5f5836f94a782"
+    },
+    "skills/session-preferences/references/explanation-depth.md": {
+      "mode": 420,
+      "sha256": "6534600a806d83ac50eff47015e43614a62bacdb27c662c626f2dc8d97e5131c"
+    },
+    "skills/session-preferences/references/socratic-dialogue.md": {
+      "mode": 420,
+      "sha256": "4fba99c200c2d3a45031ed666d3ccb89d3c17788f7fd4eb8bbd2b28cda1f2220"
+    },
+    "skills/session-preferences/references/taiwan-zh.md": {
+      "mode": 420,
+      "sha256": "81de1c054d790302fedbf4bc92d6cfe8fdf956ea16a2cce967abbdb242d5d167"
+    },
+    "skills/session-preferences/scripts/session_start_hook.py": {
+      "mode": 493,
+      "sha256": "e845d235dbcaf90ed7bf48fda7aca7c10cdf23cfd91e3ef98f0e80bbc95e095d"
+    },
+    "skills/skills-catalog.json": {
+      "mode": 420,
+      "sha256": "7965d6e4be5647dace6a4abc2dcaa13d92cfa2e931b7d496cd168bd0499b7575"
+    },
+    "superpowers-compatibility.md": {
+      "mode": 420,
+      "sha256": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a"
+    },
+    "team-instructions.md": {
+      "mode": 420,
+      "sha256": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0"
+    }
+  },
+  "schema_version": 1
+}

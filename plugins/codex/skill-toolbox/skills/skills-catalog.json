@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "skills": [
+    {
+      "category": "tools-meta",
+      "id": "skill-auditor",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "tools-meta",
+      "id": "skill-router",
+      "invocation_intent": "model",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": false,
+        "sync": true
+      }
+    },
+    {
+      "category": "tools-meta",
+      "id": "skill-sync",
+      "invocation_intent": "user",
+      "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": true,
+        "routable": true,
+        "sync": true
+      }
+    }
+  ]
+}

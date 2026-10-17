@@ -1,0 +1,6 @@
+{
+  "description": "work-journal skills for codex CLI",
+  "name": "work-journal",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

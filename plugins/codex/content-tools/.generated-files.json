@@ -1,0 +1,217 @@
+{
+  "files": {
+    ".codex-plugin/plugin.json": {
+      "mode": 420,
+      "sha256": "1af75204c5126001b1e35b4043f37aa5d217f387fb0af97907ead482c00d2d09"
+    },
+    ".source.json": {
+      "mode": 420,
+      "sha256": "8f5b809310b3718a02d5438954f372c4f575246207d7e6bd72282e8ee5e90ea1"
+    },
+    "README.md": {
+      "mode": 420,
+      "sha256": "9c0ab4799d87cf1a3a16f4a5c0d3e76c3df95205c43cebd48712009e26963459"
+    },
+    "installation.md": {
+      "mode": 420,
+      "sha256": "de62189cb94789d647592b66171db8d8b812f0091144c129e34d58ccef807595"
+    },
+    "migration.md": {
+      "mode": 420,
+      "sha256": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50"
+    },
+    "skills/interactive-presentation-generator/QUICKSTART.md": {
+      "mode": 420,
+      "sha256": "b9edaa3f073c059606ba9b7e0704ecacabccebe919ec0b9c39bafa41cc226d96"
+    },
+    "skills/interactive-presentation-generator/README.md": {
+      "mode": 420,
+      "sha256": "e0856a812ea34a67233d5990f0594f42e3e272bae0c765bbc6fe73b59878543e"
+    },
+    "skills/interactive-presentation-generator/SKILL.md": {
+      "mode": 420,
+      "sha256": "29c79113a2a97d4e36414c4f34d7af59d398c15eca8c30468dcc8f02138285c0"
+    },
+    "skills/interactive-presentation-generator/examples/README.md": {
+      "mode": 420,
+      "sha256": "709dfd90dcd69d82a14004b5c860ee51d19be5b6b35e42d4ed8a42bf14f5a8be"
+    },
+    "skills/interactive-presentation-generator/examples/docker-introduction.html": {
+      "mode": 420,
+      "sha256": "de5194c348880553e600f5f2aed89d246f11c11f7ac83553268029c7e5abb5b0"
+    },
+    "skills/interactive-presentation-generator/examples/sample-presentation.html": {
+      "mode": 420,
+      "sha256": "48b0b51381c34fc4131d6d2713c5fc09e82ac7a9c7376089fce20159f74d14f4"
+    },
+    "skills/interactive-presentation-generator/scripts/marp-template.md": {
+      "mode": 420,
+      "sha256": "789450a66582ef953ff0a25924a33c12f6c4bf1ed2fb13847345c19dfe62d8be"
+    },
+    "skills/interactive-presentation-generator/scripts/revealjs-template.html": {
+      "mode": 420,
+      "sha256": "2f7d405f180e3ee46fdd60780550a8263557fa9dae1126d5ff460e2c941b9374"
+    },
+    "skills/interactive-presentation-generator/scripts/slidev-template.md": {
+      "mode": 420,
+      "sha256": "571a228d7713cfeaaced05dff6a6f041fc74f900b85268056f3825766ae1f75d"
+    },
+    "skills/interactive-presentation-generator/styles/artistic/oneline-chic.yaml": {
+      "mode": 420,
+      "sha256": "c06d729c8a0a2458d3098bdbece1dd7bbdfbfff5a03cc841ab51f73a76135300"
+    },
+    "skills/interactive-presentation-generator/styles/avant-garde/neon-collage.yaml": {
+      "mode": 420,
+      "sha256": "443c7fb43d78fd2bdb682403b8ee6ac12f9aa5195db1b50abf2d7d70ed0a3dda"
+    },
+    "skills/interactive-presentation-generator/styles/creative/digital-pop.yaml": {
+      "mode": 420,
+      "sha256": "ee41b0302e680b3014410d7cc6fcb5a14e23274ea298e667f98e84b3b0525ad5"
+    },
+    "skills/interactive-presentation-generator/styles/editorial/fashion-layout.yaml": {
+      "mode": 420,
+      "sha256": "6b52aee6f720564b31f3f2b281828df6c7acf1989ffc98285a5072f0540e07b1"
+    },
+    "skills/interactive-presentation-generator/styles/editorial/kinfolk-editorial.yaml": {
+      "mode": 420,
+      "sha256": "8eb86c2cc6b888def912a37f2bd263d8faf2896fac2cfea94b346e44edee8bdb"
+    },
+    "skills/interactive-presentation-generator/styles/editorial/red-editorial.yaml": {
+      "mode": 420,
+      "sha256": "9a19f401a93be49e730367380d0537aae99296f02d7d2ef0e9f2b7b578ccd840"
+    },
+    "skills/interactive-presentation-generator/styles/energetic/sports-active.yaml": {
+      "mode": 420,
+      "sha256": "826c30905f235b7026393f820d1db865287d385835d3157465a6be177674fef9"
+    },
+    "skills/interactive-presentation-generator/styles/experimental/sculpture-pop.yaml": {
+      "mode": 420,
+      "sha256": "f05576e82356bc8d0bb9b6af2b3a6c3ae86950bc3ea8a0008786701ce0a7ef13"
+    },
+    "skills/interactive-presentation-generator/styles/futuristic/digital-twin.yaml": {
+      "mode": 420,
+      "sha256": "5f838f4b0253f9946ca5df2c68fb820aecdeccf6a2a2f6e81a34b45f10f1d883"
+    },
+    "skills/interactive-presentation-generator/styles/material/stone-glass.yaml": {
+      "mode": 420,
+      "sha256": "294841e1c494e77c820cb3730e01e9c86300d4478da30fb011e961a26fb23180"
+    },
+    "skills/interactive-presentation-generator/styles/minimalist/blue-mono.yaml": {
+      "mode": 420,
+      "sha256": "8f6daa9b5fcef94a36d3ecb86133337bb351e0e43f45adc73c19a296aeabd724"
+    },
+    "skills/interactive-presentation-generator/styles/minimalist/japanese-minimal.yaml": {
+      "mode": 420,
+      "sha256": "d80b106f8edd654541182d80cc3b81d4360ef66d73bdf6ad21741b9601770c24"
+    },
+    "skills/interactive-presentation-generator/styles/minimalist/swiss-clean.yaml": {
+      "mode": 420,
+      "sha256": "72bddb3db94a9cf9b4ec9797621fc4c360f514450daf4a3c344d7a3cb9f50a2f"
+    },
+    "skills/interactive-presentation-generator/styles/product/premium-mockup.yaml": {
+      "mode": 420,
+      "sha256": "eb78696c0ecfc8a7cdf94e00257ae63c164bd74f549027cbb8d98d98dae188d0"
+    },
+    "skills/interactive-presentation-generator/styles/technical/blueprint.yaml": {
+      "mode": 420,
+      "sha256": "dd8ecaee0553fa9751a9f0ff492842a7f02764578b6123f5ac171924832a4f8c"
+    },
+    "skills/interactive-presentation-generator/styles/technical/cyber-neon.yaml": {
+      "mode": 420,
+      "sha256": "5bb5d2516a49347dce39d4ea030cb72b9854f1182b5b82661a2470094c2e3618"
+    },
+    "skills/interactive-presentation-generator/styles/traditional/byobu.yaml": {
+      "mode": 420,
+      "sha256": "a2077ce9af17ded01a213f60850d1280f3cbfada234c61d23925251e7c485ca3"
+    },
+    "skills/interactive-presentation-generator/styles/traditional/japonism-flow.yaml": {
+      "mode": 420,
+      "sha256": "12d9dceb6add329597253c1df4955bb27b70b50c2a09e1508714bd927ec238b1"
+    },
+    "skills/interactive-presentation-generator/styles/traditional/kabuki-gold.yaml": {
+      "mode": 420,
+      "sha256": "911332e38a9d9eb97b1d973f115d5055e21fb6dd7258d6966d6b1ae9c40b09a3"
+    },
+    "skills/interactive-presentation-generator/styles/traditional/ukiyo-e.yaml": {
+      "mode": 420,
+      "sha256": "de63c01e1d77d30b7edd505d26c997fd58b0f0e5c3720406cf907a4567edc8b1"
+    },
+    "skills/md-translate/SKILL.md": {
+      "mode": 420,
+      "sha256": "8dd6e0ca77a7455465298df1c133836ae484f8d99d78ec161e0e3af19c1a0415"
+    },
+    "skills/pptx-to-md/SKILL.md": {
+      "mode": 420,
+      "sha256": "ba9c3b6d4c016c843b6fc66e7c6fe1c5c048d043b1065620563c98ae82eeb8d2"
+    },
+    "skills/presentation-planner/SKILL.md": {
+      "mode": 420,
+      "sha256": "d88b6b6c4ca4feec915e461dc17371cf91ca0f82885efff91a11954a64a3e61c"
+    },
+    "skills/sepia/SKILL.md": {
+      "mode": 420,
+      "sha256": "bc94bca5fa0bdcac51dd4c758298ba215a04e930301016afe9939c5ac8abc417"
+    },
+    "skills/sepia/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "00e5dc7886eb61913387db3120e63ba6da80c314ceadb4957ed945eef07f66dd"
+    },
+    "skills/sepia/references/discourse-pass.md": {
+      "mode": 420,
+      "sha256": "3117ad4909fbcce3048b061ed5d98e38b27e3d256aea89a7a3dfa48cfdfcd9f3"
+    },
+    "skills/sepia/references/domains/dev-replies.md": {
+      "mode": 420,
+      "sha256": "a0fc73ee75f65d7d588ee1480f11a1407dd2550e310f52ae95bce9dfd3913194"
+    },
+    "skills/sepia/references/domains/postmortems.md": {
+      "mode": 420,
+      "sha256": "04471baf7209dd3a3085d0b2a9a3c1ba7e7f33899fd81e0e96f79d8f434425f3"
+    },
+    "skills/sepia/references/domains/release-notes.md": {
+      "mode": 420,
+      "sha256": "8b2e98b81681341cf8c98359bb89f108206a51eed813e353a642b021e0f8556f"
+    },
+    "skills/sepia/references/domains/tech-articles.md": {
+      "mode": 420,
+      "sha256": "81f055467c11093ddb3d3595ce9fba775f8226795163fbc3c43c498ac4a2b925"
+    },
+    "skills/sepia/references/domains/tickets.md": {
+      "mode": 420,
+      "sha256": "ea62da367c7139de7e962ea00d2a974645e40b1f953a4c06464b4c5ab1364f52"
+    },
+    "skills/sepia/references/model-fingerprints.md": {
+      "mode": 420,
+      "sha256": "3fe0b434a9067cb79233ef250bdc20e1db574c34d1d444b41bc65496034a20dc"
+    },
+    "skills/sepia/references/narrative-pass.md": {
+      "mode": 420,
+      "sha256": "f4444e9ab18925e409ae760c59fd911156a7a7d74db9a6ddbbff624598c7ef33"
+    },
+    "skills/sepia/references/professional-pass.md": {
+      "mode": 420,
+      "sha256": "dc4f6708a1b5f40477bf4845c336ffa12dbfa4e1e20a2b6e036fae5fe3645b2c"
+    },
+    "skills/sepia/references/rubric.md": {
+      "mode": 420,
+      "sha256": "7c3a48b66cc24a5eccb0c2e92f93e1fbbb82913ac981787d48efb49547be10e1"
+    },
+    "skills/sepia/references/style-pass.md": {
+      "mode": 420,
+      "sha256": "7d65d89c62f306153316114c29544aa119bc3c5656cc965c5680a4829633b8e6"
+    },
+    "skills/skills-catalog.json": {
+      "mode": 420,
+      "sha256": "41cb41fe78a59f4bd8c4465771079fddaeb0c47cb7092194b68c9a37cd99f677"
+    },
+    "superpowers-compatibility.md": {
+      "mode": 420,
+      "sha256": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a"
+    },
+    "team-instructions.md": {
+      "mode": 420,
+      "sha256": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0"
+    }
+  },
+  "schema_version": 1
+}
