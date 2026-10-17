@@ -136,7 +136,7 @@
   },
   "limits": [
     "Native acceptance used Claude Code 2.1.300 and Codex 0.162.1 on macOS with a unique local fixture marketplace.",
-    "Remote Git marketplace installation was not tested; Codex marketplace upgrade did not support the local filesystem source, while native plugin add refreshed the local fixture.",
+    "The 2026-10-15 native acceptance snapshot did not test remote Git marketplaces. A 2026-10-17 follow-up verified GitHub marketplace installation and no-op plugin updates with Claude Code CLI 2.1.302; a positive 0.1.0-to-0.1.1 transition used a temporary local Git remote. Codex CLI remote Git marketplace installation and update remain untested; see remote-marketplace-validation.md. Codex marketplace upgrade did not support the local filesystem source, while native plugin add refreshed the local fixture.",
     "Claude MCP round-trip used a strict isolated fixture config derived from the installed package entry; automatic plugin MCP discovery with normal settings was not established.",
     "Superpowers tests cover selected workflow boundaries only; tested_versions remains empty for broader branches.",
     "Publication, commit and production sync remain separate approval steps.",

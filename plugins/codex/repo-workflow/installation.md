@@ -1,6 +1,6 @@
 # 安裝、設定與更新
 
-支援 Claude Code CLI 與 Codex CLI，桌面版不在範圍內。七包已在 macOS 隔離 fixture，以 Claude Code 2.1.300、Codex 0.162.1 實測安裝、hooks、MCP、路由、更新與 fixture 遷移；repository 的 `docs/validation/skill-plugins/acceptance.json` 列出驗收邊界與未驗證項目。Git 遠端 marketplace 安裝尚未實測。以下安裝指令供產物核准發布後使用；目前可供維護者審查的是 worktree 內的生成目錄。
+支援 Claude Code CLI 與 Codex CLI，桌面版不在範圍內。七包已在 macOS 隔離 fixture，以 Claude Code 2.1.300、Codex 0.162.1 實測安裝、hooks、MCP、路由、更新與 fixture 遷移。2026-10-17 另以 Claude Code 2.1.302 驗證 GitHub marketplace 安裝、刷新和更新檢查；Codex CLI 的遠端 Git marketplace 尚未測試。正向版本升級使用本機暫存 Git 遠端，不代表 GitHub 已發布新版。完整範圍見 `docs/validation/skill-plugins/remote-marketplace-validation.md` 與 `acceptance.json`。以下安裝指令供產物核准發布後使用；目前可供維護者審查的是 worktree 內的生成目錄。
 
 ## 選擇並安裝
 
@@ -89,7 +89,7 @@ PYTHONPATH="$AGENT_SKILLS_PLUGIN_ROOT/runtime" python3 -m agent_skills_runtime.m
   --defaults "$AGENT_SKILLS_PLUGIN_ROOT/skills/session-preferences/references"
 ```
 
-預設變更只提示，不覆蓋個人模組。Native fixture 驗收確認兩平台升級後仍保留個人覆寫與活動設定。Codex 0.162.1 在本機 marketplace fixture 上透過再次 `plugin add` 更新套件快取；本機目錄來源的 `marketplace upgrade` 不受支援，Git 遠端 marketplace 的升級流程尚未實測。比對舊／新版 hooks：
+預設變更只提示，不覆蓋個人模組。Native fixture 驗收確認兩平台升級後仍保留個人覆寫與活動設定。Codex 0.162.1 在本機 marketplace fixture 上透過再次 `plugin add` 更新套件快取；本機目錄來源的 `marketplace upgrade` 不受支援。Codex CLI 的遠端 Git marketplace 升級尚未實測；Claude Code 的遠端檢查結果見驗證紀錄。比對舊／新版 hooks：
 
 ```bash
 PYTHONPATH="$AGENT_SKILLS_PLUGIN_ROOT/runtime" python3 -m agent_skills_runtime.migration hooks \
