@@ -153,13 +153,20 @@ class BuildTests(unittest.TestCase):
     def test_generated_docs_state_acceptance_scope(self):
         stale = ['Native acceptance passed', '七包已在',
                  'Remote marketplace installation and release approval remain pending']
+        current = {'README.md': 'need native acceptance again before release',
+                   'installation.md': '發布前需要重新驗收'}
         for surface in ('claude', 'codex'):
             for package in (p for p in (ROOT / 'plugins' / surface).iterdir() if p.is_dir()):
-                for name in ('README.md', 'installation.md'):
+                for name, phrase in current.items():
                     text = (package / name).read_text()
-                    for phrase in stale:
-                        self.assertNotIn(phrase, text, f'{package.name}/{name}')
-                    self.assertIn('work-journal', text)
+                    for old in stale:
+                        self.assertNotIn(old, text, f'{package.name}/{name}')
+                    self.assertIn(phrase, text, f'{package.name}/{name}')
+        for path in ('README.md', 'README.zh.md', 'docs/validation/skill-plugins/README.md',
+                     'docs/validation/skill-plugins/acceptance.json'):
+            text = (ROOT / path).read_text()
+            for old in stale + ['完成原生驗收']:
+                self.assertNotIn(old, text, path)
 
 
 if __name__ == '__main__':
