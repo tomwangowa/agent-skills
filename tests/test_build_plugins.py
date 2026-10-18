@@ -142,6 +142,14 @@ class BuildTests(unittest.TestCase):
             self.assertFalse((destination / 'dist/private-data.js').exists())
             self.assertFalse((destination / 'src').exists())
 
+    def test_generated_server_bundles_omit_npm_hidden_lockfile(self):
+        for surface in ('claude', 'codex'):
+            bundle = ROOT / 'plugins' / surface / 'work-journal/server'
+            self.assertTrue((bundle / 'dist/index.js').is_file())
+            self.assertFalse((bundle / 'node_modules/.package-lock.json').exists())
+            inventory = json.loads((ROOT / 'plugins' / surface / 'work-journal/.generated-files.json').read_text())
+            self.assertNotIn('server/node_modules/.package-lock.json', inventory['files'])
+
 
 if __name__ == '__main__':
     unittest.main()
