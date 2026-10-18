@@ -46,4 +46,4 @@ PYTHONPATH="$AGENT_SKILLS_PLUGIN_ROOT/runtime" python3 -m agent_skills_runtime.m
 
 恢復前核對全部 backup hash 與目前設定。遷移後若有新修改，不會覆蓋它，也不會先恢復其他檔案再發現衝突。備份保留供人工核對；不自動清理。JSON 設定切換會重新排版，但恢復後 bytes 與原始權限一致；TOML 與明確 routing 文字盡量保留原格式。
 
-兩平台都已在隔離 fixture 完成預覽、確認套用與恢復，並核對恢復後 bytes、原始權限及不相關設定。這不代表已遷移真實使用者設定或整套既有 hooks／MCP。這也不是跨多檔交易：locks 只能協調使用同一 backup root 的工具程序，不能約束任意編輯器在核對與 rename 之間修改檔案；遇到程序中止或外部衝突，先檢查 manifest 與當下 hashes。任意時點的崩潰／恢復仍未驗證。
+2026-10-15 兩平台都已在隔離 fixture 完成預覽、確認套用與恢復，並核對恢復後 bytes、原始權限及不相關設定。之後 `d738ec4` 修改了 legacy 路徑比對，這部分由回歸測試涵蓋，原生遷移流程要在發布前重新驗收。這不代表已遷移真實使用者設定或整套既有 hooks／MCP。這也不是跨多檔交易：locks 只能協調使用同一 backup root 的工具程序，不能約束任意編輯器在核對與 rename 之間修改檔案；遇到程序中止或外部衝突，先檢查 manifest 與當下 hashes。任意時點的崩潰／恢復仍未驗證。

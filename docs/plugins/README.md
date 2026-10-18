@@ -1,6 +1,6 @@
 # 七包 CLI plugins
 
-這組產物仍是未發布草稿。來源與暫存資料測試已有證據，新版兩個 CLI 的原生安裝、hooks 信任、模型路由及更新驗收仍待完成；依賴安全檢查與原生驗收是兩個獨立門檻。不要把 artifact checker 通過當成可以發布。
+這組產物仍是未發布草稿。來源與暫存資料測試已有證據，2026-10-15 已在 macOS 隔離 fixture 以 Claude Code 2.1.300、Codex 0.162.1 完成兩個 CLI 的原生驗收，檢查項目與限制見 `docs/validation/skill-plugins/acceptance.json`；`session-preferences` 與 `work-journal` 在那之後有修改，發布前需要重新進行原生驗收。依賴安全檢查與原生驗收是兩個獨立門檻。不要把 artifact checker 通過當成可以發布。
 
 | 套件 | 用途範例 |
 | --- | --- |

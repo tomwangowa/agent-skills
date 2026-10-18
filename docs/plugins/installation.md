@@ -81,7 +81,7 @@ codex plugin marketplace upgrade tomwangowa
 codex plugin add work-journal@tomwangowa
 ```
 
-Codex 的 add 是原生安裝入口；對已安裝插件再次 add 的完整更新行為仍待 native 驗收，不能先宣稱快取已更新。重啟後核對實際版本、資源、七個 MCP 工具及設定根目錄。Session-preferences 更新後，先把 `AGENT_SKILLS_PLUGIN_ROOT` 改成該包目前的根目錄，再用它的 runtime：
+Codex 的 add 是原生安裝入口；再次 add 會更新套件快取，這點已在本機 marketplace fixture 驗證過（見下文）；遠端 Git marketplace 上的更新尚未驗證，不能先宣稱快取已更新。重啟後核對實際版本、資源、七個 MCP 工具及設定根目錄。Session-preferences 更新後，先把 `AGENT_SKILLS_PLUGIN_ROOT` 改成該包目前的根目錄，再用它的 runtime：
 
 ```bash
 PYTHONPATH="$AGENT_SKILLS_PLUGIN_ROOT/runtime" python3 -m agent_skills_runtime.migration updates \

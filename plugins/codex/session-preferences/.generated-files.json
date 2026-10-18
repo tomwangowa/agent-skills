@@ -6,7 +6,7 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "832dd1b9ceb035695be3a3156854ff1b8ba22c92a10f2fa3aba399a9b98cd235"
+      "sha256": "12c7eb652951fcf9c4f049f775ed89c6075a8350108a9dd2f8c87950d6a75539"
     },
     "README.md": {
       "mode": 420,
@@ -18,11 +18,11 @@
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "7a0c5fa3a0c207ff81a14731d73ebb32bb93049c93b261cdd5ee2354e58bb020"
+      "sha256": "a1fb9980d852d7c5e3a5721eb01920228cdb6801b52e525b508f70e3593cf48b"
     },
     "migration.md": {
       "mode": 420,
-      "sha256": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50"
+      "sha256": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16"
     },
     "runtime/agent_skills_runtime/__init__.py": {
       "mode": 420,
