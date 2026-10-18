@@ -116,10 +116,6 @@
       "mode": 420,
       "sha256": "0cc6bc36fbe920c6bb03ad6a7bce5f1cb3d123b9c0835aa931341ac88b8c1841"
     },
-    "server/node_modules/.package-lock.json": {
-      "mode": 420,
-      "sha256": "493dff843aa28cd73ae07b4c819d8990c5c466332543271bca63f784c516049d"
-    },
     "server/node_modules/@hono/node-server/LICENSE": {
       "mode": 420,
       "sha256": "6895190430d809c4c57a7582ecc2f99acbc2ea39a5dfad20262a41d5b3e91733"

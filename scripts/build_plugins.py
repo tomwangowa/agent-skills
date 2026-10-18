@@ -42,6 +42,8 @@ def prepare_server(root: Path, destination: Path) -> None:
                     '--cache', str(destination.parent / 'npm-cache')], cwd=destination, check=True)
     # Executable symlinks are for npm commands, not the server's Node imports.
     shutil.rmtree(destination / 'node_modules/.bin', ignore_errors=True)
+    # npm's hidden lockfile is npm-only bookkeeping the server does not load; omit it from releases.
+    (destination / 'node_modules/.package-lock.json').unlink(missing_ok=True)
     for path in (destination / 'node_modules').rglob('*'):
         if path.is_symlink():
             raise ValueError(f'Unexpected production dependency symlink: {path.relative_to(destination)}')

@@ -1,0 +1,44 @@
+name: Tests and plugin integrity
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Pull requests share one group per ref so a new push replaces the old run; every other
+# event gets a group per commit so no commit on main loses its run to the pending queue.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  tests-and-plugin-integrity:
+    name: tests-and-plugin-integrity
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: skills-query-server/package-lock.json
+      - name: Install server dependencies
+        working-directory: skills-query-server
+        run: npm ci
+      - name: Generated plugins match source
+        run: python3 scripts/build_plugins.py --check
+      - name: Release artifact integrity
+        run: python3 scripts/check_plugin_release.py
+      - name: Python tests
+        run: python3 -m unittest discover -s tests
+      - name: Server tests
+        working-directory: skills-query-server
+        run: npm test

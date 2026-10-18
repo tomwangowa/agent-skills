@@ -1,6 +1,6 @@
 /** Exercise the compiled server and shell logger using only disposable shared data. */
 import { afterEach, describe, expect, it } from 'vitest';
-import { cpSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync, realpathSync, chmodSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync, realpathSync, chmodSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
@@ -13,16 +13,21 @@ const serverRoot = join(repo, 'skills-query-server');
 const fixtures: string[] = [];
 afterEach(() => { for (const root of fixtures.splice(0)) rmSync(root, { recursive: true, force: true }); });
 
-function fixture(override = false) {
+function fixture(override = false, bundle?: string) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'shared journal 中文 ')));
   fixtures.push(root);
   const settings = join(root, 'personal settings');
   const server = join(root, 'server bundle');
   const cwd = join(root, 'unrelated cwd');
   for (const path of [settings, server, cwd, join(settings, 'journal'), join(settings, 'notes'), join(settings, 'override')]) mkdirSync(path);
-  cpSync(join(serverRoot, 'dist'), join(server, 'dist'), { recursive: true });
-  symlinkSync(join(serverRoot, 'node_modules'), join(server, 'node_modules'), 'dir');
-  writeFileSync(join(server, 'package.json'), '{"type":"module"}');
+  if (bundle) {
+    // A generated plugin bundle must run on its own production dependencies.
+    cpSync(bundle, server, { recursive: true });
+  } else {
+    cpSync(join(serverRoot, 'dist'), join(server, 'dist'), { recursive: true });
+    symlinkSync(join(serverRoot, 'node_modules'), join(server, 'node_modules'), 'dir');
+    writeFileSync(join(server, 'package.json'), '{"type":"module"}');
+  }
   writeFileSync(join(settings, 'work-journal.json'), JSON.stringify({ sources: {
     activities: 'journal', notes: { paths: ['notes'] },
   } }));
@@ -38,7 +43,7 @@ function fixture(override = false) {
   env.GUARDED_REAL_MKDIR = spawnSync('/bin/sh', ['-c', 'command -v mkdir'], { encoding: 'utf8' }).stdout.trim();
   env.PATH = `${bin}:${env.PATH}`;
   if (override) env.CLAUDE_ACTIVITIES_DIR = 'override';
-  return { root, settings, server, cwd, env, entry: join(server, 'dist/index.js'),
+  return { root, settings, server, cwd, env, entry: join(server, bundle ? 'launch.mjs' : 'dist/index.js'),
     activities: join(settings, override ? 'override' : 'journal') };
 }
 
@@ -50,6 +55,17 @@ describe('production stdio shared configuration', () => {
     expect(result.tools).toContain('query_activities');
     expect(result.roundTrip).toBe(true);
   }, 15000);
+
+  for (const surface of ['claude', 'codex']) {
+    it(`the generated ${surface} work-journal bundle runs on its own production dependencies`, async () => {
+      const f = fixture(false, join(repo, 'plugins', surface, 'work-journal/server'));
+      expect(existsSync(join(f.server, 'node_modules/.package-lock.json'))).toBe(false);
+      expect(existsSync(join(f.server, 'node_modules/vitest'))).toBe(false);
+      const result = await runSmoke(process.execPath, [f.entry], f.env);
+      expect(result.tools).toContain('log_activity');
+      expect(result.roundTrip).toBe(true);
+    }, 20000);
+  }
 
   for (const override of [false, true]) {
     it(`finds the actual shell logger record using ${override ? 'an environment override' : 'shared relative paths'}`, async () => {
