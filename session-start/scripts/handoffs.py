@@ -15,13 +15,29 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
-from pathlib import Path
+from functools import lru_cache
+from pathlib import Path, PurePath
 
 # Keep in sync with the assertion table in handoff/SKILL.md; a test compares the two.
 ASSERTION_KINDS: tuple[str, ...] = ("expect_head", "branch_is", "file_exists", "worktree_clean")
 
 GIT_TIMEOUT_SECONDS = 10
 BOM = b"\xef\xbb\xbf"
+
+# Used only when `git rev-parse --local-env-vars` cannot be asked.
+_FALLBACK_REPO_ENV_VARS = (
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_COMMON_DIR",
+    "GIT_PREFIX",
+    "GIT_NAMESPACE",
+    "GIT_CEILING_DIRECTORIES",
+)
+# These describe how git reads configuration, not which repository it acts on, and test fixtures rely on them.
+_KEPT_ENV_VARS = frozenset({"GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM"})
 
 _KEY = r"[A-Za-z_][A-Za-z0-9_.-]*"
 _TOP_LINE = re.compile(rf"({_KEY}):(?:[ \t]+(.*))?")
@@ -194,12 +210,35 @@ def split_sections(body: str) -> dict[str, str]:
     return sections
 
 
+@lru_cache(maxsize=1)
+def _repo_selecting_env_vars() -> frozenset[str]:
+    """Names of the environment variables that make git act on one particular repository."""
+    names: set[str] = set()
+    try:
+        listing = subprocess.run(
+            ["git", "rev-parse", "--local-env-vars"],
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            timeout=GIT_TIMEOUT_SECONDS,
+        )
+        if listing.returncode == 0:
+            names = {line.strip() for line in listing.stdout.splitlines() if line.strip()}
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+    return frozenset((names or set(_FALLBACK_REPO_ENV_VARS)) - _KEPT_ENV_VARS)
+
+
 def git(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str] | None:
     """Run git in `cwd`; None when git is missing or does not finish in time."""
     # The repo path comes from an untrusted handoff, so keep that repo's config from running a fsmonitor hook,
     # and keep `status` from refreshing the index: this helper is read-only.
     command = ["git", "-C", str(cwd), "-c", "core.fsmonitor=false", *args]
-    env = {**os.environ, "GIT_OPTIONAL_LOCKS": "0", "GIT_TERMINAL_PROMPT": "0"}
+    # An inherited GIT_DIR (set by hooks and some wrappers) outranks `-C`, so every answer would describe that
+    # repository instead of the one the handoff names.
+    dropped = _repo_selecting_env_vars()
+    env = {key: value for key, value in os.environ.items() if key not in dropped}
+    env.update({"GIT_OPTIONAL_LOCKS": "0", "GIT_TERMINAL_PROMPT": "0"})
     try:
         return subprocess.run(
             command,
@@ -224,25 +263,38 @@ def _outcome(kind: str, result: str, detail: str) -> dict[str, str]:
     return {"kind": kind, "result": result, "detail": detail}
 
 
-def _path_problem(name: str, value: str) -> str | None:
+def _resolve_path(name: str, value: str, base: Path | None) -> tuple[str, str | None]:
+    """Return (path, None), or ("", reason) when the value cannot be trusted as a location.
+
+    handoff/SKILL.md lets the writer use an absolute path or one relative to the repo. A relative path is anchored
+    at the handoff's own `worktree`, never at the reader's cwd, so the answer does not depend on where it runs.
+    """
     if not value:
-        return f"missing '{name}'"
-    if "\x00" in value:
-        return f"'{name}' contains a NUL byte"
-    if not os.path.isabs(value):
-        return f"'{name}' must be an absolute path"
-    return None
+        return "", f"missing '{name}'"
+    if os.path.isabs(value):
+        path = value
+    elif base is not None and os.path.isabs(str(base)):
+        path = str(PurePath(str(base), value))
+    else:
+        return "", f"relative '{name}' needs an absolute 'worktree' in the handoff"
+    if "\x00" in path:
+        return "", f"'{name}' contains a NUL byte"
+    if ".." in PurePath(path).parts:
+        return "", f"'{name}' must not contain '..'"
+    return path, None
 
 
-def run_assertion(item: dict[str, str]) -> dict[str, str]:
-    """Evaluate one whitelisted assertion. Anything it cannot evaluate is "unverified", never an exception."""
+def run_assertion(item: dict[str, str], base: Path | None = None) -> dict[str, str]:
+    """Evaluate one whitelisted assertion. Anything it cannot evaluate is "unverified", never an exception.
+
+    `base` is the handoff's `worktree`; it only matters for relative `repo` / `path` values.
+    """
     kind = item.get("kind", "")
     if kind not in ASSERTION_KINDS:
         return _outcome(kind, "unverified", "unknown assertion kind")
 
     if kind == "file_exists":
-        path = item.get("path", "")
-        problem = _path_problem("path", path)
+        path, problem = _resolve_path("path", item.get("path", ""), base)
         if problem:
             return _outcome(kind, "unverified", problem)
         try:
@@ -251,8 +303,7 @@ def run_assertion(item: dict[str, str]) -> dict[str, str]:
             return _outcome(kind, "unverified", f"cannot stat {path}: {error.strerror or error}")
         return _outcome(kind, "pass" if exists else "fail", f"{path} {'exists' if exists else 'does not exist'}")
 
-    repo = item.get("repo", "")
-    problem = _path_problem("repo", repo)
+    repo, problem = _resolve_path("repo", item.get("repo", ""), base)
     if problem:
         return _outcome(kind, "unverified", problem)
     value = item.get("value", "")
@@ -345,6 +396,8 @@ def command_check(args: argparse.Namespace) -> int:
         return 2
 
     status = parsed.fields.get("status", "")
+    worktree = parsed.fields.get("worktree", "")
+    base = Path(worktree) if worktree else None
     emit(
         {
             "path": args.path,
@@ -353,7 +406,7 @@ def command_check(args: argparse.Namespace) -> int:
             "task": parsed.fields.get("task", ""),
             "fields": parsed.fields,
             # parse_handoff already empties this for malformed files.
-            "assertions": [run_assertion(item) for item in parsed.assertions],
+            "assertions": [run_assertion(item, base) for item in parsed.assertions],
             "sections": {name: text.strip() for name, text in split_sections(parsed.body).items()},
             # Hash the bytes that were parsed, so a later mark-resumed can detect any change in between.
             "sha256": hashlib.sha256(raw).hexdigest(),

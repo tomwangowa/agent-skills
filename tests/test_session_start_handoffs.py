@@ -322,15 +322,54 @@ class CheckTests(RepoTestCase):
         self.assertEqual(result["result"], "unverified")
         self.assertFalse(marker.exists())
 
-    def test_relative_path_is_unverified(self) -> None:
+    def test_relative_path_resolves_against_worktree(self) -> None:
+        # handoff/SKILL.md lets the writer use repo-relative paths; they are anchored at the handoff's worktree.
+        (self.repo / "pkg").mkdir()
+        cases = (
+            ({"kind": "file_exists", "path": "README.md"}, "pass"),
+            ({"kind": "file_exists", "path": "missing.txt"}, "fail"),
+            ({"kind": "file_exists", "path": "./README.md"}, "pass"),
+            ({"kind": "worktree_clean", "repo": "."}, "pass"),
+            ({"kind": "worktree_clean", "repo": "pkg"}, "pass"),
+            ({"kind": "expect_head", "repo": ".", "value": self.head()[:7]}, "pass"),
+            ({"kind": "expect_head", "repo": ".", "value": "0000000"}, "fail"),
+            ({"kind": "branch_is", "repo": ".", "value": "main"}, "pass"),
+            ({"kind": "branch_is", "repo": ".", "value": "other"}, "fail"),
+        )
+        for item, expected in cases:
+            with self.subTest(item=item):
+                self.assertEqual(handoffs.run_assertion(item, self.repo)["result"], expected)
+        # An absolute path still wins over the base.
+        absolute = {"kind": "file_exists", "path": str(self.repo / "README.md")}
+        self.assertEqual(handoffs.run_assertion(absolute, self.tmp)["result"], "pass")
+
+    def test_relative_path_without_usable_base_is_unverified(self) -> None:
+        for base in (None, Path("repo"), Path("")):
+            for item in (
+                {"kind": "file_exists", "path": "README.md"},
+                {"kind": "worktree_clean", "repo": "."},
+                {"kind": "expect_head", "repo": "repo", "value": self.head()[:7]},
+                {"kind": "branch_is", "repo": ".", "value": "main"},
+            ):
+                with self.subTest(base=base, item=item):
+                    self.assertEqual(handoffs.run_assertion(item, base)["result"], "unverified")
+
+    def test_parent_segment_is_unverified(self) -> None:
         for item in (
-            {"kind": "file_exists", "path": "README.md"},
-            {"kind": "worktree_clean", "repo": "repo"},
+            {"kind": "file_exists", "path": "../repo/README.md"},
+            {"kind": "file_exists", "path": "pkg/../README.md"},
+            {"kind": "file_exists", "path": f"{self.repo}/../repo/README.md"},
+            {"kind": "worktree_clean", "repo": ".."},
+            {"kind": "worktree_clean", "repo": f"{self.repo}/pkg/.."},
             {"kind": "expect_head", "repo": "../repo", "value": self.head()[:7]},
-            {"kind": "branch_is", "repo": ".", "value": "main"},
         ):
             with self.subTest(item=item):
-                self.assertEqual(self.outcome(item)["result"], "unverified")
+                self.assertEqual(handoffs.run_assertion(item, self.repo)["result"], "unverified")
+        # '..' inside the worktree used as the base is rejected too.
+        self.assertEqual(handoffs.run_assertion({"kind": "file_exists", "path": "README.md"},
+                                                self.repo / ".." / "repo")["result"], "unverified")
+        # A name that merely contains dots is an ordinary segment.
+        self.assertEqual(handoffs.run_assertion({"kind": "file_exists", "path": "..hidden"}, self.repo)["result"], "fail")
 
     def test_non_git_repo_is_unverified(self) -> None:
         plain = self.tmp / "plain"
@@ -446,6 +485,91 @@ class CheckTests(RepoTestCase):
         path = write_handoff(self.handoff_dir, "a.md", frontmatter="status: in-progress")
         _, out = run_cli(SCRIPT, "check", str(path), cwd=self.repo)
         self.assertIsNone(out["worktree_matches_cwd"])
+
+    def test_check_resolves_relative_paths_against_handoff_worktree(self) -> None:
+        assertions = (
+            "assertions:\n"
+            "  - kind: file_exists\n    path: README.md\n"
+            "  - kind: worktree_clean\n    repo: .\n"
+            "  - kind: branch_is\n    repo: .\n    value: main\n"
+            "  - kind: file_exists\n    path: ../escape.txt\n"
+        )
+        # cwd is outside the repo on purpose: the answer must come from the handoff's worktree, not from where it runs.
+        anchored = write_handoff(self.handoff_dir, "a.md", frontmatter=f"status: in-progress\nworktree: {self.repo}\n{assertions}")
+        code, out = run_cli(SCRIPT, "check", str(anchored), cwd=self.tmp)
+        self.assertEqual(code, 0)
+        self.assertEqual([a["result"] for a in out["assertions"]], ["pass", "pass", "pass", "unverified"])
+
+        unanchored = write_handoff(self.handoff_dir, "b.md", frontmatter=f"status: in-progress\n{assertions}")
+        _, out = run_cli(SCRIPT, "check", str(unanchored), cwd=self.repo)
+        self.assertEqual([a["result"] for a in out["assertions"]], ["unverified"] * 4)
+
+        relative_worktree = write_handoff(self.handoff_dir, "c.md", frontmatter=f"status: in-progress\nworktree: repo\n{assertions}")
+        _, out = run_cli(SCRIPT, "check", str(relative_worktree), cwd=self.tmp)
+        self.assertEqual([a["result"] for a in out["assertions"]], ["unverified"] * 4)
+
+    def test_check_ignores_inherited_git_repository_variables(self) -> None:
+        # Hooks and wrappers export GIT_DIR / GIT_WORK_TREE, which outrank `git -C`; answers must still describe the
+        # repo named in the handoff. The other repo differs in branch, HEAD and cleanliness so any leak is visible.
+        other = make_repo(self.tmp / "other")
+        run_git(other, "checkout", "-q", "-b", "elsewhere")
+        (other / "extra.txt").write_text("second\n", encoding="utf-8")
+        run_git(other, "add", "extra.txt")
+        run_git(other, "commit", "-q", "-m", "second")
+        (other / "dirty.txt").write_text("untracked\n", encoding="utf-8")
+        other_head = run_git(other, "rev-parse", "HEAD").stdout.strip()
+        self.assertNotEqual(other_head, self.head())
+
+        sub = self.repo / "pkg"
+        sub.mkdir()
+        path = write_handoff(
+            self.handoff_dir,
+            "a.md",
+            frontmatter=(
+                f"status: in-progress\nworktree: {self.repo}\nassertions:\n"
+                f"  - kind: branch_is\n    repo: {self.repo}\n    value: main\n"
+                f"  - kind: branch_is\n    repo: {self.repo}\n    value: elsewhere\n"
+                f"  - kind: expect_head\n    repo: {self.repo}\n    value: {self.head()[:7]}\n"
+                f"  - kind: expect_head\n    repo: {self.repo}\n    value: {other_head[:7]}\n"
+                f"  - kind: worktree_clean\n    repo: {self.repo}\n"
+            ),
+        )
+        leaking_envs = {
+            "GIT_DIR only": {"GIT_DIR": str(other / ".git")},
+            "GIT_DIR and GIT_WORK_TREE": {"GIT_DIR": str(other / ".git"), "GIT_WORK_TREE": str(other)},
+            "GIT_INDEX_FILE": {"GIT_INDEX_FILE": str(other / ".git" / "index")},
+        }
+        for label, leaking_env in leaking_envs.items():
+            with self.subTest(label):
+                code, out = run_cli(SCRIPT, "check", str(path), cwd=sub, env=leaking_env)
+                self.assertEqual(code, 0)
+                self.assertEqual([a["result"] for a in out["assertions"]], ["pass", "fail", "pass", "fail", "pass"])
+                # Run from a subdirectory: a leaked GIT_DIR makes --show-toplevel report the subdirectory itself.
+                self.assertIs(out["worktree_matches_cwd"], True)
+
+    def test_git_helper_drops_repo_selection_but_keeps_config_isolation(self) -> None:
+        other = make_repo(self.tmp / "other")
+        with mock.patch.dict(os.environ, {"GIT_DIR": str(other / ".git"), "GIT_INDEX_FILE": str(other / "nope")}):
+            toplevel = handoffs.git(["rev-parse", "--show-toplevel"], self.repo)
+            excludes = handoffs.git(["config", "--get", "core.excludesFile"], self.repo)
+        self.assertEqual(Path(toplevel.stdout.strip()).resolve(), self.repo.resolve())
+        # GIT_CONFIG_GLOBAL must survive, otherwise the host's global excludesFile (set on this machine) shows up.
+        self.assertNotEqual(excludes.returncode, 0)
+
+    def test_repo_selecting_env_vars(self) -> None:
+        handoffs._repo_selecting_env_vars.cache_clear()
+        self.addCleanup(handoffs._repo_selecting_env_vars.cache_clear)
+        names = handoffs._repo_selecting_env_vars()
+        for expected in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY"):
+            self.assertIn(expected, names)
+        self.assertFalse({"GIT_CONFIG_GLOBAL", "GIT_CONFIG_NOSYSTEM"} & names)
+
+    def test_repo_selecting_env_vars_fall_back_when_git_cannot_be_asked(self) -> None:
+        handoffs._repo_selecting_env_vars.cache_clear()
+        self.addCleanup(handoffs._repo_selecting_env_vars.cache_clear)
+        with mock.patch.object(handoffs.subprocess, "run", side_effect=FileNotFoundError):
+            names = handoffs._repo_selecting_env_vars()
+        self.assertEqual(names, frozenset(handoffs._FALLBACK_REPO_ENV_VARS))
 
     def test_check_outside_git_compares_against_cwd(self) -> None:
         plain = self.tmp / "plain"
