@@ -150,9 +150,11 @@ def render_package(repo_root: Path, package: dict, surface: str, destination: Pa
     if (destination / 'installation.md').is_file():
         readme += '\nRead [installation and setup](installation.md), [migration and recovery](migration.md),\n'
         readme += '[Superpowers compatibility](superpowers-compatibility.md) and [team instructions](team-instructions.md).\n'
-    readme += ('\nNative acceptance passed on Claude Code CLI 2.1.300 and Codex CLI 0.162.1 '
-               'with isolated macOS fixtures. Remote marketplace installation and release approval '
-               'remain pending.\n')
+    readme += ('\nNative acceptance on 2026-10-15 covered all seven packages with Claude Code CLI 2.1.300 '
+               'and Codex CLI 0.162.1 on isolated macOS fixtures. session-preferences and work-journal '
+               'changed after that run and need native acceptance again before release. Claude Code CLI '
+               '2.1.302 verified GitHub marketplace installation and update checks on 2026-10-17; Codex CLI '
+               'remote marketplace installation and release approval remain pending.\n')
     if package['name'] == 'skill-toolbox' and surface == 'codex':
         readme += '\nclaude-workflow-designer is Claude Code-only and is excluded.\n'
     (destination / 'README.md').write_text(readme, encoding='utf-8')

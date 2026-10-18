@@ -6,19 +6,19 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "77b096f604fe990e7c1f6dd20c0a44a201938e64d9bc2f8b5823282be77cf26a"
+      "sha256": "8a833c8a53818d2211f9d3a28281c4069979a6a201d84f6b72ee0c49f5ae16b0"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "76b683f92e61ab8bfb9b259ecebb5c5a923ffe1e696950eaaddce3072d4dffe3"
+      "sha256": "d21ef71ff85360b9731fdcda96b70abedb52256858e382e7cb499255365fbca5"
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "8e18266af8a7f3a84e879ae900af80e7148fb7c30ef0ce8948e544f63de8ac32"
+      "sha256": "a1fb9980d852d7c5e3a5721eb01920228cdb6801b52e525b508f70e3593cf48b"
     },
     "migration.md": {
       "mode": 420,
-      "sha256": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50"
+      "sha256": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16"
     },
     "skills/code-story-teller/README.md": {
       "mode": 420,

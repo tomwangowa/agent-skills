@@ -150,6 +150,27 @@ class BuildTests(unittest.TestCase):
             inventory = json.loads((ROOT / 'plugins' / surface / 'work-journal/.generated-files.json').read_text())
             self.assertNotIn('server/node_modules/.package-lock.json', inventory['files'])
 
+    def test_generated_docs_state_acceptance_scope(self):
+        stale = ['Native acceptance passed', '七包已在',
+                 'Remote marketplace installation and release approval remain pending',
+                 '完整更新行為仍待 native 驗收', '模型路由及更新驗收仍待完成']
+        current = {'README.md': 'need native acceptance again before release',
+                   'installation.md': '發布前需要重新驗收',
+                   'migration.md': '原生遷移流程要在發布前重新驗收'}
+        for surface in ('claude', 'codex'):
+            for package in (p for p in (ROOT / 'plugins' / surface).iterdir() if p.is_dir()):
+                for name, phrase in current.items():
+                    text = (package / name).read_text()
+                    for old in stale:
+                        self.assertNotIn(old, text, f'{package.name}/{name}')
+                    self.assertIn(phrase, text, f'{package.name}/{name}')
+        for path in ('README.md', 'README.zh.md', 'docs/plugins/README.md',
+                     'docs/validation/skill-plugins/README.md',
+                     'docs/validation/skill-plugins/acceptance.json'):
+            text = (ROOT / path).read_text()
+            for old in stale + ['完成原生驗收']:
+                self.assertNotIn(old, text, path)
+
 
 if __name__ == '__main__':
     unittest.main()

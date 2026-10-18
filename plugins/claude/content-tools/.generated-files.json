@@ -6,19 +6,19 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "571d922f2ee90160c23f043a92e7e0edb71c18617f2d391f3ac7edf25ec6da1e"
+      "sha256": "4a82ec54acd4437bc4b671eae4e731151b49bf60dace234030468c200e671c4e"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "0e2db17c63911406004b527f08d94e3cc403fb000c35e15b0a08b7375b6a4e5c"
+      "sha256": "3e07169ed903fc6c40b31d996e01475ab0f96e09accbc4e7ff18b4b0403877a2"
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "8e18266af8a7f3a84e879ae900af80e7148fb7c30ef0ce8948e544f63de8ac32"
+      "sha256": "a1fb9980d852d7c5e3a5721eb01920228cdb6801b52e525b508f70e3593cf48b"
     },
     "migration.md": {
       "mode": 420,
-      "sha256": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50"
+      "sha256": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16"
     },
     "skills/interactive-presentation-generator/QUICKSTART.md": {
       "mode": 420,

@@ -140,6 +140,7 @@
     "Claude MCP round-trip used a strict isolated fixture config derived from the installed package entry; automatic plugin MCP discovery with normal settings was not established.",
     "Superpowers tests cover selected workflow boundaries only; tested_versions remains empty for broader branches.",
     "Publication, commit and production sync remain separate approval steps.",
-    "Native cleanup left semantic fingerprint differences in Codex config.toml and Claude plugin registry files. Current CLI inventories contain no selected package or marketplace, but hash-only snapshots cannot attribute the changed fields; no manual prune or restore was performed."
+    "Native cleanup left semantic fingerprint differences in Codex config.toml and Claude plugin registry files. Current CLI inventories contain no selected package or marketplace, but hash-only snapshots cannot attribute the changed fields; no manual prune or restore was performed.",
+    "The recorded session-preferences and work-journal bindings predate d738ec4 (runtime migration path normalization) and the removal of node_modules/.package-lock.json from the work-journal server bundle; check_plugin_release.py --require-acceptance fails until a new native acceptance run records bindings for all seven packages on each surface, because the checker binds one evidence record per surface to the full package set."
   ]
 }

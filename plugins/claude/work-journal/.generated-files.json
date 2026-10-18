@@ -10,19 +10,19 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "f3ef9563b211435d5a0a33dfa45d8a6e95e7b71a2eafec45432b902ff7b0fe33"
+      "sha256": "48a774c1b81c71c07a0491a9e40333b925afb76f3d036785617d46cffb5f6ea2"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "2d9f67d06798ae89d6a340633f7a13cbdb4f0372e1ba573a30cafc689fce93bf"
+      "sha256": "4408547483c428736278de50f9af0369feb6533cd3ef0cb5b26ec1b3937845fe"
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "8e18266af8a7f3a84e879ae900af80e7148fb7c30ef0ce8948e544f63de8ac32"
+      "sha256": "a1fb9980d852d7c5e3a5721eb01920228cdb6801b52e525b508f70e3593cf48b"
     },
     "migration.md": {
       "mode": 420,
-      "sha256": "a47e5b070ee4f9521e90963fef2866b4d47d81cd53eb67a685979cf52dd54f50"
+      "sha256": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16"
     },
     "runtime/agent_skills_runtime/__init__.py": {
       "mode": 420,
