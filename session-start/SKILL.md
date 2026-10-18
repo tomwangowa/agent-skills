@@ -15,7 +15,7 @@ description: >
 除了把確認接手的 handoff 標成 `resumed`，全程唯讀。
 
 > 腳本是 `python3 <skill_base_directory>/scripts/handoffs.py`，`<skill_base_directory>` 取自這個 skill 實際安裝的位置。
-> 每個子指令在 stdout 印一個 JSON 物件。路徑可能含空白或中日韓文字，帶進指令時要加引號（做法見 Security Considerations）。
+> 每個子指令在 stdout 印一個 JSON 物件。路徑可能含空白或中日韓文字，帶進指令時用單引號包起來（理由見 Security Considerations）。
 
 ## When to Use
 
@@ -34,12 +34,13 @@ description: >
 ### 2. Delegate To A Repo-local Version
 
 ```bash
-python3 <skill_base_directory>/scripts/handoffs.py delegate --runtime claude
+python3 <skill_base_directory>/scripts/handoffs.py delegate --runtime <claude|codex>
 ```
 
 `--runtime` 依目前所在的 runtime 填：Claude Code 用 `claude`，Codex 用 `codex`。
 
 - `delegate` 不是 null：讀那個路徑的 SKILL.md，照它執行，把使用者的原始參數原樣傳進去。
+  那份 SKILL.md 裡的 `<skill_base_directory>` 與相對路徑，以它自己所在的目錄為準，不是本 skill 的目錄。
   通用流程到此結束，不再做步驟 3 以後的事。
 - `drift` 為 true：用一句話說明 `.claude` 與 `.codex` 兩份 repo-local 版內容不一致，這次用的是 `delegate` 那份。不停下。
 - `excluded` 裡 `reason` 為 `self`、`user_level` 是設計上的排除，不用提。
@@ -64,7 +65,7 @@ python3 <skill_base_directory>/scripts/handoffs.py list            # 使用者�
 
 - `items` 做成表格，欄位：編號、任務、status、建立時間、來源 worktree／分支。
   `current` 為 true 的是目前的 worktree，標出來。`branch` 是 null 就填 `-`。
-- `malformed` 為 true 的，status 欄標「格式異常」（`status` 有值就併列）。這類檔案不跑 assertion，也不能標記 resumed。
+- `malformed` 為 true 的，status 欄標「格式異常」（`status` 有值就併列）。選中這類檔案時怎麼處理，看步驟 5 第 4 點。
 - `remaining` 大於 0：補一行「另有 N 份，加 `--all` 可列出」。
 - `skipped` 不是空的：逐筆列出路徑與原因。`symlink` 是檔案本身為 symlink，不讀；
   `missing_worktree` 是 git 還記著、但目錄已不在的 worktree；`unreadable` 是讀不到。
@@ -78,7 +79,7 @@ python3 <skill_base_directory>/scripts/handoffs.py list            # 使用者�
 ### 5. Check The Handoff And Confirm
 
 ```bash
-python3 <skill_base_directory>/scripts/handoffs.py check "<path>"
+python3 <skill_base_directory>/scripts/handoffs.py check '<path>'
 ```
 
 回傳 `kind`、`status`、`task`、`fields`、`assertions`、`sections`、`sha256`、`already_resumed`、`worktree_matches_cwd`。
@@ -87,7 +88,8 @@ python3 <skill_base_directory>/scripts/handoffs.py check "<path>"
 2. 逐條顯示 `assertions`：`kind`、`result`、`detail`。`result` 有 `pass`、`fail`、`unverified`；
    `unverified` 照實標「未驗證」，不當成通過。
 3. 顯示 `sections` 裡的「前提（人工確認）」「規矩」「最大風險」「下一步」。哪一段不存在就明說沒有。
-4. `kind` 是 `malformed`：assertion 沒跑，說明這份只能當參考、不能標記 resumed，不呼叫 `mark-resumed`。
+4. `kind` 是 `malformed`，或 `status` 是空字串（`list` 兩種都標成格式異常）：這份只能當參考，不呼叫 `mark-resumed`。
+   `malformed` 時 assertion 沒跑，要明說；`status` 空白時 assertion 照跑，結果照列。
 5. `worktree_matches_cwd` 是 false：提醒一句，handoff 的 worktree 與目前目錄不同。
    null 或 true 都不用提。
 6. `already_resumed` 是 true：說明這份已經標過 `resumed`（`fields.resumed_at` 有值就一併說），不會再標記。
@@ -98,7 +100,7 @@ python3 <skill_base_directory>/scripts/handoffs.py check "<path>"
 使用者確認接手，而且第 4、6 點都不適用，才標記：
 
 ```bash
-python3 <skill_base_directory>/scripts/handoffs.py mark-resumed "<path>" --expect-sha256 <sha256>
+python3 <skill_base_directory>/scripts/handoffs.py mark-resumed '<path>' --expect-sha256 <sha256>
 ```
 
 `<sha256>` 用 `check` 回傳的值，原樣帶入。成功就用一句話說已標成 `resumed`。
