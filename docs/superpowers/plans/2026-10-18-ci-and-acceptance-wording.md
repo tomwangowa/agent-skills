@@ -29,7 +29,7 @@
 1. **The runner's npm writes some other file differently from local npm 11.2.0.** Expected: `--check` passes on the runner. Pinned by the PR-1 CI run (Task 4). On drift, Task 4 adds a step that prints the differing paths.
 2. **The generated bundle runs only with its own production `node_modules`, without the hidden lockfile or any dev dependency.** Expected: an MCP round trip succeeds. Pinned by Task 2.
 3. **A test assumes local state the runner lacks (a home-directory file, git identity, an installed CLI).** Expected: the full suite passes on a clean runner. Pinned by the PR-1 CI run (Task 4).
-4. **Two pushes to `main` in quick succession.** Expected: each `main` commit keeps a completed run; only PR runs are cancelled. Pinned by the `cancel-in-progress` expression in Task 3.
+4. **Two pushes to `main` in quick succession.** Expected: each `main` commit keeps a completed run; only PR runs are cancelled. Pinned by the per-commit `concurrency.group` for non-PR events in Task 3. A per-ref group is not enough: GitHub keeps at most one pending run per group, so a third quick push would cancel the second.
 5. **The ruleset blocks the admin's own emergency merge, or never matches the check.** Expected: the check `tests-and-plugin-integrity` is required, and the admin can bypass. Pinned by the read-back in Task 5.
 
 ---
@@ -122,7 +122,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
