@@ -79,9 +79,10 @@ def make_repo(path: Path) -> Path:
     return path
 
 
-def write_handoff(directory: Path, name: str, *, frontmatter: str, body: str = "## 任務\nx\n") -> Path:
-    directory.mkdir(parents=True, exist_ok=True)
-    path = directory / name
+def write_handoff(dir: Path, name: str, *, frontmatter: str, body: str = "## 任務\nx\n") -> Path:  # noqa: A002
+    # `dir` mirrors the plan's interface so keyword callers in later tasks keep working.
+    dir.mkdir(parents=True, exist_ok=True)
+    path = dir / name
     path.write_text(f"---\n{frontmatter.strip(chr(10))}\n---\n\n{body}", encoding="utf-8")
     return path
 
