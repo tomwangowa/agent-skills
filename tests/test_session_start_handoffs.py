@@ -886,12 +886,13 @@ class ListTests(RepoTestCase):
 
     def test_created_formats_compare(self) -> None:
         self.put("naive.md", created="2026-10-18T10:00:00")
-        self.put("zulu.md", created="2026-10-18T03:30:00Z")
+        self.put("zulu.md", created="2026-10-18T03:00:00Z")
         self.put("offset.md", created="2026-10-18T11:00:00+08:00")
-        # Newest first. The zone-less value is local time, so its place depends on the TZ the CLI runs under.
+        # Newest first. zulu and offset are the same instant, so the path breaks that tie. The zone-less value is
+        # local time, so its place depends on the TZ the CLI runs under.
         expected = {
-            "Asia/Taipei": ["zulu.md", "offset.md", "naive.md"],  # 03:30Z, 03:00Z, 02:00Z
-            "America/Los_Angeles": ["naive.md", "zulu.md", "offset.md"],  # 17:00Z, 03:30Z, 03:00Z
+            "Asia/Taipei": ["offset.md", "zulu.md", "naive.md"],  # 03:00Z, 03:00Z, 02:00Z
+            "America/Los_Angeles": ["naive.md", "offset.md", "zulu.md"],  # 17:00Z, 03:00Z, 03:00Z
         }
         for zone, names in expected.items():
             with self.subTest(zone):
