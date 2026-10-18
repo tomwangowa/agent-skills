@@ -4,6 +4,7 @@
 Every subcommand prints one JSON object on stdout. A handoff file is untrusted data: nothing in it is executed or
 evaluated except the four whitelisted assertion kinds, and those only run read-only git commands or a stat.
 `mark-resumed` is the only subcommand that writes: it rewrites the status lines of one handoff and nothing else.
+`delegate` reads no handoff at all: it only locates a repo-local copy of this skill.
 """
 
 from __future__ import annotations
@@ -716,6 +717,82 @@ def command_mark_resumed(args: argparse.Namespace) -> int:
     return 0
 
 
+# The skill that is running right now. Resolved so a symlinked ~/.claude/skills still names the real file.
+SELF_SKILL: Path = Path(__file__).resolve().parent.parent / "SKILL.md"
+
+# Which tool directory is searched first, per runtime.
+_DELEGATE_ORDER = {"claude": (".claude", ".codex"), "codex": (".codex", ".claude")}
+
+
+def user_level_roots(home: Path) -> list[Path]:
+    """Directories whose skills belong to the user (or an installed plugin), never to the repository at hand."""
+    return [
+        home / ".claude" / "skills",
+        home / ".codex" / "skills",
+        home / ".omp" / "agent" / "skills",
+        home / ".claude" / "plugins",
+        home / ".codex" / "plugins",
+    ]
+
+
+def _is_under_any(path: Path, roots: list[Path]) -> bool:
+    return any(path.is_relative_to(root) for root in roots)
+
+
+def command_delegate(args: argparse.Namespace) -> int:
+    cwd = Path(args.cwd) if args.cwd else Path.cwd()
+    toplevel = git(["rev-parse", "--show-toplevel"], cwd)
+    found_root = toplevel is not None and toplevel.returncode == 0 and toplevel.stdout.strip()
+    root = Path(os.path.realpath(toplevel.stdout.rstrip("\n") if found_root else cwd))
+
+    # Both spellings of every root: ~/.claude/skills is usually a symlink to another checkout, and a temp HOME may
+    # itself sit behind one (/var vs /private/var), so neither form alone matches every candidate.
+    home_roots = user_level_roots(Path.home())
+    user_roots = [*home_roots, *(Path(os.path.realpath(path)) for path in home_roots)]
+    own = SELF_SKILL.resolve()
+
+    candidates: list[Path] = []
+    contents: list[bytes] = []
+    excluded: list[dict[str, str]] = []
+    seen: set[Path] = set()
+    for tool in _DELEGATE_ORDER[args.runtime]:
+        candidate = root / tool / "skills" / "session-start" / "SKILL.md"
+        try:
+            # os.stat follows symlinks like is_file() does, but Python versions disagree on whether is_file() raises
+            # for EACCES; a copy that cannot be read must be reported, not mistaken for an absent one.
+            if not stat.S_ISREG(os.stat(candidate).st_mode):
+                continue
+            data = candidate.read_bytes()
+        except (FileNotFoundError, NotADirectoryError):
+            continue
+        except OSError:
+            excluded.append({"path": str(candidate), "reason": "unreadable"})
+            continue
+
+        real = Path(os.path.realpath(candidate))
+        # Delegating to the running skill would loop; the user-level copy shadows repo-local ones by design.
+        if real == own:
+            excluded.append({"path": str(candidate), "reason": "self"})
+        elif _is_under_any(candidate, user_roots) or _is_under_any(real, user_roots):
+            excluded.append({"path": str(candidate), "reason": "user_level"})
+        elif real not in seen:
+            seen.add(real)
+            candidates.append(candidate)
+            contents.append(data)
+
+    emit(
+        {
+            "root": str(root),
+            "delegate": str(candidates[0]) if candidates else None,
+            "candidates": [str(path) for path in candidates],
+            # Two spellings of one file were already merged above, so a second entry is a separate copy.
+            "drift": len(contents) == 2 and contents[0] != contents[1],
+            "excluded": excluded,
+        }
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="handoffs.py", description="Handoff read-back helper for session-start.")
     subcommands = parser.add_subparsers(dest="command", required=True)
@@ -736,6 +813,11 @@ def build_parser() -> argparse.ArgumentParser:
     resume.add_argument("--expect-sha256", required=True, help="The sha256 from `check`; refuse if the file changed.")
     resume.add_argument("--now", help="ISO 8601 timestamp to use as the current time; for tests.")
     resume.set_defaults(handler=command_mark_resumed)
+
+    delegation = subcommands.add_parser("delegate", help="Find the repo-local session-start, if there is one.")
+    delegation.add_argument("--runtime", required=True, choices=sorted(_DELEGATE_ORDER), help="Search this tool first.")
+    delegation.add_argument("--cwd", help="Directory to start from (default: current directory).")
+    delegation.set_defaults(handler=command_delegate)
     return parser
 
 

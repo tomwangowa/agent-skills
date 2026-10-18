@@ -1,5 +1,5 @@
-"""Tests for session-start/scripts/handoffs.py: frontmatter parsing, assertions, and the check, list and mark-resumed
-subcommands."""
+"""Tests for session-start/scripts/handoffs.py: frontmatter parsing, assertions, and the check, list, mark-resumed
+and delegate subcommands."""
 
 from __future__ import annotations
 
@@ -1189,6 +1189,254 @@ class MarkResumedTests(RepoTestCase):
         self.addCleanup(path.chmod, 0o644)
         code, out = self.mark(path, sha="0" * 64)
         self.assertEqual((code, out["error"]), (2, "unreadable"))
+
+
+class DelegateTests(RepoTestCase):
+    """`delegate` runs a copy of the script from install/, so "self" never coincides with a candidate unless a test
+    wants it to."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.home = self.tmp / "home"
+        self.home.mkdir()
+        self.install = self.tmp / "install" / "session-start"
+        (self.install / "scripts").mkdir(parents=True)
+        (self.install / "SKILL.md").write_text("generic\n", encoding="utf-8")
+        self.script = self.install / "scripts" / "handoffs.py"
+        shutil.copy2(SCRIPT, self.script)
+
+    @staticmethod
+    def skill(skills_dir: Path, text: str = "local\n") -> Path:
+        path = skills_dir / "session-start" / "SKILL.md"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def delegate(self, runtime: str, *args: str, cwd: Path | None = None, script: Path | None = None,
+                 env: dict | None = None) -> dict:
+        code, out = run_cli(
+            script or self.script, "delegate", "--runtime", runtime, *args,
+            cwd=cwd or self.repo, env={"HOME": str(self.home), **(env or {})},
+        )
+        self.assertEqual(code, 0)
+        return out
+
+    def test_user_level_roots(self) -> None:
+        home = Path("/h")
+        self.assertEqual(
+            handoffs.user_level_roots(home),
+            [home / ".claude" / "skills", home / ".codex" / "skills", home / ".omp" / "agent" / "skills",
+             home / ".claude" / "plugins", home / ".codex" / "plugins"],
+        )
+
+    def test_self_skill_sits_next_to_scripts_dir(self) -> None:
+        self.assertEqual(handoffs.SELF_SKILL, SCRIPT.resolve().parent.parent / "SKILL.md")
+
+    def test_no_candidate_returns_null(self) -> None:
+        out = self.delegate("claude")
+        self.assertEqual(set(out), {"root", "delegate", "candidates", "drift", "excluded"})
+        self.assertIsNone(out["delegate"])
+        self.assertEqual(out["candidates"], [])
+        self.assertIs(out["drift"], False)
+        self.assertEqual(out["excluded"], [])
+
+    def test_claude_runtime_prefers_dot_claude_and_reports_drift(self) -> None:
+        self.skill(self.repo / ".claude" / "skills", "claude copy\n")
+        self.skill(self.repo / ".codex" / "skills", "codex copy\n")
+        out = self.delegate("claude")
+        self.assertTrue(out["delegate"].endswith("/.claude/skills/session-start/SKILL.md"), out["delegate"])
+        self.assertEqual(len(out["candidates"]), 2)
+        self.assertEqual(out["delegate"], out["candidates"][0])
+        self.assertTrue(out["candidates"][1].endswith("/.codex/skills/session-start/SKILL.md"), out["candidates"])
+        self.assertIs(out["drift"], True)
+        self.assertEqual(out["excluded"], [])
+
+    def test_codex_runtime_prefers_dot_codex(self) -> None:
+        self.skill(self.repo / ".claude" / "skills", "claude copy\n")
+        self.skill(self.repo / ".codex" / "skills", "codex copy\n")
+        out = self.delegate("codex")
+        self.assertTrue(out["delegate"].endswith("/.codex/skills/session-start/SKILL.md"), out["delegate"])
+        self.assertTrue(out["candidates"][1].endswith("/.claude/skills/session-start/SKILL.md"), out["candidates"])
+        self.assertIs(out["drift"], True)
+
+    def test_only_one_runtime_dir_present(self) -> None:
+        self.skill(self.repo / ".codex" / "skills")
+        for runtime in ("claude", "codex"):
+            with self.subTest(runtime=runtime):
+                out = self.delegate(runtime)
+                self.assertTrue(out["delegate"].endswith("/.codex/skills/session-start/SKILL.md"), out["delegate"])
+                self.assertEqual(len(out["candidates"]), 1)
+                self.assertIs(out["drift"], False)
+
+    def test_symlinked_codex_dir_dedupes(self) -> None:
+        self.skill(self.repo / ".claude" / "skills")
+        (self.repo / ".codex").mkdir()
+        (self.repo / ".codex" / "skills").symlink_to(Path("..") / ".claude" / "skills")
+        for runtime, first in (("claude", ".claude"), ("codex", ".codex")):
+            with self.subTest(runtime=runtime):
+                out = self.delegate(runtime)
+                self.assertEqual(len(out["candidates"]), 1)
+                # The first candidate in runtime order is the one kept, under the spelling it was found by.
+                self.assertTrue(out["delegate"].endswith(f"/{first}/skills/session-start/SKILL.md"), out["delegate"])
+                self.assertIs(out["drift"], False)
+
+    def test_identical_distinct_files_no_drift(self) -> None:
+        self.skill(self.repo / ".claude" / "skills", "same\n")
+        self.skill(self.repo / ".codex" / "skills", "same\n")
+        out = self.delegate("claude")
+        self.assertEqual(len(out["candidates"]), 2)
+        self.assertIs(out["drift"], False)
+
+    def test_self_is_excluded(self) -> None:
+        own = self.repo / ".claude" / "skills" / "session-start"
+        (own / "scripts").mkdir(parents=True)
+        shutil.copy2(SCRIPT, own / "scripts" / "handoffs.py")
+        self.skill(self.repo / ".claude" / "skills", "this is the running skill\n")
+        out = self.delegate("claude", script=own / "scripts" / "handoffs.py")
+        self.assertIsNone(out["delegate"])
+        self.assertEqual(out["candidates"], [])
+        self.assertEqual([entry["reason"] for entry in out["excluded"]], ["self"])
+        self.assertTrue(out["excluded"][0]["path"].endswith("/.claude/skills/session-start/SKILL.md"))
+
+    def test_self_excluded_but_the_other_copy_still_delegates(self) -> None:
+        own = self.repo / ".claude" / "skills" / "session-start"
+        (own / "scripts").mkdir(parents=True)
+        shutil.copy2(SCRIPT, own / "scripts" / "handoffs.py")
+        self.skill(self.repo / ".claude" / "skills")
+        self.skill(self.repo / ".codex" / "skills")
+        out = self.delegate("claude", script=own / "scripts" / "handoffs.py")
+        self.assertTrue(out["delegate"].endswith("/.codex/skills/session-start/SKILL.md"), out["delegate"])
+        self.assertEqual(len(out["candidates"]), 1)
+        self.assertIs(out["drift"], False)
+        self.assertEqual([entry["reason"] for entry in out["excluded"]], ["self"])
+
+    def test_production_layout_is_self(self) -> None:
+        # ~/.claude/skills points at a separate checkout, and the skill runs through that symlink.
+        prod = self.tmp / "prod"
+        self.skill(prod, "user-level\n")
+        (prod / "session-start" / "scripts").mkdir()
+        shutil.copy2(SCRIPT, prod / "session-start" / "scripts" / "handoffs.py")
+        (self.home / ".claude").mkdir()
+        (self.home / ".claude" / "skills").symlink_to(prod)
+        script = self.home / ".claude" / "skills" / "session-start" / "scripts" / "handoffs.py"
+        out = self.delegate("claude", cwd=self.home, script=script)
+        self.assertIsNone(out["delegate"])
+        self.assertEqual([entry["reason"] for entry in out["excluded"]], ["self"])
+
+    def test_user_level_excluded_in_non_git_home(self) -> None:
+        prod = self.tmp / "prod"
+        self.skill(prod)
+        (self.home / ".claude").mkdir()
+        (self.home / ".claude" / "skills").symlink_to(prod)
+        # --cwd arrives as the literal spelling, unlike a process cwd, which the OS reports already resolved.
+        out = self.delegate("claude", "--cwd", str(self.home), cwd=self.tmp)
+        self.assertIsNone(out["delegate"])
+        self.assertEqual(out["candidates"], [])
+        self.assertEqual([entry["reason"] for entry in out["excluded"]], ["user_level"])
+        self.assertEqual(Path(out["root"]), self.home.resolve())
+
+    def test_user_level_skill_that_is_a_symlink_elsewhere_is_excluded(self) -> None:
+        # The target's realpath is under no user-level root, so only the candidate's own spelling can match.
+        target = self.tmp / "elsewhere" / "SKILL.md"
+        target.parent.mkdir()
+        target.write_text("user-level\n", encoding="utf-8")
+        link = self.home / ".claude" / "skills" / "session-start" / "SKILL.md"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(target)
+        out = self.delegate("claude", cwd=self.home)
+        self.assertIsNone(out["delegate"])
+        self.assertEqual([entry["reason"] for entry in out["excluded"]], ["user_level"])
+
+    def test_repo_skills_dir_linked_into_user_level_is_excluded(self) -> None:
+        self.skill(self.home / ".claude" / "skills", "user-level\n")
+        (self.repo / ".claude").mkdir()
+        (self.repo / ".claude" / "skills").symlink_to(self.home / ".claude" / "skills")
+        self.skill(self.repo / ".codex" / "skills", "repo-local\n")
+        out = self.delegate("claude")
+        self.assertTrue(out["delegate"].endswith("/.codex/skills/session-start/SKILL.md"), out["delegate"])
+        self.assertEqual(len(out["candidates"]), 1)
+        self.assertIs(out["drift"], False)
+        self.assertEqual([entry["reason"] for entry in out["excluded"]], ["user_level"])
+
+    def test_plugin_roots_are_user_level(self) -> None:
+        (self.repo / ".claude").mkdir()
+        link = self.repo / ".claude" / "skills"
+        for tool in (".claude", ".codex"):
+            with self.subTest(tool=tool):
+                cache = self.home / tool / "plugins" / "cache" / "x"
+                self.skill(cache, "plugin copy\n")
+                link.unlink(missing_ok=True)
+                link.symlink_to(cache)
+                out = self.delegate("claude")
+                self.assertIsNone(out["delegate"])
+                self.assertEqual([entry["reason"] for entry in out["excluded"]], ["user_level"])
+
+    def test_non_git_uses_cwd_root(self) -> None:
+        plain = self.tmp / "plain"
+        self.skill(plain / ".claude" / "skills")
+        out = self.delegate("claude", cwd=plain)
+        self.assertEqual(Path(out["root"]), plain.resolve())
+        self.assertEqual(Path(out["delegate"]), plain.resolve() / ".claude" / "skills" / "session-start" / "SKILL.md")
+
+    def test_git_root_is_used_from_a_subdirectory(self) -> None:
+        self.skill(self.repo / ".claude" / "skills")
+        sub = self.repo / "pkg" / "deep"
+        sub.mkdir(parents=True)
+        out = self.delegate("claude", cwd=sub)
+        self.assertEqual(Path(out["root"]), self.repo.resolve())
+        self.assertIsNotNone(out["delegate"])
+
+    def test_cwd_option_overrides_process_cwd(self) -> None:
+        self.skill(self.repo / ".claude" / "skills")
+        out = self.delegate("claude", "--cwd", str(self.repo), cwd=self.tmp)
+        self.assertEqual(Path(out["root"]), self.repo.resolve())
+        self.assertIsNotNone(out["delegate"])
+
+    def test_git_unavailable_falls_back_to_cwd(self) -> None:
+        self.skill(self.repo / ".claude" / "skills")
+        sub = self.repo / "pkg"
+        self.skill(sub / ".claude" / "skills", "nested\n")
+        empty_bin = self.tmp / "empty-bin"
+        empty_bin.mkdir()
+        self.assertIsNone(shutil.which("git", path=str(empty_bin)))
+        self.assertEqual(Path(self.delegate("claude", cwd=sub)["root"]), self.repo.resolve())
+        # run_cli launches the absolute sys.executable, so an empty PATH removes git and nothing else.
+        out = self.delegate("claude", cwd=sub, env={"PATH": str(empty_bin)})
+        self.assertEqual(Path(out["root"]), sub.resolve())
+        self.assertTrue(Path(out["delegate"]).is_relative_to(sub.resolve()), out["delegate"])
+
+    def test_non_regular_or_dangling_candidates_are_ignored(self) -> None:
+        (self.repo / ".claude" / "skills" / "session-start" / "SKILL.md").mkdir(parents=True)
+        dangling = self.repo / ".codex" / "skills" / "session-start" / "SKILL.md"
+        dangling.parent.mkdir(parents=True)
+        dangling.symlink_to(self.tmp / "missing.md")
+        out = self.delegate("claude")
+        self.assertIsNone(out["delegate"])
+        self.assertEqual((out["candidates"], out["excluded"]), ([], []))
+
+    @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0, "root ignores file permissions")
+    def test_unreadable_candidate_is_reported_not_hidden(self) -> None:
+        # Dropping it silently would hide the repo's own rules, so it has to show up in `excluded`.
+        path = self.skill(self.repo / ".claude" / "skills")
+        path.chmod(0)
+        self.addCleanup(path.chmod, 0o644)
+        self.skill(self.repo / ".codex" / "skills")
+        out = self.delegate("claude")
+        self.assertTrue(out["delegate"].endswith("/.codex/skills/session-start/SKILL.md"), out["delegate"])
+        self.assertEqual([entry["reason"] for entry in out["excluded"]], ["unreadable"])
+        self.assertIs(out["drift"], False)
+
+    def test_runtime_is_required_and_validated(self) -> None:
+        for args in ([], ["--runtime", "gemini"]):
+            with self.subTest(args=args):
+                result = subprocess.run(
+                    [sys.executable, str(self.script), "delegate", *args],
+                    cwd=str(self.repo), env=isolated_env({"HOME": str(self.home)}),
+                    capture_output=True, text=True, timeout=30,
+                )
+                self.assertEqual(result.returncode, 2)
+                self.assertEqual(result.stdout, "")
+                self.assertIn("--runtime", result.stderr)
 
 
 if __name__ == "__main__":
