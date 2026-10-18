@@ -3,6 +3,11 @@
 Supported surfaces: Claude Code CLI and Codex CLI. On 2026-10-15 the seven
 packages passed bounded native acceptance on macOS with Claude Code CLI 2.1.300
 and Codex CLI 0.162.1 using a unique local marketplace and disposable fixtures.
+session-preferences and work-journal changed after that run (d738ec4 changed
+runtime migration path matching; a later change removed npm's hidden lockfile
+from the work-journal server bundle). Their recorded bindings are stale, so
+`check_plugin_release.py --require-acceptance` fails until native acceptance is
+re-run for these two packages before release.
 A 2026-10-17 follow-up verified GitHub marketplace installation and no-op
 updates with Claude Code CLI 2.1.302; a positive version transition used a
 temporary local Git remote. Codex CLI remote Git marketplace installation and
