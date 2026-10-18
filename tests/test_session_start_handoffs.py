@@ -1,13 +1,18 @@
-"""Tests for session-start/scripts/handoffs.py: frontmatter parsing, assertions, and the check and list subcommands."""
+"""Tests for session-start/scripts/handoffs.py: frontmatter parsing, assertions, and the check, list and mark-resumed
+subcommands."""
 
 from __future__ import annotations
 
+import contextlib
+import errno
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -925,6 +930,265 @@ class ListTests(RepoTestCase):
     def test_invalid_now_exits_2(self) -> None:
         code, out = run_cli(SCRIPT, "list", "--now", "tomorrow", cwd=self.repo)
         self.assertEqual((code, out), (2, {"error": "invalid_now"}))
+
+
+class MarkResumedTests(RepoTestCase):
+    NOW = "2026-10-18T12:00:00+08:00"
+
+    def sha(self, path: Path) -> str:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+
+    def mark(self, path: Path, sha: str | None = None, now: str | None = NOW) -> tuple[int, dict]:
+        args = ["mark-resumed", str(path), "--expect-sha256", self.sha(path) if sha is None else sha]
+        if now is not None:
+            args += ["--now", now]
+        return run_cli(SCRIPT, *args, cwd=self.repo)
+
+    def mark_in_process(self, path: Path) -> tuple[int, dict]:
+        """For tests that patch the module; a CLI subprocess would not see the patch."""
+        buffer = io.StringIO()
+        argv = ["mark-resumed", str(path), "--expect-sha256", self.sha(path), "--now", self.NOW]
+        with contextlib.redirect_stdout(buffer):
+            code = handoffs.main(argv)
+        return code, json.loads(buffer.getvalue())
+
+    def snapshot(self, path: Path) -> tuple:
+        """Everything a refused run must leave alone: bytes, mode, mtime and the directory listing (no temp file)."""
+        info = path.stat()
+        return path.read_bytes(), stat.S_IMODE(info.st_mode), info.st_mtime_ns, sorted(os.listdir(path.parent))
+
+    def assert_refused(self, path: Path, error: str, *, sha: str | None = None) -> None:
+        before = self.snapshot(path)
+        self.assertEqual(self.mark(path, sha=sha), (3, {"error": error}))
+        self.assertEqual(self.snapshot(path), before)
+
+    def test_marks_status_and_adds_resumed_at(self) -> None:
+        path = write_handoff(self.handoff_dir, "a.md", frontmatter="status: in-progress\ntask: keep me")
+        _, checked = run_cli(SCRIPT, "check", str(path), cwd=self.repo)
+        # The hash comes from `check`, not from this test, so both commands are shown to hash the same bytes.
+        code, out = run_cli(
+            SCRIPT, "mark-resumed", str(path), "--expect-sha256", checked["sha256"], "--now", self.NOW, cwd=self.repo
+        )
+        self.assertEqual((code, out), (0, {"path": str(path), "status": "resumed", "resumed_at": self.NOW}))
+        _, after = run_cli(SCRIPT, "check", str(path), cwd=self.repo)
+        self.assertEqual(after["fields"], {"status": "resumed", "task": "keep me", "resumed_at": self.NOW})
+        self.assertIs(after["already_resumed"], True)
+
+    def test_whole_file_rewrite_keeps_everything_else(self) -> None:
+        # The template's status line carries a trailing comment and its assertions follow it.
+        old_line = "status: in-progress   # a | b\n"
+        new_lines = f"status: resumed\nresumed_at: {self.NOW}\n"
+        for crlf, bom in ((False, False), (True, True), (True, False)):
+            with self.subTest(crlf=crlf, bom=bom):
+                path = self.tmp / f"template-{int(crlf)}{int(bom)}.md"
+                path.write_bytes(template_bytes(crlf=crlf, bom=bom))
+                expected = f"---\n{TEMPLATE_FRONTMATTER}---\n\n{TEMPLATE_BODY}"
+                self.assertIn(old_line, expected)
+                expected = expected.replace(old_line, new_lines)
+                if crlf:
+                    expected = expected.replace("\n", "\r\n")
+                expected_bytes = (handoffs.BOM if bom else b"") + expected.encode("utf-8")
+                self.assertEqual(self.mark(path)[0], 0)
+                self.assertEqual(path.read_bytes(), expected_bytes)
+
+    def test_body_bytes_unchanged(self) -> None:
+        body = "## 任務\r\n中文  \n\n---\nstatus: nope\r\n最後沒換行".encode("utf-8")
+        raw = b"---\nstatus: blocked\ntask: t\n---\n" + body
+        path = self.tmp / "body.md"
+        path.write_bytes(raw)
+        before = handoffs.parse_handoff(raw)
+        self.assertEqual(self.mark(path)[0], 0)
+        updated = path.read_bytes()
+        after = handoffs.parse_handoff(updated)
+        self.assertEqual(updated[after.body_offset:], raw[before.body_offset:])
+        self.assertTrue(updated.endswith(body))
+
+    def test_hash_mismatch_refuses_and_leaves_file(self) -> None:
+        path = write_handoff(self.handoff_dir, "a.md", frontmatter="status: in-progress")
+        stale = self.sha(path)
+        self.assert_refused(path, "hash_mismatch", sha="0" * 64)
+        # The realistic case: another session edits the file between `check` and `mark-resumed`.
+        path.write_text(path.read_text(encoding="utf-8") + "late edit\n", encoding="utf-8")
+        self.assert_refused(path, "hash_mismatch", sha=stale)
+
+    def test_already_resumed_refuses(self) -> None:
+        for number, line in enumerate(("status: resumed", "status: 'resumed'   # done")):
+            with self.subTest(line=line):
+                path = write_handoff(self.handoff_dir, f"r{number}.md", frontmatter=line)
+                self.assert_refused(path, "already_resumed")
+
+    def test_malformed_refuses(self) -> None:
+        shapes = {"nested": "status: in-progress\nmeta:\n  nested: 1", "duplicate": "status: a\nstatus: b"}
+        for name, frontmatter in shapes.items():
+            with self.subTest(shape=name):
+                self.assert_refused(write_handoff(self.handoff_dir, f"{name}.md", frontmatter=frontmatter), "malformed")
+
+    def test_not_handoff_refuses(self) -> None:
+        plain = self.tmp / "note.md"
+        plain.write_text("# not a handoff\n", encoding="utf-8")
+        self.assert_refused(plain, "not_handoff")
+        no_status = write_handoff(self.handoff_dir, "nostatus.md", frontmatter="task: x")
+        self.assert_refused(no_status, "not_handoff")
+
+    def test_directory_is_refused_without_being_read(self) -> None:
+        # A FIFO named *.md would block a read, so anything that is not a regular file is refused up front.
+        directory = self.handoff_dir / "dir.md"
+        directory.mkdir(parents=True)
+        self.assertEqual(self.mark(directory, sha="0" * 64), (3, {"error": "not_handoff"}))
+
+    def test_symlink_refuses(self) -> None:
+        real = write_handoff(self.tmp, "real.md", frontmatter="status: in-progress")
+        self.handoff_dir.mkdir(parents=True, exist_ok=True)
+        link = self.handoff_dir / "link.md"
+        link.symlink_to(real)
+        dangling = self.handoff_dir / "dangling.md"
+        dangling.symlink_to(self.tmp / "missing.md")
+        before = real.read_bytes()
+        for candidate in (link, dangling):
+            with self.subTest(link=candidate.name):
+                self.assertEqual(self.mark(candidate, sha=self.sha(real)), (3, {"error": "symlink"}))
+                self.assertTrue(candidate.is_symlink())
+        self.assertEqual(os.readlink(link), str(real))
+        self.assertEqual(real.read_bytes(), before)
+
+    def test_missing_file_exits_2(self) -> None:
+        self.assertEqual(self.mark(self.tmp / "nope.md", sha="0" * 64), (2, {"error": "not_found"}))
+        not_a_directory = self.tmp / "file.md"
+        not_a_directory.write_text("x", encoding="utf-8")
+        self.assertEqual(self.mark(not_a_directory / "child.md", sha="0" * 64), (2, {"error": "not_found"}))
+
+    def test_refusal_order_is_symlink_then_hash_then_kind_then_status(self) -> None:
+        wrong = "0" * 64
+        real = write_handoff(self.tmp, "real.md", frontmatter="status: in-progress")
+        self.handoff_dir.mkdir(parents=True, exist_ok=True)
+        link = self.handoff_dir / "link.md"
+        link.symlink_to(real)
+        # Malformed AND already resumed: the file's shape is judged before its status.
+        broken = write_handoff(self.handoff_dir, "broken.md", frontmatter="status: resumed\nmeta:\n  nested: 1")
+        plain = self.tmp / "note.md"
+        plain.write_text("# not a handoff\n", encoding="utf-8")
+        cases = (
+            (link, wrong, "symlink"),
+            (broken, wrong, "hash_mismatch"),
+            (broken, None, "malformed"),
+            (plain, wrong, "hash_mismatch"),
+            (plain, None, "not_handoff"),
+        )
+        for path, sha, error in cases:
+            with self.subTest(path=path.name, wrong_hash=sha is not None, error=error):
+                self.assertEqual(self.mark(path, sha=sha)[1], {"error": error})
+
+    def test_permissions_preserved(self) -> None:
+        # mkstemp creates 0o600 anyway, so the other modes are what prove the original mode is copied back.
+        for mode in (0o600, 0o644, 0o444, 0o755):
+            with self.subTest(mode=oct(mode)):
+                path = write_handoff(self.handoff_dir, f"m{mode:o}.md", frontmatter="status: in-progress")
+                path.chmod(mode)
+                self.assertEqual(self.mark(path)[0], 0)
+                self.assertEqual(stat.S_IMODE(path.stat().st_mode), mode)
+                self.assertEqual(handoffs.parse_handoff(path.read_bytes()).fields["status"], "resumed")
+
+    def test_existing_resumed_at_replaced_in_place_not_duplicated(self) -> None:
+        old = "resumed_at: 2026-01-01T00:00:00+00:00"
+        new = f"resumed_at: {self.NOW}"
+        layouts = {
+            # name: (frontmatter before, frontmatter after)
+            "after_status": (f"status: in-progress\ntask: x\n{old}", f"status: resumed\ntask: x\n{new}"),
+            "before_status": (f"{old}\ntask: x\nstatus: in-progress", f"{new}\ntask: x\nstatus: resumed"),
+            "next_to_status": (f"status: in-progress\n{old}\ntask: x", f"status: resumed\n{new}\ntask: x"),
+        }
+        for name, (before, after) in layouts.items():
+            with self.subTest(layout=name):
+                path = write_handoff(self.handoff_dir, f"{name}.md", frontmatter=before)
+                self.assertEqual(self.mark(path)[0], 0)
+                self.assertEqual(path.read_text(encoding="utf-8"), f"---\n{after}\n---\n\n## 任務\nx\n")
+                self.assertEqual(path.read_text(encoding="utf-8").count("resumed_at:"), 1)
+
+    def test_blank_or_commented_status_is_marked(self) -> None:
+        for number, line in enumerate(("status:", "status:   # todo", 'status: "in-progress"')):
+            with self.subTest(line=line):
+                path = write_handoff(self.handoff_dir, f"s{number}.md", frontmatter=f"{line}\ntask: x")
+                self.assertEqual(self.mark(path)[0], 0)
+                expected = f"---\nstatus: resumed\nresumed_at: {self.NOW}\ntask: x\n---\n\n## 任務\nx\n"
+                self.assertEqual(path.read_text(encoding="utf-8"), expected)
+
+    def test_invalid_now_exits_2_and_leaves_file(self) -> None:
+        path = write_handoff(self.handoff_dir, "a.md", frontmatter="status: in-progress")
+        before = self.snapshot(path)
+        self.assertEqual(self.mark(path, now="tomorrow"), (2, {"error": "invalid_now"}))
+        self.assertEqual(self.snapshot(path), before)
+
+    def test_now_formats(self) -> None:
+        cases = {
+            "2026-10-18T12:00:00Z": "2026-10-18T12:00:00+00:00",
+            "2026-10-18T12:00:00.987654+08:00": "2026-10-18T12:00:00+08:00",
+        }
+        for number, (given, expected) in enumerate(cases.items()):
+            with self.subTest(now=given):
+                path = write_handoff(self.handoff_dir, f"n{number}.md", frontmatter="status: in-progress")
+                self.assertEqual(self.mark(path, now=given)[1]["resumed_at"], expected)
+        # A zone-less value is the caller's local time, so an offset is attached without moving the clock.
+        path = write_handoff(self.handoff_dir, "naive.md", frontmatter="status: in-progress")
+        stamp = self.mark(path, now="2026-10-18T12:00:00")[1]["resumed_at"]
+        self.assertRegex(stamp, r"^2026-10-18T12:00:00[+-]\d\d:\d\d$")
+
+    def test_default_now_is_local_time_with_offset(self) -> None:
+        path = write_handoff(self.handoff_dir, "a.md", frontmatter="status: in-progress")
+        stamp = datetime.fromisoformat(self.mark(path, now=None)[1]["resumed_at"])
+        self.assertIsNotNone(stamp.tzinfo)
+        self.assertLess(abs(datetime.now(timezone.utc) - stamp), timedelta(minutes=1))
+
+    def test_second_mark_is_refused_and_list_drops_it(self) -> None:
+        path = write_handoff(self.handoff_dir, "a.md", frontmatter="status: in-progress")
+        self.assertEqual(self.mark(path)[0], 0)
+        self.assertEqual(self.mark(path), (3, {"error": "already_resumed"}))
+        code, listed = run_cli(SCRIPT, "list", "--all", cwd=self.repo)
+        self.assertEqual((code, listed["items"]), (0, []))
+
+    def test_rewrite_that_does_not_round_trip_is_refused_without_writing(self) -> None:
+        path = write_handoff(self.handoff_dir, "a.md", frontmatter="status: in-progress\ntask: x")
+        before = self.snapshot(path)
+        real_parse = handoffs.parse_handoff
+        calls: list[bytes] = []
+
+        def drifting(raw: bytes):
+            calls.append(raw)
+            parsed = real_parse(raw)
+            if len(calls) == 2:  # the re-parse of the rewritten bytes
+                parsed.fields["task"] = "changed by the rewrite"
+            return parsed
+
+        with mock.patch.object(handoffs, "parse_handoff", side_effect=drifting):
+            result = self.mark_in_process(path)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(result, (3, {"error": "malformed"}))
+        self.assertEqual(self.snapshot(path), before)
+
+    def test_failed_replace_cleans_up_and_leaves_file(self) -> None:
+        path = write_handoff(self.handoff_dir, "a.md", frontmatter="status: in-progress")
+        before = self.snapshot(path)
+        with mock.patch.object(handoffs.os, "replace", side_effect=OSError(errno.EXDEV, "boom")):
+            code, out = self.mark_in_process(path)
+        self.assertEqual((code, out["error"]), (2, "unwritable"))
+        self.assertEqual(self.snapshot(path), before)
+
+    @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0, "root ignores directory permissions")
+    def test_read_only_directory_is_unwritable(self) -> None:
+        path = write_handoff(self.handoff_dir, "a.md", frontmatter="status: in-progress")
+        before = self.snapshot(path)
+        self.handoff_dir.chmod(0o555)
+        self.addCleanup(self.handoff_dir.chmod, 0o755)
+        code, out = self.mark(path)
+        self.assertEqual((code, out["error"]), (2, "unwritable"))
+        self.assertEqual(self.snapshot(path), before)
+
+    @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0, "root ignores file permissions")
+    def test_unreadable_file_exits_2(self) -> None:
+        path = write_handoff(self.handoff_dir, "a.md", frontmatter="status: in-progress")
+        path.chmod(0)
+        self.addCleanup(path.chmod, 0o644)
+        code, out = self.mark(path, sha="0" * 64)
+        self.assertEqual((code, out["error"]), (2, "unreadable"))
 
 
 if __name__ == "__main__":

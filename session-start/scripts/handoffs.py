@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Read-back helper for the session-start skill: list, parse and verify handoff files.
+"""Read-back helper for the session-start skill: list, parse, verify and mark handoff files.
 
 Every subcommand prints one JSON object on stdout. A handoff file is untrusted data: nothing in it is executed or
 evaluated except the four whitelisted assertion kinds, and those only run read-only git commands or a stat.
+`mark-resumed` is the only subcommand that writes: it rewrites the status lines of one handoff and nothing else.
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ import re
 import stat
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
@@ -487,6 +489,11 @@ def _parse_timestamp(value: str | None) -> datetime | None:
         return None
 
 
+def _resolve_now(value: str | None) -> datetime | None:
+    """The `--now` override, else the current local time with its offset; None when the override cannot be read."""
+    return datetime.now().astimezone() if value is None else _parse_timestamp(value)
+
+
 def parse_created(value: str | None, fallback_mtime: float) -> datetime:
     """Aware datetime for a handoff's `created`; the file's mtime stands in when it is missing or unreadable."""
     parsed = _parse_timestamp(value)
@@ -549,7 +556,7 @@ def _scan_handoffs(location: Location) -> tuple[list[tuple[datetime, dict]], lis
 
 def command_list(args: argparse.Namespace) -> int:
     cwd = Path(args.cwd) if args.cwd else Path.cwd()
-    now = datetime.now().astimezone() if args.now is None else _parse_timestamp(args.now)
+    now = _resolve_now(args.now)
     if now is None:
         emit({"error": "invalid_now"})
         return 2
@@ -585,6 +592,130 @@ def command_list(args: argparse.Namespace) -> int:
     return 0
 
 
+def _line_ending(line: bytes) -> bytes:
+    return b"\r\n" if line.endswith(b"\r\n") else b"\n"
+
+
+def _frontmatter_spans(raw: bytes, keys: tuple[str, ...]) -> dict[str, tuple[int, int]]:
+    """Byte span of each top-level `key:` line in the frontmatter, found with the same rules parse_handoff uses."""
+    lines = _split_lines(raw, len(BOM) if raw.startswith(BOM) else 0)
+    _, position = next(lines)  # the opening fence; parse_handoff has already vouched for it
+    spans: dict[str, tuple[int, int]] = {}
+    for text, end in lines:
+        if text.rstrip() == "---":
+            break
+        match = _TOP_LINE.fullmatch(text.rstrip())
+        if match and match.group(1) in keys:
+            spans[match.group(1)] = (position, end)
+        position = end
+    return spans
+
+
+def _rewrite_as_resumed(raw: bytes, resumed_at: str) -> bytes | None:
+    """Swap the `status` line for `resumed` and set `resumed_at`; every other byte stays, line endings included."""
+    spans = _frontmatter_spans(raw, ("status", "resumed_at"))
+    if "status" not in spans:
+        return None
+    start, end = spans["status"]
+    ending = _line_ending(raw[start:end])
+    stamp = f"resumed_at: {resumed_at}".encode("utf-8")
+    if "resumed_at" in spans:
+        # Replace the old line where it stands: a second `resumed_at` would make the key ambiguous.
+        old_start, old_end = spans["resumed_at"]
+        edits = [
+            (start, end, b"status: resumed" + ending),
+            (old_start, old_end, stamp + _line_ending(raw[old_start:old_end])),
+        ]
+    else:
+        edits = [(start, end, b"status: resumed" + ending + stamp + ending)]
+    # Back to front, so the earlier offsets are still valid after each splice.
+    for edit_start, edit_end, text in sorted(edits, reverse=True):
+        raw = raw[:edit_start] + text + raw[edit_end:]
+    return raw
+
+
+def _rewrite_is_faithful(before: ParsedHandoff, raw: bytes, updated: bytes, resumed_at: str) -> bool:
+    """True only if `updated` parses to the old handoff with just status and resumed_at changed, body bytes equal."""
+    after = parse_handoff(updated)
+    return (
+        after.kind == "ok"
+        and after.fields == {**before.fields, "status": "resumed", "resumed_at": resumed_at}
+        and after.assertions == before.assertions
+        and updated[after.body_offset:] == raw[before.body_offset:]
+    )
+
+
+def _replace_file(path: Path, data: bytes, mode: int) -> None:
+    """Swap `data` in through a temp file in the same directory, so a reader sees the old file or the new one."""
+    # A short fixed prefix keeps a long CJK handoff name under the filesystem's name limit, and the .tmp suffix keeps
+    # a leftover from a crash out of `list`, which only reads *.md.
+    descriptor, temporary = tempfile.mkstemp(dir=path.parent, prefix=".handoff-", suffix=".tmp")
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(data)
+            handle.flush()
+            os.fsync(handle.fileno())
+        # mkstemp creates 0600. Restoring the mode after the write also lets a read-only original be replaced.
+        os.chmod(temporary, mode)
+        os.replace(temporary, path)
+    except BaseException:
+        try:
+            os.unlink(temporary)
+        except OSError:
+            pass
+        raise
+
+
+def _refuse(error: str) -> int:
+    emit({"error": error})
+    return 3
+
+
+def command_mark_resumed(args: argparse.Namespace) -> int:
+    # Settle the arguments before touching the file.
+    now = _resolve_now(args.now)
+    if now is None:
+        emit({"error": "invalid_now"})
+        return 2
+
+    path = Path(args.path)
+    try:
+        # lstat before any read: a symlink must be refused as one, and opening a FIFO would block.
+        info = os.lstat(path)
+        if stat.S_ISLNK(info.st_mode):
+            return _refuse("symlink")
+        if not stat.S_ISREG(info.st_mode):
+            return _refuse("not_handoff")
+        raw = path.read_bytes()
+    except (FileNotFoundError, NotADirectoryError):
+        emit({"error": "not_found"})
+        return 2
+    except OSError as error:
+        emit({"error": "unreadable", "detail": error.strerror or str(error)})
+        return 2
+
+    if hashlib.sha256(raw).hexdigest() != args.expect_sha256:
+        return _refuse("hash_mismatch")
+    parsed = parse_handoff(raw)
+    if parsed.kind != "ok":
+        return _refuse(parsed.kind)
+    if parsed.fields["status"] == "resumed":
+        return _refuse("already_resumed")
+
+    resumed_at = now.isoformat(timespec="seconds")
+    updated = _rewrite_as_resumed(raw, resumed_at)
+    # Re-parse what is about to be written: a surprise must end in a refusal, never in a half-right user file.
+    if updated is None or not _rewrite_is_faithful(parsed, raw, updated, resumed_at):
+        return _refuse("malformed")
+    try:
+        _replace_file(path, updated, stat.S_IMODE(info.st_mode))
+    except OSError as error:
+        emit({"error": "unwritable", "detail": error.strerror or str(error)})
+        return 2
+    emit({"path": args.path, "status": "resumed", "resumed_at": resumed_at})
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="handoffs.py", description="Handoff read-back helper for session-start.")
     subcommands = parser.add_subparsers(dest="command", required=True)
@@ -599,6 +730,12 @@ def build_parser() -> argparse.ArgumentParser:
     listing.add_argument("--cwd", help="Directory to start from (default: current directory).")
     listing.add_argument("--now", help="ISO 8601 timestamp to use as the current time; for tests.")
     listing.set_defaults(handler=command_list)
+
+    resume = subcommands.add_parser("mark-resumed", help="Mark one handoff resumed; the only subcommand that writes.")
+    resume.add_argument("path", help="Path to the handoff file.")
+    resume.add_argument("--expect-sha256", required=True, help="The sha256 from `check`; refuse if the file changed.")
+    resume.add_argument("--now", help="ISO 8601 timestamp to use as the current time; for tests.")
+    resume.set_defaults(handler=command_mark_resumed)
     return parser
 
 
