@@ -176,6 +176,10 @@ class BuildTests(unittest.TestCase):
         self.assertIn('repo-workflow and skill-toolbox changed afterward', (ROOT / 'README.md').read_text())
         for path in ('README.zh.md', 'docs/plugins/README.md', 'docs/plugins/installation.md'):
             self.assertIn('`repo-workflow` 與 `skill-toolbox` 在那之後有修改', (ROOT / path).read_text(), path)
+        # Collapse line wraps so the check does not depend on how the paragraph is folded.
+        validation = ' '.join((ROOT / 'docs/validation/skill-plugins/README.md').read_text().split())
+        self.assertIn('repo-workflow (session-start added) and skill-toolbox (package index) also changed after that run',
+                      validation)
         readmes = sorted((ROOT / 'plugins').glob('*/*/README.md'))
         self.assertEqual(len(readmes), 14)
         for readme in readmes:
