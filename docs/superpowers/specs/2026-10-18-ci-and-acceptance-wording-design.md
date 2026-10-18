@@ -76,7 +76,9 @@ NOT VERIFIED：
 
 ### 4.2 `prepare_server`
 
-在 `scripts/build_plugins.py` 的 `npm ci --omit=dev` 之後，刪除 `destination / 'node_modules/.package-lock.json'`，放在刪 `.bin` 的那段旁邊，並以註解說明原因：這是 npm 專用的快取，內容隨 npm 版本變動。
+在 `scripts/build_plugins.py` 的 `npm ci --omit=dev` 之後，刪除 `destination / 'node_modules/.package-lock.json'`，放在刪 `.bin` 的那段旁邊，並以註解說明原因：這是 npm 專用的記錄，server 執行時不會載入。
+
+實作後的查證（2026-10-18，分支 review）：在 `247d1e9` 上分別用 npm 11.2.0 與 11.21.1 跑 `--check`，兩者都相符，也就是「npm 版本不同，hidden lockfile 內容就不同」沒有實證。這項改動仍然保留，當作防禦性清理：生成 bundle 的 smoke 測試證明 server 不需要這個檔，拿掉它可以讓發布內容少一個 npm 專用的檔案。
 
 `--write` 後，只有兩份 `work-journal` 的 `server/node_modules/.package-lock.json` 與 `.generated-files.json` 會變動。
 
