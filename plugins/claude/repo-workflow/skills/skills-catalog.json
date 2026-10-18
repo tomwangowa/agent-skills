@@ -33,6 +33,17 @@
         "routable": true,
         "sync": true
       }
+    },
+    {
+      "category": "productivity-tracking",
+      "id": "session-start",
+      "invocation_intent": "user",
+      "lifecycle": "experimental",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
     }
   ]
 }

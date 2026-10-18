@@ -89,8 +89,8 @@ def validate_packages(packages: list[dict], catalog: list[dict]) -> list[str]:
                     errors.append(f'{name}: dependency skill is absent from {provider}')
     if len(names) != 7 or set(names) != PACKAGE_NAMES:
         errors.append('Exactly the seven approved packages are required')
-    if len(members) != 38 or len(set(members)) != 38:
-        errors.append('Exactly 38 distinct source skills are required')
+    if len(members) != 39 or len(set(members)) != 39:
+        errors.append('Exactly 39 distinct source skills are required')
     return errors
 
 

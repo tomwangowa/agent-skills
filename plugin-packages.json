@@ -138,7 +138,8 @@
       "skills": [
         "code-story-teller",
         "repo-sync",
-        "handoff"
+        "handoff",
+        "session-start"
       ],
       "platforms": [
         "claude",
@@ -147,6 +148,8 @@
       "runtime_resources": [
         "code-story-teller/README.md",
         "handoff/agents/openai.yaml",
+        "session-start/scripts/handoffs.py",
+        "session-start/agents/openai.yaml",
         "docs/plugins/installation.md",
         "docs/plugins/migration.md",
         "docs/plugins/team-instructions.md",

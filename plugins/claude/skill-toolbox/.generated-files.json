@@ -6,11 +6,11 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "90704ce6b40489a675c67f10b44d7ef1651c733c78e348ebc005c14564cc51bb"
+      "sha256": "3cd3d8fb24b4dd7bdd25237c880541ee8da2a6c283a2ff5a29cde8db3f4fe836"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "60584e9357dcc498141854719a60d46e6228ca3932097be994a876c531f34cbc"
+      "sha256": "83863a7c67187d664a9e0101990b9c260c48fd1791def58e2911b0034c746c48"
     },
     "hooks/hooks.json": {
       "mode": 420,
@@ -26,7 +26,7 @@
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "a1fb9980d852d7c5e3a5721eb01920228cdb6801b52e525b508f70e3593cf48b"
+      "sha256": "e91ace14433d300423c23d57d1942fae8a2b191322067846ef91d03b7376a0d5"
     },
     "migration.md": {
       "mode": 420,
@@ -54,7 +54,7 @@
     },
     "skills/package-index.json": {
       "mode": 420,
-      "sha256": "68409e584de2ec8d7af0cd760a2d577bd6dc097fc51ccef23870ccc66b321544"
+      "sha256": "cbe1323d548a9de965d2a475b9256588811a2c81404bfeca4ad3d08950b8c176"
     },
     "skills/skill-auditor/README.md": {
       "mode": 420,

@@ -6,15 +6,15 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "8a833c8a53818d2211f9d3a28281c4069979a6a201d84f6b72ee0c49f5ae16b0"
+      "sha256": "506f1c6e79b54d4f30da411d7c8568b804a2014c3384a53787df9a5bcb8f09cb"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "d21ef71ff85360b9731fdcda96b70abedb52256858e382e7cb499255365fbca5"
+      "sha256": "bc48029c1d4fc02f4b3b35cc79729b341c548aa4dc0f7c24080b355b686511a5"
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "a1fb9980d852d7c5e3a5721eb01920228cdb6801b52e525b508f70e3593cf48b"
+      "sha256": "e91ace14433d300423c23d57d1942fae8a2b191322067846ef91d03b7376a0d5"
     },
     "migration.md": {
       "mode": 420,
@@ -40,9 +40,21 @@
       "mode": 420,
       "sha256": "727b02e1fae0f7989548578c7314c3afca986f66a3da972bcb07715419582814"
     },
+    "skills/session-start/SKILL.md": {
+      "mode": 420,
+      "sha256": "8978dbd271cdf1b2294fdcc43e91c7d6783d850d270e9f949e5f8c6fc03ab4d8"
+    },
+    "skills/session-start/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+    },
+    "skills/session-start/scripts/handoffs.py": {
+      "mode": 420,
+      "sha256": "fb75caeee2c07b5fcfd1d8a6ff78499b24670978a3277c5fa44ee964f77c3dbc"
+    },
     "skills/skills-catalog.json": {
       "mode": 420,
-      "sha256": "3495f4cf805826a7baeb77ba190c3dc0357e96c5a9e0088e760d1f3cccf83a31"
+      "sha256": "ec200d5b464cb26f0313dee369c12f33aef47bd61765bba3785f2cbc95c3f335"
     },
     "superpowers-compatibility.md": {
       "mode": 420,
