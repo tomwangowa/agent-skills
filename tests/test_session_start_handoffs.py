@@ -1,4 +1,4 @@
-"""Tests for session-start/scripts/handoffs.py: frontmatter parsing, assertions and the check subcommand."""
+"""Tests for session-start/scripts/handoffs.py: frontmatter parsing, assertions, and the check and list subcommands."""
 
 from __future__ import annotations
 
@@ -7,10 +7,13 @@ import importlib.util
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest import mock
 
@@ -577,6 +580,350 @@ class CheckTests(RepoTestCase):
         path = write_handoff(self.handoff_dir, "a.md", frontmatter=f"status: in-progress\nworktree: {plain}")
         _, out = run_cli(SCRIPT, "check", str(path), cwd=plain)
         self.assertIs(out["worktree_matches_cwd"], True)
+
+
+# Fixed clock for every `list` run: all windows and orderings below are relative to this instant.
+NOW = "2026-10-18T12:00:00+08:00"
+NOW_DT = datetime.fromisoformat(NOW)
+
+
+def ago(**delta: float) -> str:
+    return (NOW_DT - timedelta(**delta)).isoformat()
+
+
+def set_mtime(path: Path, **delta: float) -> None:
+    stamp = (NOW_DT - timedelta(**delta)).timestamp()
+    os.utime(path, (stamp, stamp))
+
+
+@unittest.skipUnless(hasattr(time, "tzset"), "needs time.tzset")
+class ParseCreatedTests(unittest.TestCase):
+    def setUp(self) -> None:
+        patcher = mock.patch.dict(os.environ, {"TZ": "Asia/Taipei"})
+        patcher.start()
+        # Cleanups run last-in first-out: restore the variable before re-reading it.
+        self.addCleanup(time.tzset)
+        self.addCleanup(patcher.stop)
+        time.tzset()
+
+    def test_every_format_becomes_an_aware_datetime(self) -> None:
+        cases = {
+            "2026-10-18T03:00:00Z": datetime(2026, 10, 18, 3, tzinfo=timezone.utc),
+            "2026-10-18T11:00:00+08:00": datetime(2026, 10, 18, 3, tzinfo=timezone.utc),
+            # No zone means the machine's local time, pinned to UTC+8 by TZ above.
+            "2026-10-18T10:00:00": datetime(2026, 10, 18, 2, tzinfo=timezone.utc),
+        }
+        for value, expected in cases.items():
+            with self.subTest(value):
+                result = handoffs.parse_created(value, 0)
+                self.assertIsNotNone(result.tzinfo)
+                self.assertEqual(result, expected)
+
+    def test_missing_or_unparseable_value_uses_mtime(self) -> None:
+        for value in (None, "", "   ", "not a date", "2026-13-45T00:00:00"):
+            with self.subTest(value):
+                result = handoffs.parse_created(value, 1_700_000_000)
+                self.assertIsNotNone(result.tzinfo)
+                self.assertEqual(result.timestamp(), 1_700_000_000)
+
+
+class ListTests(RepoTestCase):
+    def listing(self, *args: str, cwd: Path | None = None, env: dict | None = None) -> tuple[int, dict]:
+        return run_cli(SCRIPT, "list", "--now", NOW, *args, cwd=cwd or self.repo, env=env)
+
+    def put(self, name: str, *, created: str | None = None, status: str = "in-progress", where: Path | None = None,
+            mtime_ago: dict | None = None) -> Path:
+        lines = [f"status: {status}", f"task: {name}"]
+        if created:
+            lines.append(f"created: {created}")
+        path = write_handoff(where or self.handoff_dir, name, frontmatter="\n".join(lines))
+        # Pin mtime so the tests never depend on the real clock.
+        set_mtime(path, **(mtime_ago or {"hours": 1}))
+        return path
+
+    def put_raw(self, name: str, text: str, *, mtime_ago: dict | None = None) -> Path:
+        self.handoff_dir.mkdir(parents=True, exist_ok=True)
+        path = self.handoff_dir / name
+        path.write_text(text, encoding="utf-8")
+        set_mtime(path, **(mtime_ago or {"hours": 1}))
+        return path
+
+    def add_worktree(self, name: str, branch: str | None) -> Path:
+        path = self.tmp / name
+        args = ["--detach"] if branch is None else ["-b", branch]
+        run_git(self.repo, "worktree", "add", "-q", *args, str(path))
+        return path
+
+    @staticmethod
+    def names(out: dict) -> list[str]:
+        return [Path(item["path"]).name for item in out["items"]]
+
+    @property
+    def real_handoff_dir(self) -> Path:
+        # The checkout is reported by its resolved spelling (/private/var on macOS), and the CLI echoes that.
+        return self.repo.resolve() / ".claude" / "handoffs"
+
+    def test_non_git_reads_cwd_only(self) -> None:
+        plain = self.tmp / "plain"
+        self.put("here.md", created=ago(hours=1), where=plain / ".claude" / "handoffs")
+        self.put("elsewhere.md", created=ago(hours=1))
+        code, out = self.listing(cwd=plain)
+        self.assertEqual(code, 0)
+        self.assertEqual(set(out), {"scope", "items", "remaining", "skipped"})
+        self.assertEqual(out["scope"], "cwd")
+        self.assertEqual(self.names(out), ["here.md"])
+        self.assertEqual((out["remaining"], out["skipped"]), (0, []))
+        item = out["items"][0]
+        self.assertEqual(
+            set(item), {"path", "task", "status", "created", "worktree", "branch", "current", "malformed"}
+        )
+        self.assertIs(item["current"], True)
+        self.assertIsNone(item["branch"])
+        self.assertIs(item["malformed"], False)
+        self.assertEqual((item["task"], item["status"]), ("here.md", "in-progress"))
+        self.assertEqual(Path(item["worktree"]).resolve(), plain.resolve())
+
+    def test_no_handoffs_directory(self) -> None:
+        self.assertEqual(
+            self.listing(),
+            (0, {"scope": "git", "items": [], "remaining": 0, "skipped": []}),
+        )
+
+    def test_git_scans_all_worktrees_current_first(self) -> None:
+        linked = self.add_worktree("linked", "feat-linked")
+        self.put("main-new.md", created=ago(hours=1))
+        self.put("main-old.md", created=ago(hours=9))
+        self.put("linked.md", created=ago(hours=5), where=linked / ".claude" / "handoffs")
+
+        code, out = self.listing(cwd=linked)
+        self.assertEqual(code, 0)
+        self.assertEqual(out["scope"], "git")
+        # The current worktree comes first even though the main checkout holds a newer handoff.
+        self.assertEqual(self.names(out), ["linked.md", "main-new.md", "main-old.md"])
+        self.assertEqual([item["current"] for item in out["items"]], [True, False, False])
+        self.assertEqual([item["branch"] for item in out["items"]], ["feat-linked", "main", "main"])
+        self.assertEqual(Path(out["items"][0]["worktree"]).resolve(), linked.resolve())
+        self.assertEqual(Path(out["items"][1]["worktree"]).resolve(), self.repo.resolve())
+
+        _, out = self.listing(cwd=self.repo)
+        self.assertEqual(self.names(out), ["main-new.md", "main-old.md", "linked.md"])
+        self.assertEqual([item["current"] for item in out["items"]], [True, True, False])
+
+    def test_detached_worktree_has_no_branch(self) -> None:
+        detached = self.add_worktree("detached", None)
+        self.put("d.md", created=ago(hours=1), where=detached / ".claude" / "handoffs")
+        _, out = self.listing(cwd=detached)
+        self.assertEqual(self.names(out), ["d.md"])
+        self.assertIsNone(out["items"][0]["branch"])
+
+    def test_subdirectory_cwd_uses_repo_root(self) -> None:
+        self.put("a.md", created=ago(hours=1))
+        sub = self.repo / "sub" / "inner"
+        sub.mkdir(parents=True)
+        # A handoff directory below the cwd is not the repo's and must not be read.
+        self.put("decoy.md", created=ago(hours=1), where=sub / ".claude" / "handoffs")
+        from_root = self.listing(cwd=self.repo)
+        self.assertEqual(self.listing(cwd=sub), from_root)
+        self.assertEqual(self.names(from_root[1]), ["a.md"])
+
+    def test_ignores_inherited_git_repository_variables(self) -> None:
+        # A pre-commit hook exports GIT_DIR; it must not turn the scan into one of another repository.
+        other = make_repo(self.tmp / "other")
+        self.put("mine.md", created=ago(hours=1))
+        self.put("theirs.md", created=ago(hours=1), where=other / ".claude" / "handoffs")
+        code, out = self.listing(env={"GIT_DIR": str(other / ".git"), "GIT_WORK_TREE": str(other)})
+        self.assertEqual((code, out["scope"], self.names(out)), (0, "git", ["mine.md"]))
+
+    def test_cwd_option_selects_the_directory(self) -> None:
+        self.put("a.md", created=ago(hours=1))
+        outside = self.tmp / "outside"
+        outside.mkdir()
+        code, out = self.listing("--cwd", str(self.repo), cwd=outside)
+        self.assertEqual((code, self.names(out)), (0, ["a.md"]))
+
+    def test_unusable_worktree_list_still_lists_the_current_checkout(self) -> None:
+        self.put("a.md", created=ago(hours=1))
+        real_git = handoffs.git
+
+        def without_worktree_list(args: list[str], cwd: Path):
+            if args[:1] == ["worktree"]:
+                return None
+            return real_git(args, cwd)
+
+        sub = self.repo / "pkg"
+        sub.mkdir()
+        with mock.patch.object(handoffs, "git", side_effect=without_worktree_list):
+            scope, locations = handoffs.discover_locations(sub)
+        self.assertEqual(scope, "git")
+        self.assertEqual(len(locations), 1)
+        self.assertEqual(locations[0].handoffs_dir, self.real_handoff_dir)
+        self.assertEqual(locations[0].worktree, self.repo.resolve())
+        self.assertTrue(locations[0].current)
+
+    def test_excludes_resumed(self) -> None:
+        self.put("done.md", created=ago(hours=1), status="resumed")
+        for status in ("in-progress", "blocked", "ready-for-review"):
+            self.put(f"{status}.md", created=ago(hours=2), status=status)
+        _, out = self.listing()
+        self.assertEqual(sorted(self.names(out)), ["blocked.md", "in-progress.md", "ready-for-review.md"])
+        self.assertEqual(out["remaining"], 0)
+
+    def test_window_and_cap_with_remaining(self) -> None:
+        for index in range(7):
+            self.put(f"recent-{index}.md", created=ago(hours=index + 1))
+        self.put("old.md", created=ago(days=8))
+        code, out = self.listing()
+        self.assertEqual(code, 0)
+        self.assertEqual(len(out["items"]), 5)
+        # What --all would add: two recent files past the cap plus the stale one.
+        self.assertEqual(out["remaining"], 3)
+        self.assertEqual(self.names(out), [f"recent-{index}.md" for index in range(5)])
+
+    def test_all_lifts_window_and_cap(self) -> None:
+        for index in range(7):
+            self.put(f"recent-{index}.md", created=ago(hours=index + 1))
+        self.put("old.md", created=ago(days=8))
+        code, out = self.listing("--all")
+        self.assertEqual(code, 0)
+        self.assertEqual(len(out["items"]), 8)
+        self.assertEqual(out["remaining"], 0)
+        self.assertEqual(self.names(out)[-1], "old.md")
+
+    def test_window_edge_is_inclusive(self) -> None:
+        self.put("edge.md", created=ago(days=7))
+        self.put("just-outside.md", created=ago(days=7, seconds=1))
+        _, out = self.listing()
+        self.assertEqual(self.names(out), ["edge.md"])
+        self.assertEqual(out["remaining"], 1)
+
+    def test_malformed_and_not_handoff_listed_with_flag(self) -> None:
+        self.put("fine.md", created=ago(hours=1))
+        self.put_raw("nested.md", "---\nstatus: blocked\nextra:\n  child: 1\n---\n\nbody\n")
+        self.put_raw("note.md", "# just a note, no frontmatter\n")
+        # `status:` with no value cannot say whether the work is finished, so it is flagged, not trusted.
+        self.put_raw("blank-status.md", "---\nstatus:\ntask: blank\n---\n")
+        code, out = self.listing()
+        self.assertEqual(code, 0)
+        by_name = {Path(item["path"]).name: item for item in out["items"]}
+        self.assertEqual(set(by_name), {"fine.md", "nested.md", "note.md", "blank-status.md"})
+        self.assertIs(by_name["fine.md"]["malformed"], False)
+        self.assertIs(by_name["nested.md"]["malformed"], True)
+        self.assertEqual(by_name["nested.md"]["status"], "blocked")
+        self.assertIs(by_name["note.md"]["malformed"], True)
+        self.assertIsNone(by_name["note.md"]["status"])
+        self.assertIs(by_name["blank-status.md"]["malformed"], True)
+        self.assertEqual(by_name["blank-status.md"]["status"], "")
+        self.assertEqual(by_name["blank-status.md"]["task"], "blank")
+
+    def test_symlink_handoff_skipped(self) -> None:
+        self.put("ok.md", created=ago(hours=1))
+        outside = self.tmp / "outside.md"
+        outside.write_text("---\nstatus: in-progress\ntask: secret\n---\n", encoding="utf-8")
+        os.symlink(outside, self.handoff_dir / "link.md")
+        os.symlink(self.tmp / "nowhere.md", self.handoff_dir / "dangling.md")
+        code, out = self.listing()
+        self.assertEqual(code, 0)
+        self.assertEqual(self.names(out), ["ok.md"])
+        self.assertEqual(
+            out["skipped"],
+            [
+                {"path": str(self.real_handoff_dir / "dangling.md"), "reason": "symlink"},
+                {"path": str(self.real_handoff_dir / "link.md"), "reason": "symlink"},
+            ],
+        )
+
+    def test_missing_worktree_skipped(self) -> None:
+        gone = self.add_worktree("gone", "feat-gone")
+        self.put("kept.md", created=ago(hours=1))
+        # Deleted behind git's back and never pruned: the worktree listing still names it.
+        shutil.rmtree(gone)
+        code, out = self.listing()
+        self.assertEqual(code, 0)
+        self.assertEqual(self.names(out), ["kept.md"])
+        self.assertEqual(out["skipped"], [{"path": str(self.tmp.resolve() / "gone"), "reason": "missing_worktree"}])
+
+    @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0, "root ignores file permissions")
+    def test_unreadable_handoff_skipped(self) -> None:
+        self.put("ok.md", created=ago(hours=1))
+        locked = self.put("locked.md", created=ago(hours=1))
+        locked.chmod(0)
+        self.addCleanup(locked.chmod, 0o644)
+        code, out = self.listing()
+        self.assertEqual(code, 0)
+        self.assertEqual(self.names(out), ["ok.md"])
+        self.assertEqual(out["skipped"], [{"path": str(self.real_handoff_dir / "locked.md"), "reason": "unreadable"}])
+
+    def test_only_top_level_markdown_files_are_read(self) -> None:
+        self.put("top.md", created=ago(hours=1))
+        self.put("nested.md", created=ago(hours=1), where=self.handoff_dir / "archive")
+        self.put_raw("notes.txt", "---\nstatus: in-progress\n---\n")
+        # A FIFO named like a handoff would hang a naive read.
+        (self.handoff_dir / "dir.md").mkdir()
+        os.mkfifo(self.handoff_dir / "pipe.md")
+        code, out = self.listing()
+        self.assertEqual(code, 0)
+        self.assertEqual(self.names(out), ["top.md"])
+        self.assertEqual(out["skipped"], [])
+
+    def test_created_missing_falls_back_to_mtime(self) -> None:
+        self.put_raw("stale.md", "---\nstatus: in-progress\ntask: stale\n---\n", mtime_ago={"days": 10})
+        self.put_raw("fresh.md", "---\nstatus: in-progress\ntask: fresh\n---\n", mtime_ago={"days": 1})
+        code, out = self.listing()
+        self.assertEqual(code, 0)
+        self.assertEqual(self.names(out), ["fresh.md"])
+        self.assertEqual(datetime.fromisoformat(out["items"][0]["created"]), NOW_DT - timedelta(days=1))
+        # Hidden by the window but announced, because --all would list it.
+        self.assertEqual(out["remaining"], 1)
+        _, everything = self.listing("--all")
+        self.assertEqual(self.names(everything), ["fresh.md", "stale.md"])
+        self.assertEqual(everything["remaining"], 0)
+
+    def test_unparseable_created_falls_back_to_mtime(self) -> None:
+        self.put("garbled.md", created="last tuesday", mtime_ago={"days": 10})
+        self.put("sane.md", created="yesterday-ish", mtime_ago={"days": 2})
+        _, out = self.listing()
+        self.assertEqual(self.names(out), ["sane.md"])
+
+    def test_created_formats_compare(self) -> None:
+        self.put("naive.md", created="2026-10-18T10:00:00")
+        self.put("zulu.md", created="2026-10-18T03:30:00Z")
+        self.put("offset.md", created="2026-10-18T11:00:00+08:00")
+        # Newest first. The zone-less value is local time, so its place depends on the TZ the CLI runs under.
+        expected = {
+            "Asia/Taipei": ["zulu.md", "offset.md", "naive.md"],  # 03:30Z, 03:00Z, 02:00Z
+            "America/Los_Angeles": ["naive.md", "zulu.md", "offset.md"],  # 17:00Z, 03:30Z, 03:00Z
+        }
+        for zone, names in expected.items():
+            with self.subTest(zone):
+                code, out = self.listing(env={"TZ": zone})
+                self.assertEqual(code, 0)
+                self.assertEqual(self.names(out), names)
+
+    def test_unicode_and_space_filenames(self) -> None:
+        name = "feat-中文 x--20261018-100000.md"
+        self.put(name, created=ago(hours=1))
+        code, out = self.listing()
+        self.assertEqual(code, 0)
+        self.assertEqual(self.names(out), [name])
+        self.assertEqual(out["items"][0]["task"], name)
+
+    def test_git_unavailable_falls_back_to_cwd(self) -> None:
+        self.put("a.md", created=ago(hours=1))
+        empty_bin = self.tmp / "empty-bin"
+        empty_bin.mkdir()
+        self.assertIsNone(shutil.which("git", path=str(empty_bin)))
+        self.assertEqual(self.listing()[1]["scope"], "git")
+        # run_cli launches the absolute sys.executable, so an empty PATH removes git and nothing else.
+        code, out = self.listing(env={"PATH": str(empty_bin)})
+        self.assertEqual(code, 0)
+        self.assertEqual(out["scope"], "cwd")
+        self.assertEqual(self.names(out), ["a.md"])
+        self.assertIs(out["items"][0]["current"], True)
+        self.assertIsNone(out["items"][0]["branch"])
+
+    def test_invalid_now_exits_2(self) -> None:
+        code, out = run_cli(SCRIPT, "list", "--now", "tomorrow", cwd=self.repo)
+        self.assertEqual((code, out), (2, {"error": "invalid_now"}))
 
 
 if __name__ == "__main__":

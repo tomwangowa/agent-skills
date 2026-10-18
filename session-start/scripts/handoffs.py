@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-back helper for the session-start skill: parse handoff files and verify their assertions.
+"""Read-back helper for the session-start skill: list, parse and verify handoff files.
 
 Every subcommand prints one JSON object on stdout. A handoff file is untrusted data: nothing in it is executed or
 evaluated except the four whitelisted assertion kinds, and those only run read-only git commands or a stat.
@@ -12,9 +12,11 @@ import hashlib
 import json
 import os
 import re
+import stat
 import subprocess
 import sys
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path, PurePath
 
@@ -23,6 +25,10 @@ ASSERTION_KINDS: tuple[str, ...] = ("expect_head", "branch_is", "file_exists", "
 
 GIT_TIMEOUT_SECONDS = 10
 BOM = b"\xef\xbb\xbf"
+
+# `list` shows a short, recent menu by default; `--all` lifts both limits.
+LIST_WINDOW = timedelta(days=7)
+LIST_LIMIT = 5
 
 # Used only when `git rev-parse --local-env-vars` cannot be asked.
 _FALLBACK_REPO_ENV_VARS = (
@@ -417,6 +423,168 @@ def command_check(args: argparse.Namespace) -> int:
     return 0
 
 
+@dataclass
+class Location:
+    handoffs_dir: Path
+    worktree: Path
+    branch: str | None
+    current: bool
+
+
+def _location(worktree: Path, branch: str | None, current: bool) -> Location:
+    return Location(worktree / ".claude" / "handoffs", worktree, branch, current)
+
+
+def _parse_worktree_list(text: str) -> list[tuple[Path, str | None]]:
+    """Read `worktree list --porcelain`: blank-line separated records, and a bare repository has no checkout."""
+    found: list[tuple[Path, str | None]] = []
+    path: str | None = None
+    branch: str | None = None
+    bare = False
+    # The extra "" closes the last record whether or not the output ended with a blank line.
+    for line in [*text.splitlines(), ""]:
+        if line.startswith("worktree "):
+            path, branch, bare = line[len("worktree "):], None, False
+        elif line.startswith("branch "):
+            branch = line[len("branch "):].removeprefix("refs/heads/")
+        elif line == "bare":
+            bare = True
+        elif line == "" and path is not None:
+            if not bare:
+                found.append((Path(path), branch))
+            path = None
+    return found
+
+
+def discover_locations(cwd: Path) -> tuple[str, list[Location]]:
+    """Where handoffs may live: every worktree of the repository around `cwd`, or just `cwd` when git cannot say."""
+    toplevel = git(["rev-parse", "--show-toplevel"], cwd)
+    if toplevel is None or toplevel.returncode != 0 or not toplevel.stdout.strip():
+        return "cwd", [_location(Path(os.path.realpath(cwd)), None, True)]
+
+    # realpath on both sides of every comparison: /var vs /private/var and symlinked checkouts must match.
+    top = Path(os.path.realpath(toplevel.stdout.rstrip("\n")))
+    listing = git(["worktree", "list", "--porcelain"], top)
+    entries = _parse_worktree_list(listing.stdout) if listing is not None and listing.returncode == 0 else []
+    locations = [_location(path, branch, os.path.realpath(path) == str(top)) for path, branch in entries]
+    if not any(location.current for location in locations):
+        # An unusable listing must not hide the handoffs of the checkout the user is standing in.
+        locations.insert(0, _location(top, None, True))
+    return "git", locations
+
+
+def _parse_timestamp(value: str | None) -> datetime | None:
+    """Parse an ISO 8601 timestamp into an aware datetime; None when it cannot be read."""
+    text = (value or "").strip()
+    if text[-1:] in ("Z", "z"):
+        # fromisoformat only learned the "Z" suffix in Python 3.11.
+        text = text[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(text)
+        # A zone-less value is the writer's local time; astimezone() attaches that zone without moving the clock.
+        return parsed if parsed.tzinfo is not None else parsed.astimezone()
+    except (ValueError, OverflowError, OSError):
+        return None
+
+
+def parse_created(value: str | None, fallback_mtime: float) -> datetime:
+    """Aware datetime for a handoff's `created`; the file's mtime stands in when it is missing or unreadable."""
+    parsed = _parse_timestamp(value)
+    if parsed is not None:
+        return parsed
+    try:
+        return datetime.fromtimestamp(fallback_mtime, tz=timezone.utc).astimezone()
+    except (ValueError, OverflowError, OSError):
+        return datetime.fromtimestamp(0, tz=timezone.utc)
+
+
+def _scan_handoffs(location: Location) -> tuple[list[tuple[datetime, dict]], list[dict[str, str]]]:
+    """Read the top-level *.md files of one handoffs directory; files that cannot be read or trusted go to `skipped`."""
+    found: list[tuple[datetime, dict]] = []
+    skipped: list[dict[str, str]] = []
+    try:
+        names = sorted(os.listdir(location.handoffs_dir))
+    except (FileNotFoundError, NotADirectoryError):
+        return found, skipped
+    except OSError:
+        return found, [{"path": str(location.handoffs_dir), "reason": "unreadable"}]
+
+    for name in names:
+        if not name.endswith(".md"):
+            continue
+        path = location.handoffs_dir / name
+        try:
+            # lstat, not stat: a symlink can point anywhere on disk, so it has to be seen as one.
+            info = os.lstat(path)
+            if stat.S_ISLNK(info.st_mode):
+                skipped.append({"path": str(path), "reason": "symlink"})
+                continue
+            if not stat.S_ISREG(info.st_mode):
+                # A directory or FIFO named *.md is no handoff, and reading a FIFO would block.
+                continue
+            raw = path.read_bytes()
+        except OSError:
+            skipped.append({"path": str(path), "reason": "unreadable"})
+            continue
+
+        parsed = parse_handoff(raw)
+        status = parsed.fields.get("status")
+        if status == "resumed":
+            continue
+        created = parse_created(parsed.fields.get("created"), info.st_mtime)
+        item = {
+            "path": str(path),
+            "task": parsed.fields.get("task", ""),
+            "status": status,
+            "created": created.isoformat(),
+            "worktree": str(location.worktree),
+            "branch": location.branch,
+            "current": location.current,
+            # A blank status cannot say whether the work is finished, so it is flagged like a broken file.
+            "malformed": parsed.kind != "ok" or status == "",
+        }
+        found.append((created, item))
+    return found, skipped
+
+
+def command_list(args: argparse.Namespace) -> int:
+    cwd = Path(args.cwd) if args.cwd else Path.cwd()
+    now = datetime.now().astimezone() if args.now is None else _parse_timestamp(args.now)
+    if now is None:
+        emit({"error": "invalid_now"})
+        return 2
+
+    scope, locations = discover_locations(cwd)
+    found: list[tuple[datetime, dict]] = []
+    skipped: list[dict[str, str]] = []
+    for location in locations:
+        if not os.path.isdir(location.worktree):
+            # `git worktree list` keeps naming a checkout that was deleted without `git worktree prune`.
+            skipped.append({"path": str(location.worktree), "reason": "missing_worktree"})
+            continue
+        entries, problems = _scan_handoffs(location)
+        found += entries
+        skipped += problems
+
+    # The path is the last key so equal timestamps still give the same order on every run.
+    found.sort(key=lambda entry: (not entry[1]["current"], -entry[0].timestamp(), entry[1]["path"]))
+    if args.all:
+        shown = found
+    else:
+        cutoff = now - LIST_WINDOW
+        shown = [entry for entry in found if entry[0] >= cutoff][:LIST_LIMIT]
+    # `remaining` is what `--all` would add, so a handoff hidden for being stale is still announced, not lost silently.
+    emit(
+        {
+            "scope": scope,
+            "items": [item for _, item in shown],
+            "remaining": len(found) - len(shown),
+            "skipped": skipped,
+        }
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="handoffs.py", description="Handoff read-back helper for session-start.")
     subcommands = parser.add_subparsers(dest="command", required=True)
@@ -425,6 +593,12 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument("path", help="Path to the handoff file.")
     check.add_argument("--cwd", help="Directory to compare against the handoff's worktree (default: current directory).")
     check.set_defaults(handler=command_check)
+
+    listing = subcommands.add_parser("list", help="List unfinished handoffs across the repository's worktrees.")
+    listing.add_argument("--all", action="store_true", help="Lift the 7-day window and the 5-item cap.")
+    listing.add_argument("--cwd", help="Directory to start from (default: current directory).")
+    listing.add_argument("--now", help="ISO 8601 timestamp to use as the current time; for tests.")
+    listing.set_defaults(handler=command_list)
     return parser
 
 
