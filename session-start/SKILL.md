@@ -7,6 +7,7 @@ description: >
   handoffs across the repo's worktrees, re-checks the chosen one, then
   summarizes git state and related docs. Runs only when the user calls it
   explicitly; read-only except for marking a confirmed handoff as resumed.
+disable-model-invocation: true
 ---
 
 # session-start

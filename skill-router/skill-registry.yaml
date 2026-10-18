@@ -338,6 +338,14 @@ categories:
           - "hand off"
           - "下班"
 
+      - id: session-start
+        triggers:
+          - "/session-start"
+          - "開工"
+          - "接手交接"
+          - "resume handoff"
+          - "session start"
+
       - id: secure-ai-development-gate
         # Safety gate for secrets, customer data, sensitive internal info,
         # risky AI output, and commit boundaries.
