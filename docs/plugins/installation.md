@@ -1,6 +1,6 @@
 # 安裝、設定與更新
 
-支援 Claude Code CLI 與 Codex CLI，桌面版不在範圍內。七包已在 macOS 隔離 fixture，以 Claude Code 2.1.300、Codex 0.162.1 實測安裝、hooks、MCP、路由、更新與 fixture 遷移。2026-10-17 另以 Claude Code 2.1.302 驗證 GitHub marketplace 安裝、刷新和更新檢查；Codex CLI 的遠端 Git marketplace 尚未測試。正向版本升級使用本機暫存 Git 遠端，不代表 GitHub 已發布新版。完整範圍見 `docs/validation/skill-plugins/remote-marketplace-validation.md` 與 `acceptance.json`。以下安裝指令供產物核准發布後使用；目前可供維護者審查的是 worktree 內的生成目錄。
+支援 Claude Code CLI 與 Codex CLI，桌面版不在範圍內。2026-10-15 的原生驗收在 macOS 隔離 fixture 上，以 Claude Code 2.1.300、Codex 0.162.1 測過七包的安裝、hooks、MCP、路由、更新與 fixture 遷移；`session-preferences` 與 `work-journal` 在那之後有修改，發布前需要重新驗收。2026-10-17 另以 Claude Code 2.1.302 驗證 GitHub marketplace 安裝、刷新和更新檢查；Codex CLI 的遠端 Git marketplace 尚未測試。正向版本升級使用本機暫存 Git 遠端，不代表 GitHub 已發布新版。完整範圍見 `docs/validation/skill-plugins/remote-marketplace-validation.md` 與 `acceptance.json`。以下安裝指令供產物核准發布後使用；目前可供維護者審查的是 worktree 內的生成目錄。
 
 ## 選擇並安裝
 

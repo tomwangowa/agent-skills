@@ -150,6 +150,17 @@ class BuildTests(unittest.TestCase):
             inventory = json.loads((ROOT / 'plugins' / surface / 'work-journal/.generated-files.json').read_text())
             self.assertNotIn('server/node_modules/.package-lock.json', inventory['files'])
 
+    def test_generated_docs_state_acceptance_scope(self):
+        stale = ['Native acceptance passed', '七包已在',
+                 'Remote marketplace installation and release approval remain pending']
+        for surface in ('claude', 'codex'):
+            for package in (p for p in (ROOT / 'plugins' / surface).iterdir() if p.is_dir()):
+                for name in ('README.md', 'installation.md'):
+                    text = (package / name).read_text()
+                    for phrase in stale:
+                        self.assertNotIn(phrase, text, f'{package.name}/{name}')
+                    self.assertIn('work-journal', text)
+
 
 if __name__ == '__main__':
     unittest.main()

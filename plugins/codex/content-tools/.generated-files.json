@@ -6,15 +6,15 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "571d922f2ee90160c23f043a92e7e0edb71c18617f2d391f3ac7edf25ec6da1e"
+      "sha256": "f348a938e1b661b443dc533bc57bf81341e9498f4c4b44eac72095335b0b2db4"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "9c0ab4799d87cf1a3a16f4a5c0d3e76c3df95205c43cebd48712009e26963459"
+      "sha256": "90cffcd5863d893ce56220bab231b76f48bdda129d85c84a0324fd7b22d7bb30"
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "8e18266af8a7f3a84e879ae900af80e7148fb7c30ef0ce8948e544f63de8ac32"
+      "sha256": "7a0c5fa3a0c207ff81a14731d73ebb32bb93049c93b261cdd5ee2354e58bb020"
     },
     "migration.md": {
       "mode": 420,

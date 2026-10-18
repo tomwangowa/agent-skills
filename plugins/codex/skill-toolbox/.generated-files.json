@@ -6,11 +6,11 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "7a48fd37fbfea08e2df91af7b0be749f54878d7a9e6a4cab2cafea834cd45142"
+      "sha256": "8f79c96183e0668a3056afdf5f9158978b1e0d359c7e5779ef7ab809de904413"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "b673c780b251f31df5d0f40c7c1c528a548d1c15b2a41fcd8b51d1ef2abdbfc9"
+      "sha256": "99f1d3ec52fda367dd163bf7ec0c401b45a73e385f31c9fc3a98d6e5969512a5"
     },
     "hooks/hooks.json": {
       "mode": 420,
@@ -26,7 +26,7 @@
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "8e18266af8a7f3a84e879ae900af80e7148fb7c30ef0ce8948e544f63de8ac32"
+      "sha256": "7a0c5fa3a0c207ff81a14731d73ebb32bb93049c93b261cdd5ee2354e58bb020"
     },
     "migration.md": {
       "mode": 420,
