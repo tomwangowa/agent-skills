@@ -40,8 +40,8 @@
     "handoff/SKILL.md": "5e681cf66e71465017356f0f1a0796823c0da5a607da243515a6dd52abf3f61d",
     "handoff/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
     "repo-sync/SKILL.md": "727b02e1fae0f7989548578c7314c3afca986f66a3da972bcb07715419582814",
-    "session-start/SKILL.md": "fccf706cd2e3db7c3519cefff196a4771c9fed7f7233ce20c8d8a45fc170b4f9",
+    "session-start/SKILL.md": "368336c83cf611e217281f795b999375d773bae097cd1907f88af38adc5c7759",
     "session-start/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
-    "session-start/scripts/handoffs.py": "13fd1833f22503fc9188e01f1857474463b96c4f2e7913c8b2d115cfad99564c"
+    "session-start/scripts/handoffs.py": "b7e5440704eb06bf5cddca4663239176bdd291818214f4a1ac73c0073e54251e"
   }
 }
