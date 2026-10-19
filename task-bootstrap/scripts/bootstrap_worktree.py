@@ -411,6 +411,17 @@ def _repository_identity(path: Path) -> tuple[bool, Path] | None:
     return lines[0] == "true", Path(os.path.realpath(path / lines[1]))
 
 
+def _require_work_tree_root(path: Path) -> None:
+    """`path` must be the top of its work tree: the paths of a copy plan are applied to the root of the new worktree."""
+    result = _git_run(["rev-parse", "--show-toplevel"], path)
+    toplevel = result.stdout.rstrip("\n")
+    if result.returncode != 0 or not toplevel:
+        raise Refusal("source_not_git", {"role": "asset_source", "path": str(path)})
+    # Both sides resolved: the path was resolved by the caller, and git prints the real location.
+    if os.path.realpath(toplevel) != os.path.realpath(path):
+        raise Refusal("asset_source_not_root", {"path": str(path), "toplevel": toplevel})
+
+
 def locate(args: argparse.Namespace) -> Location:
     """Work out the repository, the source and the worktrees root from the cwd and the options."""
     anchor = _require_directory(Path(os.path.abspath(args.cwd or Path.cwd())))
@@ -446,6 +457,8 @@ def locate(args: argparse.Namespace) -> Location:
         # copied) this repository's local files.
         if common_dir != main_common_dir:
             raise Refusal("source_wrong_repo", {"role": role, "path": str(path)})
+        if role == "asset_source":
+            _require_work_tree_root(path)
 
     configured = args.worktrees_root or os.environ.get(WORKTREES_ROOT_ENV)
     worktrees_root = Path(os.path.abspath(anchor / configured)) if configured else main_checkout.parent / "worktrees"
@@ -467,8 +480,15 @@ def normalize_copy_path(value: str) -> str:
     if value.startswith("/"):
         raise _copy_rejected("absolute", value)
     # Looked for before normpath, which folds "a/../b" into "b" and would hide the climb.
-    if ".." in value.split("/"):
+    segments = value.split("/")
+    if ".." in segments:
         raise _copy_rejected("parent_reference", value)
+    # git's own data: a linked worktree's .git file would point the copy at another worktree's admin directory, and
+    # .git/config can hold credentials. ls-files never lists these, so the tracked check cannot catch them. Any
+    # segment counts, since a nested repository's .git is just as private; ASCII case folding covers case-insensitive
+    # filesystems.
+    if any(segment.translate(_ASCII_LOWER) == ".git" for segment in segments):
+        raise _copy_rejected("git_metadata", value)
     return posixpath.normpath(value)
 
 
@@ -579,7 +599,12 @@ def plan_local_files(asset_source: Path, copy_venv: bool, extra: list[str]) -> t
     wanted = dict.fromkeys([ENV_FILE, *([VENV_DIR] if copy_venv else []), *requested])
     copies: list[dict] = []
     skipped: list[dict] = []
+    planned_dirs: list[str] = []
     for relative in wanted:
+        # Copying a directory brings everything in it along. A second entry for a file inside would be written twice,
+        # and the second write would find its target already there.
+        if any(relative.startswith(f"{planned}/") for planned in planned_dirs):
+            continue
         # .env is the one entry nobody has to ask for; a failure on anything else is a failure to do what was asked.
         asked = relative != ENV_FILE or relative in requested
         typed = requested.get(relative, relative)
@@ -593,11 +618,13 @@ def plan_local_files(asset_source: Path, copy_venv: bool, extra: list[str]) -> t
             continue
         size = _directory_bytes(root / relative, typed) if directory else info.st_size
         copies.append({"path": relative, "type": "dir" if directory else "file", "bytes": size})
+        if directory:
+            planned_dirs.append(relative)
     return copies, skipped, plan_skills_link(root)
 
 
 def plan_baseline_local_files(args: argparse.Namespace) -> tuple[list[dict], list[dict], dict]:
-    """A baseline copies nothing and never reads the asset source; a request to copy something is refused, not dropped."""
+    """A baseline copies nothing and never reads the asset source; a request to copy is refused, not dropped."""
     if args.copy_venv:
         raise _copy_rejected("baseline_mode", VENV_DIR)
     if args.copy:

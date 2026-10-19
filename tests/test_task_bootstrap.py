@@ -1472,6 +1472,54 @@ class LocalFilesTests(CreateCase):
                 out = self.refusal("--asset-source", str(path), expect="source_not_git")
                 self.assertEqual((out["role"], out["path"]), ("asset_source", str(path)))
 
+    def test_asset_source_must_be_the_top_of_a_work_tree(self) -> None:
+        # A path relative to a subdirectory would be applied to the root of the new worktree, so the tracked check
+        # would answer about the wrong file and `.env` would come from the wrong place.
+        self.write("config/local.json")
+        self.track("config/local.json")
+        sub = self.root / "sub"
+        self.write("sub/config/local.json")
+        out = self.refusal("--asset-source", str(sub), "--copy", "config/local.json", expect="asset_source_not_root")
+        self.assertEqual(out, {"error": "asset_source_not_root", "path": str(sub), "toplevel": str(self.root)})
+        # The same holds inside a linked worktree, whose own root is a fine asset source.
+        linked = self.tmp / "linked"
+        run_git(self.root, "worktree", "add", "-q", "-b", "other", str(linked))
+        (linked / "pkg").mkdir()
+        out = self.refusal("--asset-source", str(linked / "pkg"), expect="asset_source_not_root")
+        self.assertEqual((out["path"], out["toplevel"]), (str(linked / "pkg"), str(linked)))
+        self.assertEqual(self.plan("--asset-source", str(linked))["asset_source"], str(linked))
+
+    def test_git_metadata_is_never_copied(self) -> None:
+        self.write("sub2/.git/x")
+        linked = self.tmp / "linked"
+        run_git(self.root, "worktree", "add", "-q", "-b", "other", str(linked))
+        # Guard: a linked worktree's .git is a regular file that ls-files never lists, so only its name can stop it.
+        self.assertTrue((linked / ".git").is_file())
+        cases = (
+            (".git/config", ()), (".GIT/config", ()), ("sub2/.git/x", ()), (".git", ("--asset-source", str(linked))),
+        )
+        for value, options in cases:
+            with self.subTest(value=value):
+                out = self.refusal("--copy", value, *options, expect="copy_rejected")
+                self.assertEqual((out["path"], out["reason"]), (value, "git_metadata"))
+
+    def test_copy_inside_a_planned_directory_is_covered_by_it(self) -> None:
+        self.write(".env", "TOKEN=1\n")
+        self.write(".venv/pyvenv.cfg", "home")
+        self.write(".venv/bin/tool", "12345")
+        self.write("other.txt", "o")
+        # Listing the file as well would make a copy of the directory and then of the file write the same target twice.
+        out = self.plan("--copy-venv", "--copy", ".venv/pyvenv.cfg", "--copy", "other.txt")
+        self.assertEqual(out["copies"], [
+            {"path": ".env", "type": "file", "bytes": 8},
+            {"path": ".venv", "type": "dir", "bytes": 9},
+            {"path": "other.txt", "type": "file", "bytes": 1},
+        ])
+        # Without the directory the same request stands on its own.
+        self.assertEqual(self.plan("--copy", ".venv/pyvenv.cfg")["copies"], [
+            {"path": ".env", "type": "file", "bytes": 8}, {"path": ".venv/pyvenv.cfg", "type": "file", "bytes": 4},
+        ])
+
     def test_plan_never_contains_file_contents(self) -> None:
         secrets = {".env": "SECRET-ENV-9f3a", ".venv/bin/tool": "SECRET-VENV-77c1", "extra.txt": "SECRET-EXTRA-5b0d"}
         for relative, text in secrets.items():
@@ -1534,6 +1582,27 @@ class CreateHelperTests(unittest.TestCase):
                      "feat-é","feat-\u212a", "a b"):
             with self.subTest(invalid=slug):
                 self.assertEqual(self.refusal_code(validate, slug), "slug_invalid")
+
+    def test_copy_path_shapes(self) -> None:
+        normalize = self.module.normalize_copy_path
+
+        def rejected(value: str) -> str:
+            with self.assertRaises(self.module.Refusal) as caught:
+                normalize(value)
+            self.assertEqual((caught.exception.code, caught.exception.detail["path"]), ("copy_rejected", value))
+            return caught.exception.detail["reason"]
+
+        for value, expected in (("a", "a"), ("./a//b", "a/b"), (".gitignore", ".gitignore"), (".github/x", ".github/x"),
+                                ("a.git/x", "a.git/x"), ("dir/.gitkeep", "dir/.gitkeep"), (".env", ".env")):
+            with self.subTest(accepted=value):
+                self.assertEqual(normalize(value), expected)
+        # A segment equal to .git is git's own data, whatever the case, however it is spelled or where it sits.
+        for value in (".git", ".Git/x", "./.git", "a/.GIT/b", "a/b/.git/", ".git//c", "x/.gIt"):
+            with self.subTest(git=value):
+                self.assertEqual(rejected(value), "git_metadata")
+        for value, reason in (("../.git", "parent_reference"), ("/x/.git", "absolute"), ("", "empty")):
+            with self.subTest(other=value):
+                self.assertEqual(rejected(value), reason)
 
     def test_validate_branch_edges(self) -> None:
         validate = self.module.validate_branch
