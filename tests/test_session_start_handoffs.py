@@ -754,9 +754,13 @@ class ListTests(RepoTestCase):
         self.assertEqual(code, 0)
         self.assertEqual(out["scope"], "git")
         # The current worktree comes first even though the main checkout holds a newer handoff.
-        self.assertEqual(self.names(out), ["linked.md", "main-new.md", "main-old.md"])
-        self.assertEqual([item["current"] for item in out["items"]], [True, False, False])
-        self.assertEqual([item["branch"] for item in out["items"]], ["feat-linked", "main", "main"])
+        # The main checkout is not the one we stand in, so it contributes only its newest handoff.
+        self.assertEqual(self.names(out), ["linked.md", "main-new.md"])
+        self.assertEqual([item["current"] for item in out["items"]], [True, False])
+        self.assertEqual([item["branch"] for item in out["items"]], ["feat-linked", "main"])
+        self.assertEqual(out["remaining"], 1)
+        _, everything = self.listing("--all", cwd=linked)
+        self.assertEqual(self.names(everything), ["linked.md", "main-new.md", "main-old.md"])
         self.assertEqual(Path(out["items"][0]["worktree"]).resolve(), linked.resolve())
         self.assertEqual(Path(out["items"][1]["worktree"]).resolve(), self.repo.resolve())
 
@@ -823,21 +827,21 @@ class ListTests(RepoTestCase):
         self.assertEqual(sorted(self.names(out)), ["blocked.md", "in-progress.md", "ready-for-review.md"])
         self.assertEqual(out["remaining"], 0)
 
-    def test_window_and_cap_with_remaining(self) -> None:
+    def test_current_worktree_is_capped_with_remaining(self) -> None:
         for index in range(7):
             self.put(f"recent-{index}.md", created=ago(hours=index + 1))
-        self.put("old.md", created=ago(days=8))
+        self.put("old.md", created=ago(days=15))
         code, out = self.listing()
         self.assertEqual(code, 0)
         self.assertEqual(len(out["items"]), 5)
-        # What --all would add: two recent files past the cap plus the stale one.
+        # What --all would add: two recent files past the cap plus the one older than 14 days.
         self.assertEqual(out["remaining"], 3)
         self.assertEqual(self.names(out), [f"recent-{index}.md" for index in range(5)])
 
     def test_all_lifts_window_and_cap(self) -> None:
         for index in range(7):
             self.put(f"recent-{index}.md", created=ago(hours=index + 1))
-        self.put("old.md", created=ago(days=8))
+        self.put("old.md", created=ago(days=15))
         code, out = self.listing("--all")
         self.assertEqual(code, 0)
         self.assertEqual(len(out["items"]), 8)
@@ -845,11 +849,66 @@ class ListTests(RepoTestCase):
         self.assertEqual(self.names(out)[-1], "old.md")
 
     def test_window_edge_is_inclusive(self) -> None:
-        self.put("edge.md", created=ago(days=7))
-        self.put("just-outside.md", created=ago(days=7, seconds=1))
+        self.put("edge.md", created=ago(days=14))
+        self.put("just-outside.md", created=ago(days=14, seconds=1))
         _, out = self.listing()
         self.assertEqual(self.names(out), ["edge.md"])
         self.assertEqual(out["remaining"], 1)
+
+    def test_seven_to_fourteen_days_old_is_still_listed(self) -> None:
+        # The old 7-day window hid a worktree's own unfinished handoff a few hours after its first week.
+        self.put("week-and-a-bit.md", created=ago(days=7, hours=5))
+        _, out = self.listing()
+        self.assertEqual(self.names(out), ["week-and-a-bit.md"])
+        self.assertEqual(out["remaining"], 0)
+
+    def test_other_worktrees_contribute_only_their_newest_recent_one(self) -> None:
+        linked = self.add_worktree("linked", "feat-linked")
+        other = self.add_worktree("other", "feat-other")
+        self.put("mine.md", created=ago(hours=1))
+        for name, hours in (("linked-new.md", 2), ("linked-mid.md", 30), ("linked-old.md", 50)):
+            self.put(name, created=ago(hours=hours), where=linked / ".claude" / "handoffs")
+        self.put("other-new.md", created=ago(days=3), where=other / ".claude" / "handoffs")
+        self.put("other-old.md", created=ago(days=5), where=other / ".claude" / "handoffs")
+        _, out = self.listing()
+        self.assertEqual(self.names(out), ["mine.md", "linked-new.md", "other-new.md"])
+        self.assertEqual([item["current"] for item in out["items"]], [True, False, False])
+        self.assertEqual(out["remaining"], 3)
+
+    def test_other_worktree_older_than_window_is_not_listed(self) -> None:
+        linked = self.add_worktree("linked", "feat-linked")
+        self.put("mine.md", created=ago(hours=1))
+        self.put("stale.md", created=ago(days=14, seconds=1), where=linked / ".claude" / "handoffs")
+        _, out = self.listing()
+        self.assertEqual(self.names(out), ["mine.md"])
+        self.assertEqual(out["remaining"], 1)
+
+    def test_other_worktree_newest_is_chosen_after_window_not_before(self) -> None:
+        # The newest handoff of a worktree is stale, so nothing older may stand in for it.
+        linked = self.add_worktree("linked", "feat-linked")
+        self.put("stale-newest.md", created=ago(days=20), where=linked / ".claude" / "handoffs")
+        self.put("staler.md", created=ago(days=30), where=linked / ".claude" / "handoffs")
+        _, out = self.listing()
+        self.assertEqual(out["items"], [])
+        self.assertEqual(out["remaining"], 2)
+
+    def test_many_other_worktrees_are_not_capped(self) -> None:
+        for index in range(7):
+            where = self.add_worktree(f"wt-{index}", f"feat-{index}")
+            self.put(f"wt-{index}.md", created=ago(hours=index + 1), where=where / ".claude" / "handoffs")
+        _, out = self.listing()
+        self.assertEqual(len(out["items"]), 7)
+        self.assertEqual(out["remaining"], 0)
+
+    def test_standing_in_a_linked_worktree_makes_it_the_capped_one(self) -> None:
+        linked = self.add_worktree("linked", "feat-linked")
+        for index in range(6):
+            self.put(f"linked-{index}.md", created=ago(hours=index + 1), where=linked / ".claude" / "handoffs")
+        for index in range(4):
+            self.put(f"main-{index}.md", created=ago(hours=index + 10))
+        _, out = self.listing(cwd=linked)
+        self.assertEqual(self.names(out), [f"linked-{index}.md" for index in range(5)] + ["main-0.md"])
+        self.assertEqual(out["remaining"], 4)
 
     def test_malformed_and_not_handoff_listed_with_flag(self) -> None:
         self.put("fine.md", created=ago(hours=1))
@@ -921,7 +980,7 @@ class ListTests(RepoTestCase):
         self.assertEqual(out["skipped"], [])
 
     def test_created_missing_falls_back_to_mtime(self) -> None:
-        self.put_raw("stale.md", "---\nstatus: in-progress\ntask: stale\n---\n", mtime_ago={"days": 10})
+        self.put_raw("stale.md", "---\nstatus: in-progress\ntask: stale\n---\n", mtime_ago={"days": 15})
         self.put_raw("fresh.md", "---\nstatus: in-progress\ntask: fresh\n---\n", mtime_ago={"days": 1})
         code, out = self.listing()
         self.assertEqual(code, 0)
@@ -934,7 +993,7 @@ class ListTests(RepoTestCase):
         self.assertEqual(everything["remaining"], 0)
 
     def test_unparseable_created_falls_back_to_mtime(self) -> None:
-        self.put("garbled.md", created="last tuesday", mtime_ago={"days": 10})
+        self.put("garbled.md", created="last tuesday", mtime_ago={"days": 15})
         self.put("sane.md", created="yesterday-ish", mtime_ago={"days": 2})
         _, out = self.listing()
         self.assertEqual(self.names(out), ["sane.md"])

@@ -6,7 +6,7 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "17164488e7a958ae8b7f8e0e20da54fa56f7ad2223c780c0a5b6aa1a088b1f43"
+      "sha256": "4fee7f797c8c56cb6306740b31aa0d1e0a416a56bef5edaa0023c6b4320dc431"
     },
     "README.md": {
       "mode": 420,
@@ -42,7 +42,7 @@
     },
     "skills/session-start/SKILL.md": {
       "mode": 420,
-      "sha256": "fccf706cd2e3db7c3519cefff196a4771c9fed7f7233ce20c8d8a45fc170b4f9"
+      "sha256": "368336c83cf611e217281f795b999375d773bae097cd1907f88af38adc5c7759"
     },
     "skills/session-start/agents/openai.yaml": {
       "mode": 420,
@@ -50,7 +50,7 @@
     },
     "skills/session-start/scripts/handoffs.py": {
       "mode": 420,
-      "sha256": "13fd1833f22503fc9188e01f1857474463b96c4f2e7913c8b2d115cfad99564c"
+      "sha256": "b7e5440704eb06bf5cddca4663239176bdd291818214f4a1ac73c0073e54251e"
     },
     "skills/skills-catalog.json": {
       "mode": 420,
