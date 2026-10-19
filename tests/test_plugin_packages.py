@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 APPROVED = {
     'quality-gates': 'code-review-claude code-review-codex completion-gate codebase-audit pr-review-assistant secure-ai-development-gate',
     'technical-decisions': 'brainstorming assumption-extractor critical-research deep-reading micro-poc-validator narrative-auditor research-cross-validator research-synthesis tech-feasibility tech-research-pipeline role-orchestrator role-pm role-rd spec-gap-finder technical-proposal-review ui-design-analyzer',
-    'repo-workflow': 'code-story-teller repo-sync handoff session-start',
+    'repo-workflow': 'code-story-teller repo-sync handoff session-start task-bootstrap',
     'content-tools': 'presentation-planner interactive-presentation-generator sepia md-translate pptx-to-md',
     'work-journal': 'activity-logger work-log-analyzer',
     'session-preferences': 'session-preferences control-return',
@@ -30,7 +30,7 @@ class PackageTests(unittest.TestCase):
         self.assertEqual({p['name']: p['skills'] for p in self.packages},
                          {name: skills.split() for name, skills in APPROVED.items()})
         members = [s for p in self.packages for s in p['skills']]
-        self.assertEqual((len(members), len(set(members))), (39, 39))
+        self.assertEqual((len(members), len(set(members))), (40, 40))
         self.assertEqual(validate_packages(self.packages, self.catalog), [])
         for p in self.packages:
             self.assertEqual(p['version'], '0.1.0')

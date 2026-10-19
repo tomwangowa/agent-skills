@@ -139,7 +139,8 @@
         "code-story-teller",
         "repo-sync",
         "handoff",
-        "session-start"
+        "session-start",
+        "task-bootstrap"
       ],
       "platforms": [
         "claude",
@@ -150,6 +151,8 @@
         "handoff/agents/openai.yaml",
         "session-start/scripts/handoffs.py",
         "session-start/agents/openai.yaml",
+        "task-bootstrap/scripts/bootstrap_worktree.py",
+        "task-bootstrap/agents/openai.yaml",
         "docs/plugins/installation.md",
         "docs/plugins/migration.md",
         "docs/plugins/team-instructions.md",

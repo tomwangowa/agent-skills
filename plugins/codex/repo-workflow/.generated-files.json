@@ -6,11 +6,11 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "17164488e7a958ae8b7f8e0e20da54fa56f7ad2223c780c0a5b6aa1a088b1f43"
+      "sha256": "000e68acede16c645a142962f11d40da9393441aa5b23418930db9b1681a1d43"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "f6fa88354f4a7886f07d1f4a5c01ab60572dc3097ab82688207af29f60240789"
+      "sha256": "e712f27c2b0989e379218c0b516522947db769eb663b18f3c84ea8427010020b"
     },
     "installation.md": {
       "mode": 420,
@@ -54,7 +54,19 @@
     },
     "skills/skills-catalog.json": {
       "mode": 420,
-      "sha256": "ec200d5b464cb26f0313dee369c12f33aef47bd61765bba3785f2cbc95c3f335"
+      "sha256": "ba2152d015a9d37c724587d7b6766811d0da11b5ab6cb0fa9e7cbede2e273de9"
+    },
+    "skills/task-bootstrap/SKILL.md": {
+      "mode": 420,
+      "sha256": "61811050f2ae2780cbdb6b244199d156f0400f352f2f595eccf173465f0300c2"
+    },
+    "skills/task-bootstrap/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+    },
+    "skills/task-bootstrap/scripts/bootstrap_worktree.py": {
+      "mode": 420,
+      "sha256": "e90c572a1d471169afff5d464eb28d8c59292e7620f73cbb146ba4c5fed87fbf"
     },
     "superpowers-compatibility.md": {
       "mode": 420,

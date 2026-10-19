@@ -353,6 +353,20 @@
     },
     {
       "availability": "available_to_install",
+      "category": "productivity-tracking",
+      "id": "task-bootstrap",
+      "invocation_intent": "user",
+      "lifecycle": "experimental",
+      "package": "repo-workflow",
+      "provider": "repo-workflow:task-bootstrap",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
       "category": "content-generation",
       "id": "presentation-planner",
       "invocation_intent": "model",

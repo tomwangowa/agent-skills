@@ -1,5 +1,5 @@
 {
-  "catalog_sha256": "9f49e4bca50f4b314fc52c478dc86ac367e70da9e6dbfa0d08cda72363bf6d62",
+  "catalog_sha256": "917684571d84e9a47e215a54dae8918c77723f1246d274720dba086151839f52",
   "contracts_sha256": "75c99ca57e6f47a514dc1cf8c2d2a14c0d93b93368905150b86fb4410be9c3f7",
   "package": {
     "dependencies": [
@@ -73,7 +73,7 @@
     "skill-auditor/scripts/audit_skill.sh": "cdf936f91c69c9429d605700b1798f2e7ee058b4a06f784e850661286b385ed9",
     "skill-router/SKILL.md": "6480a4ec73e72f0f4b35a08df39d1c7e4825d0b19ecb1963642e164e77e84868",
     "skill-router/agents/openai.yaml": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "skill-router/skill-registry.yaml": "c32d36bcdd4857fb210eddd0ca88e12f631a969b7587fd85f9f01538ca2c5884",
+    "skill-router/skill-registry.yaml": "f514512bc079077f7ff0fd49efbc8265dd62ea843bd9f9c0bd9fdac1bd79c699",
     "skill-sync/SKILL.md": "56a0dda220cdb11b9a787747ba3bc4e4e97250de04fa1c7d0beb247c861d8356",
     "skill-sync/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
     "skill-sync/scripts/sync.sh": "91dadec06f2b0bbedf220d559fc28e45dde2e7dd6699b5c28c5d93097313148a"

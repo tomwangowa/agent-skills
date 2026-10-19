@@ -9,6 +9,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -2080,6 +2081,39 @@ class CreateHelperTests(unittest.TestCase):
             with self.subTest(commands=commands), trap:
                 plan = {"commands": commands, "remote": "origin", "target": here, "branch": "x"}
                 self.assertEqual(self.refusal_code(self.module.execute_plan, plan), "plan_invalid")
+
+
+class SkillDocTests(unittest.TestCase):
+    """SKILL.md is the only place a user learns what a refusal means, so it must not fall behind the script."""
+
+    SKILL_DIR = SOURCE_ROOT / "task-bootstrap"
+
+    @classmethod
+    def error_codes(cls) -> set[str]:
+        source = SCRIPT.read_text(encoding="utf-8")
+        # \s* because a long call is wrapped onto the next line after the parenthesis.
+        codes = set(re.findall(r'Refusal\(\s*"([a-z_]+)"', source))
+        # The three write steps of a plan name their refusal in a table instead of at the raise.
+        table = re.search(r"_COMMAND_FAILURES = \{(.*?)\}", source, re.S)
+        codes |= set(re.findall(r':\s*"([a-z_]+)"', table.group(1)))
+        # cmd_delegate answers a missing directory without raising.
+        codes.add("not_found")
+        return codes
+
+    def test_skill_md_documents_every_error_code(self) -> None:
+        text = (self.SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+        codes = self.error_codes()
+        # Guards the collector itself: an empty or tiny set would make the check below pass for nothing.
+        self.assertGreaterEqual(len(codes), 25)
+        self.assertLessEqual({"base_ref_mismatch", "fetch_failed", "worktree_add_failed"}, codes)
+        self.assertEqual([code for code in sorted(codes) if f"`{code}`" not in text], [])
+
+    def test_skill_md_frontmatter(self) -> None:
+        text = (self.SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("name: task-bootstrap", text)
+        self.assertIn("disable-model-invocation: true", text)
+        metadata = (self.SKILL_DIR / "agents" / "openai.yaml").read_text(encoding="utf-8")
+        self.assertIn("allow_implicit_invocation: false", metadata)
 
 
 if __name__ == "__main__":

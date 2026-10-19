@@ -1,5 +1,5 @@
 {
-  "catalog_sha256": "9f49e4bca50f4b314fc52c478dc86ac367e70da9e6dbfa0d08cda72363bf6d62",
+  "catalog_sha256": "917684571d84e9a47e215a54dae8918c77723f1246d274720dba086151839f52",
   "contracts_sha256": "75c99ca57e6f47a514dc1cf8c2d2a14c0d93b93368905150b86fb4410be9c3f7",
   "package": {
     "dependencies": [],
@@ -17,6 +17,8 @@
       "handoff/agents/openai.yaml",
       "session-start/scripts/handoffs.py",
       "session-start/agents/openai.yaml",
+      "task-bootstrap/scripts/bootstrap_worktree.py",
+      "task-bootstrap/agents/openai.yaml",
       "docs/plugins/installation.md",
       "docs/plugins/migration.md",
       "docs/plugins/team-instructions.md",
@@ -26,7 +28,8 @@
       "code-story-teller",
       "repo-sync",
       "handoff",
-      "session-start"
+      "session-start",
+      "task-bootstrap"
     ],
     "version": "0.1.0"
   },
@@ -42,6 +45,9 @@
     "repo-sync/SKILL.md": "727b02e1fae0f7989548578c7314c3afca986f66a3da972bcb07715419582814",
     "session-start/SKILL.md": "fccf706cd2e3db7c3519cefff196a4771c9fed7f7233ce20c8d8a45fc170b4f9",
     "session-start/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
-    "session-start/scripts/handoffs.py": "13fd1833f22503fc9188e01f1857474463b96c4f2e7913c8b2d115cfad99564c"
+    "session-start/scripts/handoffs.py": "13fd1833f22503fc9188e01f1857474463b96c4f2e7913c8b2d115cfad99564c",
+    "task-bootstrap/SKILL.md": "61811050f2ae2780cbdb6b244199d156f0400f352f2f595eccf173465f0300c2",
+    "task-bootstrap/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+    "task-bootstrap/scripts/bootstrap_worktree.py": "e90c572a1d471169afff5d464eb28d8c59292e7620f73cbb146ba4c5fed87fbf"
   }
 }

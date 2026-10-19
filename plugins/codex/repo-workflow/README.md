@@ -8,6 +8,7 @@ Included skills:
 - `repo-workflow:repo-sync`
 - `repo-workflow:handoff`
 - `repo-workflow:session-start`
+- `repo-workflow:task-bootstrap`
 
 Read [installation and setup](installation.md), [migration and recovery](migration.md),
 [Superpowers compatibility](superpowers-compatibility.md) and [team instructions](team-instructions.md).
