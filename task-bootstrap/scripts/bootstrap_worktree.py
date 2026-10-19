@@ -531,11 +531,16 @@ def plan_baseline(args: argparse.Namespace, loc: Location) -> dict:
     target = resolve_target(loc.worktrees_root, loc.repo_name, slug)
 
     base_ref = f"{args.remote}/{branch}"
-    # Fully qualified for the reason given in plan_main. Fetching the branch first is what makes the ref exist.
+    # Fully qualified for the reason given in plan_main.
     start_point = f"refs/remotes/{base_ref}"
+    # An explicit refspec rather than the branch name: a bare name only updates the tracking ref when the remote's
+    # configured refspec maps it (a single-branch clone does not), and git resolves a bare name against refs/tags/
+    # before refs/heads/, so a tag with the same name would be fetched in place of the branch checked above. The "+"
+    # is harmless: the destination is a remote-tracking ref.
+    refspec = f"+refs/heads/{branch}:{start_point}"
     base = ["git", "-C", str(source)]
     commands = [
-        [*base, "fetch", args.remote, branch],
+        [*base, "fetch", args.remote, refspec],
         # --track is the whole point here: the local branch follows the remote branch it mirrors.
         [*base, "worktree", "add", "--track", "-b", branch, str(target), start_point],
     ]

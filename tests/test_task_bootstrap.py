@@ -933,6 +933,9 @@ class CreateOtherModesTests(CreateCase):
         # The remote's release branch is one commit ahead of main, so a worktree on it can be told from one on main.
         self.release_tip = git_out(self.root, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "release work")
         run_git(self.root, "push", "-q", "origin", f"{self.release_tip}:refs/heads/release/1.0")
+        # A push also writes the remote-tracking ref. A checkout that has never fetched this branch does not have it,
+        # so drop it: the fetch in the plan is then what has to make it.
+        run_git(self.root, "update-ref", "-d", "refs/remotes/origin/release/1.0")
 
     def linked_worktree_on(self, branch: str) -> Path:
         """A linked worktree stopped on a new `branch` that is one commit ahead of main."""
@@ -963,7 +966,9 @@ class CreateOtherModesTests(CreateCase):
         self.assertEqual((out["copies"], out["skipped_copies"], out["symlink"], out["executed"]), ([], [], None, False))
         base = ["git", "-C", str(self.root)]
         self.assertEqual(out["commands"], [
-            [*base, "fetch", "origin", "release/1.0"],
+            # An explicit refspec: it makes the ref the next command starts from exist whatever the remote's configured
+            # refspec maps, and "refs/heads/" keeps a tag with the same name from being fetched instead.
+            [*base, "fetch", "origin", "+refs/heads/release/1.0:refs/remotes/origin/release/1.0"],
             # --track is the point of a baseline; the start point is fully qualified like main mode's.
             [*base, "worktree", "add", "--track", "-b", "release/1.0", target, "refs/remotes/origin/release/1.0"],
         ])
@@ -981,6 +986,42 @@ class CreateOtherModesTests(CreateCase):
         self.assertEqual(git_out(target, "rev-parse", "HEAD"), self.release_tip)
         self.assertEqual(git_out(self.root, "config", "branch.release/1.0.remote"), "origin")
         self.assertEqual(git_out(self.root, "config", "branch.release/1.0.merge"), "refs/heads/release/1.0")
+
+    def test_baseline_fetch_creates_ref_on_single_branch_clone(self) -> None:
+        narrow = self.tmp / "narrow"
+        run_git(
+            self.tmp, "clone", "-q", "--single-branch", "--branch", "main", self.project.origin.as_uri(), str(narrow)
+        )
+        ref = "refs/remotes/origin/release/1.0"
+        # Guard: this clone's refspec maps main only, so nothing has made the ref that the plan starts from.
+        self.assertEqual(
+            git_out(narrow, "config", "--get-all", "remote.origin.fetch"), "+refs/heads/main:refs/remotes/origin/main"
+        )
+        self.assertNotEqual(run_git(narrow, "rev-parse", "--verify", "--quiet", ref, check=False).returncode, 0)
+        out = self.plan("--mode", "baseline", branch="release/1.0", cwd=narrow)
+        fetch, add = out["commands"]
+        self.run_commands([fetch])
+        self.assertEqual(git_out(narrow, "rev-parse", ref), self.release_tip)
+        # What `--track` makes of a tracking ref that no refspec maps is up to git, and differs between versions.
+        # Whichever way it goes, a failed `worktree add` must not leave a branch or a directory behind.
+        result = subprocess.run(
+            add, env=isolated_env({"HOME": str(self.home)}), capture_output=True, text=True, timeout=30
+        )
+        if result.returncode == 0:
+            self.assertEqual(git_out(narrow, "config", "branch.release/1.0.remote"), "origin")
+        else:
+            self.assertFalse(Path(out["target"]).exists(), result.stderr)
+            branch = run_git(narrow, "rev-parse", "--verify", "--quiet", "refs/heads/release/1.0", check=False)
+            self.assertNotEqual(branch.returncode, 0)
+
+    def test_baseline_fetch_prefers_branch_over_same_named_tag(self) -> None:
+        # A tag with the branch's name on another commit: a plain `fetch origin release/1.0` takes the tag.
+        main_head = git_out(self.root, "rev-parse", "HEAD")
+        self.assertNotEqual(main_head, self.release_tip)
+        run_git(self.root, "push", "-q", "origin", f"{main_head}:refs/tags/release/1.0")
+        out = self.plan("--mode", "baseline", branch="release/1.0")
+        self.run_commands(out["commands"][:1])
+        self.assertEqual(git_out(self.root, "rev-parse", "refs/remotes/origin/release/1.0"), self.release_tip)
 
     def test_baseline_branch_missing_on_remote_refuses(self) -> None:
         out = self.refusal("--mode", "baseline", branch="release/9.9", expect="branch_missing_on_remote")
