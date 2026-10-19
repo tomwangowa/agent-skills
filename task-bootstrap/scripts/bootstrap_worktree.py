@@ -2,6 +2,8 @@
 """Worktree bootstrap helper for the task-bootstrap skill.
 
 Every subcommand prints one JSON object on stdout. `delegate` only reads: it locates a repo-local copy of this skill.
+`create` works out where a new task's worktree goes and which git commands would make it; a refused plan is
+`{"error": CODE, ...}` with exit code 3.
 """
 
 from __future__ import annotations
@@ -9,9 +11,12 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import stat
+import string
 import subprocess
 import sys
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
@@ -42,6 +47,16 @@ SELF_SKILL: Path = Path(__file__).resolve().parent.parent / "SKILL.md"
 _VARIANT_SUFFIX = "task-bootstrap"
 # Which tool directory is searched first, per runtime.
 _DELEGATE_ORDER = {"claude": (".claude", ".codex"), "codex": (".codex", ".claude")}
+
+WORKTREES_ROOT_ENV = "TASK_BOOTSTRAP_WORKTREES_ROOT"
+# Other protocols are refused because a remote URL can name a helper that runs a command ("ext::sh -c ...").
+_URL_SCHEMES = ("https://", "ssh://", "git://", "file://")
+# [user@]host:path. A host must start with a letter or digit, and the path must not start with ":" or "//", which
+# keeps out "ext::cmd", "fd::3" and "http://h/r". No "/" may come before the colon: git reads "a/b:c" as a local path.
+_SCP_URL = re.compile(r"(?:[^\s@/:]+@)?[A-Za-z0-9][^\s@/:]*:(?!:|//)\S+")
+_SLUG = re.compile(r"[a-z0-9][a-z0-9._-]*")
+# str.lower() would also fold characters such as the Kelvin sign into ASCII, which is a silent rewrite of the name.
+_ASCII_LOWER = str.maketrans(string.ascii_uppercase, string.ascii_lowercase)
 
 
 @lru_cache(maxsize=1)
@@ -102,6 +117,17 @@ def emit(payload: dict, code: int = 0) -> int:
         stream.reconfigure(encoding="utf-8", errors="backslashreplace")
     print(json.dumps(payload, ensure_ascii=False), file=stream)
     return code
+
+
+class Refusal(Exception):
+    """A stop condition: nothing was changed, and `code` plus `detail` tell the caller why."""
+
+    def __init__(self, code: str, detail: dict | None = None, *, exit_code: int = 3) -> None:
+        super().__init__(code)
+        self.code = code
+        self.detail = detail or {}
+        # 3 is a refusal; 2 is for input that names something that does not exist.
+        self.exit_code = exit_code
 
 
 def user_level_roots(home: Path) -> list[Path]:
@@ -205,6 +231,269 @@ def cmd_delegate(args: argparse.Namespace) -> int:
     return emit({"root": str(root), "candidates": candidates, "excluded": excluded})
 
 
+def _git_run(args: list[str], cwd: Path, *, timeout: int = GIT_TIMEOUT_SECONDS) -> subprocess.CompletedProcess[str]:
+    """git(), for callers that read the exit status themselves; a missing or hung git is a refusal."""
+    result = git(args, cwd, timeout=timeout)
+    if result is None:
+        raise Refusal("git_unavailable", {"command": args[0]})
+    return result
+
+
+def _git_text(args: list[str], cwd: Path) -> str:
+    """stdout of a git call that has no meaningful failure status; any failure is a refusal."""
+    result = _git_run(args, cwd)
+    if result.returncode != 0:
+        lines = result.stderr.strip().splitlines()
+        raise Refusal("git_failed", {"command": args[0], "message": lines[0] if lines else ""})
+    return result.stdout.rstrip("\n")
+
+
+def _require_directory(path: Path) -> Path:
+    if not os.path.isdir(path):
+        raise Refusal("not_found", {"path": str(path)}, exit_code=2)
+    return path
+
+
+def find_main_checkout(anchor: Path) -> Path:
+    """The main working tree of the repository `anchor` belongs to, however deep in a linked worktree it is."""
+    result = _git_run(["worktree", "list", "--porcelain"], anchor)
+    first = result.stdout.split("\n", 1)[0] if result.returncode == 0 else ""
+    # The main working tree is always listed first.
+    if not first.startswith("worktree "):
+        raise Refusal("source_not_git", {"path": str(anchor)})
+    return Path(os.path.realpath(first[len("worktree "):]))
+
+
+def validate_branch(name: str, cwd: Path | None = None) -> str:
+    """`name` itself when git accepts it as a branch name; otherwise a refusal."""
+    # A leading dash is a legal ref component, but later git commands would read it as an option.
+    if not name.startswith("-"):
+        result = _git_run(["check-ref-format", "--branch", name], cwd or Path.cwd())
+        # --branch expands "@{-1}" to the name of the previously checked out branch; that would silently
+        # replace what the user typed, so only a name that comes back unchanged is accepted.
+        if result.returncode == 0 and result.stdout.rstrip("\n") == name:
+            return name
+    raise Refusal("branch_invalid", {"branch": name})
+
+
+def derive_slug(branch: str) -> str:
+    return branch.replace("/", "-").translate(_ASCII_LOWER)
+
+
+def validate_slug(slug: str) -> str:
+    # The slug becomes a directory name, so it must not be able to climb out or look like an option.
+    if _SLUG.fullmatch(slug) is None:
+        raise Refusal("slug_invalid", {"slug": slug})
+    return slug
+
+
+def remote_url_allowed(url: str) -> bool:
+    if not url or url.startswith("-") or any(ch.isspace() or not ch.isprintable() for ch in url):
+        return False
+    for scheme in _URL_SCHEMES:
+        if url.startswith(scheme):
+            host = url[len(scheme):].split("/", 1)[0].rpartition("@")[2]
+            # file:// has no host. For the others a host starting with a dash would be read as an ssh option.
+            return not host.startswith("-") and (bool(host) or scheme == "file://")
+    return _SCP_URL.fullmatch(url) is not None
+
+
+def check_remote(source: Path, remote: str) -> None:
+    """The remote must be one of the repository's configured names, with only allowed URLs."""
+    names = _git_text(["remote"], source).splitlines()
+    if remote.startswith("-") or remote not in names:
+        raise Refusal("remote_invalid", {"remote": remote})
+    # get-url applies url.<base>.insteadOf, so this is the URL that fetch and ls-remote will really use.
+    result = _git_run(["remote", "get-url", remote], source)
+    # The URL is not echoed: it may carry credentials.
+    if result.returncode != 0 or not remote_url_allowed(result.stdout.rstrip("\n")):
+        raise Refusal("remote_url_rejected", {"remote": remote})
+
+
+def detect_default_branch(source: Path, remote: str, override: str | None) -> str:
+    if override is not None:
+        try:
+            return validate_branch(override, source)
+        except Refusal as refusal:
+            refusal.detail["option"] = "--default-branch"
+            raise
+    # The full ref name, not --short: a local branch called "origin/main" would make --short answer "remotes/...".
+    prefix = f"refs/remotes/{remote}/"
+    result = _git_run(["symbolic-ref", "-q", f"{prefix}HEAD"], source)
+    target = result.stdout.strip()
+    if result.returncode == 0 and target.startswith(prefix):
+        candidate = target[len(prefix):]
+        # git checked the ref name when the symbolic ref was written, so only an option-like name needs ruling out.
+        if candidate and not candidate.startswith("-"):
+            return candidate
+    # A remote added with `git remote add` has no HEAD ref until someone runs `set-head`, so ask the remote.
+    listing = _git_run(["ls-remote", "--heads", remote, "main", "master"], source, timeout=NETWORK_TIMEOUT_SECONDS)
+    if listing.returncode != 0:
+        raise Refusal("default_branch_unknown", {"remote": remote, "reason": "ls_remote_failed"})
+    # ls-remote patterns match the end of a ref name, so "refs/heads/feature/main" comes back too.
+    heads = {line.partition("\t")[2] for line in listing.stdout.splitlines()}
+    found = [name for name in ("main", "master") if f"refs/heads/{name}" in heads]
+    if len(found) != 1:
+        raise Refusal("default_branch_unknown", {"remote": remote, "found": found})
+    return found[0]
+
+
+def check_source_clean(source: Path) -> None:
+    # Untracked files do not count: the .env that gets copied into the new worktree is untracked by design.
+    changes = _git_text(["status", "--porcelain", "--untracked-files=no"], source).splitlines()
+    if changes:
+        raise Refusal("source_dirty", {"source": str(source), "entries": len(changes), "changes": changes[:10]})
+
+
+def check_source_branch(source: Path, expected: str) -> None:
+    result = _git_run(["symbolic-ref", "-q", "HEAD"], source)
+    ref = result.stdout.strip()
+    # A detached HEAD makes symbolic-ref fail, and it never equals a branch name.
+    current = ref[len("refs/heads/"):] if result.returncode == 0 and ref.startswith("refs/heads/") else None
+    if current != expected:
+        raise Refusal("source_branch_mismatch", {"source": str(source), "current": current, "expected": expected})
+
+
+def check_branch_free(source: Path, branch: str) -> None:
+    result = _git_run(["rev-parse", "--verify", "--quiet", f"refs/heads/{branch}"], source)
+    if result.returncode == 0:
+        raise Refusal("branch_exists", {"branch": branch})
+    # --quiet gives 1 for "not there"; anything else means git could not answer, which must not read as "free".
+    if result.returncode != 1:
+        raise Refusal("git_failed", {"command": "rev-parse", "message": result.stderr.strip()[:200]})
+
+
+def resolve_names(branch: str, slug: str | None, source: Path) -> tuple[str, str]:
+    branch = validate_branch(branch, source)
+    # A slug typed by the user is taken as is: quietly "fixing" it would hide a typo.
+    return branch, validate_slug(derive_slug(branch) if slug is None else slug)
+
+
+def resolve_target(worktrees_root: Path, repo_name: str, slug: str) -> Path:
+    """Where the worktree will be; `worktrees_root` is passed unresolved so a symlink in it is still visible."""
+    # A link here would send the new worktree to wherever it points, so look before resolving anything.
+    for parent in (worktrees_root, worktrees_root / repo_name):
+        if os.path.islink(parent):
+            raise Refusal("parent_symlink", {"path": str(parent)})
+    target = Path(os.path.realpath(worktrees_root / repo_name / slug))
+    resolved_root = Path(os.path.realpath(worktrees_root))
+    if not target.is_relative_to(resolved_root):
+        raise Refusal("target_outside_root", {"target": str(target), "worktrees_root": str(resolved_root)})
+    # lexists, not exists: a dangling symlink at the target would still break `worktree add`.
+    if os.path.lexists(worktrees_root / repo_name / slug):
+        raise Refusal("target_exists", {"target": str(target)})
+    return target
+
+
+@dataclass(frozen=True)
+class Location:
+    main_checkout: Path
+    source: Path
+    asset_source: Path
+    repo_name: str
+    # Not resolved, see resolve_target.
+    worktrees_root: Path
+
+
+def locate(args: argparse.Namespace) -> Location:
+    """Work out the repository, the source and the worktrees root from the cwd and the options."""
+    anchor = _require_directory(Path(os.path.abspath(args.cwd or Path.cwd())))
+    # The anchor is always the cwd. --source only changes where the checks and git commands run, so a source that
+    # belongs to another repository cannot drag the repo name, the asset source and the target along with it.
+    main_checkout = find_main_checkout(anchor)
+
+    def option_path(value: str | None, default: Path) -> Path:
+        return default if value is None else Path(os.path.realpath(anchor / value))
+
+    source = _require_directory(option_path(args.source, main_checkout))
+    asset_source = _require_directory(option_path(args.asset_source, main_checkout))
+    inside = _git_run(["rev-parse", "--is-inside-work-tree"], source)
+    # A bare repository answers "false"; it has no files to check or to branch from.
+    if inside.returncode != 0 or inside.stdout.strip() != "true":
+        raise Refusal("source_not_git", {"path": str(source)})
+
+    configured = args.worktrees_root or os.environ.get(WORKTREES_ROOT_ENV)
+    worktrees_root = Path(os.path.abspath(anchor / configured)) if configured else main_checkout.parent / "worktrees"
+    return Location(main_checkout, source, asset_source, main_checkout.name, worktrees_root)
+
+
+def plan_document(
+    args: argparse.Namespace,
+    loc: Location,
+    *,
+    default_branch: str | None,
+    base_ref: str,
+    branch: str,
+    slug: str,
+    target: Path,
+    commands: list[list[str]],
+) -> dict:
+    """The plan as printed. Every mode fills the same keys, so the caller never has to probe for one."""
+    return {
+        "mode": args.mode,
+        "task": args.task,
+        "source": str(loc.source),
+        "asset_source": str(loc.asset_source),
+        "remote": args.remote,
+        "default_branch": default_branch,
+        "base_ref": base_ref,
+        "branch": branch,
+        "slug": slug,
+        "target": str(target),
+        "worktrees_root": os.path.realpath(loc.worktrees_root),
+        "commands": commands,
+        "copies": [],
+        "skipped_copies": [],
+        "symlink": None,
+        "executed": False,
+    }
+
+
+def plan_main(args: argparse.Namespace, loc: Location) -> dict:
+    source = loc.source
+    # The order is part of the contract: it decides which error a caller sees when several things are wrong, and
+    # the URL check has to come before anything that could contact the remote.
+    check_remote(source, args.remote)
+    default_branch = detect_default_branch(source, args.remote, args.default_branch)
+    check_source_clean(source)
+    check_source_branch(source, default_branch)
+    branch, slug = resolve_names(args.branch, args.slug, source)
+    check_branch_free(source, branch)
+    target = resolve_target(loc.worktrees_root, loc.repo_name, slug)
+
+    base_ref = f"{args.remote}/{default_branch}"
+    base = ["git", "-C", str(source)]
+    commands = [
+        [*base, "fetch", args.remote],
+        [*base, "pull", "--ff-only", args.remote, default_branch],
+        # --no-track: a feature branch whose upstream is origin/main is one bare `git push` away from main.
+        [*base, "worktree", "add", "--no-track", "-b", branch, str(target), base_ref],
+    ]
+    return plan_document(
+        args, loc, default_branch=default_branch, base_ref=base_ref, branch=branch, slug=slug, target=target,
+        commands=commands,
+    )
+
+
+def plan_unsupported(args: argparse.Namespace, loc: Location) -> dict:
+    raise Refusal("mode_unsupported", {"mode": args.mode})
+
+
+# One planner per mode: the shared checks above are reused, and only the mode's own sequence differs.
+_PLANNERS = {"main": plan_main, "baseline": plan_unsupported, "task": plan_unsupported}
+
+
+def build_plan(args: argparse.Namespace) -> dict:
+    if args.execute:
+        # Not built yet. Ignoring the flag would look like a plan that was carried out, so say so.
+        raise Refusal("option_unsupported", {"option": "--execute"})
+    return _PLANNERS[args.mode](args, locate(args))
+
+
+def cmd_create(args: argparse.Namespace) -> int:
+    return emit(build_plan(args))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="bootstrap_worktree.py", description="Worktree bootstrap helper for task-bootstrap."
@@ -215,12 +504,37 @@ def build_parser() -> argparse.ArgumentParser:
     delegation.add_argument("--runtime", required=True, choices=sorted(_DELEGATE_ORDER), help="Search this tool first.")
     delegation.add_argument("--cwd", help="Directory to start from (default: current directory).")
     delegation.set_defaults(handler=cmd_delegate)
+
+    creation = subcommands.add_parser(
+        "create", help="Plan the worktree for a new task; nothing is changed unless --execute is given."
+    )
+    creation.add_argument("--mode", choices=("main", "baseline", "task"), default="main")
+    creation.add_argument("--branch", required=True, help="Name of the branch the worktree is for.")
+    creation.add_argument("--slug", help="Directory name of the worktree (default: derived from the branch name).")
+    creation.add_argument("--task", help="Task description, copied into the plan unchanged.")
+    creation.add_argument("--source", help="Repository checkout to work from (default: the main checkout).")
+    creation.add_argument("--base-ref", help="Ref a new branch starts from (task mode).")
+    creation.add_argument("--remote", default="origin", help="Name of the remote (default: origin).")
+    creation.add_argument("--default-branch", help="Name of the remote's default branch, if it cannot be detected.")
+    creation.add_argument(
+        "--worktrees-root",
+        help=f"Directory that holds the worktrees (default: ${WORKTREES_ROOT_ENV}, then <main checkout>/../worktrees).",
+    )
+    creation.add_argument("--asset-source", help="Checkout that local files come from (default: the main checkout).")
+    creation.add_argument("--copy-venv", action="store_true", help="Also copy .venv/.")
+    creation.add_argument("--copy", action="append", default=[], metavar="PATH", help="Extra file to copy; repeatable.")
+    creation.add_argument("--execute", action="store_true", help="Carry out the plan instead of only printing it.")
+    creation.add_argument("--cwd", help="Directory to start from (default: current directory).")
+    creation.set_defaults(handler=cmd_create)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    return args.handler(args)
+    try:
+        return args.handler(args)
+    except Refusal as refusal:
+        return emit({"error": refusal.code, **refusal.detail}, refusal.exit_code)
 
 
 if __name__ == "__main__":

@@ -552,5 +552,394 @@ class HelperTests(TempProjectCase):
         self.assertEqual(json.loads(second), {"error": "x"})
 
 
+PLAN_KEYS = {
+    "mode", "task", "source", "asset_source", "remote", "default_branch", "base_ref", "branch", "slug", "target",
+    "worktrees_root", "commands", "copies", "skipped_copies", "symlink", "executed",
+}
+
+
+class CreateMainPlanTests(TempProjectCase):
+    """`create` in main mode without --execute: the shared checks and the plan they lead to."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.module = load_module(SCRIPT, "task_bootstrap_create_under_test")
+        self.worktrees = self.tmp / "worktrees"
+
+    def plan(self, *args: str, branch: str = "feat/x", cwd: Path | None = None) -> dict:
+        code, out = run_create(self.project, f"--branch={branch}", *args, cwd=cwd)
+        self.assertEqual(code, 0, out)
+        return out
+
+    def refusal(self, *args: str, expect: str, branch: str = "feat/x", cwd: Path | None = None) -> dict:
+        code, out = run_create(self.project, f"--branch={branch}", *args, cwd=cwd)
+        self.assertEqual((code, out.get("error")), (3, expect), out)
+        return out
+
+    def snapshot(self) -> dict:
+        return {
+            "refs": git_out(self.root, "for-each-ref"),
+            "worktrees": git_out(self.root, "worktree", "list"),
+            "head": git_out(self.root, "rev-parse", "HEAD"),
+            # Includes .git, so a fetch (FETCH_HEAD, new refs) would show up here too.
+            "paths": sorted(str(path) for path in self.tmp.rglob("*")),
+        }
+
+    def rename_default_branch(self, name: str) -> None:
+        """Rename main to `name` in the remote and in the main checkout, so the remote has no `main` any more."""
+        run_git(self.root, "push", "-q", "origin", f"main:{name}")
+        # The remote refuses to delete the branch its HEAD points to.
+        run_git(self.project.origin, "symbolic-ref", "HEAD", f"refs/heads/{name}")
+        run_git(self.project.origin, "update-ref", "-d", "refs/heads/main")
+        run_git(self.root, "branch", "-m", "main", name)
+
+    def test_main_plan_shape(self) -> None:
+        out = self.plan()
+        target = os.path.realpath(self.worktrees / "proj" / "feat-x")
+        self.assertEqual(set(out), PLAN_KEYS)
+        self.assertEqual(
+            (out["mode"], out["default_branch"], out["base_ref"], out["slug"], out["branch"], out["remote"]),
+            ("main", "main", "origin/main", "feat-x", "feat/x", "origin"),
+        )
+        self.assertEqual(os.path.realpath(out["target"]), target)
+        self.assertEqual(out["target"], target)
+        self.assertEqual(out["worktrees_root"], os.path.realpath(self.worktrees))
+        self.assertEqual((out["source"], out["asset_source"]), (str(self.root), str(self.root)))
+        self.assertIs(out["executed"], False)
+        self.assertEqual((out["copies"], out["skipped_copies"], out["symlink"], out["task"]), ([], [], None, None))
+        base = ["git", "-C", str(self.root)]
+        self.assertEqual(out["commands"], [
+            [*base, "fetch", "origin"],
+            [*base, "pull", "--ff-only", "origin", "main"],
+            [*base, "worktree", "add", "--no-track", "-b", "feat/x", target, "origin/main"],
+        ])
+
+    def test_dry_run_changes_nothing(self) -> None:
+        before = self.snapshot()
+        self.plan()
+        self.assertEqual(self.snapshot(), before)
+        self.assertFalse(self.worktrees.exists())
+
+    def test_default_source_is_main_checkout_from_linked_worktree(self) -> None:
+        linked = self.tmp / "linked"
+        run_git(self.root, "worktree", "add", "-q", "-b", "other", str(linked))
+        expected = os.path.realpath(self.worktrees / "proj" / "feat-x")
+        # Once as the process cwd and once through --cwd; the linked worktree sits on `other`, so it cannot be
+        # mistaken for a source that passes the branch check.
+        for out in (self.plan(cwd=linked), self.plan("--cwd", str(linked), cwd=self.tmp)):
+            self.assertEqual((out["source"], out["asset_source"]), (str(self.root), str(self.root)))
+            self.assertEqual((out["target"], out["worktrees_root"]), (expected, os.path.realpath(self.worktrees)))
+            self.assertEqual(out["commands"][0][:3], ["git", "-C", str(self.root)])
+
+    def test_source_option_overrides_source_only(self) -> None:
+        # A separate clone is a different repository, so if --source also chose the anchor, the repo name, the
+        # asset source and the target would follow it. (A linked worktree would lead back to the same main checkout.)
+        other = self.tmp / "other-clone"
+        run_git(self.tmp, "clone", "-q", self.project.origin.as_uri(), str(other))
+        out = self.plan("--source", str(other))
+        self.assertEqual(out["source"], str(other))
+        self.assertEqual(out["asset_source"], str(self.root))
+        self.assertEqual(out["target"], os.path.realpath(self.worktrees / "proj" / "feat-x"))
+        self.assertEqual(out["worktrees_root"], os.path.realpath(self.worktrees))
+        self.assertTrue(all(command[:3] == ["git", "-C", str(other)] for command in out["commands"]))
+
+    def test_untracked_files_do_not_make_source_dirty(self) -> None:
+        (self.root / ".env").write_text("TOKEN=1\n", encoding="utf-8")
+        self.assertEqual(self.plan()["source"], str(self.root))
+
+    def test_modified_tracked_file_refuses_source_dirty(self) -> None:
+        readme = self.root / "README.md"
+        readme.write_text("changed\n", encoding="utf-8")
+        out = self.refusal(expect="source_dirty")
+        self.assertEqual((out["entries"], out["changes"]), (1, [" M README.md"]))
+        run_git(self.root, "checkout", "-q", "--", "README.md")
+        self.plan()
+        # A staged new file is a change too, not just an edit of a tracked one.
+        (self.root / "new.txt").write_text("x\n", encoding="utf-8")
+        run_git(self.root, "add", "new.txt")
+        self.assertEqual(self.refusal(expect="source_dirty")["changes"], ["A  new.txt"])
+
+    def test_source_on_other_branch_refuses(self) -> None:
+        run_git(self.root, "checkout", "-q", "-b", "other")
+        out = self.refusal(expect="source_branch_mismatch")
+        self.assertEqual((out["current"], out["expected"], out["source"]), ("other", "main", str(self.root)))
+
+    def test_detached_head_refuses(self) -> None:
+        run_git(self.root, "checkout", "-q", "--detach")
+        out = self.refusal(expect="source_branch_mismatch")
+        self.assertEqual((out["current"], out["expected"]), (None, "main"))
+
+    def test_default_branch_from_origin_head(self) -> None:
+        # `main` still exists on the remote, so asking the remote (main/master) would pick the wrong branch here.
+        run_git(self.root, "checkout", "-q", "-b", "trunk")
+        run_git(self.root, "push", "-q", "origin", "trunk")
+        run_git(self.root, "remote", "set-head", "origin", "trunk")
+        # With this branch around, `symbolic-ref --short` would print "remotes/origin/trunk".
+        run_git(self.root, "branch", "origin/trunk")
+        out = self.plan()
+        self.assertEqual((out["default_branch"], out["base_ref"]), ("trunk", "origin/trunk"))
+        self.assertEqual(out["commands"][1][3:], ["pull", "--ff-only", "origin", "trunk"])
+
+    def test_default_branch_from_ls_remote_when_head_missing(self) -> None:
+        run_git(self.root, "remote", "set-head", "origin", "-d")
+        self.assertNotEqual(
+            run_git(self.root, "symbolic-ref", "-q", "refs/remotes/origin/HEAD", check=False).returncode, 0
+        )
+        self.assertEqual(self.plan()["default_branch"], "main")
+        # ls-remote patterns match the tail of a ref name, so `ls-remote origin main master` also returns
+        # feature/main. Only `master` is a real default-branch candidate here.
+        self.rename_default_branch("master")
+        run_git(self.root, "push", "-q", "origin", "master:refs/heads/feature/main")
+        self.assertEqual(self.plan()["default_branch"], "master")
+
+    def test_default_branch_unknown_when_main_and_master_both_exist(self) -> None:
+        run_git(self.root, "push", "-q", "origin", "main:master")
+        run_git(self.root, "remote", "set-head", "origin", "-d")
+        out = self.refusal(expect="default_branch_unknown")
+        self.assertEqual(out["found"], ["main", "master"])
+
+    def test_default_branch_override(self) -> None:
+        self.rename_default_branch("trunk")
+        run_git(self.root, "remote", "set-head", "origin", "-d")
+        self.assertEqual(self.refusal(expect="default_branch_unknown")["found"], [])
+        out = self.plan("--default-branch", "trunk")
+        self.assertEqual((out["default_branch"], out["base_ref"]), ("trunk", "origin/trunk"))
+        # The override still has to be a branch name.
+        invalid = self.refusal("--default-branch=bad..name", expect="branch_invalid")
+        self.assertEqual((invalid["branch"], invalid["option"]), ("bad..name", "--default-branch"))
+
+    def test_remote_url_allowlist(self) -> None:
+        allowed = self.module.remote_url_allowed
+        for url in ("https://h/o/r.git", "ssh://git@h/o/r.git", "git://h/r.git", "file:///tmp/r.git", "git@h:o/r.git",
+                    "alias:o/r.git"):
+            with self.subTest(allowed=url):
+                self.assertTrue(allowed(url))
+        for url in ("http://h/r.git", "ext::sh -c id", "fd::3", "/tmp/r.git", "-oProxyCommand=x", ""):
+            with self.subTest(rejected=url):
+                self.assertFalse(allowed(url))
+
+    def test_remote_name_must_exist(self) -> None:
+        # "-x" has a guard of its own: git would read it as an option.
+        for remote in ("nope", "-x"):
+            with self.subTest(remote=remote):
+                self.assertEqual(self.refusal(f"--remote={remote}", expect="remote_invalid")["remote"], remote)
+
+    def test_rejected_remote_url_refuses_before_any_network(self) -> None:
+        marker = self.tmp / "helper-ran"
+        allow = {"GIT_ALLOW_PROTOCOL": "ext"}
+        # Without origin/HEAD the default branch would be found through ls-remote, which would start the helper.
+        run_git(self.root, "remote", "set-head", "origin", "-d")
+        run_git(self.root, "remote", "set-url", "origin", f"ext::touch {marker}")
+        # Guard: with the protocol enabled, git really does run the helper, so a missing marker below means something.
+        subprocess.run(
+            ["git", "-C", str(self.root), "ls-remote", "origin"], env=isolated_env(allow), capture_output=True,
+            timeout=30,
+        )
+        self.assertTrue(marker.exists())
+        marker.unlink()
+        code, out = run_script("create", "--branch=feat/x", cwd=self.root, env={"HOME": str(self.home), **allow})
+        self.assertEqual((code, out), (3, {"error": "remote_url_rejected", "remote": "origin"}))
+        self.assertFalse(marker.exists())
+        # The plain form of the same helper URL, without the marker.
+        run_git(self.root, "remote", "set-url", "origin", "ext::sh -c true")
+        self.refusal(expect="remote_url_rejected")
+        # The URL may carry credentials, so it is never printed.
+        run_git(self.root, "remote", "set-url", "origin", "ftp://user:s3cret@h/r.git")
+        code, out = run_create(self.project, "--branch=feat/x")
+        self.assertEqual((code, out["error"]), (3, "remote_url_rejected"))
+        self.assertNotIn("s3cret", json.dumps(out))
+
+    def test_url_is_judged_after_insteadof_rewriting(self) -> None:
+        # The configured URL passes the allowlist as an scp-style alias, but git would fetch from the rewritten one.
+        run_git(self.root, "config", "url.http://rewritten/.insteadOf", "alias:")
+        run_git(self.root, "remote", "set-url", "origin", "alias:o/r.git")
+        self.assertTrue(self.module.remote_url_allowed("alias:o/r.git"))
+        self.refusal(expect="remote_url_rejected")
+
+    def test_branch_validation(self) -> None:
+        # Gives `@{-1}` something to expand to; without it the name would simply be unknown.
+        run_git(self.root, "checkout", "-q", "-b", "prev")
+        run_git(self.root, "checkout", "-q", "main")
+        self.assertEqual(git_out(self.root, "check-ref-format", "--branch", "@{-1}"), "prev")
+        for name in ("bad..name", "-x", "a b", "x.lock", "@{-1}"):
+            with self.subTest(branch=name):
+                self.assertEqual(self.refusal(branch=name, expect="branch_invalid")["branch"], name)
+
+    def test_slug_rules(self) -> None:
+        out = self.plan(branch="Fix/Login")
+        self.assertEqual((out["branch"], out["slug"]), ("Fix/Login", "fix-login"))
+        self.assertEqual(out["target"], os.path.realpath(self.worktrees / "proj" / "fix-login"))
+        for slug in ("../x", ".", "Upper"):
+            with self.subTest(slug=slug):
+                self.assertEqual(self.refusal(f"--slug={slug}", expect="slug_invalid")["slug"], slug)
+        # A branch name that cannot become a slug is not cleaned up; the user supplies the slug instead.
+        self.assertEqual(self.refusal(branch="feat/é", expect="slug_invalid")["slug"], "feat-é")
+        out = self.plan("--slug", "feat-e", branch="feat/é")
+        self.assertEqual((out["branch"], out["slug"]), ("feat/é", "feat-e"))
+
+    def test_branch_exists_refuses(self) -> None:
+        run_git(self.root, "branch", "feat/x")
+        self.assertEqual(self.refusal(expect="branch_exists")["branch"], "feat/x")
+
+    def test_target_exists_refuses(self) -> None:
+        (self.worktrees / "proj" / "feat-x").mkdir(parents=True)
+        out = self.refusal(expect="target_exists")
+        self.assertEqual(out["target"], os.path.realpath(self.worktrees / "proj" / "feat-x"))
+
+    def test_target_that_is_a_symlink_refuses(self) -> None:
+        link = self.worktrees / "proj" / "feat-x"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(link.parent / "missing")
+        # Dangling, but still something `worktree add` would trip over.
+        self.refusal(expect="target_exists")
+        link.unlink()
+        link.symlink_to(self.tmp / "elsewhere")
+        self.assertEqual(self.refusal(expect="target_outside_root")["worktrees_root"], os.path.realpath(self.worktrees))
+
+    def test_symlinked_worktrees_root_refuses(self) -> None:
+        elsewhere = self.tmp / "elsewhere"
+        elsewhere.mkdir()
+        self.worktrees.symlink_to(elsewhere)
+        self.assertEqual(self.refusal(expect="parent_symlink")["path"], str(self.worktrees))
+        # An explicit root gets the same treatment as the default one.
+        explicit = self.refusal(f"--worktrees-root={self.worktrees}", expect="parent_symlink")
+        self.assertEqual(explicit["path"], str(self.worktrees))
+        self.assertEqual(list(elsewhere.iterdir()), [])
+
+    def test_symlinked_repo_dir_refuses(self) -> None:
+        elsewhere = self.tmp / "elsewhere"
+        elsewhere.mkdir()
+        self.worktrees.mkdir()
+        (self.worktrees / "proj").symlink_to(elsewhere)
+        self.assertEqual(self.refusal(expect="parent_symlink")["path"], str(self.worktrees / "proj"))
+        self.assertEqual(list(elsewhere.iterdir()), [])
+
+    def test_worktrees_root_precedence(self) -> None:
+        from_env, from_flag = self.tmp / "from-env", self.tmp / "from-flag"
+        env = {"HOME": str(self.home), "TASK_BOOTSTRAP_WORKTREES_ROOT": str(from_env)}
+        code, out = run_script("create", "--branch=feat/x", cwd=self.root, env=env)
+        self.assertEqual(code, 0)
+        self.assertEqual((out["target"], out["worktrees_root"]), (str(from_env / "proj" / "feat-x"), str(from_env)))
+        code, out = run_script("create", "--branch=feat/x", f"--worktrees-root={from_flag}", cwd=self.root, env=env)
+        self.assertEqual((code, out["target"]), (0, str(from_flag / "proj" / "feat-x")))
+        # An empty variable counts as unset.
+        unset = {**env, "TASK_BOOTSTRAP_WORKTREES_ROOT": ""}
+        code, out = run_script("create", "--branch=feat/x", cwd=self.root, env=unset)
+        self.assertEqual((code, out["target"]), (0, os.path.realpath(self.worktrees / "proj" / "feat-x")))
+
+    def test_relative_paths_resolve_against_cwd_option(self) -> None:
+        out = self.plan("--cwd", str(self.root), "--worktrees-root", "rel-root", "--source", ".", cwd=self.tmp)
+        self.assertEqual(out["source"], str(self.root))
+        self.assertEqual(out["target"], str(self.root / "rel-root" / "proj" / "feat-x"))
+
+    def test_task_text_echoed_verbatim(self) -> None:
+        self.assertEqual(self.plan("--task", "fix login")["task"], "fix login")
+        # Spaces at the ends, CJK, quotes and shell metacharacters all have to survive unchanged.
+        text = ' fix login 修 "bug" \\ $HOME `x` '
+        self.assertEqual(self.plan("--task", text)["task"], text)
+
+    def test_outside_a_repository_refuses(self) -> None:
+        plain = self.tmp / "plain"
+        plain.mkdir()
+        code, out = run_script("create", "--branch=feat/x", cwd=plain, env={"HOME": str(self.home)})
+        self.assertEqual((code, out["error"]), (3, "source_not_git"))
+
+    def test_bare_repository_cannot_be_the_source(self) -> None:
+        # The first entry of a bare repository's worktree list is the bare repository itself.
+        linked = self.tmp / "from-bare"
+        run_git(self.project.origin, "worktree", "add", "-q", str(linked), "main")
+        code, out = run_script("create", "--branch=feat/x", cwd=linked, env={"HOME": str(self.home)})
+        self.assertEqual((code, out["error"]), (3, "source_not_git"))
+
+    def test_missing_directories_exit_2(self) -> None:
+        missing = self.tmp / "nope"
+        for option in ("--cwd", "--source", "--asset-source"):
+            with self.subTest(option=option):
+                # The process cwd is somewhere that exists, so only the option can be what is wrong.
+                code, out = run_create(self.project, "--branch=feat/x", option, str(missing))
+                self.assertEqual((code, out), (2, {"error": "not_found", "path": str(missing)}))
+
+    def test_source_that_is_not_a_repository_refuses(self) -> None:
+        plain = self.tmp / "plain"
+        plain.mkdir()
+        self.assertEqual(self.refusal("--source", str(plain), expect="source_not_git")["path"], str(plain))
+
+    def test_unbuilt_options_are_refused_not_ignored(self) -> None:
+        before = self.snapshot()
+        for args, expect in ((("--mode", "baseline"), "mode_unsupported"), (("--mode", "task"), "mode_unsupported"),
+                             (("--execute",), "option_unsupported")):
+            with self.subTest(args=args):
+                self.refusal(*args, expect=expect)
+        self.assertEqual(self.snapshot(), before)
+
+    def test_usage_errors_exit_2(self) -> None:
+        for args in ([], ["--branch=feat/x", "--mode", "elsewhere"]):
+            with self.subTest(args=args):
+                result = subprocess.run(
+                    [sys.executable, str(SCRIPT), "create", *args], cwd=str(self.root),
+                    env=isolated_env({"HOME": str(self.home)}), capture_output=True, text=True, timeout=30,
+                )
+                self.assertEqual((result.returncode, result.stdout), (2, ""))
+                self.assertRegex(result.stderr, "--branch|--mode")
+
+
+class CreateHelperTests(unittest.TestCase):
+    """The pure pieces of `create` called in-process: many inputs, no repository, no CLI run per input."""
+
+    def setUp(self) -> None:
+        self.module = load_module(SCRIPT, "task_bootstrap_create_helpers_under_test")
+        # git() reads os.environ, so give it the same isolated environment the CLI tests use.
+        patcher = mock.patch.dict(os.environ, isolated_env(), clear=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        # check-ref-format needs no repository.
+        self.cwd = Path(temporary.name)
+
+    def refusal_code(self, call, *args) -> str:
+        with self.assertRaises(self.module.Refusal) as caught:
+            call(*args)
+        return caught.exception.code
+
+    def test_remote_url_allowlist_edges(self) -> None:
+        allowed = self.module.remote_url_allowed
+        for url in ("https://h:8443/o/r", "ssh://git@h:22/o/r.git", "git@h:/abs/r.git", "file://localhost/r.git",
+                    "user@h.example:o/r", "h:o"):
+            with self.subTest(allowed=url):
+                self.assertTrue(allowed(url))
+        for url in (
+            "ext::touch/x", "ftp://h/r.git", "HTTPS://h/r.git", "https://", "https:///r.git",
+            "ssh://-oProxyCommand=x/r", "ssh://git@-h/r", "https://h/o r.git", " https://h/r.git", "https://h/r.git\n",
+            "a/b:c", "h:", "h:two words", "-", "user@-h:r", "relative/path", "../r.git", "h:\x00", "[::1]:r.git",
+        ):
+            with self.subTest(rejected=url):
+                self.assertFalse(allowed(url))
+
+    def test_derive_and_validate_slug(self) -> None:
+        derive, validate = self.module.derive_slug, self.module.validate_slug
+        self.assertEqual(derive("Fix/Login"), "fix-login")
+        self.assertEqual(derive("a/b/C"), "a-b-c")
+        # lower() would turn the Kelvin sign into "k"; the name must be refused, not rewritten.
+        self.assertEqual(derive("feat/\u212a"), "feat-\u212a")
+        for slug in ("fix-login", "a", "0", "v1.2_x-y", "my.slug_1"):
+            with self.subTest(valid=slug):
+                self.assertEqual(validate(slug), slug)
+        for slug in ("", ".", "..", "../x", "a/b", "Upper", "ok\n", "-x", ".hidden", "_x",
+                     "feat-é","feat-\u212a", "a b"):
+            with self.subTest(invalid=slug):
+                self.assertEqual(self.refusal_code(validate, slug), "slug_invalid")
+
+    def test_validate_branch_edges(self) -> None:
+        validate = self.module.validate_branch
+        for name in ("main", "feat/x", "Fix/Login", "release-1.2", "feat/é", "a.b"):
+            with self.subTest(valid=name):
+                self.assertEqual(validate(name, self.cwd), name)
+        for name in ("", "-x", "--help", "bad..name", "a b", "x.lock", "@{-1}", "feat/x/", "a~b", "a:b", "HEAD",
+                     "a\nb"):
+            with self.subTest(invalid=name):
+                self.assertEqual(self.refusal_code(validate, name, self.cwd), "branch_invalid")
+
+
 if __name__ == "__main__":
     unittest.main()
