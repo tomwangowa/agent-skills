@@ -5,7 +5,9 @@ packages passed bounded native acceptance on macOS with Claude Code CLI 2.1.300
 and Codex CLI 0.162.1 using a unique local marketplace and disposable fixtures.
 session-preferences and work-journal changed after that run (d738ec4 changed
 runtime migration path matching; a later change removed npm's hidden lockfile
-from the work-journal server bundle). Their recorded bindings are stale, so
+from the work-journal server bundle). repo-workflow (session-start added) and
+skill-toolbox (package index) also changed after that run. The recorded
+bindings for all four packages are stale, so
 `check_plugin_release.py --require-acceptance` fails. The checker requires one
 evidence record per surface that binds all seven packages, so passing it again
 needs a new seven-package native acceptance run; the release version bump

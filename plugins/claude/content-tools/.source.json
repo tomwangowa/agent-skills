@@ -1,5 +1,5 @@
 {
-  "catalog_sha256": "3c901cb49798aadeb8661bff67cd6f8ae56899fed271ab68a42838328b7af871",
+  "catalog_sha256": "9f49e4bca50f4b314fc52c478dc86ac367e70da9e6dbfa0d08cda72363bf6d62",
   "contracts_sha256": "75c99ca57e6f47a514dc1cf8c2d2a14c0d93b93368905150b86fb4410be9c3f7",
   "package": {
     "dependencies": [
@@ -78,7 +78,7 @@
     "version": "0.1.0"
   },
   "resources": {
-    "docs/plugins/installation.md": "a1fb9980d852d7c5e3a5721eb01920228cdb6801b52e525b508f70e3593cf48b",
+    "docs/plugins/installation.md": "e91ace14433d300423c23d57d1942fae8a2b191322067846ef91d03b7376a0d5",
     "docs/plugins/migration.md": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16",
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
     "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",

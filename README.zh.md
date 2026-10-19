@@ -18,7 +18,7 @@
 
 ## CLI Plugin 套件
 
-七包定義涵蓋 38 個來源 skills，支援 Claude Code CLI 與 Codex CLI。2026-10-15 的原生驗收在 macOS 隔離 fixture 上，使用 Claude Code CLI 2.1.300 與 Codex CLI 0.162.1 涵蓋七包；`session-preferences` 與 `work-journal` 在那之後有修改，發布前需要重新驗收。2026-10-17 另以 Claude Code CLI 2.1.302 驗證 GitHub marketplace 安裝與更新檢查；Codex CLI 的遠端 Git marketplace 尚未測試，發布也尚未核准。詳見[驗收紀錄](docs/validation/skill-plugins/acceptance.json)與 [plugin 文件](docs/plugins/README.md)。來源生命週期保留；standalone hooks 與 journal 工具也需要 bundled runtime 和下方的外部共用設定。
+七包定義涵蓋 39 個來源 skills，支援 Claude Code CLI 與 Codex CLI。2026-10-15 的原生驗收在 macOS 隔離 fixture 上，使用 Claude Code CLI 2.1.300 與 Codex CLI 0.162.1 涵蓋七包；`session-preferences`、`work-journal`、`repo-workflow` 與 `skill-toolbox` 在那之後有修改，發布前需要重新驗收。2026-10-17 另以 Claude Code CLI 2.1.302 驗證 GitHub marketplace 安裝與更新檢查；Codex CLI 的遠端 Git marketplace 尚未測試，發布也尚未核准。詳見[驗收紀錄](docs/validation/skill-plugins/acceptance.json)與 [plugin 文件](docs/plugins/README.md)。來源生命週期保留；standalone hooks 與 journal 工具也需要 bundled runtime 和下方的外部共用設定。
 
 ## Skills Catalog
 

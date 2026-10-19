@@ -1,5 +1,5 @@
 {
-  "catalog_sha256": "3c901cb49798aadeb8661bff67cd6f8ae56899fed271ab68a42838328b7af871",
+  "catalog_sha256": "9f49e4bca50f4b314fc52c478dc86ac367e70da9e6dbfa0d08cda72363bf6d62",
   "contracts_sha256": "75c99ca57e6f47a514dc1cf8c2d2a14c0d93b93368905150b86fb4410be9c3f7",
   "package": {
     "dependencies": [
@@ -59,7 +59,7 @@
     "claude-workflow-designer/SKILL.md": "7223029f9c2cf8dc8ad3d2e2f3fbfb4f2c9033ad80484e2f3c6b9d8f38ba6c23",
     "claude-workflow-designer/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
     "claude-workflow-designer/references/successful-patterns.md": "5709640b5bd463ac6ba84787088c5461b638ea1977cd701e2064dfec3ef4d391",
-    "docs/plugins/installation.md": "a1fb9980d852d7c5e3a5721eb01920228cdb6801b52e525b508f70e3593cf48b",
+    "docs/plugins/installation.md": "e91ace14433d300423c23d57d1942fae8a2b191322067846ef91d03b7376a0d5",
     "docs/plugins/migration.md": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16",
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
     "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",
@@ -73,7 +73,7 @@
     "skill-auditor/scripts/audit_skill.sh": "cdf936f91c69c9429d605700b1798f2e7ee058b4a06f784e850661286b385ed9",
     "skill-router/SKILL.md": "6480a4ec73e72f0f4b35a08df39d1c7e4825d0b19ecb1963642e164e77e84868",
     "skill-router/agents/openai.yaml": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "skill-router/skill-registry.yaml": "a9661acafb3b5db0b28909db563dbb70ef4538062ef8b7b9161f6f39588d5f3f",
+    "skill-router/skill-registry.yaml": "c32d36bcdd4857fb210eddd0ca88e12f631a969b7587fd85f9f01538ca2c5884",
     "skill-sync/SKILL.md": "56a0dda220cdb11b9a787747ba3bc4e4e97250de04fa1c7d0beb247c861d8356",
     "skill-sync/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
     "skill-sync/scripts/sync.sh": "91dadec06f2b0bbedf220d559fc28e45dde2e7dd6699b5c28c5d93097313148a"

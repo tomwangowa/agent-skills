@@ -171,6 +171,21 @@ class BuildTests(unittest.TestCase):
             for old in stale + ['完成原生驗收']:
                 self.assertNotIn(old, text, path)
 
+    def test_docs_name_repo_workflow_for_reacceptance(self):
+        # Adding session-start changed repo-workflow, so its recorded native acceptance binding is stale.
+        self.assertIn('repo-workflow and skill-toolbox changed afterward', (ROOT / 'README.md').read_text())
+        for path in ('README.zh.md', 'docs/plugins/README.md', 'docs/plugins/installation.md'):
+            self.assertIn('`repo-workflow` 與 `skill-toolbox` 在那之後有修改', (ROOT / path).read_text(), path)
+        # Collapse line wraps so the check does not depend on how the paragraph is folded.
+        validation = ' '.join((ROOT / 'docs/validation/skill-plugins/README.md').read_text().split())
+        self.assertIn('repo-workflow (session-start added) and skill-toolbox (package index) also changed after that run',
+                      validation)
+        readmes = sorted((ROOT / 'plugins').glob('*/*/README.md'))
+        self.assertEqual(len(readmes), 14)
+        for readme in readmes:
+            self.assertIn('repo-workflow and skill-toolbox changed after that run', readme.read_text(),
+                          str(readme.relative_to(ROOT)))
+
 
 if __name__ == '__main__':
     unittest.main()

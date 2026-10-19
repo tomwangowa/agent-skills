@@ -6,11 +6,11 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "90704ce6b40489a675c67f10b44d7ef1651c733c78e348ebc005c14564cc51bb"
+      "sha256": "3cd3d8fb24b4dd7bdd25237c880541ee8da2a6c283a2ff5a29cde8db3f4fe836"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "99f1d3ec52fda367dd163bf7ec0c401b45a73e385f31c9fc3a98d6e5969512a5"
+      "sha256": "11ca25febbb401d1eb26dfb0ef72c5673474db36eb478ee23e5f7036ebb224d4"
     },
     "hooks/hooks.json": {
       "mode": 420,
@@ -26,7 +26,7 @@
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "a1fb9980d852d7c5e3a5721eb01920228cdb6801b52e525b508f70e3593cf48b"
+      "sha256": "e91ace14433d300423c23d57d1942fae8a2b191322067846ef91d03b7376a0d5"
     },
     "migration.md": {
       "mode": 420,
@@ -42,7 +42,7 @@
     },
     "skills/package-index.json": {
       "mode": 420,
-      "sha256": "3a07ddaf80f2a4c58e9b5410ab0199ec5bec575c0b4b801106c2b43cdfcb62d8"
+      "sha256": "d1024d88ab7c3b7aed6873fb0738cb672056c41230a1b3c4e8063932bec6db98"
     },
     "skills/skill-auditor/README.md": {
       "mode": 420,
