@@ -4,6 +4,7 @@
 Every subcommand prints one JSON object on stdout. `delegate` only reads: it locates a repo-local copy of this skill.
 `create` works out where a new task's worktree goes, which git commands would make it and which local files would be
 copied into it (paths and sizes only, never contents); a refused plan is `{"error": CODE, ...}` with exit code 3.
+With `--execute` it then carries the plan out; a failure after the worktree exists also reports it under `partial`.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ import json
 import os
 import posixpath
 import re
+import shutil
 import stat
 import string
 import subprocess
@@ -787,14 +789,212 @@ _PLANNERS = {"main": plan_main, "baseline": plan_baseline, "task": plan_task}
 
 
 def build_plan(args: argparse.Namespace) -> dict:
-    if args.execute:
-        # Not built yet. Ignoring the flag would look like a plan that was carried out, so say so.
-        raise Refusal("option_unsupported", {"option": "--execute"})
     return _PLANNERS[args.mode](args, locate(args))
 
 
+# The only commands a plan may hold, and the refusal each one's failure becomes.
+_COMMAND_FAILURES = {"fetch": "fetch_failed", "pull": "pull_failed", "worktree": "worktree_add_failed"}
+_NETWORK_COMMANDS = frozenset({"fetch", "pull"})
+_FAILURE_DETAIL_CHARS = 500
+# scheme://userinfo@ — greedy up to the last "@" before the path, so a password containing "@" goes as a whole.
+_URL_USERINFO = re.compile(r"([A-Za-z][A-Za-z0-9+.-]*://)[^\s/]*@")
+
+
+def url_userinfo(url: str) -> str | None:
+    """The `user[:password]` part of a URL with a scheme; None when it has none. scp-style users are not secrets."""
+    scheme, separator, rest = url.partition("://")
+    if not separator or not scheme:
+        return None
+    userinfo, at, _ = rest.split("/", 1)[0].rpartition("@")
+    return userinfo if at and userinfo else None
+
+
+def redact_credentials(text: str, userinfo: str | None) -> str:
+    """`text` with the userinfo of every URL, and the remote's own userinfo wherever it precedes a host, replaced."""
+    text = _URL_USERINFO.sub(r"\1***@", text)
+    # Some messages name the host without the scheme ("unable to look up user:token@host"), out of the pattern's reach.
+    return text.replace(f"{userinfo}@", "***@") if userinfo else text
+
+
+def _execution_steps(plan: dict) -> list[tuple[list[str], Path]]:
+    """(arguments for git(), directory) for every command; a plan this script could not have made is refused."""
+    steps: list[tuple[list[str], Path]] = []
+    commands = plan.get("commands")
+    if not isinstance(commands, list):
+        raise Refusal("plan_invalid", {"reason": "commands"})
+    for index, command in enumerate(commands):
+        # The printed form starts with "git -C <dir>". git() supplies both itself, together with the scrubbed
+        # environment and the options the printed form leaves out.
+        well_formed = (
+            isinstance(command, list)
+            and len(command) >= 4
+            and all(isinstance(part, str) for part in command)
+            and command[:2] == ["git", "-C"]
+            and command[3] in _COMMAND_FAILURES
+        )
+        if not well_formed:
+            raise Refusal("plan_invalid", {"command": index})
+        args = command[3:]
+        last = index == len(commands) - 1
+        # A pull that may merge or rebase is a write this tool does not make; `worktree add` is always the last step,
+        # because everything after it is reported as a partial result.
+        if (args[0] == "pull" and "--ff-only" not in args) or ((args[0] == "worktree") != last) or (
+            args[0] == "worktree" and args[1:2] != ["add"]
+        ):
+            raise Refusal("plan_invalid", {"command": index})
+        steps.append((args, Path(command[2])))
+    if not steps:
+        raise Refusal("plan_invalid", {"reason": "commands"})
+    return steps
+
+
+def _remote_userinfo(plan: dict, steps: list[tuple[list[str], Path]]) -> str | None:
+    """The userinfo of the remote that the plan's fetch and pull talk to, so their errors can be cleaned of it."""
+    sources = [cwd for args, cwd in steps if args[0] in _NETWORK_COMMANDS]
+    if not sources:
+        return None
+    result = _git_run(["remote", "get-url", str(plan["remote"])], sources[0])
+    return url_userinfo(result.stdout.strip()) if result.returncode == 0 else None
+
+
+def _run_steps(plan: dict) -> None:
+    steps = _execution_steps(plan)
+    userinfo = _remote_userinfo(plan, steps)
+    for args, cwd in steps:
+        timeout = NETWORK_TIMEOUT_SECONDS if args[0] in _NETWORK_COMMANDS else GIT_TIMEOUT_SECONDS
+        result = git(args, cwd, timeout=timeout)
+        if result is None or result.returncode != 0:
+            # No retry: a second attempt could act on a remote or a source that changed in between.
+            detail = "timeout" if result is None else redact_credentials(result.stderr, userinfo)
+            refusal = Refusal(_COMMAND_FAILURES[args[0]], {"detail": detail[:_FAILURE_DETAIL_CHARS]})
+            # git cleans up after its own failures, but not after being stopped by the timeout halfway through a
+            # checkout. The target did not exist when the plan was made, so whatever is there now came from this run.
+            if args[0] == "worktree" and os.path.lexists(plan["target"]):
+                refusal.detail["partial"] = {"target": str(plan["target"]), "branch": plan["branch"]}
+            raise refusal
+
+
+def check_target_unstaged(target: Path) -> None:
+    # A checkout hook can stage files, and the user would then commit something they never chose.
+    lines = _git_text(["status", "--porcelain", "--untracked-files=no"], target).splitlines()
+    # The first column is the index; " " means unchanged there and "?" untracked.
+    staged = [line for line in lines if line[:1] not in (" ", "?")]
+    if staged:
+        raise Refusal("target_has_staged", {"target": str(target), "entries": len(staged), "changes": staged[:10]})
+
+
+def recheck_local_files(plan: dict, root: Path) -> None:
+    """Planning looked at the asset source before the fetch and the worktree; anything may have changed since."""
+    for entry in plan["copies"]:
+        relative = normalize_copy_path(entry["path"])
+        reason, _ = _copy_problem(root, relative, relative, directory=entry["type"] == "dir")
+        if reason is not None:
+            raise _copy_rejected(reason, entry["path"])
+    if plan["symlink"]["action"] == "create":
+        now = plan_skills_link(root)
+        if now["action"] != "create":
+            raise _copy_rejected(now["reason"], SKILLS_LINK)
+
+
+def _destination_conflict(target: Path, relative: str) -> str | None:
+    """The first part of `relative` that is already in the way in `target`, or None."""
+    parts = relative.split("/")
+    for depth in range(1, len(parts)):
+        prefix = "/".join(parts[:depth])
+        try:
+            info = os.lstat(target / prefix)
+        except FileNotFoundError:
+            return None
+        # A tracked link here would send the copy somewhere outside the worktree.
+        if not stat.S_ISDIR(info.st_mode):
+            return prefix
+    return relative if os.path.lexists(target / relative) else None
+
+
+def _copy_file(source: Path, destination: Path) -> None:
+    # O_NOFOLLOW: the re-check saw a regular file, and a link swapped in after it must not be read through.
+    reader = os.open(source, os.O_RDONLY | os.O_NOFOLLOW)
+    with open(reader, "rb") as src:
+        # O_EXCL: something that appeared at the destination since the check is reported, never overwritten. 0o600
+        # until copystat sets the real mode, so a secret is never readable by others in between.
+        writer = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        with open(writer, "wb") as dst:
+            shutil.copyfileobj(src, dst)
+    shutil.copystat(source, destination, follow_symlinks=False)
+
+
+def copy_local_files(plan: dict, root: Path, target: Path) -> None:
+    copies = plan["copies"]
+    # All destinations first: one that is in the way must stop the copy before anything is written.
+    for entry in copies:
+        conflict = _destination_conflict(target, entry["path"])
+        if conflict is not None:
+            raise Refusal("copy_target_exists", {"path": entry["path"], "existing": conflict})
+    for entry in copies:
+        relative = entry["path"]
+        destination = target / relative
+        try:
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if entry["type"] == "dir":
+                # symlinks=True: a virtualenv's links are copied as links, never as what they point to.
+                shutil.copytree(root / relative, destination, symlinks=True)
+            else:
+                _copy_file(root / relative, destination)
+        except FileExistsError:
+            raise Refusal("copy_target_exists", {"path": relative, "existing": relative}) from None
+        except OSError as error:
+            # Only the path and the reason: an OSError can quote a file name, but never what is inside.
+            raise Refusal("copy_failed", {"path": relative, "reason": error.strerror or type(error).__name__}) from None
+
+
+def create_skills_link(plan: dict, target: Path) -> None:
+    if plan["symlink"]["action"] != "create":
+        return
+    link = target / SKILLS_LINK
+    # Whatever the new branch already has at .codex or at the link wins; the link is a convenience, not a requirement.
+    # A tracked .codex that is a link or a file is left alone too: following the link would write outside the worktree.
+    try:
+        if not stat.S_ISDIR(os.lstat(link.parent).st_mode):
+            return
+    except FileNotFoundError:
+        pass
+    try:
+        link.parent.mkdir(exist_ok=True)
+        if not os.path.lexists(link):
+            os.symlink(SKILLS_LINK_TARGET, link)
+    except OSError as error:
+        raise Refusal("copy_failed", {"path": SKILLS_LINK, "reason": error.strerror or type(error).__name__}) from None
+
+
+def execute_plan(plan: dict) -> dict:
+    """Carry out a plan made by build_plan: its commands, then the local files. Never retries, forces or cleans up.
+
+    Every check that can refuse without touching anything ran while the plan was built. A failure after
+    `worktree add` leaves the worktree and its branch as they are and says so in `partial`.
+    """
+    _run_steps(plan)
+    target = Path(plan["target"])
+    partial = {"target": str(target), "branch": plan["branch"]}
+    try:
+        check_target_unstaged(target)
+        root = Path(os.path.realpath(plan["asset_source"]))
+        recheck_local_files(plan, root)
+        copy_local_files(plan, root, target)
+        create_skills_link(plan, target)
+        head = _git_text(["rev-parse", "HEAD"], target)
+    except Refusal as refusal:
+        refusal.detail["partial"] = partial
+        raise
+    except OSError as error:
+        # Anything the steps above did not turn into a refusal themselves; a traceback would lose the partial report.
+        raise Refusal("copy_failed", {"reason": error.strerror or type(error).__name__, "partial": partial}) from None
+    return {**plan, "executed": True, "head": head}
+
+
 def cmd_create(args: argparse.Namespace) -> int:
-    return emit(build_plan(args))
+    # The plan is built whole first, so a plan that would be refused is refused the same way with --execute.
+    plan = build_plan(args)
+    return emit(execute_plan(plan) if args.execute else plan)
 
 
 def build_parser() -> argparse.ArgumentParser:

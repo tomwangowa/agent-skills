@@ -10,6 +10,7 @@ import io
 import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -917,13 +918,6 @@ class CreateMainPlanTests(CreateCase):
         plain.mkdir()
         self.assertEqual(self.refusal("--source", str(plain), expect="source_not_git")["path"], str(plain))
 
-    def test_unbuilt_options_are_refused_not_ignored(self) -> None:
-        before = self.snapshot()
-        for mode in ("main", "baseline", "task"):
-            with self.subTest(mode=mode):
-                self.refusal("--mode", mode, "--execute", expect="option_unsupported")
-        self.assertEqual(self.snapshot(), before)
-
     def test_usage_errors_exit_2(self) -> None:
         for args in ([], ["--branch=feat/x", "--mode", "elsewhere"]):
             with self.subTest(args=args):
@@ -1536,6 +1530,377 @@ class LocalFilesTests(CreateCase):
         self.assertEqual(planned, [".env", ".venv", "extra.txt"])
 
 
+# Every git subcommand the script may run in any mode. fetch, pull --ff-only and worktree add are its only writes.
+ALLOWED_GIT_SUBCOMMANDS = frozenset({
+    "rev-parse", "status", "symbolic-ref", "ls-files", "ls-remote", "remote", "check-ref-format", "fetch", "pull",
+    "worktree", "for-each-ref", "show-ref", "cat-file",
+})
+
+
+def git_subcommand(argv: list[str]) -> str | None:
+    """The subcommand of a logged git call: the first word after the global `-C <dir>` and `-c <name=value>`."""
+    index = 0
+    while index < len(argv):
+        if argv[index] in ("-C", "-c"):
+            index += 2
+        elif argv[index].startswith("-"):
+            index += 1
+        else:
+            return argv[index]
+    return None
+
+
+class ExecuteTests(CreateCase):
+    """`create --execute`: the plan carried out against a local bare remote, and every way it can stop."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.target = self.worktrees / "proj" / "feat-x"
+        self.log = self.tmp / "git-calls.log"
+
+    def shim_env(self) -> dict:
+        """Environment whose `git` appends its argv to self.log and then runs the real git."""
+        real_git = shutil.which("git")
+        bin_dir = self.tmp / "shim-bin"
+        bin_dir.mkdir()
+        shim = bin_dir / "git"
+        # Unit and record separators: an argument may hold spaces or line breaks, but not these.
+        shim.write_text(
+            "#!/bin/sh\n"
+            f"for arg in \"$@\"; do printf '%s\\037' \"$arg\"; done >> '{self.log}'\n"
+            f"printf '\\036' >> '{self.log}'\n"
+            f"exec '{real_git}' \"$@\"\n",
+            encoding="utf-8",
+        )
+        shim.chmod(0o755)
+        return {"PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}"}
+
+    def logged_calls(self) -> list[list[str]]:
+        text = self.log.read_text(encoding="utf-8") if self.log.exists() else ""
+        return [record.split("\x1f")[:-1] for record in text.split("\x1e") if record]
+
+    def execute(self, *args: str, branch: str = "feat/x", cwd: Path | None = None, env: dict | None = None):
+        return run_script(
+            "create", f"--branch={branch}", "--execute", *args, cwd=cwd or self.root,
+            env={"HOME": str(self.home), **(env or {})},
+        )
+
+    def executed(self, *args: str, **options) -> dict:
+        code, out = self.execute(*args, **options)
+        self.assertEqual(code, 0, out)
+        self.assertIs(out["executed"], True)
+        return out
+
+    def refused(self, *args: str, expect: str, **options) -> dict:
+        code, out = self.execute(*args, **options)
+        self.assertEqual((code, out.get("error")), (3, expect), out)
+        return out
+
+    def raw_execute(self, *args: str) -> subprocess.CompletedProcess:
+        """The CLI with stderr kept, for the tests that check what it never prints."""
+        return subprocess.run(
+            [sys.executable, str(SCRIPT), "create", "--branch=feat/x", "--execute", *args], cwd=str(self.root),
+            env=isolated_env({"HOME": str(self.home)}), capture_output=True, text=True, timeout=60,
+        )
+
+    def push_from_other_clone(self) -> str:
+        """Put a new commit on the remote's main that the main checkout has not fetched yet."""
+        other = self.unrelated_repository()
+        run_git(other, "commit", "-q", "--allow-empty", "-m", "upstream work")
+        run_git(other, "push", "-q", "origin", "main")
+        return git_out(other, "rev-parse", "HEAD")
+
+    def linked_worktree_on(self, branch: str, files: dict[str, str] | None = None) -> Path:
+        """A linked worktree on a new `branch`, one commit ahead of main, that tracks `files`."""
+        linked = self.tmp / "linked"
+        run_git(self.root, "worktree", "add", "-q", "-b", branch, str(linked))
+        for relative, text in (files or {}).items():
+            (linked / relative).parent.mkdir(parents=True, exist_ok=True)
+            (linked / relative).write_text(text, encoding="utf-8")
+            run_git(linked, "add", relative)
+        run_git(linked, "commit", "-q", "--allow-empty", "-m", "work on the branch")
+        return linked
+
+    def post_checkout_hook(self, body: str) -> None:
+        """A hook in the source repository. `worktree add` runs it inside the new worktree, after checkout."""
+        hook = self.root / ".git" / "hooks" / "post-checkout"
+        # git exports repository variables to hooks; without them the hook's own git calls find the new worktree.
+        hook.write_text(f"#!/bin/sh\nunset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE\n{body}", encoding="utf-8")
+        hook.chmod(0o755)
+
+    def branch_exists(self, branch: str, repo: Path | None = None) -> bool:
+        result = run_git(repo or self.root, "rev-parse", "--verify", "--quiet", f"refs/heads/{branch}", check=False)
+        return result.returncode == 0
+
+    def is_worktree(self, target: Path, repo: Path | None = None) -> bool:
+        return f"worktree {target}" in git_out(repo or self.root, "worktree", "list", "--porcelain").splitlines()
+
+    def assert_partial(self, out: dict, target: Path, branch: str) -> None:
+        self.assertEqual(out["partial"], {"target": str(target), "branch": branch})
+        # Nothing is cleaned up: the worktree and its branch stay for the user to look at.
+        self.assertTrue(self.is_worktree(target))
+        self.assertTrue(self.branch_exists(branch))
+
+    def assert_nothing_created(self, out: dict, target: Path, branch: str, repo: Path | None = None) -> None:
+        self.assertNotIn("partial", out)
+        self.assertFalse(os.path.lexists(target))
+        self.assertFalse(self.is_worktree(target, repo))
+        self.assertFalse(self.branch_exists(branch, repo))
+
+    def test_main_execute_creates_worktree_on_new_branch(self) -> None:
+        new_tip = self.push_from_other_clone()
+        # Guard: the main checkout does not have the new commit yet, so only the fetch and the pull can bring it.
+        self.assertNotEqual(git_out(self.root, "rev-parse", "main"), new_tip)
+        out = self.executed()
+        self.assertEqual(set(out), PLAN_KEYS | {"head"})
+        self.assertEqual(out["target"], str(self.target))
+        self.assertTrue(self.is_worktree(self.target))
+        self.assertEqual(git_out(self.target, "symbolic-ref", "--short", "HEAD"), "feat/x")
+        self.assertEqual(git_out(self.target, "rev-parse", "HEAD"), git_out(self.root, "rev-parse", "origin/main"))
+        self.assertEqual(git_out(self.target, "rev-parse", "HEAD"), new_tip)
+        self.assertEqual(out["head"], git_out(self.target, "rev-parse", "HEAD"))
+        # The pull fast-forwarded the source's own main as well.
+        self.assertEqual(git_out(self.root, "rev-parse", "main"), new_tip)
+
+    def test_new_branch_has_no_upstream(self) -> None:
+        self.executed()
+        result = run_git(self.root, "config", "branch.feat/x.remote", check=False)
+        self.assertEqual((result.returncode, result.stdout), (1, ""))
+
+    def test_baseline_execute_tracks_remote_branch(self) -> None:
+        tip = git_out(self.root, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "release work")
+        run_git(self.root, "push", "-q", "origin", f"{tip}:refs/heads/release/1.0")
+        # The push wrote the remote-tracking ref; without it only the plan's fetch can make it.
+        run_git(self.root, "update-ref", "-d", "refs/remotes/origin/release/1.0")
+        out = self.executed("--mode", "baseline", branch="release/1.0")
+        target = self.worktrees / "proj" / "release-1.0"
+        self.assertEqual(git_out(target, "rev-parse", "HEAD"), tip)
+        self.assertEqual(out["head"], tip)
+        self.assertEqual(git_out(self.root, "config", "branch.release/1.0.remote"), "origin")
+        self.assertEqual(git_out(self.root, "config", "branch.release/1.0.merge"), "refs/heads/release/1.0")
+
+    def test_baseline_on_single_branch_clone_fails_without_leftovers(self) -> None:
+        run_git(self.root, "push", "-q", "origin", "main:refs/heads/release/1.0")
+        narrow = self.tmp / "narrow"
+        run_git(
+            self.tmp, "clone", "-q", "--single-branch", "--branch", "main", self.project.origin.as_uri(), str(narrow)
+        )
+        target = self.worktrees / "narrow" / "release-1.0"
+        code, out = self.execute("--mode", "baseline", branch="release/1.0", cwd=narrow)
+        if code == 0:
+            # A git that sets up tracking for a ref no refspec maps: then the tracking config must be there.
+            self.assertEqual(git_out(narrow, "config", "branch.release/1.0.remote"), "origin")
+            return
+        self.assertEqual((code, out["error"]), (3, "worktree_add_failed"), out)
+        self.assertIsInstance(out["detail"], str)
+        self.assertTrue(out["detail"])
+        # git refuses before it makes anything, so there is nothing to report as partial.
+        self.assert_nothing_created(out, target, "release/1.0", repo=narrow)
+
+    def test_task_execute_branches_from_base_ref(self) -> None:
+        linked = self.linked_worktree_on("feat/a")
+        base = git_out(linked, "rev-parse", "HEAD")
+        self.assertNotEqual(base, git_out(self.root, "rev-parse", "main"))
+        out = self.executed("--mode", "task", "--source", str(linked), "--base-ref", "feat/a", branch="feat/b")
+        target = self.worktrees / "proj" / "feat-b"
+        self.assertEqual(git_out(target, "symbolic-ref", "--short", "HEAD"), "feat/b")
+        self.assertEqual((git_out(target, "rev-parse", "HEAD"), out["head"]), (base, base))
+        self.assertEqual(run_git(self.root, "config", "branch.feat/b.remote", check=False).returncode, 1)
+        # The source stays where it was.
+        self.assertEqual(git_out(linked, "symbolic-ref", "--short", "HEAD"), "feat/a")
+
+    def test_env_copied_with_mode_and_never_printed(self) -> None:
+        secret = "TOKEN=SECRET-ENV-4c2d\n"
+        env_file = self.root / ".env"
+        env_file.write_text(secret, encoding="utf-8")
+        env_file.chmod(0o600)
+        result = self.raw_execute()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        copied = self.target / ".env"
+        self.assertEqual(copied.read_text(encoding="utf-8"), secret)
+        self.assertEqual(stat.S_IMODE(os.lstat(copied).st_mode), 0o600)
+        self.assertNotIn("SECRET-ENV-4c2d", result.stdout + result.stderr)
+        # Guard: the copy was planned, so the missing content in the output means something.
+        self.assertEqual(json.loads(result.stdout)["copies"], [{"path": ".env", "type": "file", "bytes": len(secret)}])
+
+    def test_symlink_created_and_venv_copied(self) -> None:
+        (self.root / ".codex").mkdir()
+        os.symlink("../.claude/skills", self.root / ".codex" / "skills")
+        tool = self.root / ".venv" / "bin" / "tool"
+        tool.parent.mkdir(parents=True)
+        tool.write_text("#!/bin/sh\n", encoding="utf-8")
+        tool.chmod(0o755)
+        # A link inside the virtualenv is copied as a link, not as what it points to.
+        os.symlink("bin", self.root / ".venv" / "lib")
+        # A single file in a directory the new branch does not have, with a mode no default would give it.
+        script = self.root / "tools" / "run.sh"
+        script.parent.mkdir()
+        script.write_text("echo run\n", encoding="utf-8")
+        script.chmod(0o751)
+        out = self.executed("--copy-venv", "--copy", "tools/run.sh")
+        self.assertEqual(out["symlink"]["action"], "create")
+        self.assertEqual(os.readlink(self.target / ".codex" / "skills"), "../.claude/skills")
+        copied = self.target / ".venv" / "bin" / "tool"
+        self.assertEqual(copied.read_text(encoding="utf-8"), "#!/bin/sh\n")
+        self.assertEqual(stat.S_IMODE(os.lstat(copied).st_mode), 0o755)
+        self.assertEqual(os.readlink(self.target / ".venv" / "lib"), "bin")
+        copied = self.target / "tools" / "run.sh"
+        self.assertEqual(copied.read_text(encoding="utf-8"), "echo run\n")
+        self.assertEqual(stat.S_IMODE(os.lstat(copied).st_mode), 0o751)
+
+    def test_skills_link_already_in_target_is_left_alone(self) -> None:
+        (self.root / ".codex").mkdir()
+        os.symlink("../.claude/skills", self.root / ".codex" / "skills")
+        # The new branch tracks a file where the link would go.
+        linked = self.linked_worktree_on("feat/a", {".codex/skills": "tracked\n"})
+        self.executed("--mode", "task", "--source", str(linked), "--base-ref", "feat/a", branch="feat/b")
+        kept = self.worktrees / "proj" / "feat-b" / ".codex" / "skills"
+        self.assertFalse(kept.is_symlink())
+        self.assertEqual(kept.read_text(encoding="utf-8"), "tracked\n")
+
+    def test_copy_target_exists_refuses_and_keeps_worktree(self) -> None:
+        linked = self.linked_worktree_on("feat/a", {"notes.txt": "tracked\n"})
+        (self.root / "notes.txt").write_text("local\n", encoding="utf-8")
+        (self.root / ".env").write_text("TOKEN=1\n", encoding="utf-8")
+        out = self.refused(
+            "--mode", "task", "--source", str(linked), "--base-ref", "feat/a", "--copy", "notes.txt", branch="feat/b",
+            expect="copy_target_exists",
+        )
+        target = self.worktrees / "proj" / "feat-b"
+        self.assertEqual(out["path"], "notes.txt")
+        self.assert_partial(out, target, "feat/b")
+        self.assertEqual((target / "notes.txt").read_text(encoding="utf-8"), "tracked\n")
+        # Every destination is checked before the first copy, so .env (planned first) was not copied either.
+        self.assertFalse(os.path.lexists(target / ".env"))
+
+    def test_copy_never_goes_through_a_tracked_link_in_the_target(self) -> None:
+        outside = self.tmp / "outside"
+        outside.mkdir()
+        linked = self.tmp / "linked"
+        run_git(self.root, "worktree", "add", "-q", "-b", "feat/a", str(linked))
+        # On the new branch `config` is a tracked link that leads out of the worktree.
+        os.symlink(str(outside), linked / "config")
+        run_git(linked, "add", "config")
+        run_git(linked, "commit", "-q", "-m", "config is a link")
+        (self.root / "config").mkdir()
+        (self.root / "config" / "local.json").write_text("{}\n", encoding="utf-8")
+        out = self.refused(
+            "--mode", "task", "--source", str(linked), "--base-ref", "feat/a", "--copy", "config/local.json",
+            branch="feat/b", expect="copy_target_exists",
+        )
+        self.assertEqual((out["path"], out["existing"]), ("config/local.json", "config"))
+        self.assert_partial(out, self.worktrees / "proj" / "feat-b", "feat/b")
+        self.assertEqual(list(outside.iterdir()), [])
+
+    def test_fetch_failure_has_no_side_effects(self) -> None:
+        run_git(self.root, "remote", "set-url", "origin", "file:///nonexistent/task-bootstrap/none.git")
+        out = self.refused(expect="fetch_failed")
+        self.assertIsInstance(out["detail"], str)
+        self.assertLessEqual(len(out["detail"]), 500)
+        self.assert_nothing_created(out, self.target, "feat/x")
+        self.assertFalse(self.worktrees.exists())
+
+    def test_fetch_failure_detail_hides_credentials(self) -> None:
+        secret = "SECRET-TOKEN-71e0"
+        run_git(self.root, "remote", "set-url", "origin", f"file://user:{secret}@{self.project.origin}")
+        # git already strips credentials from most of its own messages, so make the far side print them: once in a
+        # URL, once bare the way git:// lookups report a host.
+        run_git(
+            self.root, "config", "remote.origin.uploadpack",
+            f"echo 'fatal: https://user:{secret}@example.invalid/r.git or user:{secret}@example.invalid' >&2; false",
+        )
+        # Guard: git itself does pass the secret on.
+        self.assertIn(secret, run_git(self.root, "fetch", "origin", check=False).stderr)
+        result = self.raw_execute()
+        out = json.loads(result.stdout)
+        self.assertEqual((result.returncode, out["error"]), (3, "fetch_failed"), out)
+        self.assertNotIn(secret, result.stdout + result.stderr)
+        self.assertIn("https://***@example.invalid", out["detail"])
+        self.assertIn("***@example.invalid", out["detail"].replace("https://***@", ""))
+
+    def test_pull_failure_refuses(self) -> None:
+        run_git(self.root, "commit", "-q", "--allow-empty", "-m", "local work")
+        local = git_out(self.root, "rev-parse", "main")
+        self.push_from_other_clone()
+        out = self.refused(expect="pull_failed")
+        self.assertIsInstance(out["detail"], str)
+        self.assert_nothing_created(out, self.target, "feat/x")
+        # No merge, no rebase: the source's main is where it was.
+        self.assertEqual(git_out(self.root, "rev-parse", "main"), local)
+
+    def test_staged_files_in_target_refuse_and_keep_worktree(self) -> None:
+        (self.root / ".env").write_text("TOKEN=1\n", encoding="utf-8")
+        # A change that is not staged, and an untracked file, are not what the check is about.
+        self.post_checkout_hook("echo staged > hooked.txt\ngit add hooked.txt\necho edited > README.md\ntouch loose\n")
+        out = self.refused(expect="target_has_staged")
+        self.assertEqual((out["entries"], out["changes"]), (1, ["A  hooked.txt"]))
+        self.assert_partial(out, self.target, "feat/x")
+        # The check comes before any copy.
+        self.assertFalse(os.path.lexists(self.target / ".env"))
+
+    def test_local_files_are_checked_again_before_copying(self) -> None:
+        (self.root / ".env").write_text("TOKEN=1\n", encoding="utf-8")
+        # Between planning and copying, .env turns into a link to a tracked file.
+        self.post_checkout_hook(f"rm '{self.root}/.env'\nln -s README.md '{self.root}/.env'\n")
+        out = self.refused(expect="copy_rejected")
+        self.assertEqual((out["path"], out["reason"]), (".env", "not_regular"))
+        self.assert_partial(out, self.target, "feat/x")
+        self.assertFalse(os.path.lexists(self.target / ".env"))
+
+    def test_worktree_add_stopped_by_timeout_reports_what_it_left(self) -> None:
+        module = load_module(SCRIPT, "task_bootstrap_execute_under_test")
+        # The checkout is done when post-checkout runs, so the hook outlasting the timeout leaves a half-made worktree.
+        self.post_checkout_hook("sleep 3\n")
+        environment = mock.patch.dict(os.environ, isolated_env({"HOME": str(self.home)}), clear=True)
+        # Only the execute step reads the module constant at call time; planning keeps its own default.
+        short = mock.patch.object(module, "GIT_TIMEOUT_SECONDS", 1)
+        buffer = io.StringIO()
+        with environment, short, contextlib.redirect_stdout(buffer):
+            code = module.main(["create", "--cwd", str(self.root), "--branch=feat/x", "--execute"])
+        out = json.loads(buffer.getvalue())
+        self.assertEqual((code, out["error"], out["detail"]), (3, "worktree_add_failed", "timeout"), out)
+        self.assertTrue(os.path.lexists(self.target))
+        self.assertEqual(out["partial"], {"target": str(self.target), "branch": "feat/x"})
+
+    def test_unexpected_os_error_after_worktree_add_is_a_refusal_with_partial(self) -> None:
+        module = load_module(SCRIPT, "task_bootstrap_execute_oserror_under_test")
+        (self.root / ".env").write_text("TOKEN=1\n", encoding="utf-8")
+        environment = mock.patch.dict(os.environ, isolated_env({"HOME": str(self.home)}), clear=True)
+        # Raised outside the copy loop's own handler, where nothing else would turn it into JSON.
+        broken = mock.patch.object(module, "_destination_conflict", side_effect=PermissionError(13, "Permission denied"))
+        buffer = io.StringIO()
+        with environment, broken, contextlib.redirect_stdout(buffer):
+            code = module.main(["create", "--cwd", str(self.root), "--branch=feat/x", "--execute"])
+        out = json.loads(buffer.getvalue())
+        self.assertEqual((code, out["error"], out["reason"]), (3, "copy_failed", "Permission denied"), out)
+        self.assert_partial(out, self.target, "feat/x")
+
+    def test_refusal_happens_before_any_write(self) -> None:
+        (self.root / "README.md").write_text("changed\n", encoding="utf-8")
+        self.refused(expect="source_dirty", env=self.shim_env())
+        calls = self.logged_calls()
+        subcommands = [git_subcommand(call) for call in calls]
+        # Guard: the shim saw the script's calls, so the missing writes below mean something.
+        self.assertIn("status", subcommands)
+        self.assertNotIn("fetch", subcommands)
+        self.assertNotIn("pull", subcommands)
+        # `worktree list` is how the script finds the main checkout; only `worktree add` writes.
+        self.assertFalse([call for call in calls if git_subcommand(call) == "worktree" and "add" in call], calls)
+        self.assertFalse(self.worktrees.exists())
+
+    def test_only_allowed_git_subcommands(self) -> None:
+        (self.root / ".env").write_text("TOKEN=1\n", encoding="utf-8")
+        self.executed(env=self.shim_env())
+        calls = self.logged_calls()
+        subcommands = {git_subcommand(call) for call in calls}
+        self.assertLessEqual(subcommands, ALLOWED_GIT_SUBCOMMANDS, calls)
+        # Guard: the run did reach the writes.
+        self.assertLessEqual({"fetch", "pull", "worktree"}, subcommands)
+        for call in calls:
+            if git_subcommand(call) == "pull":
+                self.assertIn("--ff-only", call)
+
+
 class CreateHelperTests(unittest.TestCase):
     """The pure pieces of `create` called in-process: many inputs, no repository, no CLI run per input."""
 
@@ -1613,6 +1978,45 @@ class CreateHelperTests(unittest.TestCase):
                      "a\nb"):
             with self.subTest(invalid=name):
                 self.assertEqual(self.refusal_code(validate, name, self.cwd), "branch_invalid")
+
+    def test_redact_credentials(self) -> None:
+        redact = self.module.redact_credentials
+        for text, userinfo, expected in (
+            ("fatal: unable to access 'https://u:tok@h/r.git/'", None, "fatal: unable to access 'https://***@h/r.git/'"),
+            ("ssh://git@h:22/r and git://u:p@x@h/r", None, "ssh://***@h:22/r and git://***@h/r"),
+            ("https://h/r.git and user@h:r.git", None, "https://h/r.git and user@h:r.git"),
+            # git:// reports a failed lookup with the userinfo but without the scheme.
+            ("unable to look up u:tok@h (port 9418)", "u:tok", "unable to look up ***@h (port 9418)"),
+            # Only the userinfo in front of a host is taken out; the same word elsewhere is left alone.
+            ("git said git@h", "git", "git said ***@h"),
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(redact(text, userinfo), expected)
+
+    def test_url_userinfo(self) -> None:
+        userinfo = self.module.url_userinfo
+        self.assertEqual(userinfo("https://u:tok@h/r.git"), "u:tok")
+        # A token is often given as the user name alone.
+        self.assertEqual(userinfo("https://tok@h/r.git"), "tok")
+        self.assertIsNone(userinfo("https://h/r.git"))
+        self.assertIsNone(userinfo("file:///srv/r@1.git"))
+        # A user name in scp form is not a credential, and the path may contain "@".
+        self.assertIsNone(userinfo("git@h:o/r@1.git"))
+
+    def test_execute_refuses_a_malformed_plan_before_running_anything(self) -> None:
+        here = str(self.cwd)
+        trap = mock.patch.object(self.module, "git", side_effect=AssertionError("git ran"))
+        for commands in (
+            [["git", "-C", here, "pull", "origin", "main"]],
+            [["git", "-C", here, "push", "origin", "main"]],
+            [["sh", "-c", "true"]],
+            [["git", "-C", here, "worktree", "add", "-b", "x", here, "main"], ["git", "-C", here, "fetch", "origin"]],
+            [["git", "-C", here, "fetch", "origin"]],
+            [],
+        ):
+            with self.subTest(commands=commands), trap:
+                plan = {"commands": commands, "remote": "origin", "target": here, "branch": "x"}
+                self.assertEqual(self.refusal_code(self.module.execute_plan, plan), "plan_invalid")
 
 
 if __name__ == "__main__":
