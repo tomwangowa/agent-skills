@@ -21,11 +21,14 @@ import string
 import subprocess
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
 GIT_TIMEOUT_SECONDS = 10
+# `status` and `ls-files` read the whole index and work tree, which on a large repository takes far longer than the
+# lookups the short limit is for.
+SLOW_LOCAL_TIMEOUT_SECONDS = 120
 # fetch and ls-remote talk to a remote, so they get a longer leash than local git calls.
 NETWORK_TIMEOUT_SECONDS = 60
 # A checkout of a large repository, LFS downloads and slow hooks are normal, and a killed `worktree add` leaves a
@@ -119,8 +122,8 @@ def _wait_for_group_exit(group: int) -> None:
         time.sleep(0.05)
 
 
-def _run_own_session(command: list[str], env: dict[str, str], timeout: int) -> subprocess.CompletedProcess[str] | None:
-    """Run `command` as the leader of a new session; on timeout, kill everything it started and return None."""
+def _run_own_session(command: list[str], env: dict[str, str], timeout: int) -> subprocess.CompletedProcess[str]:
+    """Run `command` as the leader of a new session; on timeout, kill everything it started and re-raise."""
     process = subprocess.Popen(
         command,
         stdin=subprocess.DEVNULL,
@@ -134,12 +137,10 @@ def _run_own_session(command: list[str], env: dict[str, str], timeout: int) -> s
     )
     try:
         stdout, stderr = process.communicate(timeout=timeout)
-    except subprocess.TimeoutExpired:
-        _stop_group(process)
-        return None
     except BaseException:
-        # Ctrl-C or any other error while waiting: the terminal's SIGINT never reaches a child in its own session, and
-        # communicate() does not kill it, so without this git and its hooks would carry on after the script is gone.
+        # A timeout, an interrupt or any other error while waiting: the terminal's SIGINT never reaches a child in its
+        # own session, and communicate() does not kill it, so without this git and its hooks would carry on after the
+        # script is gone.
         _stop_group(process)
         raise
     return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
@@ -165,31 +166,37 @@ def _stop_group(process: subprocess.Popen) -> None:
     _wait_for_group_exit(process.pid)
 
 
-def git(
+def _git_call(
     args: list[str], cwd: Path, *, timeout: int = GIT_TIMEOUT_SECONDS, own_session: bool = False
-) -> subprocess.CompletedProcess[str] | None:
-    """Run git in `cwd`; None when git is missing or does not finish in time.
+) -> subprocess.CompletedProcess[str]:
+    """Run git in `cwd`. OSError when git cannot be started, subprocess.TimeoutExpired when it does not finish in time.
 
     `own_session` is for the commands that write: they run hooks and filters, which must stop together with git.
     """
-    # `--source` can name any repository, so keep its config from running a fsmonitor hook.
+    # core.fsmonitor names a command that `git status` runs. The repository this runs in may be a fresh clone nobody
+    # has looked at, and its config must not get to run anything; the cost of a status without it is bounded by the
+    # longer timeout that status calls get.
     command = ["git", "-C", str(cwd), "-c", "core.fsmonitor=false", *args]
     if own_session:
-        try:
-            return _run_own_session(command, _git_environment(), timeout)
-        except OSError:
-            return None
+        return _run_own_session(command, _git_environment(), timeout)
+    return subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        stdin=subprocess.DEVNULL,
+        env=_git_environment(),
+        timeout=timeout,
+    )
+
+
+def git(
+    args: list[str], cwd: Path, *, timeout: int = GIT_TIMEOUT_SECONDS, own_session: bool = False
+) -> subprocess.CompletedProcess[str] | None:
+    """_git_call() for callers that treat a missing git and a timeout alike; None in both cases."""
     try:
-        return subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            stdin=subprocess.DEVNULL,
-            env=_git_environment(),
-            timeout=timeout,
-        )
+        return _git_call(args, cwd, timeout=timeout, own_session=own_session)
     except (OSError, subprocess.TimeoutExpired):
         return None
 
@@ -204,7 +211,7 @@ def emit(payload: dict, code: int = 0) -> int:
 
 
 class Refusal(Exception):
-    """A stop condition: nothing was changed, and `code` plus `detail` tell the caller why."""
+    """A stop condition: `code` plus `detail` tell the caller why. A `partial` in `detail` lists what was written."""
 
     def __init__(self, code: str, detail: dict | None = None, *, exit_code: int = 3) -> None:
         super().__init__(code)
@@ -316,16 +323,19 @@ def cmd_delegate(args: argparse.Namespace) -> int:
 
 
 def _git_run(args: list[str], cwd: Path, *, timeout: int = GIT_TIMEOUT_SECONDS) -> subprocess.CompletedProcess[str]:
-    """git(), for callers that read the exit status themselves; a missing or hung git is a refusal."""
-    result = git(args, cwd, timeout=timeout)
-    if result is None:
-        raise Refusal("git_unavailable", {"command": args[0]})
-    return result
+    """git, for callers that read the exit status themselves; a missing or hung git is a refusal."""
+    try:
+        return _git_call(args, cwd, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        # Told apart from a missing git: a slow repository or remote needs a retry, not a check of the installation.
+        raise Refusal("git_timeout", {"command": args[0], "seconds": timeout}) from None
+    except OSError:
+        raise Refusal("git_unavailable", {"command": args[0]}) from None
 
 
-def _git_text(args: list[str], cwd: Path) -> str:
+def _git_text(args: list[str], cwd: Path, *, timeout: int = GIT_TIMEOUT_SECONDS) -> str:
     """stdout of a git call that has no meaningful failure status; any failure is a refusal."""
-    result = _git_run(args, cwd)
+    result = _git_run(args, cwd, timeout=timeout)
     if result.returncode != 0:
         lines = result.stderr.strip().splitlines()
         raise Refusal("git_failed", {"command": args[0], "message": lines[0] if lines else ""})
@@ -424,7 +434,9 @@ def detect_default_branch(source: Path, remote: str, override: str | None) -> st
 
 def check_source_clean(source: Path) -> None:
     # Untracked files do not count: the .env that gets copied into the new worktree is untracked by design.
-    changes = _git_text(["status", "--porcelain", "--untracked-files=no"], source).splitlines()
+    changes = _git_text(
+        ["status", "--porcelain", "--untracked-files=no"], source, timeout=SLOW_LOCAL_TIMEOUT_SECONDS
+    ).splitlines()
     if changes:
         raise Refusal("source_dirty", {"source": str(source), "entries": len(changes), "changes": changes[:10]})
 
@@ -587,7 +599,7 @@ def _is_tracked(root: Path, relative: str) -> bool:
     # the repository folds case; on a case-sensitive one this only misreports a name that differs from a tracked one
     # by case alone, which is the safe direction.
     # A failed ls-files prints nothing as well, so a bad exit status has to stop here and never read as "untracked".
-    return bool(_git_text(["ls-files", "--", f":(icase,literal){relative}"], root))
+    return bool(_git_text(["ls-files", "--", f":(icase,literal){relative}"], root, timeout=SLOW_LOCAL_TIMEOUT_SECONDS))
 
 
 def _copy_problem(
@@ -614,8 +626,20 @@ def _copy_problem(
     return None, info
 
 
+def _is_git_metadata(name: str) -> bool:
+    # The same rule normalize_copy_path applies to a typed path, for the entries a directory copy finds on its own.
+    return name.translate(_ASCII_LOWER) == ".git"
+
+
+def _skip_git_metadata(_directory: str, names: list[str]) -> set[str]:
+    """copytree's `ignore`: a package that pip installed from git keeps a clone in the virtualenv, whose config can
+    hold a token in its remote URL. A gitfile is left out as well."""
+    return {name for name in names if _is_git_metadata(name)}
+
+
 def _directory_bytes(directory: Path, typed: str) -> int:
-    """Total size of the regular files under `directory`. Links are neither followed nor counted."""
+    """Total size of the regular files under `directory` that a copy takes along. Links are neither followed nor
+    counted, and git metadata is left out as the copy leaves it out."""
 
     def fail(error: OSError) -> None:
         # os.walk skips a directory it cannot list unless told otherwise, which would under-report the size.
@@ -623,8 +647,12 @@ def _directory_bytes(directory: Path, typed: str) -> int:
 
     total = 0
     try:
-        for here, _, names in os.walk(directory, onerror=fail):
+        for here, directories, names in os.walk(directory, onerror=fail):
+            # Pruned in place, so os.walk never descends into them.
+            directories[:] = [name for name in directories if not _is_git_metadata(name)]
             for name in names:
+                if _is_git_metadata(name):
+                    continue
                 info = os.lstat(os.path.join(here, name))
                 if stat.S_ISREG(info.st_mode):
                     total += info.st_size
@@ -933,43 +961,72 @@ def _remote_userinfo(plan: dict, steps: list[tuple[list[str], Path]]) -> str | N
     return url_userinfo(result.stdout.strip()) if result.returncode == 0 else None
 
 
-def _run_steps(plan: dict) -> None:
-    steps = _execution_steps(plan)
-    userinfo = _remote_userinfo(plan, steps)
+@dataclass
+class Progress:
+    """How far execute_plan got, so that whatever stops it can say what is already on disk."""
+
+    worktree_started: bool = False
+    worktree_done: bool = False
+    # Destination paths relative to the new worktree, in the order they were finished.
+    copied: list[str] = field(default_factory=list)
+    # The one being written when the run stopped; it may be incomplete.
+    in_progress: str | None = None
+
+
+def _run_steps(plan: dict, steps: list[tuple[list[str], Path]], userinfo: str | None, progress: Progress) -> None:
     for args, cwd in steps:
         timeout = NETWORK_TIMEOUT_SECONDS if args[0] in _NETWORK_COMMANDS else WORKTREE_ADD_TIMEOUT_SECONDS
+        # Set before the call: an interrupt during the checkout or its hooks must still look for what they left.
+        progress.worktree_started = args[0] == "worktree"
         # Every step writes, so each runs in a session of its own that a timeout can stop as a whole.
-        result = git(args, cwd, timeout=timeout, own_session=True)
+        try:
+            result = _git_call(args, cwd, timeout=timeout, own_session=True)
+        except subprocess.TimeoutExpired:
+            result = None
+        except OSError:
+            raise Refusal("git_unavailable", {"command": args[0]}) from None
         if result is None or result.returncode != 0:
             # No retry: a second attempt could act on a remote or a source that changed in between.
             detail = "timeout" if result is None else redact_credentials(result.stderr, userinfo)
-            refusal = Refusal(_COMMAND_FAILURES[args[0]], {"detail": detail[:_FAILURE_DETAIL_CHARS]})
-            if args[0] == "worktree":
-                partial = _leftovers(plan, cwd)
-                if partial["target_exists"] or partial["branch_exists"]:
-                    refusal.detail["partial"] = partial
-            raise refusal
+            raise Refusal(_COMMAND_FAILURES[args[0]], {"detail": detail[:_FAILURE_DETAIL_CHARS]})
+    progress.worktree_done = True
 
 
-def _partial(plan: dict, *, target_exists: bool, branch_exists: bool) -> dict:
-    return {
+def _partial(plan: dict, progress: Progress, *, target_exists: bool, branch_exists: bool) -> dict:
+    partial = {
         "target": str(plan["target"]), "branch": plan["branch"],
-        "target_exists": target_exists, "branch_exists": branch_exists,
+        "target_exists": target_exists, "branch_exists": branch_exists, "copied": list(progress.copied),
     }
+    if progress.in_progress is not None:
+        partial["in_progress"] = progress.in_progress
+    return partial
 
 
-def _leftovers(plan: dict, source: Path) -> dict:
-    """What a failed `worktree add` left. Neither existed when the plan was made, so whatever is there is this run's."""
+def _leftovers(plan: dict, source: Path, progress: Progress) -> dict:
+    """What a stopped `worktree add` left. Neither existed when the plan was made, so what is there is this run's."""
     # `worktree add -b` makes the branch before the checkout, and removes only the directory when the checkout fails.
     result = git(["show-ref", "--verify", "--quiet", f"refs/heads/{plan['branch']}"], source)
     # 1 is "not there"; a git that cannot answer must not let a leftover branch go unreported.
     branch_exists = result is None or result.returncode != 1
-    return _partial(plan, target_exists=os.path.lexists(plan["target"]), branch_exists=branch_exists)
+    return _partial(plan, progress, target_exists=os.path.lexists(plan["target"]), branch_exists=branch_exists)
+
+
+def _written(plan: dict, steps: list[tuple[list[str], Path]], progress: Progress) -> dict | None:
+    """The `partial` report for a run that stopped here; None when it wrote nothing that could be reported."""
+    if progress.worktree_done:
+        return _partial(plan, progress, target_exists=True, branch_exists=True)
+    # A fetch or a pull may have run, but they only move refs the user already had; they are not reported as partial.
+    if not progress.worktree_started:
+        return None
+    partial = _leftovers(plan, steps[-1][1], progress)
+    return partial if partial["target_exists"] or partial["branch_exists"] else None
 
 
 def check_target_unstaged(target: Path) -> None:
     # A checkout hook can stage files, and the user would then commit something they never chose.
-    lines = _git_text(["status", "--porcelain", "--untracked-files=no"], target).splitlines()
+    lines = _git_text(
+        ["status", "--porcelain", "--untracked-files=no"], target, timeout=SLOW_LOCAL_TIMEOUT_SECONDS
+    ).splitlines()
     # The first column is the index; " " means unchanged there and "?" untracked.
     staged = [line for line in lines if line[:1] not in (" ", "?")]
     if staged:
@@ -1016,7 +1073,7 @@ def _copy_file(source: Path, destination: Path) -> None:
     shutil.copystat(source, destination, follow_symlinks=False)
 
 
-def copy_local_files(plan: dict, root: Path, target: Path) -> None:
+def copy_local_files(plan: dict, root: Path, target: Path, progress: Progress) -> None:
     copies = plan["copies"]
     # All destinations first: one that is in the way must stop the copy before anything is written.
     for entry in copies:
@@ -1026,18 +1083,24 @@ def copy_local_files(plan: dict, root: Path, target: Path) -> None:
     for entry in copies:
         relative = entry["path"]
         destination = target / relative
+        # Left set if anything stops the copy, including an interrupt: the destination may then be half written.
+        progress.in_progress = relative
         try:
             destination.parent.mkdir(parents=True, exist_ok=True)
             if entry["type"] == "dir":
                 # symlinks=True: a virtualenv's links are copied as links, never as what they point to.
-                shutil.copytree(root / relative, destination, symlinks=True)
+                shutil.copytree(root / relative, destination, symlinks=True, ignore=_skip_git_metadata)
             else:
                 _copy_file(root / relative, destination)
         except FileExistsError:
+            # Refused by O_EXCL or by copytree before writing: what is there is not this run's.
+            progress.in_progress = None
             raise Refusal("copy_target_exists", {"path": relative, "existing": relative}) from None
         except OSError as error:
             # Only the path and the reason: an OSError can quote a file name, but never what is inside.
             raise Refusal("copy_failed", {"path": relative, "reason": error.strerror or type(error).__name__}) from None
+        progress.copied.append(relative)
+        progress.in_progress = None
 
 
 def create_skills_link(plan: dict, target: Path) -> None:
@@ -1059,28 +1122,50 @@ def create_skills_link(plan: dict, target: Path) -> None:
         raise Refusal("copy_failed", {"path": SKILLS_LINK, "reason": error.strerror or type(error).__name__}) from None
 
 
+def _with_partial(detail: dict, partial: dict | None) -> dict:
+    if partial is not None:
+        detail["partial"] = partial
+    return detail
+
+
 def execute_plan(plan: dict) -> dict:
     """Carry out a plan made by build_plan: its commands, then the local files. Never retries, forces or cleans up.
 
-    Every check that can refuse without touching anything ran while the plan was built. A failure after
-    `worktree add` leaves the worktree and its branch as they are and says so in `partial`.
+    Every check that can refuse without touching anything ran while the plan was built. Whatever stops the run once
+    it has begun to write, an interrupt included, leaves what was made as it is and says so in `partial`.
     """
-    _run_steps(plan)
-    target = Path(plan["target"])
-    partial = _partial(plan, target_exists=True, branch_exists=True)
+    steps = _execution_steps(plan)
+    progress = Progress()
     try:
+        userinfo = _remote_userinfo(plan, steps)
+        _run_steps(plan, steps, userinfo, progress)
+        target = Path(plan["target"])
         check_target_unstaged(target)
         root = Path(os.path.realpath(plan["asset_source"]))
         recheck_local_files(plan, root)
-        copy_local_files(plan, root, target)
+        copy_local_files(plan, root, target, progress)
         create_skills_link(plan, target)
         head = _git_text(["rev-parse", "HEAD"], target)
+    # Refusal is an Exception too, so it has to come before the catch-all below.
     except Refusal as refusal:
-        refusal.detail["partial"] = partial
+        _with_partial(refusal.detail, _written(plan, steps, progress))
         raise
+    except KeyboardInterrupt:
+        # main() turns SIGTERM and SIGHUP into this as well. Any child git was stopped by _run_own_session.
+        raise Refusal("interrupted", _with_partial({}, _written(plan, steps, progress)), exit_code=130) from None
     except OSError as error:
-        # Anything the steps above did not turn into a refusal themselves; a traceback would lose the partial report.
-        raise Refusal("copy_failed", {"reason": error.strerror or type(error).__name__, "partial": partial}) from None
+        if progress.worktree_done:
+            # Anything the steps above did not turn into a refusal themselves; a traceback would lose the partial.
+            detail = {"reason": error.strerror or type(error).__name__}
+            raise Refusal("copy_failed", _with_partial(detail, _written(plan, steps, progress))) from None
+        raise Refusal(
+            "unexpected_error", _with_partial({"detail": type(error).__name__}, _written(plan, steps, progress))
+        ) from None
+    except Exception as error:
+        # The class name only: a message can quote a path, or a value read from a file.
+        raise Refusal(
+            "unexpected_error", _with_partial({"detail": type(error).__name__}, _written(plan, steps, progress))
+        ) from None
     return {**plan, "executed": True, "head": head}
 
 
@@ -1132,12 +1217,52 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+_INTERRUPT_SIGNALS = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)
+
+
+def _interrupt(_signum: int, _frame: object) -> None:
+    # Only the first signal counts. Another one while the git group is being stopped, or while the leftovers are
+    # looked up, would cut the report short, and the report is what tells the user a half-made worktree exists.
+    for signum in _INTERRUPT_SIGNALS:
+        signal.signal(signum, signal.SIG_IGN)
+    raise KeyboardInterrupt
+
+
+def _install_interrupt_handlers() -> dict[int, object]:
+    """Make SIGTERM and SIGHUP end the run the way Ctrl-C does; the previous handlers, to restore them.
+
+    Python's default for SIGTERM and SIGHUP ends the process on the spot, leaving git's hooks running in their own
+    session and printing nothing, and a closed terminal or a cancelled tool call sends one of those, not SIGINT.
+    """
+    previous: dict[int, object] = {}
+    for signum in _INTERRUPT_SIGNALS:
+        current = signal.getsignal(signum)
+        # An ignored signal stays ignored (nohup ignores SIGHUP on purpose). None is a handler set outside Python,
+        # which could not be put back.
+        if current is signal.SIG_IGN or current is None:
+            continue
+        previous[signum] = current
+        signal.signal(signum, _interrupt)
+    return previous
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    # Only a run that writes needs to report an interrupt; a plan can simply be made again.
+    writes = args.command == "create" and args.execute
+    previous = _install_interrupt_handlers() if writes else {}
     try:
         return args.handler(args)
     except Refusal as refusal:
         return emit({"error": refusal.code, **refusal.detail}, refusal.exit_code)
+    except KeyboardInterrupt:
+        if not writes:
+            raise
+        # Stopped while the plan was being made, before anything was written.
+        return emit({"error": "interrupted"}, 130)
+    finally:
+        for signum, handler in previous.items():
+            signal.signal(signum, handler)
 
 
 if __name__ == "__main__":

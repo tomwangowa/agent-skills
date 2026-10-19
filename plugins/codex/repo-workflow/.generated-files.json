@@ -6,7 +6,7 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "000e68acede16c645a142962f11d40da9393441aa5b23418930db9b1681a1d43"
+      "sha256": "c903884c352474fcd2bbb9aeaef2ed2d2a896a35c448171846b0fffd2134677b"
     },
     "README.md": {
       "mode": 420,
@@ -58,7 +58,7 @@
     },
     "skills/task-bootstrap/SKILL.md": {
       "mode": 420,
-      "sha256": "61811050f2ae2780cbdb6b244199d156f0400f352f2f595eccf173465f0300c2"
+      "sha256": "455b25b9d3ca8f981d999d8dc969017a32517f6c6639e2abbdf3a6d845c0190c"
     },
     "skills/task-bootstrap/agents/openai.yaml": {
       "mode": 420,
@@ -66,7 +66,7 @@
     },
     "skills/task-bootstrap/scripts/bootstrap_worktree.py": {
       "mode": 420,
-      "sha256": "e90c572a1d471169afff5d464eb28d8c59292e7620f73cbb146ba4c5fed87fbf"
+      "sha256": "1500215619434bd0d8666e7bff720a46e610fabf6014f97f3a8ac4bda134ab73"
     },
     "superpowers-compatibility.md": {
       "mode": 420,

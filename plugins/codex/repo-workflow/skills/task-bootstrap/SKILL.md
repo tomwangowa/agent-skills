@@ -82,7 +82,10 @@ git rev-parse --is-inside-work-tree
 1. 任務描述保留使用者原話，之後放進 `--task`。`--task` 只會原樣出現在計畫輸出裡，不影響任何行為。
 2. 使用者參數中如果帶了下列選項，意義和腳本同名選項一樣：
    `--mode`、`--branch`、`--slug`、`--base-ref`、`--source`、`--remote`、`--default-branch`、`--worktrees-root`、
-   `--asset-source`、`--copy-venv`、`--copy <path>`（可重複）。沒帶的就用預設。
+   `--asset-source`、`--copy-venv`、`--copy <path>`（可重複）。沒帶的就用預設：
+   `--mode` 是 `main`，`--remote` 是 `origin`，`--source` 與 `--asset-source` 都是主 checkout。
+   worktree 建在 `<root>/<repo>/<slug>`：`<root>` 依序取 `--worktrees-root`、環境變數 `TASK_BOOTSTRAP_WORKTREES_ROOT`，
+   都沒有就是 `<主 checkout 的上層目錄>/worktrees`；`<repo>` 是主 checkout 的目錄名。
 3. 沒給分支：依任務提議一個分支名，等使用者確認或改掉，才往下。不要自己決定。
 4. slug（worktree 的目錄名）由分支名推導：`/` 換成 `-`，英文字母轉小寫。
    使用者想要別的名字就用 `--slug`。腳本不會偷偷清洗：推導或給定的 slug 不符合規則，會回 `slug_invalid`，
@@ -111,9 +114,12 @@ python3 <skill_base_directory>/scripts/bootstrap_worktree.py create --mode <main
 
 成功時（exit 0，`executed` 為 false）把 JSON 整理成給使用者看的計畫：
 
-- 模式、`source`、`base_ref`、`branch`、`slug`、`target`（worktree 會建在哪）。
+- 模式、`source`、`asset_source`（本機檔從哪裡複製）、`base_ref`、`branch`、`slug`、`target`（worktree 會建在哪）、
+  `worktrees_root`。`asset_source` 不一定等於 `source`：`task` 模式傳了 `--source <功能分支的 worktree>`，
+  `.env` 仍從主 checkout 複製。使用者確認之前，要看得到檔案從哪裡來、worktree 會放在哪裡。
 - `commands`：每一條會執行的 git 指令，照順序、完整列出。
 - `copies`：要複製的檔案，每筆只列 `path`、`type`（`file` 或 `dir`）、`bytes`。不讀也不印內容。
+  `.venv` 裡的 `.git`（從 git 安裝的套件會有，設定檔可能含帶密碼的網址）不複製，`bytes` 也不算它。
 - `skipped_copies`：沒複製的，列 `path` 與 `reason`。`.env` 不存在是正常的。
 - `symlink`：`action` 為 `create` 就說會建 `.codex/skills -> ../.claude/skills`；為 `skip` 就說跳過，並附 `reason`。
 - 沒有 push、沒有 commit，要明說。
@@ -143,7 +149,8 @@ git -C '<target>' rev-parse HEAD
 
 - 第一行 `## ` 後面是 `branch`。`baseline` 會多出 `...<remote>/<branch>` 的追蹤資訊，其他模式沒有。
 - `rev-parse HEAD` 的輸出等於步驟 6 的 `head`。
-- 沒有 staged：每一行的第一個字元都是空白、`?` 或 `!`。`!!` 開頭的是被忽略的檔案，複製過來的 `.env`、`.venv/` 會出現在這裡，是預期的。
+- 沒有 staged：略過第一行 `## `，其餘每一行的第一個字元都是空白、`?` 或 `!`。
+  複製過來的 `.env`、`.venv/` 被 git 忽略時是 `!!`，沒被忽略時是 `??`，兩種都是預期的。
 - 有任何不符，如實告訴使用者，不自己修。
 
 ### 8. Hand Back
@@ -164,19 +171,21 @@ Codex 使用者把 `claude` 換成 `codex`。簡短交代：建了什麼（分�
 - `0`：成功。
 - `2`：參數錯誤，或路徑不存在。路徑不存在時 stdout 有 `{"error": "not_found"}`；stdout 沒有 JSON 是 argparse 的參數錯誤，把 stderr 原文回報，不猜。
 - `3`：刻意拒絕（stop condition）。stdout 是 `{"error": CODE, ...}`，其餘欄位是細節。
+- `130`：`--execute` 執行中被中斷（Ctrl-C、關掉終端機、取消工具呼叫）。stdout 是 `{"error": "interrupted", ...}`，可能有 `partial`。
 
 所有拒絕共通：不重試、不 force，不 stash、reset、刪除或清理任何東西。說明原因，建議使用者改什麼，是否重來由使用者決定。
 
 | `error` | 意義與下一步 |
 |---|---|
 | `not_found` | 目錄不存在（exit 2）；有 `path` 就是 `--source`、`--asset-source` 或目前目錄。請使用者改路徑。 |
-| `git_unavailable` | git 找不到，或指令逾時（本機指令 10 秒）；`command` 是哪個子指令。如實回報。 |
+| `git_unavailable` | 找不到 git，或 git 無法執行；`command` 是哪個子指令。請使用者確認 git 有裝、在 `PATH` 上。 |
+| `git_timeout` | git 指令逾時；`command` 是子指令，`seconds` 是上限（一般查詢 10 秒，`status`、`ls-files` 120 秒，`ls-remote` 60 秒）。本機指令逾時通常是 repo 很大；`ls-remote` 逾時是連線問題，remote 連不上或太慢。沒有 `partial` 就是什麼都還沒寫，請使用者稍後再試。 |
 | `git_failed` | git 指令失敗；`command` 是子指令，`message` 是 git 的第一行訊息（連 remote 的指令不附訊息，因為訊息可能含帶密碼的網址）。如實回報，不猜。 |
-| `source_not_git` | 目錄不是 git work tree。`role` 是 `source`、`asset_source` 或 `main_checkout`（沒有 `role` 是目前目錄本身不在 repo 裡），`path` 是該目錄；裸 repo 也會到這裡。請使用者換目錄。 |
+| `source_not_git` | 目錄不是 git work tree。`role` 是 `source`、`asset_source` 或 `main_checkout`（沒有 `role` 是目前目錄本身不在 repo 裡），`path` 是該目錄；裸 repo 也會到這裡。請使用者換目錄。主 checkout 是裸 repo（worktree 都掛在它底下）時 `role` 是 `source`，請使用者用 `--source` 與 `--asset-source` 都指定同一個 repo 的一個 worktree。 |
 | `source_wrong_repo` | `--source` 或 `--asset-source` 屬於另一個 repo。`role` 是 `source` 或 `asset_source`，`path` 是該目錄。只能選同一個 repo 的 checkout。 |
 | `asset_source_not_root` | `--asset-source` 不是 work tree 的最上層；`path` 是給的目錄，`toplevel` 是 git 認定的最上層。請改傳 `toplevel`。 |
 | `remote_invalid` | `--remote` 不是這個 repo 設定過的 remote 名稱（只收名稱，不收網址）。 |
-| `remote_url_rejected` | remote 的網址不在允許清單。只允許 `https`、`ssh`、`git`、`file` 與 `[user@]host:path` 格式；`http`、本機路徑、`ext::` 等一律拒絕。回報 `remote` 名稱，不要猜或印出網址（可能含帳密）。 |
+| `remote_url_rejected` | remote 的網址不在允許清單。只允許 `https`、`ssh`、`git`、`file` 與 `[user@]host:path` 格式；`http`、本機路徑、`ext::` 等一律拒絕。回報 `remote` 名稱，不要猜或印出網址（可能含帳密）。本機路徑的 remote，使用者可以自己改成 `file://` 網址（`git remote set-url <remote> 'file:///<絕對路徑>'`），`http://` 改成 `https://`；腳本不寫 git 設定，你也不要代跑。 |
 | `default_branch_unknown` | 找不到 remote 的預設分支。`reason` 為 `ls_remote_failed` 是連不上 remote；有 `found` 是 `main`、`master` 不是恰好一個。請使用者給 `--default-branch`。 |
 | `branch_invalid` | 分支名不合法（git 的 ref 規則、開頭是 `-`、或像 `@{-1}` 會被展開）。有 `option` 是 `--default-branch` 的值不合法。請使用者改名。 |
 | `slug_invalid` | slug 不符 `^[a-z0-9][a-z0-9._-]*$`。請使用者給 `--slug`；不要自己清洗。 |
@@ -197,6 +206,8 @@ Codex 使用者把 `claude` 換成 `codex`。簡短交代：建了什麼（分�
 | `fetch_failed` | `fetch` 失敗或逾時（60 秒）；`detail` 是 git 的訊息（已遮掉網址裡的帳密）或 `timeout`。沒建任何東西。 |
 | `pull_failed` | `pull --ff-only` 失敗或逾時（60 秒）；來源無法快轉等原因。沒建任何東西，但前面的 `fetch` 已經做了。 |
 | `worktree_add_failed` | `worktree add` 失敗或逾時（600 秒）；`detail` 同上。沒有 `partial` 表示沒留下分支或目錄，但 `main` 模式前面的 `fetch`、`pull` 已經做了。 |
+| `interrupted` | `--execute` 執行中被中斷（exit 130）。腳本已停掉它啟動的 git 與 hook（hook 自己另開 session 的除外）。有 `partial` 照下面「做到一半的失敗」處理。沒有 `partial` 表示沒留下 worktree 或分支，但 `main` 模式的 `fetch`、`pull --ff-only` 可能已經跑過；中斷在 pull 途中時，來源 checkout 可能停在更新到一半，請使用者在來源跑 `git status` 確認。 |
+| `unexpected_error` | `--execute` 途中發生腳本沒預料到的錯誤。`detail` 只有錯誤的類別名稱，不附訊息（訊息可能含路徑或密碼）。可能有 `partial`。視為 bug 回報，附上 `detail`。 |
 | `plan_invalid` | 要執行的計畫不是這個腳本會產生的格式（`reason` 或 `command` 序號）。經由本 skill 不會發生，視為 bug 回報。 |
 
 `copy_rejected` 的 `reason`：
@@ -207,14 +218,24 @@ Codex 使用者把 `claude` 換成 `codex`。簡短交代：建了什麼（分�
 - `baseline_mode`：`baseline` 不複製任何本機檔，傳了 `--copy` 或 `--copy-venv` 就被拒絕。
 - `not_symlink`、`different_target`：只在執行時重驗 `.codex/skills` 時出現，表示計畫之後來源被改過。
 
-沒有明確要求的 `.env` 與 symlink 不符時不是錯誤，只出現在 `skipped_copies` 或 `symlink.reason`。只有 `--copy`、`--copy-venv` 這類使用者明確要求的才會被拒絕。
+沒有明確要求的 `.env` 與 `.codex/skills` symlink，出計畫時不符只會記在 `skipped_copies` 或 `symlink.reason`，不是錯誤；
+`--copy`、`--copy-venv` 這類使用者明確要求的，不符就拒絕。例外有兩個：
+
+- 出計畫時讀取 `.env` 或 `.codex/skills` 發生 OS 錯誤（例如沒有權限），一樣回 `copy_rejected`，`reason` 是 `unreadable`。
+- 加 `--execute` 時，worktree 建好之後腳本會重驗 `copies` 的每一筆（包括沒明確要求的 `.env`）和要建的 symlink。
+  計畫之後來源被改過，就回 `copy_rejected` 並附 `partial`。`copies` 的 `reason` 可能是上面任一種，例如 `absent`、`not_regular`、`tracked`；
+  symlink 的可能是 `absent`、`tracked`、`not_symlink`、`different_target`。
 
 ### 做到一半的失敗：`partial`
 
-任何在 `worktree add` 之後才發生的拒絕（`target_has_staged`、`copy_*`、`git_failed` 等），或 `worktree add` 失敗後留下東西，
-輸出裡會有 `partial`：`target`、`branch`、`target_exists`、`branch_exists`。看有沒有 `partial`，不看錯誤代碼：有就代表已經寫了東西。
+任何在 `worktree add` 之後才發生的拒絕（`target_has_staged`、`copy_*`、`git_failed`、`git_timeout`、`unexpected_error` 等）、
+`worktree add` 失敗或被中斷後留下東西，以及之後的 `interrupted`，輸出裡都會有 `partial`：
+`target`、`branch`、`target_exists`、`branch_exists`、`copied`，有時還有 `in_progress`。
+看有沒有 `partial`，不看錯誤代碼：有就代表已經寫了東西。
 
 - worktree 和分支原樣保留，不刪、不重建。把 `partial` 的內容和錯誤原因告訴使用者。
+- `copied` 是已經完整複製進新 worktree 的路徑（相對於 worktree）。複製到一半停下時另有 `in_progress`，是當時正在寫的路徑，
+  內容可能不完整。這個檔案也照樣保留，不刪；告訴使用者它可能不完整，怎麼處理由他決定。
 - 清理（`git worktree remove`、刪分支）之前問使用者，他同意了才做；沒有同意不做。
 - `worktree add` 逾時被中止時，留下的 worktree 可能被標成鎖住（initializing）。解鎖是 `git worktree unlock '<path>'`，
   由使用者決定要不要做，不要自己跑。

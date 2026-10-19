@@ -11,6 +11,7 @@ import json
 import os
 import re
 import shutil
+import signal
 import stat
 import subprocess
 import sys
@@ -144,6 +145,32 @@ def run_script(*args: str, cwd: Path, env: dict | None = None) -> tuple[int, dic
 def run_create(project: Project, *args: str, cwd: Path | None = None) -> tuple[int, dict]:
     """Run `create` from the project's main checkout (or `cwd`) with HOME inside the project's temp dir."""
     return run_script("create", *args, cwd=cwd or project.main, env={"HOME": str(project.tmp / "home")})
+
+
+def run_main(module, home: Path, *argv: str, env: dict | None = None) -> tuple[int, dict]:
+    """`module.main(argv)` in this process, for tests that patch the module; same isolated environment as the CLI."""
+    environment = mock.patch.dict(os.environ, isolated_env({"HOME": str(home), **(env or {})}), clear=True)
+    buffer = io.StringIO()
+    with environment, contextlib.redirect_stdout(buffer):
+        code = module.main(list(argv))
+    return code, json.loads(buffer.getvalue())
+
+
+def slow_status_git(bin_dir: Path, directory: Path) -> str:
+    """A PATH whose `git status` in `directory` hangs, while every other git call runs the real git."""
+    real_git = shutil.which("git")
+    bin_dir.mkdir()
+    shim = bin_dir / "git"
+    # The script runs `git -C <dir> -c core.fsmonitor=false <subcommand> ...`, so $2 is the directory and $5 the
+    # subcommand. exec, so the kill that ends a timed-out call reaches the sleeper itself and leaves nothing behind.
+    shim.write_text(
+        "#!/bin/sh\n"
+        f"if [ \"$2\" = '{directory}' ] && [ \"$5\" = status ]; then exec sleep 30; fi\n"
+        f"exec '{real_git}' \"$@\"\n",
+        encoding="utf-8",
+    )
+    shim.chmod(0o755)
+    return f"{bin_dir}{os.pathsep}{os.environ['PATH']}"
 
 
 class TempProjectCase(unittest.TestCase):
@@ -533,7 +560,8 @@ class HelperTests(TempProjectCase):
             module.git(["fetch"], self.root, timeout=module.NETWORK_TIMEOUT_SECONDS)
             self.assertEqual(run.call_args.kwargs["timeout"], module.NETWORK_TIMEOUT_SECONDS)
             self.assertNotIn("shell", run.call_args.kwargs)
-        self.assertEqual((module.GIT_TIMEOUT_SECONDS, module.NETWORK_TIMEOUT_SECONDS), (10, 60))
+        limits = (module.GIT_TIMEOUT_SECONDS, module.SLOW_LOCAL_TIMEOUT_SECONDS, module.NETWORK_TIMEOUT_SECONDS)
+        self.assertEqual(limits, (10, 120, 60))
         for failure in (subprocess.TimeoutExpired("git", 1), FileNotFoundError("git")):
             with self.subTest(failure=type(failure).__name__):
                 with mock.patch.object(module.subprocess, "run", side_effect=failure):
@@ -915,6 +943,24 @@ class CreateMainPlanTests(CreateCase):
                 code, out = run_create(self.project, "--branch=feat/x", option, str(missing))
                 self.assertEqual((code, out), (2, {"error": "not_found", "path": str(missing)}))
 
+    def test_slow_status_is_a_timeout_not_a_missing_git(self) -> None:
+        module = load_module(SCRIPT, "task_bootstrap_slow_status_under_test")
+        path = slow_status_git(self.tmp / "slow-bin", self.root)
+        with mock.patch.object(module, "SLOW_LOCAL_TIMEOUT_SECONDS", 2):
+            code, out = run_main(
+                module, self.home, "create", "--cwd", str(self.root), "--branch=feat/x", env={"PATH": path}
+            )
+        self.assertEqual((code, out), (3, {"error": "git_timeout", "command": "status", "seconds": 2}))
+
+    def test_missing_git_is_git_unavailable(self) -> None:
+        empty_bin = self.tmp / "empty-bin"
+        empty_bin.mkdir()
+        # _run_cli launches the absolute sys.executable, so an empty PATH removes git and nothing else.
+        code, out = run_script(
+            "create", "--branch=feat/x", cwd=self.root, env={"HOME": str(self.home), "PATH": str(empty_bin)}
+        )
+        self.assertEqual((code, out), (3, {"error": "git_unavailable", "command": "worktree"}))
+
     def test_source_that_is_not_a_repository_refuses(self) -> None:
         plain = self.tmp / "plain"
         plain.mkdir()
@@ -1280,6 +1326,15 @@ class LocalFilesTests(CreateCase):
         # With the flag it is the same directory, counted once.
         self.assertEqual(self.local_files(".venv", copy_venv=True)[0], [{"path": ".venv", "type": "dir", "bytes": 8}])
 
+    def test_venv_size_leaves_out_nested_git_metadata(self) -> None:
+        self.write(".venv/lib/site.txt", "abc")
+        # `pip install -e git+https://...` clones into .venv/src/<pkg>, and that clone's config can hold a token.
+        self.write(".venv/src/pkg/setup.py", "12")
+        self.write(".venv/src/pkg/.git/config", "url = https://user:token@example.invalid/r.git\n")
+        # A gitfile, in a spelling a case-insensitive filesystem still treats as .git.
+        self.write(".venv/src/other/.GIT", "gitdir: /elsewhere\n")
+        self.assertEqual(self.local_files(copy_venv=True)[0], [{"path": ".venv", "type": "dir", "bytes": 5}])
+
     def test_copy_venv_absent_refuses(self) -> None:
         out = self.refusal("--copy-venv", expect="copy_rejected")
         self.assertEqual(out, {"error": "copy_rejected", "path": ".venv", "reason": "absent"})
@@ -1637,10 +1692,16 @@ class ExecuteTests(CreateCase):
     def is_worktree(self, target: Path, repo: Path | None = None) -> bool:
         return f"worktree {target}" in git_out(repo or self.root, "worktree", "list", "--porcelain").splitlines()
 
-    def assert_partial(self, out: dict, target: Path, branch: str) -> None:
-        self.assertEqual(
-            out["partial"], {"target": str(target), "branch": branch, "target_exists": True, "branch_exists": True}
-        )
+    def assert_partial(
+        self, out: dict, target: Path, branch: str, *, copied: tuple[str, ...] = (), in_progress: str | None = None
+    ) -> None:
+        expected = {
+            "target": str(target), "branch": branch, "target_exists": True, "branch_exists": True,
+            "copied": list(copied),
+        }
+        if in_progress is not None:
+            expected["in_progress"] = in_progress
+        self.assertEqual(out["partial"], expected)
         # Nothing is cleaned up: the worktree and its branch stay for the user to look at.
         self.assertTrue(self.is_worktree(target))
         self.assertTrue(self.branch_exists(branch))
@@ -1889,7 +1950,7 @@ class ExecuteTests(CreateCase):
         out = self.refused("--mode", "task", "--base-ref", "main", branch="feat/b", expect="worktree_add_failed")
         self.assertEqual(
             out["partial"],
-            {"target": str(target), "branch": "feat/b", "target_exists": False, "branch_exists": True},
+            {"target": str(target), "branch": "feat/b", "target_exists": False, "branch_exists": True, "copied": []},
         )
         # Nothing was removed: the branch is still there for the user to look at.
         self.assertTrue(self.branch_exists("feat/b"))
@@ -1907,6 +1968,156 @@ class ExecuteTests(CreateCase):
         out = json.loads(buffer.getvalue())
         self.assertEqual((code, out["error"], out["reason"]), (3, "copy_failed", "Permission denied"), out)
         self.assert_partial(out, self.target, "feat/x")
+
+    def assert_gone(self, pid: int) -> None:
+        # Polled: a killed hook is reaped by init, not by this process, and that can take a moment.
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            try:
+                os.kill(pid, 0)
+            except (ProcessLookupError, PermissionError):
+                return
+            time.sleep(0.1)
+        self.fail(f"process {pid} is still running")
+
+    def interrupted_by(self, signum: int) -> tuple[int, dict, str, int]:
+        """Run --execute as a child, send it `signum` while post-checkout runs; (exit code, JSON, stderr, hook pid)."""
+        started = self.tmp / "hook-started"
+        # exec: the hook is then a single process whose pid is in the marker, so the cleanup below can always reach it.
+        self.post_checkout_hook(f"echo $$ > '{started}'\nexec sleep 120\n")
+
+        def default_signals() -> None:
+            # A runner started under nohup or in the background hands these down ignored, and the script keeps an
+            # ignored signal ignored, so the test would wait for nothing.
+            for each in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+                signal.signal(each, signal.SIG_DFL)
+
+        process = subprocess.Popen(
+            [sys.executable, str(SCRIPT), "create", "--branch=feat/x", "--execute"], cwd=str(self.root),
+            env=isolated_env({"HOME": str(self.home)}), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+            encoding="utf-8", preexec_fn=default_signals,
+        )
+
+        def stop_script() -> None:
+            if process.poll() is None:
+                process.kill()
+            process.communicate()
+
+        self.addCleanup(stop_script)
+        text, deadline = "", time.monotonic() + 60
+        while time.monotonic() < deadline and process.poll() is None:
+            text = started.read_text(encoding="utf-8").strip() if started.exists() else ""
+            if text:
+                break
+            time.sleep(0.05)
+        self.assertTrue(text, "the hook never started; is the machine overloaded?")
+        hook_pid = int(text)
+
+        def stop_hook() -> None:
+            # Only matters when the code under test failed to stop it. The hook runs in git's group, never in ours.
+            try:
+                group = os.getpgid(hook_pid)
+                if group != os.getpgrp():
+                    os.killpg(group, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError):
+                pass
+
+        self.addCleanup(stop_hook)
+        process.send_signal(signum)
+        stdout, stderr = process.communicate(timeout=60)
+        try:
+            out = json.loads(stdout)
+        except json.JSONDecodeError as error:
+            raise AssertionError(f"stdout is not JSON (exit {process.returncode}): {stdout!r}; {stderr!r}") from error
+        return process.returncode, out, stderr, hook_pid
+
+    def test_sigterm_during_worktree_add_stops_its_hooks_and_reports_interrupted(self) -> None:
+        # A closed terminal or a cancelled tool call arrives as SIGTERM or SIGHUP, not as Ctrl-C.
+        code, out, stderr, hook_pid = self.interrupted_by(signal.SIGTERM)
+        self.assertEqual((code, out["error"], set(out)), (130, "interrupted", {"error", "partial"}), out)
+        self.assertNotIn("Traceback", stderr)
+        self.assert_gone(hook_pid)
+        # Nothing is cleaned up: the half-made worktree and its branch stay, and the report says so.
+        self.assert_partial(out, self.target, "feat/x")
+
+    def test_sigint_during_worktree_add_stops_its_hooks_and_reports_interrupted(self) -> None:
+        code, out, stderr, hook_pid = self.interrupted_by(signal.SIGINT)
+        self.assertEqual((code, out["error"], set(out)), (130, "interrupted", {"error", "partial"}), out)
+        self.assertNotIn("Traceback", stderr)
+        self.assert_gone(hook_pid)
+        self.assert_partial(out, self.target, "feat/x")
+
+    def test_a_copy_stopped_halfway_is_named_in_partial(self) -> None:
+        module = load_module(SCRIPT, "task_bootstrap_copy_interrupt_under_test")
+        (self.root / ".env").write_text("TOKEN=1\n", encoding="utf-8")
+        (self.root / "notes.txt").write_text("local notes\n", encoding="utf-8")
+        real_copy = module._copy_file
+        for branch, failure, expected in (
+            ("feat/x", KeyboardInterrupt(), (130, "interrupted")),
+            ("feat/y", OSError(28, "No space left on device"), (3, "copy_failed")),
+        ):
+            with self.subTest(failure=type(failure).__name__):
+
+                def stopping(source: Path, destination: Path, failure: BaseException = failure) -> None:
+                    if destination.name != "notes.txt":
+                        return real_copy(source, destination)
+                    # Part of the file is on disk when the copy stops.
+                    destination.write_text("local", encoding="utf-8")
+                    raise failure
+
+                before = signal.getsignal(signal.SIGTERM)
+                with mock.patch.object(module, "_copy_file", stopping):
+                    code, out = run_main(
+                        module, self.home, "create", "--cwd", str(self.root), f"--branch={branch}",
+                        "--copy", "notes.txt", "--execute",
+                    )
+                self.assertEqual((code, out["error"]), expected, out)
+                target = self.worktrees / "proj" / branch.replace("/", "-")
+                self.assert_partial(out, target, branch, copied=(".env",), in_progress="notes.txt")
+                self.assertEqual((target / ".env").read_text(encoding="utf-8"), "TOKEN=1\n")
+                # The handlers that --execute installs are gone once main() returns.
+                self.assertEqual(signal.getsignal(signal.SIGTERM), before)
+
+    def test_unexpected_error_after_worktree_add_names_only_the_class(self) -> None:
+        module = load_module(SCRIPT, "task_bootstrap_unexpected_error_under_test")
+        (self.root / ".env").write_text("TOKEN=1\n", encoding="utf-8")
+        # A message may quote a path or a value; only the class name is safe to print.
+        failure = ValueError(f"bad value in {self.root}/.env: SECRET-VALUE-5e3b")
+        with mock.patch.object(module, "create_skills_link", side_effect=failure):
+            code, out = run_main(module, self.home, "create", "--cwd", str(self.root), "--branch=feat/x", "--execute")
+        self.assertEqual((code, out["error"], out["detail"]), (3, "unexpected_error", "ValueError"), out)
+        self.assertNotIn("SECRET-VALUE-5e3b", json.dumps(out))
+        self.assert_partial(out, self.target, "feat/x", copied=(".env",))
+
+    def test_slow_status_in_the_new_worktree_is_a_timeout_with_partial(self) -> None:
+        module = load_module(SCRIPT, "task_bootstrap_slow_target_status_under_test")
+        path = slow_status_git(self.tmp / "slow-bin", self.target)
+        with mock.patch.object(module, "SLOW_LOCAL_TIMEOUT_SECONDS", 2):
+            code, out = run_main(
+                module, self.home, "create", "--cwd", str(self.root), "--branch=feat/x", "--execute",
+                env={"PATH": path},
+            )
+        self.assertEqual((code, out["error"], out["command"], out["seconds"]), (3, "git_timeout", "status", 2), out)
+        self.assert_partial(out, self.target, "feat/x")
+
+    def test_venv_copy_leaves_out_nested_git_metadata(self) -> None:
+        files = {
+            "bin/tool": "t\n",
+            "src/pkg/setup.py": "s\n",
+            "src/pkg/.git/config": "url = https://user:SECRET-GIT-9a1f@example.invalid/r.git\n",
+            "src/other/.GIT": "gitdir: /elsewhere\n",
+        }
+        for relative, text in files.items():
+            path = self.root / ".venv" / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding="utf-8")
+        out = self.executed("--copy-venv")
+        self.assertEqual(out["copies"], [{"path": ".venv", "type": "dir", "bytes": 4}])
+        copied = self.target / ".venv"
+        self.assertEqual((copied / "bin" / "tool").read_text(encoding="utf-8"), "t\n")
+        self.assertEqual((copied / "src" / "pkg" / "setup.py").read_text(encoding="utf-8"), "s\n")
+        self.assertFalse(os.path.lexists(copied / "src" / "pkg" / ".git"))
+        self.assertFalse(os.path.lexists(copied / "src" / "other" / ".GIT"))
 
     def test_refusal_happens_before_any_write(self) -> None:
         (self.root / "README.md").write_text("changed\n", encoding="utf-8")
@@ -2067,9 +2278,27 @@ class CreateHelperTests(unittest.TestCase):
             time.sleep(0.1)
         self.assertEqual([pid for pid in pids if alive(pid)], [])
 
+    def test_interrupt_handlers_keep_ignored_signals_and_fire_once(self) -> None:
+        names = (signal.SIGINT, signal.SIGTERM, signal.SIGHUP)
+        previous = {signum: signal.getsignal(signum) for signum in names}
+        self.addCleanup(lambda: [signal.signal(s, h) for s, h in previous.items() if h is not None])
+        # nohup starts a process with SIGHUP ignored on purpose, and that must survive.
+        signal.signal(signal.SIGHUP, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        saved = self.module._install_interrupt_handlers()
+        self.assertNotIn(signal.SIGHUP, saved)
+        self.assertIs(signal.getsignal(signal.SIGHUP), signal.SIG_IGN)
+        self.assertIs(signal.getsignal(signal.SIGTERM), self.module._interrupt)
+        self.assertIs(saved[signal.SIGTERM], signal.SIG_DFL)
+        with self.assertRaises(KeyboardInterrupt):
+            self.module._interrupt(signal.SIGTERM, None)
+        # A second signal while the first is being handled must not cut the report short.
+        self.assertEqual([signal.getsignal(signum) for signum in names], [signal.SIG_IGN] * 3)
+
     def test_execute_refuses_a_malformed_plan_before_running_anything(self) -> None:
         here = str(self.cwd)
-        trap = mock.patch.object(self.module, "git", side_effect=AssertionError("git ran"))
+        # _git_call is what every git call, git() and _git_run() included, goes through.
+        trap = mock.patch.object(self.module, "_git_call", side_effect=AssertionError("git ran"))
         for commands in (
             [["git", "-C", here, "pull", "origin", "main"]],
             [["git", "-C", here, "push", "origin", "main"]],
@@ -2106,7 +2335,9 @@ class SkillDocTests(unittest.TestCase):
         # Guards the collector itself: an empty or tiny set would make the check below pass for nothing.
         self.assertGreaterEqual(len(codes), 25)
         self.assertLessEqual({"base_ref_mismatch", "fetch_failed", "worktree_add_failed"}, codes)
-        self.assertEqual([code for code in sorted(codes) if f"`{code}`" not in text], [])
+        # A row of the error table each, not just a mention somewhere: the table is what an agent reads a refusal by.
+        rows = [code for code in sorted(codes) if not re.search(rf"^\| `{re.escape(code)}` \|", text, re.M)]
+        self.assertEqual(rows, [])
 
     def test_skill_md_frontmatter(self) -> None:
         text = (self.SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")

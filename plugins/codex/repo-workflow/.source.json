@@ -46,8 +46,8 @@
     "session-start/SKILL.md": "fccf706cd2e3db7c3519cefff196a4771c9fed7f7233ce20c8d8a45fc170b4f9",
     "session-start/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
     "session-start/scripts/handoffs.py": "13fd1833f22503fc9188e01f1857474463b96c4f2e7913c8b2d115cfad99564c",
-    "task-bootstrap/SKILL.md": "61811050f2ae2780cbdb6b244199d156f0400f352f2f595eccf173465f0300c2",
+    "task-bootstrap/SKILL.md": "455b25b9d3ca8f981d999d8dc969017a32517f6c6639e2abbdf3a6d845c0190c",
     "task-bootstrap/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
-    "task-bootstrap/scripts/bootstrap_worktree.py": "e90c572a1d471169afff5d464eb28d8c59292e7620f73cbb146ba4c5fed87fbf"
+    "task-bootstrap/scripts/bootstrap_worktree.py": "1500215619434bd0d8666e7bff720a46e610fabf6014f97f3a8ac4bda134ab73"
   }
 }
