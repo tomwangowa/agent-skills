@@ -14,6 +14,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from dataclasses import dataclass
 from pathlib import Path
@@ -1636,7 +1637,9 @@ class ExecuteTests(CreateCase):
         return f"worktree {target}" in git_out(repo or self.root, "worktree", "list", "--porcelain").splitlines()
 
     def assert_partial(self, out: dict, target: Path, branch: str) -> None:
-        self.assertEqual(out["partial"], {"target": str(target), "branch": branch})
+        self.assertEqual(
+            out["partial"], {"target": str(target), "branch": branch, "target_exists": True, "branch_exists": True}
+        )
         # Nothing is cleaned up: the worktree and its branch stay for the user to look at.
         self.assertTrue(self.is_worktree(target))
         self.assertTrue(self.branch_exists(branch))
@@ -1847,20 +1850,49 @@ class ExecuteTests(CreateCase):
         self.assert_partial(out, self.target, "feat/x")
         self.assertFalse(os.path.lexists(self.target / ".env"))
 
-    def test_worktree_add_stopped_by_timeout_reports_what_it_left(self) -> None:
+    def test_worktree_add_timeout_stops_its_hooks_and_reports_what_it_left(self) -> None:
         module = load_module(SCRIPT, "task_bootstrap_execute_under_test")
-        # The checkout is done when post-checkout runs, so the hook outlasting the timeout leaves a half-made worktree.
-        self.post_checkout_hook("sleep 3\n")
+        started, late = self.tmp / "hook-started", self.tmp / "hook-late"
+        # The checkout is done when post-checkout runs, so the hook outliving the timeout leaves a half-made worktree.
+        # Its late write lands well after the timeout, so a hook that survives git is seen without a tight race.
+        self.post_checkout_hook(f"echo $$ > '{started}'\nsleep 8\ntouch '{late}'\n")
         environment = mock.patch.dict(os.environ, isolated_env({"HOME": str(self.home)}), clear=True)
-        # Only the execute step reads the module constant at call time; planning keeps its own default.
-        short = mock.patch.object(module, "GIT_TIMEOUT_SECONDS", 1)
+        short = mock.patch.object(module, "WORKTREE_ADD_TIMEOUT_SECONDS", 4)
         buffer = io.StringIO()
         with environment, short, contextlib.redirect_stdout(buffer):
             code = module.main(["create", "--cwd", str(self.root), "--branch=feat/x", "--execute"])
         out = json.loads(buffer.getvalue())
+        # Guard: the hook was running when the timeout hit, so there was something to stop.
+        self.assertTrue(started.exists(), "the hook never started within the timeout; is the machine overloaded?")
         self.assertEqual((code, out["error"], out["detail"]), (3, "worktree_add_failed", "timeout"), out)
-        self.assertTrue(os.path.lexists(self.target))
-        self.assertEqual(out["partial"], {"target": str(self.target), "branch": "feat/x"})
+        self.assert_partial(out, self.target, "feat/x")
+        # The hook is gone once the script has answered, and stays silent past the moment it would have written.
+        hook_pid = int(started.read_text(encoding="utf-8"))
+        with self.assertRaises(ProcessLookupError):
+            os.kill(hook_pid, 0)
+        deadline = started.stat().st_mtime + 10
+        while time.time() < deadline and not late.exists():
+            time.sleep(0.2)
+        self.assertFalse(late.exists())
+
+    def test_branch_left_by_a_failed_worktree_add_is_reported(self) -> None:
+        # A checkout that fails after `worktree add -b` made the branch: a required smudge filter that fails.
+        (self.root / ".gitattributes").write_text("*.bin filter=boom\n", encoding="utf-8")
+        (self.root / "x.bin").write_text("data\n", encoding="utf-8")
+        run_git(self.root, "config", "filter.boom.clean", "cat")
+        run_git(self.root, "add", ".gitattributes", "x.bin")
+        run_git(self.root, "commit", "-q", "-m", "filtered file")
+        run_git(self.root, "config", "filter.boom.smudge", "false")
+        run_git(self.root, "config", "filter.boom.required", "true")
+        target = self.worktrees / "proj" / "feat-b"
+        out = self.refused("--mode", "task", "--base-ref", "main", branch="feat/b", expect="worktree_add_failed")
+        self.assertEqual(
+            out["partial"],
+            {"target": str(target), "branch": "feat/b", "target_exists": False, "branch_exists": True},
+        )
+        # Nothing was removed: the branch is still there for the user to look at.
+        self.assertTrue(self.branch_exists("feat/b"))
+        self.assertFalse(os.path.lexists(target))
 
     def test_unexpected_os_error_after_worktree_add_is_a_refusal_with_partial(self) -> None:
         module = load_module(SCRIPT, "task_bootstrap_execute_oserror_under_test")

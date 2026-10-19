@@ -15,10 +15,12 @@ import os
 import posixpath
 import re
 import shutil
+import signal
 import stat
 import string
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -26,6 +28,11 @@ from pathlib import Path
 GIT_TIMEOUT_SECONDS = 10
 # fetch and ls-remote talk to a remote, so they get a longer leash than local git calls.
 NETWORK_TIMEOUT_SECONDS = 60
+# A checkout of a large repository, LFS downloads and slow hooks are normal, and a killed `worktree add` leaves a
+# locked, half-made worktree behind (nothing is cleaned up), so stopping it early gains nothing.
+WORKTREE_ADD_TIMEOUT_SECONDS = 600
+# How long to wait for a killed process group to be gone before reporting.
+_GROUP_EXIT_WAIT_SECONDS = 5
 
 # Used together with `git rev-parse --local-env-vars`: that listing lacks GIT_NAMESPACE and GIT_CEILING_DIRECTORIES,
 # which also change what git acts on.
@@ -99,10 +106,65 @@ def _git_environment() -> dict[str, str]:
     return env
 
 
-def git(args: list[str], cwd: Path, *, timeout: int = GIT_TIMEOUT_SECONDS) -> subprocess.CompletedProcess[str] | None:
-    """Run git in `cwd`; None when git is missing or does not finish in time."""
+def _wait_for_group_exit(group: int) -> None:
+    deadline = time.monotonic() + _GROUP_EXIT_WAIT_SECONDS
+    while time.monotonic() < deadline:
+        try:
+            os.killpg(group, 0)
+        except ProcessLookupError:
+            return
+        except PermissionError:
+            # macOS answers EPERM for a group whose remaining members are zombies waiting to be reaped.
+            return
+        time.sleep(0.05)
+
+
+def _run_own_session(command: list[str], env: dict[str, str], timeout: int) -> subprocess.CompletedProcess[str] | None:
+    """Run `command` as the leader of a new session; on timeout, kill everything it started and return None."""
+    process = subprocess.Popen(
+        command,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        env=env,
+        start_new_session=True,
+    )
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        # Killing git alone would leave its hooks and filters running, still writing into the new worktree after this
+        # script has reported its result. The session leader's pid is the group id.
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            pass
+        # In case the group signal did not reach git itself; wait() must not block on a live process.
+        process.kill()
+        process.wait()
+        process.stdout.close()
+        process.stderr.close()
+        _wait_for_group_exit(process.pid)
+        return None
+    return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+
+
+def git(
+    args: list[str], cwd: Path, *, timeout: int = GIT_TIMEOUT_SECONDS, own_session: bool = False
+) -> subprocess.CompletedProcess[str] | None:
+    """Run git in `cwd`; None when git is missing or does not finish in time.
+
+    `own_session` is for the commands that write: they run hooks and filters, which must stop together with git.
+    """
     # `--source` can name any repository, so keep its config from running a fsmonitor hook.
     command = ["git", "-C", str(cwd), "-c", "core.fsmonitor=false", *args]
+    if own_session:
+        try:
+            return _run_own_session(command, _git_environment(), timeout)
+        except OSError:
+            return None
     try:
         return subprocess.run(
             command,
@@ -861,17 +923,34 @@ def _run_steps(plan: dict) -> None:
     steps = _execution_steps(plan)
     userinfo = _remote_userinfo(plan, steps)
     for args, cwd in steps:
-        timeout = NETWORK_TIMEOUT_SECONDS if args[0] in _NETWORK_COMMANDS else GIT_TIMEOUT_SECONDS
-        result = git(args, cwd, timeout=timeout)
+        timeout = NETWORK_TIMEOUT_SECONDS if args[0] in _NETWORK_COMMANDS else WORKTREE_ADD_TIMEOUT_SECONDS
+        # Every step writes, so each runs in a session of its own that a timeout can stop as a whole.
+        result = git(args, cwd, timeout=timeout, own_session=True)
         if result is None or result.returncode != 0:
             # No retry: a second attempt could act on a remote or a source that changed in between.
             detail = "timeout" if result is None else redact_credentials(result.stderr, userinfo)
             refusal = Refusal(_COMMAND_FAILURES[args[0]], {"detail": detail[:_FAILURE_DETAIL_CHARS]})
-            # git cleans up after its own failures, but not after being stopped by the timeout halfway through a
-            # checkout. The target did not exist when the plan was made, so whatever is there now came from this run.
-            if args[0] == "worktree" and os.path.lexists(plan["target"]):
-                refusal.detail["partial"] = {"target": str(plan["target"]), "branch": plan["branch"]}
+            if args[0] == "worktree":
+                partial = _leftovers(plan, cwd)
+                if partial["target_exists"] or partial["branch_exists"]:
+                    refusal.detail["partial"] = partial
             raise refusal
+
+
+def _partial(plan: dict, *, target_exists: bool, branch_exists: bool) -> dict:
+    return {
+        "target": str(plan["target"]), "branch": plan["branch"],
+        "target_exists": target_exists, "branch_exists": branch_exists,
+    }
+
+
+def _leftovers(plan: dict, source: Path) -> dict:
+    """What a failed `worktree add` left. Neither existed when the plan was made, so whatever is there is this run's."""
+    # `worktree add -b` makes the branch before the checkout, and removes only the directory when the checkout fails.
+    result = git(["show-ref", "--verify", "--quiet", f"refs/heads/{plan['branch']}"], source)
+    # 1 is "not there"; a git that cannot answer must not let a leftover branch go unreported.
+    branch_exists = result is None or result.returncode != 1
+    return _partial(plan, target_exists=os.path.lexists(plan["target"]), branch_exists=branch_exists)
 
 
 def check_target_unstaged(target: Path) -> None:
@@ -974,7 +1053,7 @@ def execute_plan(plan: dict) -> dict:
     """
     _run_steps(plan)
     target = Path(plan["target"])
-    partial = {"target": str(target), "branch": plan["branch"]}
+    partial = _partial(plan, target_exists=True, branch_exists=True)
     try:
         check_target_unstaged(target)
         root = Path(os.path.realpath(plan["asset_source"]))
