@@ -26,7 +26,7 @@ status: draft
 **session-start 的 handoff 讀回**
 
 - D4：讀取位置對齊 `handoff` 的寫入規則（`handoff/SKILL.md:90`、`:143`）：git repo 讀 `git worktree list` 中每個 worktree 的 `.claude/handoffs/`，當前 worktree 優先、每份標來源 worktree 與分支；非 git 只讀 cwd 的 `.claude/handoffs/`。`handoff` skill 不改。
-- D5：列出 `status` 不是 `resumed` 的檔案（`in-progress`、`blocked`、`ready-for-review`，以及 frontmatter 異常者並標註）。依 `created`（缺則 mtime）新到舊，7 天內、最多 5 份；超出的補一行「另有 N 份，加 `--all` 可列出」。
+- D5：列出 `status` 不是 `resumed` 的檔案（`in-progress`、`blocked`、`ready-for-review`，以及 frontmatter 異常者並標註）。依 `created`（缺則 mtime）新到舊，7 天內、最多 5 份；超出的補一行「另有 N 份，加 `--all` 可列出」。N 是 `--all` 會多列出的份數，超過 7 天的也算。
 - D6：使用者確認接手且 assertion 跑完後，把 `status` 改成 `resumed` 並加 `resumed_at`，檔案不搬。
 - D7：參數 `--handoff <path>`、`--all`；以 `.md` 結尾且檔案存在的參數也當路徑；其餘為自由文字任務描述。路徑可在 repo 外，但需有 handoff frontmatter（至少 `status`）。`worktree` 與 cwd 不同時提醒；已是 `resumed` 的先說明再問是否繼續。
 - D8：不做 topic router 或 repo 設定檔。需要它的 repo 由 D1 交給 repo-local 版。
@@ -85,10 +85,10 @@ tests/
 
 | 子指令 | 作用 |
 |---|---|
-| `delegate --runtime claude\|codex` | 依 D1–D2 找 repo-local 版。「自己」用腳本位置判斷（`scripts/` 的上一層）。排除 realpath 等於自己的候選檔，以及位於 `~/.claude/skills`、`~/.codex/skills`、`~/.omp/agent/skills`、外掛快取下的檔案。 |
+| `delegate --runtime claude\|codex` | 依 D1–D2 找 repo-local 版。「自己」用腳本位置判斷（`scripts/` 的上一層）。排除 realpath 等於自己的候選檔，以及位於 `~/.claude/skills`、`~/.codex/skills`、`~/.omp/agent/skills`、外掛快取下的檔案。排除原因是 `self`、`user_level`、`unreadable`（候選檔讀不到時略過，改用下一個，否則比對內容時會崩潰）。 |
 | `list [--all]` | 依 D4–D5 掃描、篩選、排序，回報剩餘份數與跳過的 worktree。 |
-| `check <path>` | 依 D7 驗證檔案；只跑白名單 assertion，結果為通過／不通過／未驗證；回傳內文各段落。 |
-| `mark-resumed <path> --expect-sha256 <hash>` | 依 D6 改寫 frontmatter。 |
+| `check <path>` | 依 D7 驗證檔案；只跑白名單 assertion，結果為通過／不通過／未驗證；回傳內文各段落（key 是完整標題文字，例如 `規矩（不能違反）`，SKILL.md 以前綴比對）。`worktree_matches_cwd` 在沒有 `worktree` 欄位時是 `null`。錯誤：`not_handoff`（含不是一般檔案）、`not_found`、`unreadable`，都是 exit 2。 |
+| `mark-resumed <path> --expect-sha256 <hash>` | 依 D6 改寫 frontmatter。拒絕時 exit 3：`hash_mismatch`、`already_resumed`、`malformed`、`not_handoff`、`symlink`；exit 2：`not_found`、`unreadable`、`unwritable`、`invalid_now`。 |
 
 SKILL.md 流程：
 
@@ -108,7 +108,7 @@ SKILL.md 流程：
 SKILL.md 流程：
 
 1. `bootstrap_worktree.py delegate --runtime …`（D3）。
-2. 呼叫 `session-start` skill。若接了 handoff，而且它的 `worktree` 還在，先問要回那裡繼續還是開新任務。
+2. 跑 `session-start` 的流程，做法是讀同層的 `../session-start/SKILL.md` 並照它執行，不透過 Skill tool 呼叫，因為 `session-start` 是 `disable-model-invocation: true`，模型呼叫會被擋下。若接了 handoff，而且它的 `worktree` 還在，先問要回那裡繼續還是開新任務。
 3. 非 git：照 D9 處理後結束。
 4. 用原話記任務；沒給分支就依任務提議一個並等確認；slug 由分支推導（`/` → `-`）。
 5. 不加 `--execute` 跑一次，把 JSON 計畫整理給使用者：模式、來源、base ref、目標、會執行的 git 指令、要複製的檔案（只有路徑與大小）、symlink 建立或跳過的原因。
@@ -132,7 +132,7 @@ SKILL.md 流程：
 
 **handoffs.py**
 
-- handoff 內容視為不可信資料，不執行其中任何文字。assertion 的 `repo`、`path` 必須是絕對路徑；`repo` 必須是存在的 git repo；`file_exists` 只做 stat。
+- handoff 內容視為不可信資料，不執行其中任何文字。assertion 的 `repo`、`path` 可以是絕對路徑，或以 handoff 的 `worktree` 欄位為基準的相對路徑（`handoff/SKILL.md` 允許 repo 相對路徑）；沒有絕對的 `worktree` 時，相對路徑為未驗證；含 `..` 或 NUL 的路徑為未驗證。`repo` 必須是存在的 git repo；`file_exists` 只做 stat。git 呼叫前先清掉會選定 repo 的環境變數（`GIT_DIR` 等），避免在 hook 內執行時對錯的 repo 回報通過。
 - frontmatter 異常：照列並標註；`check` 不跑 assertion；`mark-resumed` 拒絕。
 - handoff 檔本身是 symlink：跳過並註明。
 - `mark-resumed`：先比對 `--expect-sha256`（`check` 時的內容），不符就停，例如另一個 session 在這之間先接走了；只改 frontmatter，內文逐 byte 不變；寫同目錄暫存檔再 rename，保留權限。
@@ -153,7 +153,7 @@ SKILL.md 流程：
 - `tests/test_session_start_handoffs.py`：
   - `delegate`：排除自己與 user-level 目錄、runtime 順序、realpath 去重、內容不一致提醒、非 git 情境。
   - `list`：多 worktree、worktree 不存在、7 天／5 份與剩餘份數、`--all`、格式異常、symlink 跳過。
-  - `check`：4 種 assertion 的通過與不通過、未知種類為未驗證、相對路徑拒絕。
+  - `check`：4 種 assertion 的通過與不通過、未知種類為未驗證、相對路徑以 `worktree` 為基準、`..` 為未驗證、繼承的 `GIT_DIR` 不影響結果。
   - `mark-resumed`：只動 frontmatter、內文 bytes 不變、hash 不符停止、權限保留。
   - 一致性：解析 `handoff/SKILL.md` 的白名單表格，與 `handoffs.py` 支援的種類比對。
 - `tests/test_task_bootstrap.py`：三種模式的正常流程；預設分支偵測的三種情況；每個停止條件；`--copy` 邊界；symlink 照來源建立；remote URL 白名單；不加 `--execute` 時不改任何東西。
@@ -168,7 +168,7 @@ SKILL.md 流程：
 ## 8. Rollout
 
 1. PR-1：`session-start` 與它的打包變更。合進 `production` 前，在兩個有 repo-local 版的 repo 直接跑 `handoffs.py delegate`（唯讀），確認它指向 repo-local 版。
-2. 合進 `production` 後，立刻在那兩個 repo 實際打 `/session-start`，確認轉手；失敗就 revert `production`。Codex 在 `skill-sync --dry-run` 審過並同步後再測一次。
+2. 合進 `production` 後，立刻在那兩個 repo 實際打 `/session-start`，確認轉手；再各跑一次它們自己的 task-bootstrap（dry-run），確認第一步「呼叫 repo-local session-start」仍然到得了 repo-local 版，沒有被 `disable-model-invocation: true` 的通用版擋下。失敗就 revert `production`。Codex 在 `skill-sync --dry-run` 審過並同步後再測一次。
 3. PR-2：`task-bootstrap`，同樣流程。
 
 ## 9. Out of scope
@@ -182,4 +182,5 @@ SKILL.md 流程：
 
 - Codex 的同名 skill 優先序。不擋進度：有 D1 的轉手，先載入哪一份結果都一樣。
 - Claude Code 能不能用短名稱呼叫 plugin skill。只影響外掛使用者打的指令名稱，不影響個人版。
-- Codex 是否提供 skill 的 base directory。`delegate` 靠腳本自身位置判斷，不依賴這點。
+- Codex 是否提供 skill 的 base directory。`delegate` 靠腳本自身位置判斷，不依賴這點；但 SKILL.md 以 `<skill_base_directory>` 指到 `scripts/handoffs.py`，這點依賴 runtime 提供。
+- 通用版加了 `disable-model-invocation: true` 之後，那兩個 repo 的 task-bootstrap 以 Skill tool 呼叫 repo-local session-start 是否仍然成功。要等合進 `production` 後實測（§8.2）。
