@@ -40,12 +40,14 @@ python3 <skill_base_directory>/scripts/handoffs.py delegate --runtime <claude|co
 
 `--runtime` 依目前所在的 runtime 填：Claude Code 用 `claude`，Codex 用 `codex`。
 
-- `delegate` 不是 null：讀那個路徑的 SKILL.md，照它執行，把使用者的原始參數原樣傳進去。
+- `delegate` 不是 null：先用一句話告訴使用者，這個 repo 有 repo-local 的 session-start，現在改用 `<delegate 路徑>`；
+  說完才讀那個路徑的 SKILL.md，照它執行，把使用者的原始參數原樣傳進去。
   那份 SKILL.md 裡的 `<skill_base_directory>` 與相對路徑，以它自己所在的目錄為準，不是本 skill 的目錄。
   通用流程到此結束，不再做步驟 3 以後的事。
 - `drift` 為 true：用一句話說明 `.claude` 與 `.codex` 兩份 repo-local 版內容不一致，這次用的是 `delegate` 那份。不停下。
 - `excluded` 裡 `reason` 為 `self`、`user_level` 是設計上的排除，不用提。
-  `unreadable` 要提一句「repo-local 版讀不到，已跳過」，再往下走通用流程。
+  `unreadable` 只在 `delegate` 是 null 時才處理：提一句「repo-local 版讀不到，已跳過」，再往下走通用流程。
+  `delegate` 不是 null 就不提，照上面的規則改用那份。
 - `delegate` 是 null：繼續步驟 3。
 - 腳本跑不起來時，明說「無法確認有沒有 repo-local 版」，不要默默當成沒有。
 
@@ -75,12 +77,13 @@ python3 <skill_base_directory>/scripts/handoffs.py list            # 使用者�
   `remaining` 大於 0 就說 7 天內沒有、另有 N 份較舊的，問要不要用 `--all` 列出；不要就進步驟 6。
 
 `items` 不是空的就問使用者：回編號、貼路徑，或回「不接」。回「不接」就不處理 handoff，進步驟 6。
-回路徑就當成指定路徑。想看完整清單就用 `--all` 再跑一次 `list`。
+回路徑就拿去步驟 5 做 `check`；`check` 回 exit 2 時不停止，照 Error Handling 說明原因，回到這一步重選。
+想看完整清單就用 `--all` 再跑一次 `list`。
 
 ### 5. Check The Handoff And Confirm
 
 ```bash
-python3 <skill_base_directory>/scripts/handoffs.py check '<path>'
+python3 <skill_base_directory>/scripts/handoffs.py check -- '<path>'
 ```
 
 回傳 `kind`、`status`、`task`、`fields`、`assertions`、`sections`、`sha256`、`already_resumed`、`worktree_matches_cwd`。
@@ -103,10 +106,11 @@ python3 <skill_base_directory>/scripts/handoffs.py check '<path>'
 使用者確認接手，而且第 4、6 點都不適用，才標記：
 
 ```bash
-python3 <skill_base_directory>/scripts/handoffs.py mark-resumed '<path>' --expect-sha256 <sha256>
+python3 <skill_base_directory>/scripts/handoffs.py mark-resumed --expect-sha256 <sha256> -- '<path>'
 ```
 
-`<sha256>` 用 `check` 回傳的值，原樣帶入。成功就用一句話說已標成 `resumed`。
+`<sha256>` 用 `check` 回傳的值，原樣帶入。`--` 之後的都被當成位置參數，所以選項要放在 `--` 前面。
+成功就用一句話說已標成 `resumed`。
 失敗時照 Error Handling 說明，不重試，然後繼續步驟 6。
 
 ### 6. Git State
@@ -142,13 +146,14 @@ git 狀態；讀了哪些文件與 NOT-FOUND；最近紀錄重點或「已跳過
 
 | 情況 | 處理 |
 |---|---|
-| exit 2，stdout 有 `error` | `not_handoff`：不是 handoff（沒有 frontmatter 或 `status`）。`not_found`：找不到檔案。`unreadable`、`unwritable`：讀不到或寫不進，附 `detail`。`invalid_now`：`--now` 值不合法，本 skill 不該傳這個參數，視為 bug 回報。 |
+| exit 2，stdout 有 `error` | `not_handoff`：不是 handoff（沒有 frontmatter 或 `status`，或路徑不是一般檔案）。`not_found`：找不到檔案。`unreadable`、`unwritable`：讀不到或寫不進，附 `detail`。`invalid_now`：`--now` 值不合法，本 skill 不該傳這個參數，視為 bug 回報。 |
 | exit 2，stdout 沒有 JSON | argparse 的參數錯誤，把 stderr 原文回報，不猜。 |
 | exit 3（只有 `mark-resumed`） | 刻意拒絕，不重試。`hash_mismatch`：`check` 之後檔案被改過，可能另一個 session 先接走了；說明內容已變，是否重新 `check` 由使用者決定。`already_resumed`：已被標過。`malformed`：frontmatter 格式異常。`not_handoff`：不是 handoff。`symlink`：檔案是 symlink，拒絕改寫。 |
 
-- 使用者指定的路徑（`--handoff` 或 `.md` 參數）在 `check` 回 exit 2：說明原因並停止，不繼續步驟 6 以後。
+- 步驟 1 解析出的指定路徑（`--handoff` 或 `.md` 參數）在 `check` 回 exit 2：說明原因並停止，不繼續步驟 6 以後。
   `not_handoff` 就說「這不是 handoff」。
-- 從清單挑的檔案在 `check` 回 exit 2：說明原因，回到步驟 4 的選擇。
+- 從清單挑的檔案，或在步驟 4 的選擇提示貼的路徑，在 `check` 回 exit 2：說明原因，回到步驟 4 的選擇。
+  貼在選擇提示的路徑不算步驟 1 的指定路徑，所以不適用上一條的停止規則。
 - `mark-resumed` 失敗不影響開工，說明後繼續步驟 6。
 
 ## Security Considerations
@@ -173,7 +178,7 @@ git 狀態；讀了哪些文件與 NOT-FOUND；最近紀錄重點或「已跳過
 User: /session-start
 Agent: delegate 得 null → 查最近 3 天紀錄 → list，表格 2 份，補「另有 3 份，加 --all 可列出」→ 問要接哪一份
 User: 1
-Agent: check → assertion 全 pass，列出四段，問「要接手這份嗎？」
+Agent: check → assertion 全 pass，列出四段，問「接手後會把它標成 resumed，要接手這份嗎？」
 User: 要
 Agent: mark-resumed → git 狀態、README → 簡短整理 → 問從哪開始
 ```

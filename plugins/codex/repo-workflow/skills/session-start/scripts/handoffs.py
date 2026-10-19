@@ -89,11 +89,20 @@ def _parse_scalar(text: str) -> str | None:
         match = _SINGLE_QUOTED.fullmatch(text)
         if match:
             return match.group(1).replace("''", "'")
-    text = _COMMENT.sub("", text).strip()
+    uncommented = _COMMENT.sub("", text).strip()
     # Only a value that is entirely bracketed counts as a collection, so a title like "[WIP] fix x" stays text.
-    if (text.startswith("[") and text.endswith("]")) or (text.startswith("{") and text.endswith("}")):
+    if (uncommented.startswith("[") and uncommented.endswith("]")) or (
+        uncommented.startswith("{") and uncommented.endswith("}")
+    ):
         return None
-    return text
+    # Stripping a comment can cut a collection in half: "[Image #2]" (what Claude Code pastes for an image) would
+    # read as the text "[Image". An opener whose closer was lost that way is an unsupported flow collection too.
+    if uncommented != text and (
+        (uncommented.startswith("[") and "]" not in uncommented)
+        or (uncommented.startswith("{") and "}" not in uncommented)
+    ):
+        return None
+    return uncommented
 
 
 def _parse_frontmatter(lines: list[str]) -> tuple[dict[str, str], list[dict[str, str]], bool]:
@@ -391,6 +400,11 @@ def command_check(args: argparse.Namespace) -> int:
     path = Path(args.path)
     cwd = Path(args.cwd) if args.cwd else Path.cwd()
     try:
+        # stat before any read, as `list` and `mark-resumed` do: opening a FIFO blocks forever and /dev/zero never
+        # ends. os.stat follows symlinks, so a link to a regular file is still checked.
+        if not stat.S_ISREG(os.stat(path).st_mode):
+            emit({"error": "not_handoff"})
+            return 2
         raw = path.read_bytes()
     except (FileNotFoundError, NotADirectoryError):
         emit({"error": "not_found"})

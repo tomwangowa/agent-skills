@@ -242,6 +242,22 @@ class ParseTests(unittest.TestCase):
         self.assertEqual(parsed.kind, "ok")
         self.assertEqual(parsed.fields["task"], "[WIP] fix the parser")
 
+    def test_comment_that_cuts_a_bracket_in_half_is_malformed(self) -> None:
+        # "[Image #2]" is what Claude Code pastes for an image; stripping "#2]" as a comment must not leave "[Image".
+        for value in ("[Image #2]", "[Image #2] extra words", "{Image #2}"):
+            with self.subTest(value=value):
+                parsed = handoffs.parse_handoff(f"---\nstatus: blocked\ntask: {value}\n---\n".encode("utf-8"))
+                self.assertEqual(parsed.kind, "malformed")
+
+    def test_hash_comment_after_plain_text_is_still_a_comment(self) -> None:
+        # YAML-correct: " #123" starts a comment, so the title is "fix". Titles that open with a closed bracket
+        # pair keep the lenient plain-text reading.
+        cases = {"fix #123 x": "fix", "[WIP] fix #123": "[WIP] fix", "{WIP} fix #1": "{WIP} fix"}
+        for value, expected in cases.items():
+            with self.subTest(value=value):
+                parsed = handoffs.parse_handoff(f"---\nstatus: blocked\ntask: {value}\n---\n".encode("utf-8"))
+                self.assertEqual((parsed.kind, parsed.fields["task"]), ("ok", expected))
+
     def test_split_sections(self) -> None:
         sections = handoffs.split_sections("## 任務\na\n## 下一步\nb\n")
         self.assertEqual({key: value.strip() for key, value in sections.items()}, {"任務": "a", "下一步": "b"})
@@ -452,10 +468,44 @@ class CheckTests(RepoTestCase):
     def test_check_missing_file_exits_2(self) -> None:
         self.assertEqual(run_cli(SCRIPT, "check", str(self.tmp / "nope.md"), cwd=self.repo), (2, {"error": "not_found"}))
 
-    def test_check_unreadable_path_exits_2(self) -> None:
-        code, out = run_cli(SCRIPT, "check", str(self.tmp), cwd=self.repo)
-        self.assertEqual(code, 2)
-        self.assertEqual(out["error"], "unreadable")
+    def test_check_directory_is_not_a_handoff(self) -> None:
+        self.assertEqual(run_cli(SCRIPT, "check", str(self.tmp), cwd=self.repo), (2, {"error": "not_handoff"}))
+
+    @unittest.skipIf(hasattr(os, "geteuid") and os.geteuid() == 0, "root ignores file permissions")
+    def test_check_unreadable_file_exits_2(self) -> None:
+        path = write_handoff(self.handoff_dir, "locked.md", frontmatter="status: in-progress")
+        path.chmod(0)
+        self.addCleanup(path.chmod, 0o644)
+        code, out = run_cli(SCRIPT, "check", str(path), cwd=self.repo)
+        self.assertEqual((code, out["error"]), (2, "unreadable"))
+
+    @unittest.skipUnless(hasattr(os, "mkfifo"), "needs POSIX FIFOs")
+    def test_check_fifo_is_refused_without_blocking(self) -> None:
+        # Opening a FIFO for reading blocks until a writer shows up, so check must stat the path before it reads.
+        fifo = self.tmp / "pipe.md"
+        os.mkfifo(fifo)
+        started = time.monotonic()
+        try:
+            result = subprocess.run(
+                [sys.executable, str(SCRIPT), "check", str(fifo)],
+                cwd=str(self.repo),
+                env=isolated_env(),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                timeout=10,
+            )
+        except subprocess.TimeoutExpired:
+            self.fail("check blocked on a FIFO")
+        self.assertEqual((result.returncode, json.loads(result.stdout)), (2, {"error": "not_handoff"}))
+        self.assertLess(time.monotonic() - started, 10)
+
+    def test_check_accepts_a_dash_led_path_after_double_dash(self) -> None:
+        # The skill puts "--" before the path so a file named "-x.md" is not mistaken for an option.
+        path = write_handoff(self.tmp, "-x.md", frontmatter="status: in-progress\ntask: dash")
+        code, out = run_cli(SCRIPT, "check", "--cwd", str(self.repo), "--", "-x.md", cwd=self.tmp)
+        self.assertEqual((code, out["task"], out["path"]), (0, "dash", "-x.md"))
+        self.assertEqual(out["sha256"], hashlib.sha256(path.read_bytes()).hexdigest())
 
     def test_check_reports_sha256_and_resumed(self) -> None:
         pending = write_handoff(self.handoff_dir, "a.md", frontmatter="status: in-progress")
@@ -1035,6 +1085,15 @@ class MarkResumedTests(RepoTestCase):
         directory = self.handoff_dir / "dir.md"
         directory.mkdir(parents=True)
         self.assertEqual(self.mark(directory, sha="0" * 64), (3, {"error": "not_handoff"}))
+
+    def test_dash_led_path_after_double_dash(self) -> None:
+        # Options come first: everything after "--" is positional, so --expect-sha256 must precede it.
+        path = write_handoff(self.tmp, "-x.md", frontmatter="status: in-progress")
+        code, out = run_cli(
+            SCRIPT, "mark-resumed", "--expect-sha256", self.sha(path), "--now", self.NOW, "--", "-x.md", cwd=self.tmp
+        )
+        self.assertEqual((code, out), (0, {"path": "-x.md", "status": "resumed", "resumed_at": self.NOW}))
+        self.assertIn(b"status: resumed", path.read_bytes())
 
     def test_symlink_refuses(self) -> None:
         real = write_handoff(self.tmp, "real.md", frontmatter="status: in-progress")
