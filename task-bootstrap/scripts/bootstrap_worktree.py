@@ -395,11 +395,22 @@ class Location:
     worktrees_root: Path
 
 
+def _repository_identity(path: Path) -> tuple[bool, Path] | None:
+    """(is a work tree, realpath of the common git dir) of the repository `path` is in; None when it is in none."""
+    result = _git_run(["rev-parse", "--is-inside-work-tree", "--git-common-dir"], path)
+    lines = result.stdout.splitlines()
+    if result.returncode != 0 or len(lines) != 2:
+        return None
+    # Relative to `path` when git runs from inside the repository, and the same for every worktree of it.
+    return lines[0] == "true", Path(os.path.realpath(path / lines[1]))
+
+
 def locate(args: argparse.Namespace) -> Location:
     """Work out the repository, the source and the worktrees root from the cwd and the options."""
     anchor = _require_directory(Path(os.path.abspath(args.cwd or Path.cwd())))
-    # The anchor is always the cwd. --source only changes where the checks and git commands run, so a source that
-    # belongs to another repository cannot drag the repo name, the asset source and the target along with it.
+    # The anchor is always the cwd, and the repo name, the default asset source and the default worktrees root come
+    # from the repository it belongs to. --source and --asset-source can only pick other checkouts of that same
+    # repository, which is verified below.
     main_checkout = find_main_checkout(anchor)
 
     def option_path(value: str | None, default: Path) -> Path:
@@ -407,10 +418,27 @@ def locate(args: argparse.Namespace) -> Location:
 
     source = _require_directory(option_path(args.source, main_checkout))
     asset_source = _require_directory(option_path(args.asset_source, main_checkout))
-    inside = _git_run(["rev-parse", "--is-inside-work-tree"], source)
-    # A bare repository answers "false"; it has no files to check or to branch from.
-    if inside.returncode != 0 or inside.stdout.strip() != "true":
-        raise Refusal("source_not_git", {"path": str(source)})
+
+    known: dict[Path, tuple[bool, Path]] = {}
+
+    def repository_of(role: str, path: Path) -> tuple[bool, Path]:
+        if path not in known:
+            identity = _repository_identity(path)
+            if identity is None:
+                raise Refusal("source_not_git", {"role": role, "path": str(path)})
+            known[path] = identity
+        return known[path]
+
+    _, main_common_dir = repository_of("main_checkout", main_checkout)
+    for role, path in (("source", source), ("asset_source", asset_source)):
+        is_work_tree, common_dir = repository_of(role, path)
+        # A bare repository answers "false"; it has no files to check or to branch from.
+        if role == "source" and not is_work_tree:
+            raise Refusal("source_not_git", {"role": role, "path": str(path)})
+        # Another repository would get a worktree under this one's name, a pull run in it, and (once files are
+        # copied) this repository's local files.
+        if common_dir != main_common_dir:
+            raise Refusal("source_wrong_repo", {"role": role, "path": str(path)})
 
     configured = args.worktrees_root or os.environ.get(WORKTREES_ROOT_ENV)
     worktrees_root = Path(os.path.abspath(anchor / configured)) if configured else main_checkout.parent / "worktrees"
@@ -462,12 +490,15 @@ def plan_main(args: argparse.Namespace, loc: Location) -> dict:
     target = resolve_target(loc.worktrees_root, loc.repo_name, slug)
 
     base_ref = f"{args.remote}/{default_branch}"
+    # Fully qualified: git looks a short name up under refs/heads/ before refs/remotes/, so a local branch called
+    # "origin/main" would silently become the start point.
+    start_point = f"refs/remotes/{base_ref}"
     base = ["git", "-C", str(source)]
     commands = [
         [*base, "fetch", args.remote],
         [*base, "pull", "--ff-only", args.remote, default_branch],
         # --no-track: a feature branch whose upstream is origin/main is one bare `git push` away from main.
-        [*base, "worktree", "add", "--no-track", "-b", branch, str(target), base_ref],
+        [*base, "worktree", "add", "--no-track", "-b", branch, str(target), start_point],
     ]
     return plan_document(
         args, loc, default_branch=default_branch, base_ref=base_ref, branch=branch, slug=slug, target=target,
@@ -512,7 +543,9 @@ def build_parser() -> argparse.ArgumentParser:
     creation.add_argument("--branch", required=True, help="Name of the branch the worktree is for.")
     creation.add_argument("--slug", help="Directory name of the worktree (default: derived from the branch name).")
     creation.add_argument("--task", help="Task description, copied into the plan unchanged.")
-    creation.add_argument("--source", help="Repository checkout to work from (default: the main checkout).")
+    creation.add_argument(
+        "--source", help="Checkout of the same repository to work from (default: the main checkout)."
+    )
     creation.add_argument("--base-ref", help="Ref a new branch starts from (task mode).")
     creation.add_argument("--remote", default="origin", help="Name of the remote (default: origin).")
     creation.add_argument("--default-branch", help="Name of the remote's default branch, if it cannot be detected.")
@@ -520,7 +553,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--worktrees-root",
         help=f"Directory that holds the worktrees (default: ${WORKTREES_ROOT_ENV}, then <main checkout>/../worktrees).",
     )
-    creation.add_argument("--asset-source", help="Checkout that local files come from (default: the main checkout).")
+    creation.add_argument(
+        "--asset-source", help="Checkout of the same repository that local files come from (default: main checkout)."
+    )
     creation.add_argument("--copy-venv", action="store_true", help="Also copy .venv/.")
     creation.add_argument("--copy", action="append", default=[], metavar="PATH", help="Extra file to copy; repeatable.")
     creation.add_argument("--execute", action="store_true", help="Carry out the plan instead of only printing it.")

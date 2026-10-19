@@ -611,7 +611,8 @@ class CreateMainPlanTests(TempProjectCase):
         self.assertEqual(out["commands"], [
             [*base, "fetch", "origin"],
             [*base, "pull", "--ff-only", "origin", "main"],
-            [*base, "worktree", "add", "--no-track", "-b", "feat/x", target, "origin/main"],
+            # Fully qualified, while base_ref above stays the display form.
+            [*base, "worktree", "add", "--no-track", "-b", "feat/x", target, "refs/remotes/origin/main"],
         ])
 
     def test_dry_run_changes_nothing(self) -> None:
@@ -632,16 +633,44 @@ class CreateMainPlanTests(TempProjectCase):
             self.assertEqual(out["commands"][0][:3], ["git", "-C", str(self.root)])
 
     def test_source_option_overrides_source_only(self) -> None:
-        # A separate clone is a different repository, so if --source also chose the anchor, the repo name, the
-        # asset source and the target would follow it. (A linked worktree would lead back to the same main checkout.)
-        other = self.tmp / "other-clone"
-        run_git(self.tmp, "clone", "-q", self.project.origin.as_uri(), str(other))
-        out = self.plan("--source", str(other))
-        self.assertEqual(out["source"], str(other))
+        # Free `main` so a linked worktree can hold it while the main checkout (the cwd) sits on another branch.
+        run_git(self.root, "checkout", "-q", "-b", "work")
+        linked = self.tmp / "linked"
+        run_git(self.root, "worktree", "add", "-q", str(linked), "main")
+        out = self.plan("--source", str(linked))
+        self.assertEqual(out["source"], str(linked))
         self.assertEqual(out["asset_source"], str(self.root))
         self.assertEqual(out["target"], os.path.realpath(self.worktrees / "proj" / "feat-x"))
         self.assertEqual(out["worktrees_root"], os.path.realpath(self.worktrees))
-        self.assertTrue(all(command[:3] == ["git", "-C", str(other)] for command in out["commands"]))
+        self.assertTrue(all(command[:3] == ["git", "-C", str(linked)] for command in out["commands"]))
+        # Without --source the main checkout is the source, and it is on `work`.
+        self.assertEqual(self.refusal(expect="source_branch_mismatch")["current"], "work")
+
+    def unrelated_repository(self) -> Path:
+        """A second clone of the same remote: it looks alike, but it has a git directory of its own."""
+        other = self.tmp / "other-clone"
+        run_git(self.tmp, "clone", "-q", self.project.origin.as_uri(), str(other))
+        return other
+
+    def test_unrelated_repo_as_source_refuses_in_every_mode(self) -> None:
+        other = self.unrelated_repository()
+        for mode in ("main", "task"):
+            with self.subTest(mode=mode):
+                out = self.refusal("--mode", mode, "--source", str(other), expect="source_wrong_repo")
+                self.assertEqual((out["role"], out["path"]), ("source", str(other)))
+        # Called from inside the other repository, that one is the main checkout, and this project is the foreigner.
+        other_cwd = self.refusal("--asset-source", str(self.root), cwd=other, expect="source_wrong_repo")
+        self.assertEqual((other_cwd["role"], other_cwd["path"]), ("asset_source", str(self.root)))
+        self.assertFalse(self.worktrees.exists())
+
+    def test_unrelated_repo_as_asset_source_refuses(self) -> None:
+        other = self.unrelated_repository()
+        out = self.refusal("--asset-source", str(other), expect="source_wrong_repo")
+        self.assertEqual((out["role"], out["path"]), ("asset_source", str(other)))
+        # A linked worktree of this repository is a fine asset source.
+        linked = self.tmp / "linked"
+        run_git(self.root, "worktree", "add", "-q", "-b", "other", str(linked))
+        self.assertEqual(self.plan("--asset-source", str(linked))["asset_source"], str(linked))
 
     def test_untracked_files_do_not_make_source_dirty(self) -> None:
         (self.root / ".env").write_text("TOKEN=1\n", encoding="utf-8")
@@ -674,11 +703,18 @@ class CreateMainPlanTests(TempProjectCase):
         run_git(self.root, "checkout", "-q", "-b", "trunk")
         run_git(self.root, "push", "-q", "origin", "trunk")
         run_git(self.root, "remote", "set-head", "origin", "trunk")
-        # With this branch around, `symbolic-ref --short` would print "remotes/origin/trunk".
-        run_git(self.root, "branch", "origin/trunk")
+        # With this branch around, `symbolic-ref --short` would print "remotes/origin/trunk", and the short name
+        # "origin/trunk" would name this local branch instead of the remote-tracking ref.
+        lookalike = git_out(self.root, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "local look-alike")
+        run_git(self.root, "branch", "origin/trunk", lookalike)
         out = self.plan()
         self.assertEqual((out["default_branch"], out["base_ref"]), ("trunk", "origin/trunk"))
         self.assertEqual(out["commands"][1][3:], ["pull", "--ff-only", "origin", "trunk"])
+        start_point = out["commands"][2][-1]
+        self.assertEqual(start_point, "refs/remotes/origin/trunk")
+        # Guard: the short name really does pick the local look-alike, and the printed start point does not.
+        self.assertEqual(git_out(self.root, "rev-parse", "origin/trunk"), lookalike)
+        self.assertEqual(git_out(self.root, "rev-parse", start_point), git_out(self.root, "rev-parse", "HEAD"))
 
     def test_default_branch_from_ls_remote_when_head_missing(self) -> None:
         run_git(self.root, "remote", "set-head", "origin", "-d")
