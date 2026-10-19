@@ -2035,6 +2035,37 @@ class CreateHelperTests(unittest.TestCase):
         # A user name in scp form is not a credential, and the path may contain "@".
         self.assertIsNone(userinfo("git@h:o/r@1.git"))
 
+    def test_interrupted_wait_stops_the_whole_process_group(self) -> None:
+        child_file, grandchild_file = self.cwd / "child", self.cwd / "grandchild"
+        # A child that starts a background grandchild in its own group, records both pids, and then waits.
+        script = f"sleep 60 & echo $! > '{grandchild_file}'; echo $$ > '{child_file}'; wait"
+        def interrupted(process, *args, **kwargs):
+            deadline = time.monotonic() + 20
+            while not (child_file.exists() and grandchild_file.exists()) and time.monotonic() < deadline:
+                time.sleep(0.05)
+            raise KeyboardInterrupt
+
+        with mock.patch.object(subprocess.Popen, "communicate", interrupted):
+            with self.assertRaises(KeyboardInterrupt):
+                self.module._run_own_session(["sh", "-c", script], dict(os.environ), 600)
+        pids = [int(path.read_text(encoding="utf-8")) for path in (child_file, grandchild_file)]
+
+        def alive(pid: int) -> bool:
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                return False
+            return True
+
+        # Only matters when the code under test failed to stop them: do not leave a sleeper behind.
+        self.addCleanup(lambda: [os.kill(pid, 9) for pid in pids if alive(pid)])
+
+        # Polled: a killed grandchild is reaped by init, not by this process, and that can take a moment.
+        deadline = time.monotonic() + 10
+        while any(alive(pid) for pid in pids) and time.monotonic() < deadline:
+            time.sleep(0.1)
+        self.assertEqual([pid for pid in pids if alive(pid)], [])
+
     def test_execute_refuses_a_malformed_plan_before_running_anything(self) -> None:
         here = str(self.cwd)
         trap = mock.patch.object(self.module, "git", side_effect=AssertionError("git ran"))

@@ -135,20 +135,34 @@ def _run_own_session(command: list[str], env: dict[str, str], timeout: int) -> s
     try:
         stdout, stderr = process.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
-        # Killing git alone would leave its hooks and filters running, still writing into the new worktree after this
-        # script has reported its result. The session leader's pid is the group id.
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except (ProcessLookupError, PermissionError):
-            pass
-        # In case the group signal did not reach git itself; wait() must not block on a live process.
-        process.kill()
-        process.wait()
-        process.stdout.close()
-        process.stderr.close()
-        _wait_for_group_exit(process.pid)
+        _stop_group(process)
         return None
+    except BaseException:
+        # Ctrl-C or any other error while waiting: the terminal's SIGINT never reaches a child in its own session, and
+        # communicate() does not kill it, so without this git and its hooks would carry on after the script is gone.
+        _stop_group(process)
+        raise
     return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+
+
+def _stop_group(process: subprocess.Popen) -> None:
+    """Kill, reap and close everything `process` started in its session, and wait until the group is gone.
+
+    Killing git alone would leave its hooks and filters running, still writing into the new worktree after this script
+    has reported its result. A hook that calls setsid or double-forks into a new session escapes this; nothing short of
+    tracking every descendant could catch it.
+    """
+    # The session leader's pid is the group id.
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError):
+        pass
+    # In case the group signal did not reach git itself; wait() must not block on a live process.
+    process.kill()
+    process.wait()
+    process.stdout.close()
+    process.stderr.close()
+    _wait_for_group_exit(process.pid)
 
 
 def git(
