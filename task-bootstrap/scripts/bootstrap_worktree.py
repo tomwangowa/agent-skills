@@ -2,8 +2,8 @@
 """Worktree bootstrap helper for the task-bootstrap skill.
 
 Every subcommand prints one JSON object on stdout. `delegate` only reads: it locates a repo-local copy of this skill.
-`create` works out where a new task's worktree goes and which git commands would make it; a refused plan is
-`{"error": CODE, ...}` with exit code 3.
+`create` works out where a new task's worktree goes, which git commands would make it and which local files would be
+copied into it (paths and sizes only, never contents); a refused plan is `{"error": CODE, ...}` with exit code 3.
 """
 
 from __future__ import annotations
@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import posixpath
 import re
 import stat
 import string
@@ -57,6 +58,11 @@ _SCP_URL = re.compile(r"(?:[^\s@/:]+@)?[A-Za-z0-9][^\s@/:]*:(?!:|//)\S+")
 _SLUG = re.compile(r"[a-z0-9][a-z0-9._-]*")
 # str.lower() would also fold characters such as the Kelvin sign into ASCII, which is a silent rewrite of the name.
 _ASCII_LOWER = str.maketrans(string.ascii_uppercase, string.ascii_lowercase)
+
+ENV_FILE = ".env"
+VENV_DIR = ".venv"
+SKILLS_LINK = ".codex/skills"
+SKILLS_LINK_TARGET = "../.claude/skills"
 
 
 @lru_cache(maxsize=1)
@@ -432,8 +438,9 @@ def locate(args: argparse.Namespace) -> Location:
     _, main_common_dir = repository_of("main_checkout", main_checkout)
     for role, path in (("source", source), ("asset_source", asset_source)):
         is_work_tree, common_dir = repository_of(role, path)
-        # A bare repository answers "false"; it has no files to check or to branch from.
-        if role == "source" and not is_work_tree:
+        # A bare repository, or a .git directory, answers "false". The source needs files to check and to branch from,
+        # and the asset source needs a work tree because "is it tracked" is answered with ls-files.
+        if not is_work_tree:
             raise Refusal("source_not_git", {"role": role, "path": str(path)})
         # Another repository would get a worktree under this one's name, a pull run in it, and (once files are
         # copied) this repository's local files.
@@ -443,6 +450,159 @@ def locate(args: argparse.Namespace) -> Location:
     configured = args.worktrees_root or os.environ.get(WORKTREES_ROOT_ENV)
     worktrees_root = Path(os.path.abspath(anchor / configured)) if configured else main_checkout.parent / "worktrees"
     return Location(main_checkout, source, asset_source, main_checkout.name, worktrees_root)
+
+
+def _copy_rejected(reason: str, typed: str) -> Refusal:
+    # `typed` is what the user wrote, so they can find it in their own command line.
+    return Refusal("copy_rejected", {"path": typed, "reason": reason})
+
+
+def normalize_copy_path(value: str) -> str:
+    """`value` as a path relative to the asset source; a refusal when its shape alone says it is not one."""
+    if not value:
+        raise _copy_rejected("empty", value)
+    # A line break would let one path read as several lines in whatever shows or logs the plan.
+    if any(ch in value for ch in "\0\n\r"):
+        raise _copy_rejected("invalid_characters", value)
+    if value.startswith("/"):
+        raise _copy_rejected("absolute", value)
+    # Looked for before normpath, which folds "a/../b" into "b" and would hide the climb.
+    if ".." in value.split("/"):
+        raise _copy_rejected("parent_reference", value)
+    return posixpath.normpath(value)
+
+
+def _lstat(path: Path, typed: str) -> os.stat_result | None:
+    """lstat of `path`; None when nothing is there. Any other failure means the asset source cannot be trusted."""
+    try:
+        return os.lstat(path)
+    except (FileNotFoundError, NotADirectoryError):
+        return None
+    except OSError:
+        raise _copy_rejected("unreadable", typed) from None
+
+
+def _is_tracked(root: Path, relative: str) -> bool:
+    # ":(literal)" keeps a name such as "x[1].txt" from being read as a glob that matches another, tracked file.
+    # ":(icase)" because on a case-insensitive filesystem "readme.md" finds the tracked README.md on disk while a
+    # plain pathspec does not match it. `git config` is not a command this script may run, so it cannot ask whether
+    # the repository folds case; on a case-sensitive one this only misreports a name that differs from a tracked one
+    # by case alone, which is the safe direction.
+    # A failed ls-files prints nothing as well, so a bad exit status has to stop here and never read as "untracked".
+    return bool(_git_text(["ls-files", "--", f":(icase,literal){relative}"], root))
+
+
+def _copy_problem(
+    root: Path, relative: str, typed: str, *, directory: bool
+) -> tuple[str | None, os.stat_result | None]:
+    """(why `relative` cannot be copied, None) or (None, its lstat result)."""
+    parent = root / posixpath.dirname(relative)
+    real_parent = os.path.realpath(parent)
+    # Checked on the parent, not on the entry: a symlink as the last component is "not_regular" below. A link in the
+    # middle can lead out of the source, and ls-files answers "nothing" for anything behind one, so a tracked file
+    # would pass for untracked. Refusing every such path also covers the links that happen to stay inside.
+    if not Path(real_parent).is_relative_to(root):
+        return "outside_source", None
+    if real_parent != str(parent):
+        return "symlink_in_path", None
+    # lstat, never stat: a link to a file or a directory is not what was asked for.
+    info = _lstat(root / relative, typed)
+    if info is None:
+        return "absent", None
+    if not (stat.S_ISDIR if directory else stat.S_ISREG)(info.st_mode):
+        return ("not_directory" if directory else "not_regular"), None
+    if _is_tracked(root, relative):
+        return "tracked", None
+    return None, info
+
+
+def _directory_bytes(directory: Path, typed: str) -> int:
+    """Total size of the regular files under `directory`. Links are neither followed nor counted."""
+
+    def fail(error: OSError) -> None:
+        # os.walk skips a directory it cannot list unless told otherwise, which would under-report the size.
+        raise error
+
+    total = 0
+    try:
+        for here, _, names in os.walk(directory, onerror=fail):
+            for name in names:
+                info = os.lstat(os.path.join(here, name))
+                if stat.S_ISREG(info.st_mode):
+                    total += info.st_size
+    except OSError:
+        raise _copy_rejected("unreadable", typed) from None
+    return total
+
+
+def _skills_link(action: str, reason: str | None) -> dict:
+    return {"action": action, "path": SKILLS_LINK, "link": SKILLS_LINK_TARGET, "reason": reason}
+
+
+def plan_skills_link(root: Path) -> dict:
+    """Whether the new worktree gets `.codex/skills`: only when the source has exactly that link, and git does not."""
+    path = root / SKILLS_LINK
+    # ls-files cannot see behind a symlinked directory, so a link found through one could look untracked when it is
+    # not. It is reported as not being a link of its own.
+    if os.path.realpath(path.parent) != str(path.parent):
+        return _skills_link("skip", "not_symlink")
+    info = _lstat(path, SKILLS_LINK)
+    if info is None:
+        return _skills_link("skip", "absent")
+    if not stat.S_ISLNK(info.st_mode):
+        return _skills_link("skip", "not_symlink")
+    try:
+        target = os.readlink(path)
+    except OSError:
+        raise _copy_rejected("unreadable", SKILLS_LINK) from None
+    if target != SKILLS_LINK_TARGET:
+        return _skills_link("skip", "different_target")
+    if _is_tracked(root, SKILLS_LINK):
+        return _skills_link("skip", "tracked")
+    return _skills_link("create", None)
+
+
+def plan_local_files(asset_source: Path, copy_venv: bool, extra: list[str]) -> tuple[list[dict], list[dict], dict]:
+    """(copies, skipped_copies, symlink) for a worktree whose local files come from `asset_source`.
+
+    Only paths and sizes are gathered; no file is opened. `.env` is looked for without being asked and is skipped
+    when it does not qualify. Everything the user asked for (`.venv` with --copy-venv, each --copy) either qualifies
+    or the whole plan is refused, because a plan that quietly leaves it out would look like one that includes it.
+    """
+    # Shapes first, so a malformed request is reported before anything is looked up on disk.
+    requested: dict[str, str] = {}
+    for value in extra:
+        requested.setdefault(normalize_copy_path(value), value)
+    root = Path(os.path.realpath(asset_source))
+    # Keys are unique, so a request for a path that is already planned adds nothing, and the order is .env, .venv, then
+    # the requests as given.
+    wanted = dict.fromkeys([ENV_FILE, *([VENV_DIR] if copy_venv else []), *requested])
+    copies: list[dict] = []
+    skipped: list[dict] = []
+    for relative in wanted:
+        # .env is the one entry nobody has to ask for; a failure on anything else is a failure to do what was asked.
+        asked = relative != ENV_FILE or relative in requested
+        typed = requested.get(relative, relative)
+        # Without the flag a request for .venv is an ordinary one, and a directory is not a regular file.
+        directory = copy_venv and relative == VENV_DIR
+        reason, info = _copy_problem(root, relative, typed, directory=directory)
+        if reason is not None:
+            if asked:
+                raise _copy_rejected(reason, typed)
+            skipped.append({"path": relative, "reason": reason})
+            continue
+        size = _directory_bytes(root / relative, typed) if directory else info.st_size
+        copies.append({"path": relative, "type": "dir" if directory else "file", "bytes": size})
+    return copies, skipped, plan_skills_link(root)
+
+
+def plan_baseline_local_files(args: argparse.Namespace) -> tuple[list[dict], list[dict], dict]:
+    """A baseline copies nothing and never reads the asset source; a request to copy something is refused, not dropped."""
+    if args.copy_venv:
+        raise _copy_rejected("baseline_mode", VENV_DIR)
+    if args.copy:
+        raise _copy_rejected("baseline_mode", args.copy[0])
+    return [], [], _skills_link("skip", "baseline_mode")
 
 
 def plan_document(
@@ -455,8 +615,10 @@ def plan_document(
     slug: str,
     target: Path,
     commands: list[list[str]],
+    local_files: tuple[list[dict], list[dict], dict],
 ) -> dict:
     """The plan as printed. Every mode fills the same keys, so the caller never has to probe for one."""
+    copies, skipped_copies, symlink = local_files
     return {
         "mode": args.mode,
         "task": args.task,
@@ -470,9 +632,9 @@ def plan_document(
         "target": str(target),
         "worktrees_root": os.path.realpath(loc.worktrees_root),
         "commands": commands,
-        "copies": [],
-        "skipped_copies": [],
-        "symlink": None,
+        "copies": copies,
+        "skipped_copies": skipped_copies,
+        "symlink": symlink,
         "executed": False,
     }
 
@@ -500,9 +662,11 @@ def plan_main(args: argparse.Namespace, loc: Location) -> dict:
         # --no-track: a feature branch whose upstream is origin/main is one bare `git push` away from main.
         [*base, "worktree", "add", "--no-track", "-b", branch, str(target), start_point],
     ]
+    # Last, so a refusal about the files never hides a problem with the branch or the target.
+    local_files = plan_local_files(loc.asset_source, args.copy_venv, args.copy)
     return plan_document(
         args, loc, default_branch=default_branch, base_ref=base_ref, branch=branch, slug=slug, target=target,
-        commands=commands,
+        commands=commands, local_files=local_files,
     )
 
 
@@ -546,6 +710,7 @@ def plan_baseline(args: argparse.Namespace, loc: Location) -> dict:
     ]
     return plan_document(
         args, loc, default_branch=None, base_ref=base_ref, branch=branch, slug=slug, target=target, commands=commands,
+        local_files=plan_baseline_local_files(args),
     )
 
 
@@ -583,9 +748,10 @@ def plan_task(args: argparse.Namespace, loc: Location) -> dict:
         # --no-track for the reason given in plan_main: the start point may well be a remote-tracking branch.
         ["git", "-C", str(source), "worktree", "add", "--no-track", "-b", branch, str(target), args.base_ref],
     ]
+    local_files = plan_local_files(loc.asset_source, args.copy_venv, args.copy)
     return plan_document(
         args, loc, default_branch=None, base_ref=args.base_ref, branch=branch, slug=slug, target=target,
-        commands=commands,
+        commands=commands, local_files=local_files,
     )
 
 
@@ -635,8 +801,11 @@ def build_parser() -> argparse.ArgumentParser:
     creation.add_argument(
         "--asset-source", help="Checkout of the same repository that local files come from (default: main checkout)."
     )
-    creation.add_argument("--copy-venv", action="store_true", help="Also copy .venv/.")
-    creation.add_argument("--copy", action="append", default=[], metavar="PATH", help="Extra file to copy; repeatable.")
+    creation.add_argument("--copy-venv", action="store_true", help="Also copy .venv/ (not in baseline mode).")
+    creation.add_argument(
+        "--copy", action="append", default=[], metavar="PATH",
+        help="Untracked regular file in the asset source to copy, relative to it; repeatable (not in baseline mode).",
+    )
     creation.add_argument("--execute", action="store_true", help="Carry out the plan instead of only printing it.")
     creation.add_argument("--cwd", help="Directory to start from (default: current directory).")
     creation.set_defaults(handler=cmd_create)

@@ -558,6 +558,15 @@ PLAN_KEYS = {
 }
 
 
+def skills_link(action: str, reason: str | None) -> dict:
+    """The `symlink` entry of a plan. The path and the link text never vary."""
+    return {"action": action, "path": ".codex/skills", "link": "../.claude/skills", "reason": reason}
+
+
+# A fixture project has no .env and no .codex/skills, so a mode that looks for them reports both as absent.
+NO_LOCAL_FILES = ([], [{"path": ".env", "reason": "absent"}], skills_link("skip", "absent"))
+
+
 class CreateCase(TempProjectCase):
     """What the plan tests of every `create` mode share: running the CLI, and proving a dry run changed nothing."""
 
@@ -619,7 +628,8 @@ class CreateMainPlanTests(CreateCase):
         self.assertEqual(out["worktrees_root"], os.path.realpath(self.worktrees))
         self.assertEqual((out["source"], out["asset_source"]), (str(self.root), str(self.root)))
         self.assertIs(out["executed"], False)
-        self.assertEqual((out["copies"], out["skipped_copies"], out["symlink"], out["task"]), ([], [], None, None))
+        self.assertEqual((out["copies"], out["skipped_copies"], out["symlink"]), NO_LOCAL_FILES)
+        self.assertIsNone(out["task"])
         base = ["git", "-C", str(self.root)]
         self.assertEqual(out["commands"], [
             [*base, "fetch", "origin"],
@@ -963,7 +973,11 @@ class CreateOtherModesTests(CreateCase):
         )
         self.assertEqual(out["target"], target)
         self.assertEqual((out["source"], out["asset_source"]), (str(self.root), str(self.root)))
-        self.assertEqual((out["copies"], out["skipped_copies"], out["symlink"], out["executed"]), ([], [], None, False))
+        # A baseline copies nothing, so the plan says why instead of looking for files it would not use.
+        self.assertEqual(
+            (out["copies"], out["skipped_copies"], out["symlink"], out["executed"]),
+            ([], [], skills_link("skip", "baseline_mode"), False),
+        )
         base = ["git", "-C", str(self.root)]
         self.assertEqual(out["commands"], [
             # An explicit refspec: it makes the ref the next command starts from exist whatever the remote's configured
@@ -1098,7 +1112,8 @@ class CreateOtherModesTests(CreateCase):
         )
         self.assertEqual(out["target"], target)
         self.assertEqual((out["source"], out["asset_source"]), (str(linked), str(self.root)))
-        self.assertEqual((out["copies"], out["skipped_copies"], out["symlink"], out["executed"]), ([], [], None, False))
+        self.assertEqual((out["copies"], out["skipped_copies"], out["symlink"]), NO_LOCAL_FILES)
+        self.assertIs(out["executed"], False)
         # No fetch: task mode starts from what the source already has.
         self.assertEqual(out["commands"], [
             ["git", "-C", str(linked), "worktree", "add", "--no-track", "-b", "feat/b", target, "feat/a"],
@@ -1189,6 +1204,288 @@ class CreateOtherModesTests(CreateCase):
             with self.subTest(args=args):
                 self.assertEqual(self.refusal(*args, branch="bad..name", expect="branch_invalid")["branch"], "bad..name")
                 self.assertEqual(self.refusal(*args, "--slug=../x", expect="slug_invalid")["slug"], "../x")
+
+
+class LocalFilesTests(CreateCase):
+    """The local files a plan would copy and the `.codex/skills` link it would make.
+
+    Wiring and exit codes go through the CLI. The long matrices call `plan_local_files` in-process, because one CLI run
+    per input would make this class the slowest part of the module.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.module = load_module(SCRIPT, "task_bootstrap_local_files_under_test")
+        # git() reads os.environ, so in-process calls need the same isolated environment as the CLI runs.
+        patcher = mock.patch.dict(os.environ, isolated_env({"HOME": str(self.home)}), clear=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def write(self, relative: str, text: str = "x") -> Path:
+        path = self.root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def track(self, *paths: str) -> None:
+        """Commit `paths`. Staging alone would show as a change and stop the plan at source_dirty."""
+        run_git(self.root, "add", "-f", *paths)
+        run_git(self.root, "commit", "-q", "-m", "track")
+
+    def local_files(self, *extra: str, copy_venv: bool = False) -> tuple[list[dict], list[dict], dict]:
+        return self.module.plan_local_files(self.root, copy_venv, list(extra))
+
+    def rejection(self, *extra: str, copy_venv: bool = False) -> dict:
+        """The detail of the copy_rejected refusal for these requests."""
+        with self.assertRaises(self.module.Refusal) as caught:
+            self.local_files(*extra, copy_venv=copy_venv)
+        self.assertEqual(caught.exception.code, "copy_rejected")
+        return caught.exception.detail
+
+    def skipped_env(self) -> list[dict]:
+        out = self.plan()
+        self.assertEqual(out["copies"], [])
+        return out["skipped_copies"]
+
+    def test_env_planned_when_untracked_regular_file(self) -> None:
+        text = "TOKEN=1\n"
+        self.write(".env", text)
+        # An ignored file is untracked too, and .env is usually ignored.
+        with open(self.root / ".git" / "info" / "exclude", "a", encoding="utf-8") as exclude:
+            exclude.write(".env\n")
+        out = self.plan()
+        self.assertEqual(out["copies"], [{"path": ".env", "type": "file", "bytes": len(text.encode())}])
+        self.assertEqual(out["skipped_copies"], [])
+
+    def test_env_absent_tracked_and_symlink_are_skipped(self) -> None:
+        self.assertEqual(self.skipped_env(), [{"path": ".env", "reason": "absent"}])
+        env = self.write(".env", "TOKEN=1\n")
+        self.track(".env")
+        self.assertEqual(self.skipped_env(), [{"path": ".env", "reason": "tracked"}])
+        run_git(self.root, "rm", "-q", ".env")
+        run_git(self.root, "commit", "-q", "-m", "drop")
+        os.symlink("README.md", env)
+        self.assertEqual(self.skipped_env(), [{"path": ".env", "reason": "not_regular"}])
+        env.unlink()
+        env.mkdir()
+        self.assertEqual(self.local_files()[1], [{"path": ".env", "reason": "not_regular"}])
+
+    def test_venv_needs_flag(self) -> None:
+        self.write(".venv/bin/python", "12345")
+        self.write(".venv/lib/site.txt", "abc")
+        # Neither kind of link is followed or counted: a venv has lib64 -> lib, and a link can point at anything.
+        os.symlink("lib", self.root / ".venv" / "lib64")
+        self.write("big.txt", "x" * 100)
+        os.symlink(self.root / "big.txt", self.root / ".venv" / "bin" / "big")
+        self.assertEqual(self.plan()["copies"], [])
+        self.assertEqual(self.plan("--copy-venv")["copies"], [{"path": ".venv", "type": "dir", "bytes": 8}])
+        # --copy takes regular files only, so it cannot be used to get the directory without the flag.
+        self.assertEqual(self.rejection(".venv"), {"path": ".venv", "reason": "not_regular"})
+        # With the flag it is the same directory, counted once.
+        self.assertEqual(self.local_files(".venv", copy_venv=True)[0], [{"path": ".venv", "type": "dir", "bytes": 8}])
+
+    def test_copy_venv_absent_refuses(self) -> None:
+        out = self.refusal("--copy-venv", expect="copy_rejected")
+        self.assertEqual(out, {"error": "copy_rejected", "path": ".venv", "reason": "absent"})
+        venv = self.write(".venv")
+        self.assertEqual(self.rejection(copy_venv=True), {"path": ".venv", "reason": "not_directory"})
+        venv.unlink()
+        os.symlink(self.tmp, venv)
+        self.assertEqual(self.rejection(copy_venv=True), {"path": ".venv", "reason": "not_directory"})
+        venv.unlink()
+        self.write(".venv/marker")
+        self.track(".venv/marker")
+        self.assertEqual(self.rejection(copy_venv=True), {"path": ".venv", "reason": "tracked"})
+
+    def test_copy_boundaries(self) -> None:
+        self.write("somedir/inside.txt")
+        os.symlink("README.md", self.root / "file-link")
+        outside = self.tmp / "outside"
+        outside.mkdir()
+        (outside / "secret").write_text("s", encoding="utf-8")
+        os.symlink(outside, self.root / "link")
+        self.write("config/local.json", '{"a": 1}\n')
+        os.symlink("config", self.root / "inner")
+        self.write("docs/kept.txt")
+        self.track("docs/kept.txt")
+        # On a case-insensitive filesystem the lower-case name finds the tracked README.md on disk.
+        case_insensitive = (self.root / "readme.md").exists()
+        cases = [
+            (str(self.root / "config" / "local.json"), "absolute"),
+            ("../x", "parent_reference"),
+            ("config/../README.md", "parent_reference"),
+            ("", "empty"),
+            ("a\nb", "invalid_characters"),
+            ("a\x00b", "invalid_characters"),
+            ("somedir", "not_regular"),
+            (".", "not_regular"),
+            ("file-link", "not_regular"),
+            ("README.md", "tracked"),
+            ("docs/kept.txt", "tracked"),
+            ("readme.md", "tracked" if case_insensitive else "absent"),
+            ("nope.txt", "absent"),
+            ("nope/deeper/file", "absent"),
+            ("README.md/under-a-file", "absent"),
+            ("link/secret", "outside_source"),
+            ("inner/local.json", "symlink_in_path"),
+        ]
+        for value, reason in cases:
+            with self.subTest(value=value):
+                self.assertEqual(self.rejection(value), {"path": value, "reason": reason})
+        # Several requests: the first one that fails is the one reported.
+        self.assertEqual(self.rejection("config/local.json", "nope.txt", "README.md")["path"], "nope.txt")
+
+        # A nested untracked file is fine. So is one whose name looks like a glob that matches a tracked file.
+        self.write("x1.txt")
+        self.track("x1.txt")
+        self.write("x[1].txt", "abc")
+        copies = self.local_files("config/local.json", "x[1].txt")[0]
+        self.assertEqual(copies, [
+            {"path": "config/local.json", "type": "file", "bytes": 9},
+            {"path": "x[1].txt", "type": "file", "bytes": 3},
+        ])
+        out = self.plan("--copy", "config/local.json")
+        self.assertEqual(out["copies"], [{"path": "config/local.json", "type": "file", "bytes": 9}])
+        self.assertEqual(self.refusal("--copy", "../x", expect="copy_rejected"),
+                         {"error": "copy_rejected", "path": "../x", "reason": "parent_reference"})
+
+    def test_copy_repeatable_and_deduped(self) -> None:
+        self.write("a", "1")
+        self.write("b", "22")
+        out = self.plan("--copy", "a", "--copy", "./a", "--copy", "b")
+        self.assertEqual(
+            out["copies"], [{"path": "a", "type": "file", "bytes": 1}, {"path": "b", "type": "file", "bytes": 2}]
+        )
+        # Left to itself the plan skips an absent .env; a user who typed --copy .env wants it or an error.
+        self.assertEqual(self.local_files()[1], [{"path": ".env", "reason": "absent"}])
+        self.assertEqual(self.rejection(".env"), {"path": ".env", "reason": "absent"})
+        # Order is .env, .venv, then the requests as given; a request for what is already planned adds nothing.
+        self.write(".env", "123")
+        self.write(".venv/f", "1234")
+        copies, skipped, _ = self.local_files("b", "a", ".//.env", "./b", copy_venv=True)
+        self.assertEqual([entry["path"] for entry in copies], [".env", ".venv", "b", "a"])
+        self.assertEqual(skipped, [])
+        self.track(".env")
+        self.assertEqual(self.rejection("./.env"), {"path": "./.env", "reason": "tracked"})
+
+    def test_ls_files_failure_is_a_refusal_not_untracked(self) -> None:
+        plain = self.tmp / "plain"
+        plain.mkdir()
+        (plain / ".env").write_text("x", encoding="utf-8")
+        # Empty output after a failed ls-files must not read as "nothing tracks this".
+        with self.assertRaises(self.module.Refusal) as caught:
+            self.module.plan_local_files(plain, False, [])
+        self.assertEqual(caught.exception.code, "git_failed")
+
+    def test_symlink_plan_cases(self) -> None:
+        link = self.root / ".codex" / "skills"
+
+        def plan() -> dict:
+            return self.local_files()[2]
+
+        self.assertEqual(plan(), skills_link("skip", "absent"))
+        link.parent.mkdir()
+        self.assertEqual(plan(), skills_link("skip", "absent"))
+        # Dangling on purpose: the check is about the link itself, and this project has no .claude/skills.
+        os.symlink("../.claude/skills", link)
+        self.assertEqual(plan(), skills_link("create", None))
+        link.unlink()
+        os.symlink("elsewhere", link)
+        self.assertEqual(plan(), skills_link("skip", "different_target"))
+        link.unlink()
+        link.mkdir()
+        self.assertEqual(plan(), skills_link("skip", "not_symlink"))
+        link.rmdir()
+        # ls-files cannot see behind a symlinked directory, so a link found through one is not vouched for.
+        (self.root / "codex-real").mkdir()
+        os.symlink("../.claude/skills", self.root / "codex-real" / "skills")
+        link.parent.rmdir()
+        os.symlink("codex-real", link.parent)
+        self.assertEqual(plan(), skills_link("skip", "not_symlink"))
+        link.parent.unlink()
+        link.parent.mkdir()
+        os.symlink("../.claude/skills", link)
+        self.track(".codex/skills")
+        self.assertEqual(plan(), skills_link("skip", "tracked"))
+
+    def test_main_and_task_plans_fill_local_files(self) -> None:
+        self.write(".env", "TOKEN=1\n")
+        (self.root / ".codex").mkdir()
+        os.symlink("../.claude/skills", self.root / ".codex" / "skills")
+        self.write(".venv/f")
+        before = self.snapshot()
+        for args in ((), ("--mode", "task", "--base-ref", "main")):
+            with self.subTest(args=args):
+                out = self.plan("--copy-venv", *args)
+                self.assertEqual(out["copies"], [
+                    {"path": ".env", "type": "file", "bytes": 8}, {"path": ".venv", "type": "dir", "bytes": 1},
+                ])
+                self.assertEqual(out["skipped_copies"], [])
+                self.assertEqual(out["symlink"], skills_link("create", None))
+        # Planning a copy is not copying.
+        self.assertEqual(self.snapshot(), before)
+
+    def test_baseline_has_no_local_files(self) -> None:
+        run_git(self.root, "push", "-q", "origin", "main:refs/heads/release/1.0")
+        self.write(".env", "TOKEN=1\n")
+        (self.root / ".codex").mkdir()
+        os.symlink("../.claude/skills", self.root / ".codex" / "skills")
+        out = self.plan("--mode", "baseline", branch="release/1.0")
+        self.assertEqual(
+            (out["copies"], out["skipped_copies"], out["symlink"]), ([], [], skills_link("skip", "baseline_mode"))
+        )
+        # Asking for a copy is refused rather than dropped, and without looking at the asset source: "../x" would
+        # be refused for its shape and "extra.txt" for being absent if they were checked.
+        for args, path in ((("--copy-venv",), ".venv"), (("--copy", "../x", "--copy", "extra.txt"), "../x")):
+            with self.subTest(args=args):
+                refused = self.refusal("--mode", "baseline", *args, branch="release/1.0", expect="copy_rejected")
+                self.assertEqual((refused["path"], refused["reason"]), (path, "baseline_mode"))
+        trap = mock.patch.object(self.module, "plan_local_files", side_effect=AssertionError("asset source was read"))
+        argv = ["create", "--cwd", str(self.root)]
+        with trap, contextlib.redirect_stdout(io.StringIO()):
+            # Guard: the trap does fire for a mode that uses local files.
+            with self.assertRaises(AssertionError):
+                self.module.main([*argv, "--branch=feat/b"])
+            self.assertEqual(self.module.main([*argv, "--mode", "baseline", "--branch=release/1.0"]), 0)
+
+    def test_asset_source_defaults_to_main_checkout_and_can_be_overridden(self) -> None:
+        linked = self.tmp / "linked"
+        run_git(self.root, "worktree", "add", "-q", "-b", "other", str(linked))
+        self.write(".env", "main\n")
+        (linked / ".env").write_text("linked checkout\n", encoding="utf-8")
+        # Run from the linked worktree, so the default cannot be the cwd by accident.
+        out = self.plan(cwd=linked)
+        self.assertEqual(out["asset_source"], str(self.root))
+        self.assertEqual(out["copies"], [{"path": ".env", "type": "file", "bytes": 5}])
+        out = self.plan("--asset-source", str(linked))
+        self.assertEqual(out["asset_source"], str(linked))
+        self.assertEqual(out["copies"], [{"path": ".env", "type": "file", "bytes": 16}])
+        # --copy is looked up in the asset source, not in the source or the cwd.
+        self.write("only-here.txt")
+        self.refusal("--asset-source", str(linked), "--copy", "only-here.txt", expect="copy_rejected")
+
+    def test_asset_source_must_be_a_work_tree(self) -> None:
+        # The first is the same repository's git directory, so only the work tree check can stop it. The second is a
+        # bare repository, which would otherwise be refused as another repository.
+        for path in (self.root / ".git", self.project.origin):
+            with self.subTest(path=path.name):
+                out = self.refusal("--asset-source", str(path), expect="source_not_git")
+                self.assertEqual((out["role"], out["path"]), ("asset_source", str(path)))
+
+    def test_plan_never_contains_file_contents(self) -> None:
+        secrets = {".env": "SECRET-ENV-9f3a", ".venv/bin/tool": "SECRET-VENV-77c1", "extra.txt": "SECRET-EXTRA-5b0d"}
+        for relative, text in secrets.items():
+            self.write(relative, text)
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT), "create", "--branch=feat/x", "--copy-venv", "--copy", "extra.txt"],
+            cwd=str(self.root), env=isolated_env({"HOME": str(self.home)}), capture_output=True, text=True, timeout=60,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for text in secrets.values():
+            self.assertNotIn(text, result.stdout + result.stderr)
+        # Guard: the files were planned, so their absence from the output means something.
+        planned = [entry["path"] for entry in json.loads(result.stdout)["copies"]]
+        self.assertEqual(planned, [".env", ".venv", "extra.txt"])
 
 
 class CreateHelperTests(unittest.TestCase):
