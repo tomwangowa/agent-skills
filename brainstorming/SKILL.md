@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: "Use when Codex needs to turn a vague idea into an approved design before implementation, or when a user wants to grill / stress-test a plan or idea (triggers: grill, 烤, stress-test). Apply to new features, architecture changes, refactoring, and workflow design. Interview one decision at a time with a recommendation each round, then propose trade-offs and require approval before implementation."
+description: "Use when the agent needs to turn a vague idea into an approved design before implementation, or when a user wants to grill / stress-test a plan or idea (triggers: grill, 烤, stress-test). Apply to new features, architecture changes, refactoring, and workflow design. Interview one decision at a time with a recommendation each round, then propose trade-offs and require approval before implementation."
 ---
 
 # Brainstorming Ideas Into Designs
