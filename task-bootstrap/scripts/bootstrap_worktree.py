@@ -506,12 +506,86 @@ def plan_main(args: argparse.Namespace, loc: Location) -> dict:
     )
 
 
-def plan_unsupported(args: argparse.Namespace, loc: Location) -> dict:
-    raise Refusal("mode_unsupported", {"mode": args.mode})
+def check_remote_branch(source: Path, remote: str, branch: str) -> None:
+    """`branch` must exist on the remote under exactly that name."""
+    # The branch name was validated before this, so it cannot be read as an option or as a glob.
+    result = _git_run(["ls-remote", "--heads", remote, branch], source, timeout=NETWORK_TIMEOUT_SECONDS)
+    if result.returncode != 0:
+        # No message: git's complaint about a remote names its URL, which may carry credentials. An unreachable
+        # remote must not read as a missing branch either.
+        raise Refusal("git_failed", {"command": "ls-remote", "remote": remote})
+    # ls-remote patterns match the end of a ref name, so "refs/heads/x/<branch>" comes back too.
+    heads = {line.partition("\t")[2] for line in result.stdout.splitlines()}
+    if f"refs/heads/{branch}" not in heads:
+        raise Refusal("branch_missing_on_remote", {"remote": remote, "branch": branch})
+
+
+def plan_baseline(args: argparse.Namespace, loc: Location) -> dict:
+    source = loc.source
+    # A baseline is a copy of a branch that already exists, so it needs neither a clean source nor a default
+    # branch, and it does not matter what the source has checked out.
+    check_remote(source, args.remote)
+    branch, slug = resolve_names(args.branch, args.slug, source)
+    check_remote_branch(source, args.remote, branch)
+    check_branch_free(source, branch)
+    target = resolve_target(loc.worktrees_root, loc.repo_name, slug)
+
+    base_ref = f"{args.remote}/{branch}"
+    # Fully qualified for the reason given in plan_main. Fetching the branch first is what makes the ref exist.
+    start_point = f"refs/remotes/{base_ref}"
+    base = ["git", "-C", str(source)]
+    commands = [
+        [*base, "fetch", args.remote, branch],
+        # --track is the whole point here: the local branch follows the remote branch it mirrors.
+        [*base, "worktree", "add", "--track", "-b", branch, str(target), start_point],
+    ]
+    return plan_document(
+        args, loc, default_branch=None, base_ref=base_ref, branch=branch, slug=slug, target=target, commands=commands,
+    )
+
+
+def resolve_commit(source: Path, rev: str) -> str | None:
+    """The commit `rev` names in `source`; None when it names nothing, or something that is not a commit."""
+    # A leading dash would be read as an option here and again by `worktree add`.
+    if not rev or rev.startswith("-"):
+        return None
+    result = _git_run(["rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}"], source)
+    commit = result.stdout.strip()
+    return commit if result.returncode == 0 and commit else None
+
+
+def plan_task(args: argparse.Namespace, loc: Location) -> dict:
+    source = loc.source
+    # No remote is consulted: the branch grows out of whatever the source already has, remote-tracking or not.
+    if not args.base_ref:
+        raise Refusal("base_ref_required")
+    expected = resolve_commit(source, args.base_ref)
+    if expected is None:
+        raise Refusal("base_ref_invalid", {"base_ref": args.base_ref})
+    check_source_clean(source)
+    current = resolve_commit(source, "HEAD")
+    # Compared by commit, so a SHA or a detached HEAD at the same commit is as good as the branch name.
+    if current != expected:
+        raise Refusal(
+            "base_ref_mismatch",
+            {"source": str(source), "base_ref": args.base_ref, "current": current, "expected": expected},
+        )
+    branch, slug = resolve_names(args.branch, args.slug, source)
+    check_branch_free(source, branch)
+    target = resolve_target(loc.worktrees_root, loc.repo_name, slug)
+
+    commands = [
+        # --no-track for the reason given in plan_main: the start point may well be a remote-tracking branch.
+        ["git", "-C", str(source), "worktree", "add", "--no-track", "-b", branch, str(target), args.base_ref],
+    ]
+    return plan_document(
+        args, loc, default_branch=None, base_ref=args.base_ref, branch=branch, slug=slug, target=target,
+        commands=commands,
+    )
 
 
 # One planner per mode: the shared checks above are reused, and only the mode's own sequence differs.
-_PLANNERS = {"main": plan_main, "baseline": plan_unsupported, "task": plan_unsupported}
+_PLANNERS = {"main": plan_main, "baseline": plan_baseline, "task": plan_task}
 
 
 def build_plan(args: argparse.Namespace) -> dict:

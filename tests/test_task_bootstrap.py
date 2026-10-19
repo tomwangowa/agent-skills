@@ -558,12 +558,11 @@ PLAN_KEYS = {
 }
 
 
-class CreateMainPlanTests(TempProjectCase):
-    """`create` in main mode without --execute: the shared checks and the plan they lead to."""
+class CreateCase(TempProjectCase):
+    """What the plan tests of every `create` mode share: running the CLI, and proving a dry run changed nothing."""
 
     def setUp(self) -> None:
         super().setUp()
-        self.module = load_module(SCRIPT, "task_bootstrap_create_under_test")
         self.worktrees = self.tmp / "worktrees"
 
     def plan(self, *args: str, branch: str = "feat/x", cwd: Path | None = None) -> dict:
@@ -584,6 +583,20 @@ class CreateMainPlanTests(TempProjectCase):
             # Includes .git, so a fetch (FETCH_HEAD, new refs) would show up here too.
             "paths": sorted(str(path) for path in self.tmp.rglob("*")),
         }
+
+    def unrelated_repository(self) -> Path:
+        """A second clone of the same remote: it looks alike, but it has a git directory of its own."""
+        other = self.tmp / "other-clone"
+        run_git(self.tmp, "clone", "-q", self.project.origin.as_uri(), str(other))
+        return other
+
+
+class CreateMainPlanTests(CreateCase):
+    """`create` in main mode without --execute: the shared checks and the plan they lead to."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.module = load_module(SCRIPT, "task_bootstrap_create_under_test")
 
     def rename_default_branch(self, name: str) -> None:
         """Rename main to `name` in the remote and in the main checkout, so the remote has no `main` any more."""
@@ -646,15 +659,9 @@ class CreateMainPlanTests(TempProjectCase):
         # Without --source the main checkout is the source, and it is on `work`.
         self.assertEqual(self.refusal(expect="source_branch_mismatch")["current"], "work")
 
-    def unrelated_repository(self) -> Path:
-        """A second clone of the same remote: it looks alike, but it has a git directory of its own."""
-        other = self.tmp / "other-clone"
-        run_git(self.tmp, "clone", "-q", self.project.origin.as_uri(), str(other))
-        return other
-
     def test_unrelated_repo_as_source_refuses_in_every_mode(self) -> None:
         other = self.unrelated_repository()
-        for mode in ("main", "task"):
+        for mode in ("main", "baseline", "task"):
             with self.subTest(mode=mode):
                 out = self.refusal("--mode", mode, "--source", str(other), expect="source_wrong_repo")
                 self.assertEqual((out["role"], out["path"]), ("source", str(other)))
@@ -902,10 +909,9 @@ class CreateMainPlanTests(TempProjectCase):
 
     def test_unbuilt_options_are_refused_not_ignored(self) -> None:
         before = self.snapshot()
-        for args, expect in ((("--mode", "baseline"), "mode_unsupported"), (("--mode", "task"), "mode_unsupported"),
-                             (("--execute",), "option_unsupported")):
-            with self.subTest(args=args):
-                self.refusal(*args, expect=expect)
+        for mode in ("main", "baseline", "task"):
+            with self.subTest(mode=mode):
+                self.refusal("--mode", mode, "--execute", expect="option_unsupported")
         self.assertEqual(self.snapshot(), before)
 
     def test_usage_errors_exit_2(self) -> None:
@@ -917,6 +923,231 @@ class CreateMainPlanTests(TempProjectCase):
                 )
                 self.assertEqual((result.returncode, result.stdout), (2, ""))
                 self.assertRegex(result.stderr, "--branch|--mode")
+
+
+class CreateOtherModesTests(CreateCase):
+    """`create` in baseline and task mode without --execute."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        # The remote's release branch is one commit ahead of main, so a worktree on it can be told from one on main.
+        self.release_tip = git_out(self.root, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "release work")
+        run_git(self.root, "push", "-q", "origin", f"{self.release_tip}:refs/heads/release/1.0")
+
+    def linked_worktree_on(self, branch: str) -> Path:
+        """A linked worktree stopped on a new `branch` that is one commit ahead of main."""
+        linked = self.tmp / "linked"
+        run_git(self.root, "worktree", "add", "-q", "-b", branch, str(linked))
+        run_git(linked, "commit", "-q", "--allow-empty", "-m", "work on the branch")
+        return linked
+
+    def run_commands(self, commands: list[list[str]]) -> None:
+        """Run the commands a plan printed, to see that git does what the plan says it does."""
+        for command in commands:
+            result = subprocess.run(
+                command, env=isolated_env({"HOME": str(self.home)}), capture_output=True, text=True, timeout=30
+            )
+            self.assertEqual(result.returncode, 0, (command, result.stderr))
+
+    def test_baseline_plan(self) -> None:
+        before = self.snapshot()
+        out = self.plan("--mode", "baseline", branch="release/1.0")
+        target = os.path.realpath(self.worktrees / "proj" / "release-1.0")
+        self.assertEqual(set(out), PLAN_KEYS)
+        self.assertEqual(
+            (out["mode"], out["default_branch"], out["base_ref"], out["branch"], out["slug"], out["remote"]),
+            ("baseline", None, "origin/release/1.0", "release/1.0", "release-1.0", "origin"),
+        )
+        self.assertEqual(out["target"], target)
+        self.assertEqual((out["source"], out["asset_source"]), (str(self.root), str(self.root)))
+        self.assertEqual((out["copies"], out["skipped_copies"], out["symlink"], out["executed"]), ([], [], None, False))
+        base = ["git", "-C", str(self.root)]
+        self.assertEqual(out["commands"], [
+            [*base, "fetch", "origin", "release/1.0"],
+            # --track is the point of a baseline; the start point is fully qualified like main mode's.
+            [*base, "worktree", "add", "--track", "-b", "release/1.0", target, "refs/remotes/origin/release/1.0"],
+        ])
+        self.assertEqual(self.snapshot(), before)
+        self.assertFalse(self.worktrees.exists())
+
+    def test_baseline_commands_create_a_tracking_worktree(self) -> None:
+        # A local branch with the remote-tracking branch's short name: written as "origin/release/1.0", the start
+        # point would resolve to this one instead.
+        run_git(self.root, "branch", "origin/release/1.0", "main")
+        out = self.plan("--mode", "baseline", branch="release/1.0")
+        self.run_commands(out["commands"])
+        target = Path(out["target"])
+        self.assertEqual(git_out(target, "symbolic-ref", "--short", "HEAD"), "release/1.0")
+        self.assertEqual(git_out(target, "rev-parse", "HEAD"), self.release_tip)
+        self.assertEqual(git_out(self.root, "config", "branch.release/1.0.remote"), "origin")
+        self.assertEqual(git_out(self.root, "config", "branch.release/1.0.merge"), "refs/heads/release/1.0")
+
+    def test_baseline_branch_missing_on_remote_refuses(self) -> None:
+        out = self.refusal("--mode", "baseline", branch="release/9.9", expect="branch_missing_on_remote")
+        self.assertEqual((out["remote"], out["branch"]), ("origin", "release/9.9"))
+
+    def test_baseline_branch_must_match_exactly(self) -> None:
+        run_git(self.project.origin, "update-ref", "-d", "refs/heads/release/1.0")
+        run_git(self.root, "push", "-q", "origin", f"{self.release_tip}:refs/heads/x/release/1.0")
+        # Guard: ls-remote matches the tail of a ref name, so it lists the other branch for this pattern.
+        self.assertIn("refs/heads/x/release/1.0", git_out(self.root, "ls-remote", "--heads", "origin", "release/1.0"))
+        self.refusal("--mode", "baseline", branch="release/1.0", expect="branch_missing_on_remote")
+
+    def test_baseline_ls_remote_failure_is_not_a_missing_branch(self) -> None:
+        run_git(self.root, "remote", "set-url", "origin", "file:///nonexistent/task-bootstrap/none.git")
+        out = self.refusal("--mode", "baseline", branch="release/1.0", expect="git_failed")
+        self.assertEqual(out["command"], "ls-remote")
+        # What git says about a failed remote names its URL, which may carry credentials.
+        self.assertNotIn("nonexistent", json.dumps(out))
+
+    def test_baseline_local_branch_exists_refuses(self) -> None:
+        run_git(self.root, "branch", "release/1.0", "main")
+        out = self.refusal("--mode", "baseline", branch="release/1.0", expect="branch_exists")
+        self.assertEqual(out["branch"], "release/1.0")
+
+    def test_baseline_ignores_dirty_source(self) -> None:
+        (self.root / "README.md").write_text("changed\n", encoding="utf-8")
+        (self.root / "new.txt").write_text("x\n", encoding="utf-8")
+        run_git(self.root, "add", "new.txt")
+        # Guard: main mode really does see this source as dirty.
+        self.refusal(expect="source_dirty")
+        self.assertEqual(self.plan("--mode", "baseline", branch="release/1.0")["mode"], "baseline")
+
+    def test_baseline_needs_neither_default_branch_nor_source_branch(self) -> None:
+        run_git(self.root, "push", "-q", "origin", "main:master")
+        run_git(self.root, "remote", "set-head", "origin", "-d")
+        # Guard: with both main and master on the remote and no origin/HEAD, main mode cannot pick a default.
+        self.refusal(expect="default_branch_unknown")
+        run_git(self.root, "checkout", "-q", "-b", "other")
+        self.assertIsNone(self.plan("--mode", "baseline", branch="release/1.0")["default_branch"])
+        run_git(self.root, "checkout", "-q", "--detach")
+        self.assertEqual(self.plan("--mode", "baseline", branch="release/1.0")["base_ref"], "origin/release/1.0")
+
+    def test_baseline_checks_the_remote_like_main_mode(self) -> None:
+        self.assertEqual(
+            self.refusal("--mode", "baseline", "--remote=nope", branch="release/1.0", expect="remote_invalid")["remote"],
+            "nope",
+        )
+        marker = self.tmp / "helper-ran"
+        allow = {"GIT_ALLOW_PROTOCOL": "ext"}
+        run_git(self.root, "remote", "set-url", "origin", f"ext::touch {marker}")
+        # Guard: with the protocol enabled, git really does run the helper, so a missing marker below means something.
+        subprocess.run(
+            ["git", "-C", str(self.root), "ls-remote", "origin"], env=isolated_env(allow), capture_output=True,
+            timeout=30,
+        )
+        self.assertTrue(marker.exists())
+        marker.unlink()
+        code, out = run_script(
+            "create", "--mode", "baseline", "--branch=release/1.0", cwd=self.root,
+            env={"HOME": str(self.home), **allow},
+        )
+        self.assertEqual((code, out), (3, {"error": "remote_url_rejected", "remote": "origin"}))
+        self.assertFalse(marker.exists())
+
+    def test_task_plan(self) -> None:
+        linked = self.linked_worktree_on("feat/a")
+        before = self.snapshot()
+        out = self.plan("--mode", "task", "--source", str(linked), "--base-ref", "feat/a", branch="feat/b")
+        target = os.path.realpath(self.worktrees / "proj" / "feat-b")
+        self.assertEqual(set(out), PLAN_KEYS)
+        self.assertEqual(
+            (out["mode"], out["default_branch"], out["base_ref"], out["branch"], out["slug"]),
+            ("task", None, "feat/a", "feat/b", "feat-b"),
+        )
+        self.assertEqual(out["target"], target)
+        self.assertEqual((out["source"], out["asset_source"]), (str(linked), str(self.root)))
+        self.assertEqual((out["copies"], out["skipped_copies"], out["symlink"], out["executed"]), ([], [], None, False))
+        # No fetch: task mode starts from what the source already has.
+        self.assertEqual(out["commands"], [
+            ["git", "-C", str(linked), "worktree", "add", "--no-track", "-b", "feat/b", target, "feat/a"],
+        ])
+        self.assertEqual(self.snapshot(), before)
+        self.assertFalse(self.worktrees.exists())
+
+    def test_task_commands_create_a_branch_without_upstream(self) -> None:
+        # A remote-tracking start point is the case where git would set an upstream on its own.
+        out = self.plan("--mode", "task", "--base-ref", "origin/main", branch="feat/b")
+        self.run_commands(out["commands"])
+        target = Path(out["target"])
+        self.assertEqual(git_out(target, "symbolic-ref", "--short", "HEAD"), "feat/b")
+        self.assertEqual(git_out(target, "rev-parse", "HEAD"), git_out(self.root, "rev-parse", "origin/main"))
+        self.assertEqual(run_git(self.root, "config", "--get", "branch.feat/b.remote", check=False).returncode, 1)
+        self.assertEqual(run_git(self.root, "config", "--get", "branch.feat/b.merge", check=False).returncode, 1)
+
+    def test_task_requires_base_ref(self) -> None:
+        for args in (("--mode", "task"), ("--mode", "task", "--base-ref=")):
+            with self.subTest(args=args):
+                self.refusal(*args, branch="feat/b", expect="base_ref_required")
+
+    def test_task_base_ref_must_resolve(self) -> None:
+        # "-x" would be read as an option, and a blob or a tree has no commit to start from.
+        for ref in ("nope", "-x", "HEAD:README.md", "main^{tree}"):
+            with self.subTest(base_ref=ref):
+                out = self.refusal("--mode", "task", f"--base-ref={ref}", branch="feat/b", expect="base_ref_invalid")
+                self.assertEqual(out["base_ref"], ref)
+
+    def test_task_source_must_be_on_base_ref(self) -> None:
+        linked = self.linked_worktree_on("feat/a")
+        main_head, feature_head = git_out(self.root, "rev-parse", "HEAD"), git_out(linked, "rev-parse", "HEAD")
+        self.assertNotEqual(main_head, feature_head)
+        out = self.refusal("--mode", "task", "--base-ref", "feat/a", branch="feat/b", expect="base_ref_mismatch")
+        self.assertEqual(
+            (out["source"], out["base_ref"], out["current"], out["expected"]),
+            (str(self.root), "feat/a", main_head, feature_head),
+        )
+        self.refusal(
+            "--mode", "task", "--source", str(linked), "--base-ref", "main", branch="feat/b", expect="base_ref_mismatch"
+        )
+        # It is the commit that has to match, not the spelling: a SHA works, and so does a detached HEAD.
+        run_git(linked, "checkout", "-q", "--detach")
+        out = self.plan("--mode", "task", "--source", str(linked), "--base-ref", feature_head, branch="feat/b")
+        self.assertEqual(out["commands"][0][-1], feature_head)
+
+    def test_task_dirty_source_refuses(self) -> None:
+        (self.root / "README.md").write_text("changed\n", encoding="utf-8")
+        out = self.refusal("--mode", "task", "--base-ref", "main", branch="feat/b", expect="source_dirty")
+        self.assertEqual((out["entries"], out["changes"]), (1, [" M README.md"]))
+
+    def test_task_source_wrong_repo_refuses(self) -> None:
+        other = self.unrelated_repository()
+        out = self.refusal(
+            "--mode", "task", "--source", str(other), "--base-ref", "main", branch="feat/b", expect="source_wrong_repo"
+        )
+        self.assertEqual((out["role"], out["path"]), ("source", str(other)))
+
+    def test_task_mode_works_without_remote(self) -> None:
+        marker = self.tmp / "helper-ran"
+        allow = {"GIT_ALLOW_PROTOCOL": "ext"}
+        run_git(self.root, "remote", "set-url", "origin", f"ext::touch {marker}")
+        # Guard: with the protocol enabled, git really does run the helper, so a missing marker below means something.
+        subprocess.run(
+            ["git", "-C", str(self.root), "ls-remote", "origin"], env=isolated_env(allow), capture_output=True,
+            timeout=30,
+        )
+        self.assertTrue(marker.exists())
+        marker.unlink()
+        # A remote that main mode would refuse (and that would run a command if it were contacted) is not looked at.
+        code, out = run_script(
+            "create", "--mode", "task", "--base-ref", "main", "--branch=feat/b", cwd=self.root,
+            env={"HOME": str(self.home), **allow},
+        )
+        self.assertEqual(code, 0, out)
+        self.assertFalse(marker.exists())
+        run_git(self.root, "remote", "remove", "origin")
+        self.assertEqual(git_out(self.root, "remote"), "")
+        out = self.plan("--mode", "task", "--base-ref", "main", branch="feat/b")
+        target = os.path.realpath(self.worktrees / "proj" / "feat-b")
+        self.assertEqual((out["default_branch"], out["base_ref"]), (None, "main"))
+        self.assertEqual(out["commands"], [
+            ["git", "-C", str(self.root), "worktree", "add", "--no-track", "-b", "feat/b", target, "main"],
+        ])
+
+    def test_new_modes_validate_names(self) -> None:
+        for args in (("--mode", "baseline"), ("--mode", "task", "--base-ref", "main")):
+            with self.subTest(args=args):
+                self.assertEqual(self.refusal(*args, branch="bad..name", expect="branch_invalid")["branch"], "bad..name")
+                self.assertEqual(self.refusal(*args, "--slug=../x", expect="slug_invalid")["slug"], "../x")
 
 
 class CreateHelperTests(unittest.TestCase):
