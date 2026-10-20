@@ -29,8 +29,10 @@ ASSERTION_KINDS: tuple[str, ...] = ("expect_head", "branch_is", "file_exists", "
 GIT_TIMEOUT_SECONDS = 10
 BOM = b"\xef\xbb\xbf"
 
-# `list` shows a short, recent menu by default; `--all` lifts both limits.
-LIST_WINDOW = timedelta(days=7)
+# `list` shows a short, recent menu by default; `--all` lifts every limit. The checkout the user stands in
+# shows up to LIST_LIMIT handoffs from the last LIST_WINDOW; each other worktree adds only its newest one
+# inside that window, so one worktree with many old handoffs cannot crowd out the rest.
+LIST_WINDOW = timedelta(days=14)
 LIST_LIMIT = 5
 
 # Used only when `git rev-parse --local-env-vars` cannot be asked.
@@ -594,7 +596,18 @@ def command_list(args: argparse.Namespace) -> int:
         shown = found
     else:
         cutoff = now - LIST_WINDOW
-        shown = [entry for entry in found if entry[0] >= cutoff][:LIST_LIMIT]
+        recent = [entry for entry in found if entry[0] >= cutoff]
+        # `found` is sorted newest-first across all checkouts, so the first recent entry seen for a worktree is that
+        # worktree's newest. Taking it only from `recent` keeps a stale newest handoff from letting an older one stand in.
+        mine = [entry for entry in recent if entry[1]["current"]][:LIST_LIMIT]
+        seen: set[str] = set()
+        others: list[tuple[datetime, dict]] = []
+        for entry in recent:
+            if entry[1]["current"] or entry[1]["worktree"] in seen:
+                continue
+            seen.add(entry[1]["worktree"])
+            others.append(entry)
+        shown = mine + others
     # `remaining` is what `--all` would add, so a handoff hidden for being stale is still announced, not lost silently.
     emit(
         {

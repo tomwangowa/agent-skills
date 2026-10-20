@@ -69,12 +69,13 @@ python3 <skill_base_directory>/scripts/handoffs.py list            # 使用者�
 - `items` 做成表格，欄位：編號、任務、status、建立時間、來源 worktree／分支。
   `current` 為 true 的是目前的 worktree，標出來。`branch` 是 null 就填 `-`。
 - `malformed` 為 true 的，status 欄標「格式異常」（`status` 有值就併列）。選中這類檔案時怎麼處理，看步驟 5 第 4 點。
+- 預設範圍：目前的 worktree 列 14 天內最多 5 份；其他 worktree 各列 14 天內最新的 1 份。
 - `remaining` 大於 0：補一行「另有 N 份，加 `--all` 可列出」。
 - `skipped` 不是空的：逐筆列出路徑與原因。`symlink` 是檔案本身為 symlink，不讀；
   `missing_worktree` 是 git 還記著、但目錄已不在的 worktree；`unreadable` 是讀不到。
 - `scope` 為 `cwd`：說明這裡不是 git repo（或 git 不可用），只讀了目前目錄的 `.claude/handoffs/`。
 - `items` 是空的：`remaining` 為 0 就說「沒有未完成的 handoff」，進步驟 6。
-  `remaining` 大於 0 就說 7 天內沒有、另有 N 份較舊的，問要不要用 `--all` 列出；不要就進步驟 6。
+  `remaining` 大於 0 就說 14 天內沒有、另有 N 份較舊的，問要不要用 `--all` 列出；不要就進步驟 6。
 
 `items` 不是空的就問使用者：回編號、貼路徑，或回「不接」。回「不接」就不處理 handoff，進步驟 6。
 回路徑就拿去步驟 5 做 `check`；`check` 回 exit 2 時不停止，照 Error Handling 說明原因，回到這一步重選。
