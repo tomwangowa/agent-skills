@@ -346,6 +346,13 @@ categories:
           - "resume handoff"
           - "session start"
 
+      - id: task-bootstrap
+        triggers:
+          - "/task-bootstrap"
+          - "開新任務"
+          - "task bootstrap"
+          - "bootstrap a task"
+
       - id: secure-ai-development-gate
         # Safety gate for secrets, customer data, sensitive internal info,
         # risky AI output, and commit boundaries.

@@ -30,6 +30,7 @@
 | [lesson](./lesson/SKILL.md) | productivity-tracking | experimental | model | yes | no | yes |
 | [repo-sync](./repo-sync/SKILL.md) | productivity-tracking | promoted | model | yes | no | yes |
 | [session-start](./session-start/SKILL.md) | productivity-tracking | experimental | user | yes | no | yes |
+| [task-bootstrap](./task-bootstrap/SKILL.md) | productivity-tracking | experimental | user | yes | no | yes |
 | [work-log-analyzer](./work-log-analyzer/SKILL.md) | productivity-tracking | personal | model | yes | no | yes |
 | [code-review-claude](./code-review-claude/SKILL.md) | quality-gates | promoted | model | yes | yes | yes |
 | [code-review-codex](./code-review-codex/SKILL.md) | quality-gates | personal | model | yes | yes | yes |

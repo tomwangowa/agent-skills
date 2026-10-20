@@ -6,7 +6,7 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "3cd3d8fb24b4dd7bdd25237c880541ee8da2a6c283a2ff5a29cde8db3f4fe836"
+      "sha256": "d64d454c1e95a60abf3ab9e3891665abafe686b736e9f2f7617fd5da1e1e177b"
     },
     "README.md": {
       "mode": 420,
@@ -42,7 +42,7 @@
     },
     "skills/package-index.json": {
       "mode": 420,
-      "sha256": "d1024d88ab7c3b7aed6873fb0738cb672056c41230a1b3c4e8063932bec6db98"
+      "sha256": "78fe7686b8e70bdf9e9604d4e7a94b276fe753d8fb0cc7bcff06577c592bf965"
     },
     "skills/skill-auditor/README.md": {
       "mode": 420,

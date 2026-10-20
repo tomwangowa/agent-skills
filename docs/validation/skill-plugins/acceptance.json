@@ -142,6 +142,6 @@
     "Publication, commit and production sync remain separate approval steps.",
     "Native cleanup left semantic fingerprint differences in Codex config.toml and Claude plugin registry files. Current CLI inventories contain no selected package or marketplace, but hash-only snapshots cannot attribute the changed fields; no manual prune or restore was performed.",
     "The recorded session-preferences and work-journal bindings predate d738ec4 (runtime migration path normalization) and the removal of node_modules/.package-lock.json from the work-journal server bundle; check_plugin_release.py --require-acceptance fails until a new native acceptance run records bindings for all seven packages on each surface, because the checker binds one evidence record per surface to the full package set.",
-    "repo-workflow (session-start added) and skill-toolbox (package index) changed after the recorded run; their recorded bindings are stale."
+    "repo-workflow (session-start and task-bootstrap added) and skill-toolbox (package index) changed after the recorded run; their recorded bindings are stale."
   ]
 }
