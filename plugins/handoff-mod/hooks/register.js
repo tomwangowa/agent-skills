@@ -37,6 +37,8 @@ const NOTE_DEADLINE_MS = 1500;
 // not move when a file inside it changes.
 const STATUS_ARGS = ['status', '--porcelain', '-z', '--untracked-files=all'];
 const COMPARE_DEADLINE_MS = 500;
+const CLEAR_POLL_MS = 200;
+const CLEAR_POLL_TRIES = 50;
 
 // Session-scoped state, kept in $.state: it survives a module reload and is reset by /clear, /resume and /branch.
 const handoffStartedAt = atom({plugin: 'handoff-mod', key: 'handoffStartedAt'}, 0);
@@ -616,6 +618,34 @@ async function askBeforeClear($) {
   return answer === options[2] ? 'clear' : answer === options[1] ? 'handoff' : 'cancel';
 }
 
+/**
+ * /clear goes on under a new session id with no session.start, and the classic SessionStart that says so does not
+ * reach a user-tier plugin on a managed machine (cc-plugin-sec-default sends classic.* past it); poll for the new id.
+ */
+function awaitClearedSession($, endedId, tries = 0) {
+  $.clock.after(CLEAR_POLL_MS, () => void (async () => {
+    try {
+      if ((await $.session.id()) === endedId) {
+        if (tries + 1 < CLEAR_POLL_TRIES) awaitClearedSession($, endedId, tries + 1);
+        return;
+      }
+      await startFreshConversation($);
+    } catch { /* The list is a convenience; never let it break the session. */ }
+  })());
+}
+
+// Only reached after a session.end(clear) and a new session id, so the conversation is fresh by definition. Not gated on
+// $.session.turns(): the /clear command itself already counts as one turn by the time the new id shows (turns=1 observed).
+async function startFreshConversation($) {
+  if ((await $.session.surfaces()).length === 0) return;
+  config = await loadConfig($);
+  // A fresh conversation: $.state is already reset by the host, say so explicitly (design component 2), and redraw.
+  await update($, nextAt, () => 0);
+  await update($, askedAt, () => 0);
+  await update($, t1Percent, () => 0);
+  void refreshList($);
+}
+
 /** Register the handoff hooks. */
 export function register(on, options) {
   USER_CONFIG = options ?? {};
@@ -634,23 +664,6 @@ export function register(on, options) {
     try {
       // A reload of this module re-fires session.start; only a session with no prompts yet gets the list.
       if (e.isInteractive && (await $.session.turns()) === 0) void refreshList($);
-    } catch { /* ignore */ }
-    return result;
-  });
-
-  on('classic.SessionStart', async ($, e, next) => {
-    const result = await next(e);
-    if (e.agent_id) return result;
-    try {
-      // resume, fork and compact keep a conversation that already has its context; only a fresh start or /clear lists handoffs.
-      if (!['startup', 'clear'].includes(e.source)) return result;
-      if ((await $.session.surfaces()).length === 0 || (await $.session.turns()) > 0) return result;
-      config = await loadConfig($);
-      // A fresh conversation: $.state is already reset by the host, say so explicitly (design component 2), and redraw.
-      await update($, nextAt, () => 0);
-      await update($, askedAt, () => 0);
-      await update($, t1Percent, () => 0);
-      void refreshList($);
     } catch { /* ignore */ }
     return result;
   });
@@ -707,7 +720,10 @@ export function register(on, options) {
 
   on('session.end', async ($, e, next) => {
     try { await writeEndNote($, e, next); } catch (error) { trace($, `writeEndNote failed: ${String(error?.message ?? error)}`); }
-    return next(e);
+    const result = await next(e);
+    // resume and fork keep a conversation that already has its context; only /clear starts a fresh one to list for.
+    if (e.reason === 'clear') { try { awaitClearedSession($, e.sessionId); } catch { /* ignore */ } }
+    return result;
   });
 
   on('command.run', {command: 'clear'}, async ($, e, next) => {

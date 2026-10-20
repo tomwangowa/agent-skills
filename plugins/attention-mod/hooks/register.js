@@ -20,7 +20,7 @@ let collapsed = false;
 let parked = false;
 let now = 0;
 let endingSessionId = null;
-let reconnecting = false;
+let reconnecting = null;
 // Feedback form: memory-only. A reload or any session-reset (/clear, resume, end) starts it closed again.
 const closedFeedback = () => ({open:false, draft:'', link:null, copied:null, empty:false});
 let feedback = closedFeedback();
@@ -108,27 +108,43 @@ async function summarize($) {
 function startTimer($) {
   if (timer) return;
   timer = $.clock.every(1000, () => {
-    if (!state.enabled) { void reconnect($); return; }
+    void reconnect($);
+    if (!state.enabled) return;
     now += 1000;
     redraw($);
     void summarize($);
   });
 }
 
-/** Clear/resume may emit no start event; wait for the native ID to change. */
-async function reconnect($) {
-  if (reconnecting || endingSessionId === null) return;
-  reconnecting = true;
+/**
+ * Clear/resume/fork emit no event a user-tier plugin is sure to hear (managed machines route classic.* past
+ * it), so the native ID is the signal: after a session.end, wait for it to change; otherwise a change without
+ * an end (fork) is a new conversation and resets like one.
+ */
+function reconnect($) {
+  // Callers that must see the new binding (a prompt) await the check already in flight.
+  if (!reconnecting) reconnecting = rebind($).finally(() => { reconnecting = null; });
+  return reconnecting;
+}
+
+async function rebind($) {
+  if (endingSessionId === null && !state.enabled) return;
   const epoch = state.epoch;
   try {
     const sessionId = await $.session.id();
-    if (state.enabled || state.epoch !== epoch || sessionId === endingSessionId) return;
-    state = {...state, sessionId, enabled:true};
-    endingSessionId = null;
+    if (state.epoch !== epoch) return;
+    if (!state.enabled) {
+      if (sessionId === endingSessionId) return;
+      state = {...state, sessionId, enabled:true};
+      endingSessionId = null;
+    } else {
+      // Unbound until session.start has read the ID; nothing to compare against yet.
+      if (state.sessionId === UNKNOWN_SESSION || sessionId === state.sessionId) return;
+      apply({type:'session-reset', sessionId, at:await $.clock.now()});
+    }
     void restore($);
     redraw($);
   } catch { /* Keep waiting rather than restoring the ending conversation. */ }
-  finally { reconnecting = false; }
 }
 
 /** Register passive observers and a memory-only attention panel. */
@@ -149,25 +165,14 @@ export function register(on, options) {
     } catch { /* Panel setup cannot block the main session. */ }
     return result;
   });
-  on('classic.SessionStart', async ($, e, next) => {
-    const result = await next(e);
-    if (e.agent_id) return result;
-    try {
-      if (e.session_id !== state.sessionId || ['clear','resume','fork'].includes(e.source)) apply({type:'session-reset', sessionId:e.session_id, at:await $.clock.now()});
-      state = {...state, enabled:true};
-      endingSessionId = null;
-      startTimer($);
-      void restore($);
-      redraw($);
-    } catch {}
-    return result;
-  });
   on('session.end', async ($, e, next) => {
     // Invalidate before awaiting downstream work, so late responses cannot land.
     apply({type:'session-reset', sessionId:BETWEEN_SESSIONS, at:now});
     state = {...state, enabled:false};
     endingSessionId = ['clear','resume'].includes(e.reason) ? e.sessionId : null;
     if (!['clear','resume'].includes(e.reason)) { timer?.cancel(); timer = null; }
+    // Show the reset now; the new conversation is bound when its ID appears.
+    redraw($);
     return next(e);
   });
   on('prompt.submit', async ($, e, next) => {
@@ -175,6 +180,8 @@ export function register(on, options) {
     if ('drop' in result) return result;
     if (!['composer','bridge','sdk'].includes(e.origin.kind)) return result;
     try {
+      // The first prompt after /clear can beat the timer's ID check; bind first so it is not dropped.
+      await reconnect($);
       now = await $.clock.now();
       apply({type:'new-prompt', id:sourceId(), text:result.text ?? e.text, at:now});
       redraw($);
@@ -236,15 +243,6 @@ export function register(on, options) {
   on('tool.check', async ($, e, next) => {
     const result = await next(e);
     if (!e.agentId && result.decision === 'ask') { apply({type:'wait-unknown', at:now}); redraw($); }
-    return result;
-  });
-  on('classic.Notification', async ($, e, next) => {
-    const result = await next(e);
-    if (!e.agent_id && e.notification_type === 'permission_prompt') {
-      if (state.activities.length === 1) apply({type:'wait-start', id:state.activities[0].id, kind:'permission', tool:state.activities[0].tool, at:now});
-      else apply({type:'wait-unknown', at:now});
-      redraw($);
-    }
     return result;
   });
   on('turn.start', async ($, e, next) => {

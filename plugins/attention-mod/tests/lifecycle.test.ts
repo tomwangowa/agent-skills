@@ -38,7 +38,6 @@ test('new prompt and clear invalidate late summaries without releasing their loc
   await prompt($,'new-task');
   await $.session.end({reason:'clear',sessionId:'session-one',resume:{}});
   h.setSession('session-two');
-  await $.classic.SessionStart({hook_event_name:'SessionStart',source:'clear',session_id:'session-two',transcript_path:'/fixture',cwd:'/fixture'});
   await prompt($,'fresh-task');
   await h.clock.advance(60000);
   expect(h.record.models.length).toBe(1);
@@ -109,9 +108,8 @@ test('resume retries bootstrap after an earlier generation read settles',async($
   await h.clock.settle();
   await $.session.end({reason:'resume',sessionId:'session-one',resume:{}});
   h.setSession('resumed');
-  await $.classic.SessionStart({source:'resume',session_id:'resumed'});
   release();
-  await h.clock.advance(1000);
+  await h.clock.advance(2000);
   expect(reads).toBe(2);
   expect(JSON.parse(h.record.models[0].request.prompt).sources.some(s=>s.text==='resumed goal')).toBe(true);
 });
@@ -144,4 +142,35 @@ test('a dropped prompt is passed through without changing the task or requesting
   expect(await prompt($,'blocked task')).toEqual({drop:'refused'});
   await h.clock.advance(120000);
   expect(h.record.models.length).toBe(1);
+});
+
+// Managed machines route classic.SessionStart past user-tier plugins, so the native ID is the only signal.
+test('a fork changes the session ID without an end and resets the conversation',async($,on)=>{
+  let reads=0;
+  const h=host(on,{readMessages:()=>({value:++reads===1?[]:[{role:'user',text:'forked transcript',toolUses:[]}]})});
+  await begin($);
+  await prompt($,'parent task');
+  await h.clock.advance(1000);
+  expect(h.record.models.length).toBe(1);
+  h.setSession('forked-session');
+  // The timer alone notices the new ID: it resets and reads the forked transcript, with no prompt sent.
+  await h.clock.advance(1000);
+  expect(reads).toBe(2);
+  await h.clock.advance(60000);
+  const sources=JSON.parse(h.record.models.at(-1).request.prompt).sources;
+  expect(sources.some(s=>s.text==='forked transcript')).toBe(true);
+  expect(sources.some(s=>s.text==='parent task')).toBe(false);
+});
+
+test('a prompt sent right after a fork, before the timer sees the new ID, is kept',async($,on)=>{
+  const h=host(on);
+  await begin($);
+  await prompt($,'parent task');
+  await h.clock.advance(1000);
+  h.setSession('forked-session');
+  await prompt($,'forked task');
+  await h.clock.advance(60000);
+  const sources=JSON.parse(h.record.models.at(-1).request.prompt).sources;
+  expect(sources.some(s=>s.text==='forked task')).toBe(true);
+  expect(sources.some(s=>s.text==='parent task')).toBe(false);
 });

@@ -122,7 +122,7 @@ test('skip hides the list for this session, and /handoff-resume still shows it',
   await w.flush();
   await (await mountBand($)).press({key: 'skip'});
   expect(w.lastStatus()).toBe(undefined);
-  await $.classic.SessionStart({source: 'clear', session_id: 'sess-A'});
+  await $.session.end({reason: 'clear', sessionId: 'sess-A', resume: {id: 'sess-A'}});
   await w.flush();
   // $.state is reset by /clear in a real session; here it is not, so the list stays hidden until the command forces it.
   await $.command.run({command: 'handoff-resume', args: ''});
@@ -130,17 +130,53 @@ test('skip hides the list for this session, and /handoff-resume still shows it',
   expect(w.rec.logs.length).toBe(4);
   expect(w.rec.logs[1]).toContain('1. 修正登入逾時');
 });
-test('resume, fork and compact starts do not list', async ($, on) => {
-  const w = world(on, {files: twoHandoffs});
-  for (const source of ['resume', 'fork', 'compact']) {
-    await $.classic.SessionStart({source, session_id: 'sess-A'});
-    await w.flush();
-  }
+// /clear has no session.start and, on a managed machine, no classic.SessionStart that reaches this mod: the new id is the signal.
+test('/clear lists again once the new session id appears', async ($, on) => {
+  let id = 'sess-A';
+  // turns=1 is what a real session reports right after /clear (the command itself counts).
+  const w = world(on, {files: twoHandoffs, sessionId: () => id, turns: 1});
+  await $.session.end({reason: 'clear', sessionId: 'sess-A', resume: {id: 'sess-A'}});
+  await w.clock.advance(1000);
+  expect(w.rec.statuses.length).toBe(0);
+  id = 'sess-B';
+  await w.clock.advance(200);
+  await w.flush();
+  expect(w.lastStatus()).toBe('有 2 筆未完成交接，輸入 /handoff-resume 查看');
+});
+test('/clear lists again even when the session had many prompts before it', async ($, on) => {
+  let id = 'sess-A';
+  const w = world(on, {files: twoHandoffs, sessionId: () => id, turns: 9});
+  await $.session.end({reason: 'clear', sessionId: 'sess-A', resume: {id: 'sess-A'}});
+  id = 'sess-B';
+  await w.clock.advance(200);
+  await w.flush();
+  expect(w.lastStatus()).toBe('有 2 筆未完成交接，輸入 /handoff-resume 查看');
+});
+test('/clear stops waiting for a new id after ten seconds', async ($, on) => {
+  let id = 'sess-A';
+  const w = world(on, {files: twoHandoffs, sessionId: () => id});
+  await $.session.end({reason: 'clear', sessionId: 'sess-A', resume: {id: 'sess-A'}});
+  await w.clock.advance(10_000);
+  id = 'sess-B';
+  await w.clock.advance(1000);
+  await w.flush();
   expect(w.rec.statuses.length).toBe(0);
 });
-test('a session with no surface (headless) does not list', async ($, on) => {
-  const w = world(on, {files: twoHandoffs, surfaces: []});
-  await $.classic.SessionStart({source: 'startup', session_id: 'sess-A'});
+test('resume and an ordinary exit do not list', async ($, on) => {
+  let id = 'sess-A';
+  const w = world(on, {files: twoHandoffs, sessionId: () => id});
+  for (const reason of ['resume', 'prompt_input_exit'] as const) await $.session.end({reason, sessionId: 'sess-A', resume: {id: 'sess-A'}});
+  id = 'sess-B';
+  await w.clock.advance(1000);
+  await w.flush();
+  expect(w.rec.statuses.length).toBe(0);
+});
+test('a session with no surface (headless) does not list after /clear', async ($, on) => {
+  let id = 'sess-A';
+  const w = world(on, {files: twoHandoffs, surfaces: [], sessionId: () => id});
+  await $.session.end({reason: 'clear', sessionId: 'sess-A', resume: {id: 'sess-A'}});
+  id = 'sess-B';
+  await w.clock.advance(1000);
   await w.flush();
   expect(w.rec.statuses.length).toBe(0);
 });
@@ -680,10 +716,13 @@ test('no question while a handoff is running, and starting one takes an open pro
   expect(w.lastStatus()).toBe(undefined);
 });
 test('a new conversation after /clear starts without the old prompt', async ($, on) => {
-  const w = world(on, {git: DIRTY});
+  let id = 'sess-A';
+  const w = world(on, {git: DIRTY, sessionId: () => id});
   await startSession($);
   await turnAt($, w, 65);
-  await startSession($, 'clear');
+  await $.session.end({reason: 'clear', sessionId: 'sess-A', resume: {id: 'sess-A'}});
+  id = 'sess-B';
+  await w.clock.advance(200);
   await w.flush();
   expect(w.lastStatus()).toBe(undefined);
   expect(await (await mountBand($)).find({key: 't1-agree'})).toBeUndefined();
