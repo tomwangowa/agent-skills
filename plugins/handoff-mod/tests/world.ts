@@ -23,7 +23,6 @@ export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => s
   const dirOf = (path: string) => path.slice(0, path.lastIndexOf('/'));
 
   on('session.start', () => ({cwd: '/work/app'}));
-  on('classic.SessionStart', () => ({}));
   on('prompt.submit', ($: any, e: any) => ({text: e.text}));
   on('skill.prompt', ($: any, e: any) => ({text: e.text}));
   on('turn.complete', () => ({text: ''}));
@@ -96,8 +95,7 @@ export const autoNote = (hh: string, task: string, branch: string): [string, str
 ];
 
 export const bandTarget = {plugin: 'handoff-mod', surface: 'terminal', component: 'AbovePrompt', requestId: 'band', viewport: {columns: 100, rows: 30}, props: {hasSurvey: false, isWorking: false, maxRows: 14, bodyColumns: 80, scroll: {offset: 0, bodyRows: 10}, view: {}}} as const;
-export const startSession = async ($: any, source = 'startup') => {
+export const startSession = async ($: any) => {
   await $.session.start({surface: 'terminal', isInteractive: true, cwd: '/work/app'});
-  await $.classic.SessionStart({source, session_id: 'sess-A'});
 };
 export const doneTurn = ($: any, o: any = {}) => $.turn.complete({turnId: 't', answer: 'ok', durationMs: 1, isAborted: false, usage: null, ...o});

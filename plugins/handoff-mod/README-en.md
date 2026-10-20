@@ -88,7 +88,7 @@ claude plugin test .
 
 | Scope | Status |
 | --- | --- |
-| Automated tests | 222 native tests plus mutation checks; 0.1.x ran in Cloud, 0.2.0 on the author's macOS. |
+| Automated tests | 225 native tests plus mutation checks; 0.1.x ran in Cloud, 0.2.x on the author's macOS. |
 | Start-up list, `/handoff-resume`, buttons (Tab and mouse), the `/clear` dialog, the threshold prompt, the end-of-session note (all three ways of ending), running beside attention-mod, the `en` interface | **Verified on the author's macOS** (Claude Code 2.1.292). |
 | The `/handoff-stats` write count, and the start-up list's label on an automatic note | **Verified on the author's macOS.** |
 | Typing then Enter in the `/clear` dialog | On macOS only that Enter picks the default "cancel" is confirmed; whether text was typed first was not recorded. |

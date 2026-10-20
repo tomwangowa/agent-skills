@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1（2026-10-20）
+
+- 不再用 `classic.SessionStart`。在有 managed settings 的機器上（例如公司 MDM 派發了 Claude Code 設定），內建的 `cc-plugin-sec-default` 會讓 `classic.*` 事件繞過使用者裝的 plugin，啟動時會看到「its classic.SessionStart hook was skipped」，`/clear` 之後也不會重新列出交接。現在改成在 `session.end`（`reason=clear`）之後等 session id 換掉（最多 10 秒），再列出交接、重設門檻記憶。
+
+---
+
+- No longer uses `classic.SessionStart`. On a machine with managed settings (such as a Claude Code profile pushed by MDM), the built-in `cc-plugin-sec-default` routes `classic.*` events past user-installed plugins: startup showed "its classic.SessionStart hook was skipped", and `/clear` did not list handoffs again. The mod now waits, after `session.end` with `reason=clear`, for the session id to change (up to 10 seconds), then lists handoffs and resets the threshold memory.
+
 ## 0.2.0（2026-10-14）
 
 - 同一份交接複製到多個 worktree（或搬目錄留下副本）時，只列一筆。以前每個副本各算一筆。
