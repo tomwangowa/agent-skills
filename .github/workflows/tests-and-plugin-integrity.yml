@@ -22,9 +22,63 @@ jobs:
     runs-on: macos-26
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: ${{ github.event_name == 'pull_request' && '0' || '1' }}
+      - name: Fetch and verify pull request head
+        if: github.event_name == 'pull_request'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]
+          [[ "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          local_ref="refs/remotes/pull/${PR_NUMBER}/head"
+          git fetch --no-tags origin "refs/pull/${PR_NUMBER}/head:${local_ref}"
+          fetched_head_sha="$(git rev-parse --verify "${local_ref}^{commit}")"
+          [[ "$fetched_head_sha" == "$EXPECTED_HEAD_SHA" ]]
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
+      - name: Install and verify pinned secret scanners
+        if: github.event_name == 'pull_request'
+        run: |
+          set -euo pipefail
+          [[ "$(uname -m)" == "arm64" ]]
+
+          gitleaks_archive="$RUNNER_TEMP/gitleaks_8.30.1_darwin_arm64.tar.gz"
+          trufflehog_archive="$RUNNER_TEMP/trufflehog_3.97.4_darwin_arm64.tar.gz"
+          curl -fsSL --retry 3 \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_darwin_arm64.tar.gz \
+            -o "$gitleaks_archive"
+          curl -fsSL --retry 3 \
+            https://github.com/trufflesecurity/trufflehog/releases/download/v3.97.4/trufflehog_3.97.4_darwin_arm64.tar.gz \
+            -o "$trufflehog_archive"
+
+          printf '%s  %s\n' \
+            b40ab0ae55c505963e365f271a8d3846efbc170aa17f2607f13df610a9aeb6a5 \
+            "$gitleaks_archive" | shasum -a 256 --check
+          printf '%s  %s\n' \
+            57e2a41c1e196cf96cae49ca2151f5e9207be2f5c41349b5ea49cb5dcfc606b7 \
+            "$trufflehog_archive" | shasum -a 256 --check
+
+          mkdir -p "$RUNNER_TEMP/bin"
+          tar -xzf "$gitleaks_archive" -C "$RUNNER_TEMP/bin" gitleaks
+          tar -xzf "$trufflehog_archive" -C "$RUNNER_TEMP/bin" trufflehog
+          chmod 0755 "$RUNNER_TEMP/bin/gitleaks" "$RUNNER_TEMP/bin/trufflehog"
+
+          gitleaks_version="$("$RUNNER_TEMP/bin/gitleaks" --version 2>&1)"
+          trufflehog_version="$("$RUNNER_TEMP/bin/trufflehog" --version 2>&1)"
+          [[ "$gitleaks_version" == *8.30.1* ]]
+          [[ "$trufflehog_version" == *3.97.4* ]]
+      - name: Scan pull request commits for secrets
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          GITLEAKS_BIN: ${{ runner.temp }}/bin/gitleaks
+          TRUFFLEHOG_BIN: ${{ runner.temp }}/bin/trufflehog
+        run: python3 scripts/scan_pr_secrets.py
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
