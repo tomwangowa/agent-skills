@@ -42,6 +42,12 @@ class PreferenceFixture(unittest.TestCase):
         path.write_text(content)
         return path
 
+    def write_shared_config(self, settings):
+        self.config.mkdir(parents=True, exist_ok=True)
+        path = self.config / "agent-skills.json"
+        path.write_text(json.dumps(settings, ensure_ascii=False), encoding="utf-8")
+        return path
+
 
 class PreferencesTest(PreferenceFixture):
 
@@ -212,6 +218,44 @@ except ValueError:
         stale = subprocess.run(command + ["save", "--module", "beta.md", "--content-file", str(rule)],
                                env=env, capture_output=True, text=True, timeout=10)
         self.assertNotEqual(stale.returncode, 0)
+
+    def test_real_cli_load_includes_response_language_and_separate_config_warnings(self):
+        self.runtime()
+        self.write_personal("alpha.md", " ")
+        self.write_shared_config({"session_preferences": {"response_language": "日本語"}})
+        env = dict(os.environ, PYTHONPATH=str(ROOT / "runtime"),
+                   AGENT_SKILLS_CONFIG_DIR=str(self.config))
+        command = [sys.executable, "-m", "agent_skills_runtime.preferences", "load",
+                   "--default-dir", str(self.defaults)]
+
+        result = subprocess.run(command, env=env, capture_output=True, text=True, timeout=10)
+        data = json.loads(result.stdout)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("content", data)
+        self.assertIn("response_language", data)
+        self.assertEqual(data["response_language"], "日本語")
+        self.assertIn("warnings", data)
+        self.assertTrue(data["warnings"])
+        self.assertIn("config_warnings", data)
+        self.assertEqual(data["config_warnings"], [])
+
+    def test_real_cli_load_keeps_modules_when_language_config_is_invalid(self):
+        self.runtime()
+        self.write_shared_config({"session_preferences": {"response_language": 17}})
+        env = dict(os.environ, PYTHONPATH=str(ROOT / "runtime"),
+                   AGENT_SKILLS_CONFIG_DIR=str(self.config))
+        command = [sys.executable, "-m", "agent_skills_runtime.preferences", "load",
+                   "--default-dir", str(self.defaults)]
+
+        result = subprocess.run(command, env=env, capture_output=True, text=True, timeout=10)
+        data = json.loads(result.stdout)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("DEFAULT ALPHA", data["content"])
+        self.assertEqual(data["warnings"], [])
+        self.assertIn("response_language", data)
+        self.assertIn("config_warnings", data)
+        self.assertIsNone(data["response_language"])
+        self.assertTrue(data["config_warnings"])
 
     def test_doctor_reports_broken_personal_module_instead_of_ok(self):
         self.runtime()

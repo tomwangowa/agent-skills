@@ -35,6 +35,7 @@ class HookFixture(unittest.TestCase):
 
     def setUp(self) -> None:
         self.temporary_directory = tempfile.TemporaryDirectory()
+        self.config_root = Path(self.temporary_directory.name) / "config"
         self.skill_dir = Path(self.temporary_directory.name) / "skill"
         (self.skill_dir / "scripts").mkdir(parents=True)
         self.installed = self.skill_dir / "scripts" / "session_start_hook.py"
@@ -48,7 +49,7 @@ class HookFixture(unittest.TestCase):
     def run_hook(self, **env_overrides: str) -> tuple[int, str]:
         env = {k: v for k, v in os.environ.items() if k != "AGENT_SESSION_PREFS"}
         env.update(env_overrides)
-        env.setdefault("AGENT_SKILLS_CONFIG_DIR", str(Path(self.temporary_directory.name) / "config"))
+        env.setdefault("AGENT_SKILLS_CONFIG_DIR", str(self.config_root))
         result = subprocess.run(
             [sys.executable, str(self.installed)],
             input=HOOK_INPUT,
@@ -81,15 +82,63 @@ class SessionPreferencesHookTest(HookFixture):
         self.write_reference("beta.md", "BETA RULE\n")
         self.write_reference("gamma.md", "GAMMA DEFERRED\n")
 
+    def write_shared_config(self, settings: object) -> None:
+        self.config_root.mkdir(parents=True, exist_ok=True)
+        (self.config_root / "agent-skills.json").write_text(
+            json.dumps(settings, ensure_ascii=False), encoding="utf-8")
+
     def test_injects_listed_modules_in_index_order(self) -> None:
         self.write_full_fixture()
+        self.write_shared_config({"session_preferences": {"response_language": "Japanese"}})
         output = self.run_json()
         context = output["hookSpecificOutput"]["additionalContext"]
         self.assertEqual(output["hookSpecificOutput"]["hookEventName"], "SessionStart")
         self.assertTrue(context.startswith(SP_HEADER))
-        self.assertIn("those take precedence", context)
+        self.assertNotIn("those take precedence", context)
+        self.assertIn("Japanese", context)
         self.assertLess(context.index("ALPHA RULE"), context.index("BETA RULE"))
         self.assertNotIn("systemMessage", output)
+
+    def test_injects_configured_response_language_without_removing_modules(self) -> None:
+        self.write_full_fixture()
+        self.write_shared_config({"session_preferences": {"response_language": "Japanese"}})
+
+        output = self.run_json()
+        context = output["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("Use the configured response_language value \"Japanese\" as the default language for general response prose", context)
+        self.assertIn("current response or requested output", context)
+        self.assertIn("tone, format, terminology, and task-specific", context)
+        self.assertIn("ALPHA RULE", context)
+        self.assertIn("BETA RULE", context)
+        self.assertNotIn("those take precedence", context)
+        self.assertNotIn("systemMessage", output)
+
+    def test_invalid_response_language_warns_without_suppressing_modules(self) -> None:
+        self.write_full_fixture()
+        self.write_shared_config({"session_preferences": {"response_language": 17}})
+
+        output = self.run_json()
+        context = output["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("ALPHA RULE", context)
+        self.assertIn("BETA RULE", context)
+        self.assertIn("systemMessage", output)
+        self.assertIn("response_language", output["systemMessage"])
+
+    def test_invalid_config_root_shapes_warn_without_suppressing_modules(self) -> None:
+        self.write_full_fixture()
+        for settings in ([], None):
+            with self.subTest(settings=settings):
+                self.write_shared_config(settings)
+                output = self.run_json()
+                context = output["hookSpecificOutput"]["additionalContext"]
+                self.assertIn("ALPHA RULE", context)
+                self.assertIn("BETA RULE", context)
+                self.assertIn("systemMessage", output)
+
+    def test_unset_response_language_keeps_existing_module_priority(self) -> None:
+        self.write_full_fixture()
+        context = self.run_json()["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("those take precedence", context)
 
     def test_lists_deferred_references_by_absolute_path_without_inlining(self) -> None:
         self.write_full_fixture()

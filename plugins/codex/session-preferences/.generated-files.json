@@ -6,7 +6,7 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "a4e504976eca5f7121419f4d08021ecab77dbe32efefb867aa79134042643ccc"
+      "sha256": "72c1aa5f3a1aae5c189c452b9ed1207db53b1abfcff7aa3ffc037e9cf06fe9cd"
     },
     "README.md": {
       "mode": 420,
@@ -18,7 +18,7 @@
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "e91ace14433d300423c23d57d1942fae8a2b191322067846ef91d03b7376a0d5"
+      "sha256": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff"
     },
     "migration.md": {
       "mode": 420,
@@ -30,7 +30,7 @@
     },
     "runtime/agent_skills_runtime/config.py": {
       "mode": 420,
-      "sha256": "2b1a56b181b89f0c2d92b99e07e284cf0c16d2d2b025fa3c15a43a58f98f3a60"
+      "sha256": "65a0a7861359f7e4dd8781e5cf4e7845f271602f645d2b3638e6e6581bcce110"
     },
     "runtime/agent_skills_runtime/doctor.py": {
       "mode": 420,
@@ -46,7 +46,7 @@
     },
     "runtime/agent_skills_runtime/preferences.py": {
       "mode": 420,
-      "sha256": "0becc33662c35ea8aa9939bd8366e90df1f6b886213c5ae1ba1ebf0be678f3ec"
+      "sha256": "baaaa0493fa44a5943c25d5c0d27d375886875f5cfac6e08ab70dc5ca8c0c052"
     },
     "runtime/agent_skills_runtime/setup.py": {
       "mode": 420,
@@ -66,11 +66,11 @@
     },
     "skills/session-preferences/README.md": {
       "mode": 420,
-      "sha256": "62deb80f9dd795ddbc166772f85e7ea05f6efd446ac734ff13a9ad97b1d2b976"
+      "sha256": "d17ca8ea3e5085745483801bb6cf2940cefaa844aff28af422f5491dbe2e0c28"
     },
     "skills/session-preferences/SKILL.md": {
       "mode": 420,
-      "sha256": "28c7df823714caf00fb06d140890059d4df6c074c96c7888844f1c6738d6e33f"
+      "sha256": "b736b08fd8ea42b90e6284362e80bb96aafd608259ca8c95bc63a9cb63fd8cd2"
     },
     "skills/session-preferences/agents/openai.yaml": {
       "mode": 420,
@@ -106,7 +106,7 @@
     },
     "skills/session-preferences/scripts/session_start_hook.py": {
       "mode": 493,
-      "sha256": "e845d235dbcaf90ed7bf48fda7aca7c10cdf23cfd91e3ef98f0e80bbc95e095d"
+      "sha256": "16b06bf28de897c1fb6eeaeb40a0798e3721382b7b73a063be0d8df779767d00"
     },
     "skills/skills-catalog.json": {
       "mode": 420,

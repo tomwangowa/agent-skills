@@ -10,7 +10,7 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "eb1e62f781ff5d555be5a317d6ba0f91e6a0c28d2aa15eca0727a4a35738572a"
+      "sha256": "f804188fad014a11c405559311e2fa37a398f77089fa64fcf7e46b00fd109459"
     },
     "README.md": {
       "mode": 420,
@@ -18,7 +18,7 @@
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "e91ace14433d300423c23d57d1942fae8a2b191322067846ef91d03b7376a0d5"
+      "sha256": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff"
     },
     "migration.md": {
       "mode": 420,
@@ -30,7 +30,7 @@
     },
     "runtime/agent_skills_runtime/config.py": {
       "mode": 420,
-      "sha256": "2b1a56b181b89f0c2d92b99e07e284cf0c16d2d2b025fa3c15a43a58f98f3a60"
+      "sha256": "65a0a7861359f7e4dd8781e5cf4e7845f271602f645d2b3638e6e6581bcce110"
     },
     "runtime/agent_skills_runtime/doctor.py": {
       "mode": 420,
@@ -46,7 +46,7 @@
     },
     "runtime/agent_skills_runtime/preferences.py": {
       "mode": 420,
-      "sha256": "0becc33662c35ea8aa9939bd8366e90df1f6b886213c5ae1ba1ebf0be678f3ec"
+      "sha256": "baaaa0493fa44a5943c25d5c0d27d375886875f5cfac6e08ab70dc5ca8c0c052"
     },
     "runtime/agent_skills_runtime/setup.py": {
       "mode": 420,
