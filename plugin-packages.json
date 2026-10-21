@@ -3,6 +3,7 @@
   "packages": [
     {
       "name": "quality-gates",
+      "display_name": "Towa: Quality Gates",
       "version": "0.1.0",
       "skills": [
         "code-review-claude",
@@ -53,6 +54,7 @@
     },
     {
       "name": "technical-decisions",
+      "display_name": "Towa: Technical Decisions",
       "version": "0.1.0",
       "skills": [
         "brainstorming",
@@ -134,6 +136,7 @@
     },
     {
       "name": "repo-workflow",
+      "display_name": "Towa: Repo Workflow",
       "version": "0.1.0",
       "skills": [
         "code-story-teller",
@@ -166,6 +169,7 @@
     },
     {
       "name": "content-tools",
+      "display_name": "Towa: Content Tools",
       "version": "0.1.0",
       "skills": [
         "presentation-planner",
@@ -242,6 +246,7 @@
     },
     {
       "name": "work-journal",
+      "display_name": "Towa: Work Journal",
       "version": "0.1.0",
       "skills": [
         "activity-logger",
@@ -315,6 +320,7 @@
     },
     {
       "name": "session-preferences",
+      "display_name": "Towa: Session Preferences",
       "version": "0.1.0",
       "skills": [
         "session-preferences",
@@ -361,6 +367,7 @@
     },
     {
       "name": "skill-toolbox",
+      "display_name": "Towa: Skill Toolbox",
       "version": "0.1.0",
       "skills": [
         "skill-auditor",

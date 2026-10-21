@@ -15,6 +15,7 @@
         "tested_versions": []
       }
     ],
+    "display_name": "Towa: Skill Toolbox",
     "name": "skill-toolbox",
     "platforms": [
       "claude",

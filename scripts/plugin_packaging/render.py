@@ -171,10 +171,12 @@ def render_marketplaces(repo_root: Path, packages: list[dict]) -> tuple[dict, di
     current = json.loads((repo_root / '.claude-plugin/marketplace.json').read_text())
     names = {p['name'] for p in packages}
     current['plugins'] = [p for p in current['plugins'] if p['name'] not in names] + [
-        {'name': p['name'], 'source': f'./plugins/claude/{p["name"]}', 'version': p['version'],
+        {'name': p['name'], 'displayName': p['display_name'],
+         'source': f'./plugins/claude/{p["name"]}', 'version': p['version'],
          'description': f"{p['name']} skills"} for p in packages]
     codex = {'name': current['name'], 'interface': {'displayName': 'Agent Skills'}, 'plugins': [
-        {'name': p['name'], 'source': {'source': 'local', 'path': f'./plugins/codex/{p["name"]}'},
+        {'name': p['name'], 'interface': {'displayName': p['display_name']},
+         'source': {'source': 'local', 'path': f'./plugins/codex/{p["name"]}'},
          'policy': {'installation': 'AVAILABLE', 'authentication': 'ON_INSTALL'},
          'category': 'Developer Tools'} for p in packages]}
     return current, codex

@@ -6,6 +6,9 @@
   "plugins": [
     {
       "category": "Developer Tools",
+      "interface": {
+        "displayName": "Towa: Quality Gates"
+      },
       "name": "quality-gates",
       "policy": {
         "authentication": "ON_INSTALL",
@@ -18,6 +21,9 @@
     },
     {
       "category": "Developer Tools",
+      "interface": {
+        "displayName": "Towa: Technical Decisions"
+      },
       "name": "technical-decisions",
       "policy": {
         "authentication": "ON_INSTALL",
@@ -30,6 +36,9 @@
     },
     {
       "category": "Developer Tools",
+      "interface": {
+        "displayName": "Towa: Repo Workflow"
+      },
       "name": "repo-workflow",
       "policy": {
         "authentication": "ON_INSTALL",
@@ -42,6 +51,9 @@
     },
     {
       "category": "Developer Tools",
+      "interface": {
+        "displayName": "Towa: Content Tools"
+      },
       "name": "content-tools",
       "policy": {
         "authentication": "ON_INSTALL",
@@ -54,6 +66,9 @@
     },
     {
       "category": "Developer Tools",
+      "interface": {
+        "displayName": "Towa: Work Journal"
+      },
       "name": "work-journal",
       "policy": {
         "authentication": "ON_INSTALL",
@@ -66,6 +81,9 @@
     },
     {
       "category": "Developer Tools",
+      "interface": {
+        "displayName": "Towa: Session Preferences"
+      },
       "name": "session-preferences",
       "policy": {
         "authentication": "ON_INSTALL",
@@ -78,6 +96,9 @@
     },
     {
       "category": "Developer Tools",
+      "interface": {
+        "displayName": "Towa: Skill Toolbox"
+      },
       "name": "skill-toolbox",
       "policy": {
         "authentication": "ON_INSTALL",

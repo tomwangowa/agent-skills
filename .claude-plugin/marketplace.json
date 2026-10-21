@@ -7,52 +7,61 @@
   "plugins": [
     {
       "description": "A source-backed attention panel for the current Claude Code session.",
+      "displayName": "Towa: Attention Panel",
       "name": "attention-mod",
       "source": "./plugins/attention-mod"
     },
     {
       "description": "Hand off unfinished work before a session loses it, and pick it up at the next start.",
+      "displayName": "Towa: Session Handoff",
       "name": "handoff-mod",
       "source": "./plugins/handoff-mod"
     },
     {
       "description": "quality-gates skills",
+      "displayName": "Towa: Quality Gates",
       "name": "quality-gates",
       "source": "./plugins/claude/quality-gates",
       "version": "0.1.0"
     },
     {
       "description": "technical-decisions skills",
+      "displayName": "Towa: Technical Decisions",
       "name": "technical-decisions",
       "source": "./plugins/claude/technical-decisions",
       "version": "0.1.0"
     },
     {
       "description": "repo-workflow skills",
+      "displayName": "Towa: Repo Workflow",
       "name": "repo-workflow",
       "source": "./plugins/claude/repo-workflow",
       "version": "0.1.0"
     },
     {
       "description": "content-tools skills",
+      "displayName": "Towa: Content Tools",
       "name": "content-tools",
       "source": "./plugins/claude/content-tools",
       "version": "0.1.0"
     },
     {
       "description": "work-journal skills",
+      "displayName": "Towa: Work Journal",
       "name": "work-journal",
       "source": "./plugins/claude/work-journal",
       "version": "0.1.0"
     },
     {
       "description": "session-preferences skills",
+      "displayName": "Towa: Session Preferences",
       "name": "session-preferences",
       "source": "./plugins/claude/session-preferences",
       "version": "0.1.0"
     },
     {
       "description": "skill-toolbox skills",
+      "displayName": "Towa: Skill Toolbox",
       "name": "skill-toolbox",
       "source": "./plugins/claude/skill-toolbox",
       "version": "0.1.0"

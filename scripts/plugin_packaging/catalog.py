@@ -7,7 +7,8 @@ from pathlib import Path
 
 PACKAGE_NAMES = frozenset({'quality-gates', 'technical-decisions', 'repo-workflow',
                           'content-tools', 'work-journal', 'session-preferences', 'skill-toolbox'})
-FIELDS = frozenset({'name', 'version', 'skills', 'platforms', 'runtime_resources', 'requirements', 'dependencies'})
+FIELDS = frozenset({'name', 'display_name', 'version', 'skills', 'platforms', 'runtime_resources',
+                    'requirements', 'dependencies'})
 DEPENDENCY_FIELDS = frozenset({'kind', 'provider', 'skills', 'condition', 'tested_versions'})
 PLATFORMS = frozenset({'claude', 'codex'})
 SURFACE_EXCLUSIONS = {'claude': {'code-review-codex'},
@@ -39,6 +40,7 @@ def validate_packages(packages: list[dict], catalog: list[dict]) -> list[str]:
         return ['packages must be a list']
     entries = {s['id']: s for s in catalog}
     errors, names, members = [], [], []
+    display_names = []
     for package in packages:
         if not isinstance(package, dict) or set(package) != FIELDS:
             errors.append('Package fields must match the documented schema'); continue
@@ -46,6 +48,12 @@ def validate_packages(packages: list[dict], catalog: list[dict]) -> list[str]:
         if not isinstance(name, str) or name not in PACKAGE_NAMES:
             errors.append('Unknown package name'); continue
         names.append(name)
+        display_name = package['display_name']
+        if (not isinstance(display_name, str) or not display_name.startswith('Towa: ')
+                or not display_name[6:].strip() or display_name != display_name.strip()):
+            errors.append(f'{name}: display_name must start with "Towa: "')
+        else:
+            display_names.append(display_name)
         if not isinstance(package['version'], str) or not re.fullmatch(r'\d+\.\d+\.\d+', package['version']):
             errors.append(f'{name}: version must be a release version')
         for field in ['skills', 'platforms', 'runtime_resources']:
@@ -89,6 +97,8 @@ def validate_packages(packages: list[dict], catalog: list[dict]) -> list[str]:
                     errors.append(f'{name}: dependency skill is absent from {provider}')
     if len(names) != 7 or set(names) != PACKAGE_NAMES:
         errors.append('Exactly the seven approved packages are required')
+    if len(display_names) != len(set(display_names)):
+        errors.append('Package display names must be unique')
     if len(members) != 40 or len(set(members)) != 40:
         errors.append('Exactly 40 distinct source skills are required')
     return errors

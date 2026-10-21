@@ -3,6 +3,7 @@
   "contracts_sha256": "75c99ca57e6f47a514dc1cf8c2d2a14c0d93b93368905150b86fb4410be9c3f7",
   "package": {
     "dependencies": [],
+    "display_name": "Towa: Repo Workflow",
     "name": "repo-workflow",
     "platforms": [
       "claude",

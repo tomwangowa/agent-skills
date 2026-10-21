@@ -6,7 +6,7 @@ from pathlib import Path
 
 from scripts.plugin_packaging.catalog import load_packages
 from scripts.plugin_packaging.render import render_package, render_marketplaces
-from scripts.build_plugins import prepare_server
+from scripts.build_plugins import prepare_server, _tree
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACTS = json.loads((ROOT / 'docs/validation/skill-plugins/runtime-contracts.json').read_text())
@@ -27,8 +27,10 @@ def fixture(root):
     (root / 'plugin-packages.json').write_text(json.dumps(data))
     marketplace = root / '.claude-plugin/marketplace.json'; marketplace.parent.mkdir()
     marketplace.write_text(json.dumps({'name': 'fixture', 'owner': {'name': 'Fixture'}, 'plugins': [
-        {'name': 'attention-mod', 'source': './plugins/attention-mod'},
-        {'name': 'handoff-mod', 'source': './plugins/handoff-mod'}]}))
+        {'name': 'attention-mod', 'displayName': 'Towa: Attention Panel',
+         'source': './plugins/attention-mod'},
+        {'name': 'handoff-mod', 'displayName': 'Towa: Session Handoff',
+         'source': './plugins/handoff-mod'}]}))
     server = root / 'prepared-server'; (server / 'dist').mkdir(parents=True)
     (server / 'node_modules').mkdir()
     (server / 'dist/index.js').write_text('export {};\n')
@@ -66,6 +68,25 @@ class BuildTests(unittest.TestCase):
             self.assertEqual(len(claude['plugins']), 9)
             self.assertEqual(len(codex['plugins']), 7)
             self.assertTrue(all(p['source']['path'].startswith('./plugins/codex/') for p in codex['plugins']))
+            claude_display_names = [p['displayName'] for p in claude['plugins']]
+            self.assertTrue(all(name.startswith('Towa: ') for name in claude_display_names))
+            self.assertEqual(len(claude_display_names), len(set(claude_display_names)))
+            for package in packages:
+                claude_entry = next(p for p in claude['plugins'] if p['name'] == package['name'])
+                codex_entry = next(p for p in codex['plugins'] if p['name'] == package['name'])
+                self.assertEqual(claude_entry['displayName'], package['display_name'])
+                self.assertEqual(codex_entry['interface']['displayName'], package['display_name'])
+
+    def test_tree_ignores_only_bytecode_files_in_cache_directories(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            cache = root / 'runtime/__pycache__'
+            cache.mkdir(parents=True)
+            (cache / 'hook.cpython-312.pyc').write_bytes(b'compiled')
+            (cache / '.env').write_text('private')
+            files = _tree(root)
+            self.assertNotIn('runtime/__pycache__/hook.cpython-312.pyc', files)
+            self.assertIn('runtime/__pycache__/.env', files)
 
     def test_work_journal_launch_uses_measured_platform_contracts(self):
         with tempfile.TemporaryDirectory() as tmp:
