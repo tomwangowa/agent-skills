@@ -13,6 +13,7 @@
         "tested_versions": []
       }
     ],
+    "display_name": "Towa: Work Journal",
     "name": "work-journal",
     "platforms": [
       "claude",

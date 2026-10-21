@@ -15,6 +15,7 @@
         "tested_versions": []
       }
     ],
+    "display_name": "Towa: Quality Gates",
     "name": "quality-gates",
     "platforms": [
       "claude",

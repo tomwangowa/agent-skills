@@ -66,6 +66,11 @@ class BuildTests(unittest.TestCase):
             self.assertEqual(len(claude['plugins']), 9)
             self.assertEqual(len(codex['plugins']), 7)
             self.assertTrue(all(p['source']['path'].startswith('./plugins/codex/') for p in codex['plugins']))
+            for package in packages:
+                claude_entry = next(p for p in claude['plugins'] if p['name'] == package['name'])
+                codex_entry = next(p for p in codex['plugins'] if p['name'] == package['name'])
+                self.assertEqual(claude_entry['displayName'], package['display_name'])
+                self.assertEqual(codex_entry['interface']['displayName'], package['display_name'])
 
     def test_work_journal_launch_uses_measured_platform_contracts(self):
         with tempfile.TemporaryDirectory() as tmp:

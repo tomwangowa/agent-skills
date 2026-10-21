@@ -23,6 +23,7 @@
         "tested_versions": []
       }
     ],
+    "display_name": "Towa: Technical Decisions",
     "name": "technical-decisions",
     "platforms": [
       "claude",
