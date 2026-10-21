@@ -61,6 +61,22 @@ PYTHONPATH="$AGENT_SKILLS_PLUGIN_ROOT/runtime" python3 -m agent_skills_runtime.d
 
 session-preferences 的個人模組存於設定根目錄的 `preferences/`，整份取代同名預設；control-return 是獨立模組。先讀該包 SKILL 的載入／預覽／確認流程，確認後使用 bundled CLI 寫入個人副本，保留 base hash 與 expected hash。不要直接修改快取內的 references。
 
+### 一般回應語言
+
+使用上節的共用設定根目錄優先序（`AGENT_SKILLS_CONFIG_DIR` → `$XDG_CONFIG_HOME/agent-skills` → `~/.config/agent-skills`），在該根目錄的 `agent-skills.json` 加入：
+
+```json
+{
+  "session_preferences": {
+    "response_language": "繁體中文"
+  }
+}
+```
+
+`response_language` 可填語言標籤或名稱，例如 `ja`、`zh`、`繁體中文`、`法語`。讀取時會移除前後空白；值需為可用 UTF-8 編碼的非空單行文字，且不超過 80 個 Unicode 碼位。未設定時沿用現有語言指示；若指示也沒指定語言，就跟隨當次訊息。設定值優先於其他來源的一般語言預設，但只改語言，語氣、格式、術語和任務規則仍生效；當次明確的語言要求優先於設定值。
+
+新工作階段啟動時自動載入。若設定檔、結構或值無效，hook 會回報警告、略過語言預設，仍載入可讀的偏好模組；未認得的欄位會忽略。修改設定後，可在目前工作階段執行 `$session-preferences` 或 `/session-preferences` 立即重載，從當次回應開始套用。每次手動重載都取代先前載入的語言預設；移除設定或修正無效設定後重載，會清除舊預設並回到其他有效指示。檔案不會被即時監看。
+
 僅此一次停用偏好可從新 session 啟動：
 
 ```bash

@@ -226,7 +226,7 @@ def check_preference_updates(default_dir: Path, config_root: Path,
 
 def main(argv: list[str] | None = None) -> int:
     """CLI for effective reads and writes already approved in the calling skill workflow."""
-    from .config import resolve_config_root
+    from .config import read_response_language, resolve_config_root
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config-root", type=Path)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -245,8 +245,11 @@ def main(argv: list[str] | None = None) -> int:
         root = resolve_config_root(env, Path.home())
         if args.command == "load":
             content, warnings = load_preferences(args.default_dir, root)
-            print(json.dumps({"content": content, "warnings": warnings}, ensure_ascii=False))
-            return int(bool(warnings))
+            response_language, config_warnings = read_response_language(root)
+            print(json.dumps({"content": content, "warnings": warnings,
+                              "response_language": response_language,
+                              "config_warnings": config_warnings}, ensure_ascii=False))
+            return int(bool(warnings or config_warnings))
         path = save_module_override(root, args.module, args.content_file.read_text(encoding="utf-8"),
                                     args.base_hash, args.expected_hash)
         print(json.dumps({"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}))

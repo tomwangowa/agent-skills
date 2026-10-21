@@ -22,18 +22,35 @@ On `$session-preferences` or `/session-preferences`:
    `runtime/`; a plugin contains `skills/session-preferences/` and its own
    `runtime/`. Put that `runtime/` on `PYTHONPATH` and run
    `python3 -m agent_skills_runtime.preferences load --default-dir <this-skill>/references`.
-   Read the returned effective content and warnings; do not load only the
-   packaged INDEX and bypass personal copies.
-2. Apply those modules from this response onward until the session ends.
-3. If there are no warnings, reply once:
-   `已啟用 session-preferences；本 session 後續回應會套用目前規則。`
-   Otherwise apply readable modules and name the inactive ones; do not claim
-   complete activation.
+   Read `content`, `warnings`, `response_language`, and `config_warnings` from
+   its JSON output. A warning can make the command exit nonzero while readable
+   content is still returned; apply that content rather than discarding it.
+2. Each manual activation replaces any previously loaded response-language
+   default. If `response_language` is non-null and `config_warnings` is empty,
+   use it as the default for general response prose from this response onward.
+   If `response_language` is null, explicitly stop applying any response-
+   language default previously injected by SessionStart or an earlier manual
+   activation. This includes an absent setting and an invalid setting reported
+   in `config_warnings`. Fall back to the existing general language
+   instructions, then to the user's current message language if none specifies
+   one. A user's explicit language request for the current response or
+   requested output takes precedence. A configured value overrides general
+   language defaults in output styles, CLAUDE.md, AGENTS.md, and active modules
+   only; preserve applicable tone, format, terminology, task-specific
+   requirements, and language requirements scoped to an artifact.
+3. If both warning lists are empty, confirm activation once in the effective
+   response language: use the configured language when present, otherwise
+   follow the existing language-priority rules. Otherwise report `warnings` as
+   preference-module issues and `config_warnings` as response-language
+   configuration issues. Apply readable modules, and do not claim the
+   configured language was applied when `config_warnings` is non-empty. Keep
+   any explicitly requested response format.
 
 New sessions already get these modules from the SessionStart hook (see
 Automatic loading). Use the manual command when the hook did not run, for
 example when `AGENT_SESSION_PREFS=off` was set, and the user wants the policy
-for the rest of this session. Do not apply rules retroactively.
+for the rest of this session. Apply the manual reload from this response
+onward; do not reinterpret earlier conversation.
 
 An active module may direct conditional reading of a reference intentionally
 absent from `INDEX.md`. Read that reference before producing the matching
@@ -173,6 +190,14 @@ fixed or the manual command succeeds.
   writing is not supported by this runtime. A stale content hash prevents
   competing writers from silently replacing each other's changes.
 - Rules must not contain secrets; they are sent to the model every session.
+- The shared `agent-skills.json` is read-only input. Its path must resolve
+  outside plugin caches; the runtime validates the JSON object shape and
+  accepts `response_language` only as non-empty, single-line UTF-8 text of at
+  most 80 Unicode code points. Unknown fields are ignored.
+- `response_language` is sent to the model as a language label. Keep it to a
+  language name or tag; do not put secrets or unrelated instructions in it.
+- This skill does not render HTML or construct URLs, so XSS and URL validation
+  do not apply to its current behavior.
 
 ## Examples
 

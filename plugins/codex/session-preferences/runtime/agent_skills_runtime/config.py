@@ -75,3 +75,42 @@ def validate_work_journal(settings: object) -> dict:
 def read_work_journal(config_root: Path) -> dict:
     require_external_personal_path(config_root / 'work-journal.json')
     return validate_work_journal(json.loads((config_root / "work-journal.json").read_text(encoding="utf-8")))
+
+
+def read_response_language(config_root: Path) -> tuple[str | None, list[str]]:
+    """Read the optional session-wide response language from shared settings."""
+    path = config_root / "agent-skills.json"
+    try:
+        require_external_personal_path(path)
+        settings = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return None, []
+    except (OSError, ValueError, RuntimeError) as error:
+        return None, [f"Invalid response language configuration at {path}: {error}"]
+
+    if not isinstance(settings, dict):
+        return None, [f"Invalid response language configuration at {path}: expected an object"]
+    if "session_preferences" not in settings:
+        return None, []
+
+    preferences = settings["session_preferences"]
+    if not isinstance(preferences, dict):
+        return None, [f"Invalid response language configuration at {path}: session_preferences must be an object"]
+    if "response_language" not in preferences:
+        return None, []
+
+    language = preferences["response_language"]
+    if not isinstance(language, str):
+        return None, [f"Invalid response language configuration at {path}: response_language must be a string"]
+    language = language.strip()
+    if not language:
+        return None, [f"Invalid response language configuration at {path}: response_language must not be empty"]
+    try:
+        language.encode("utf-8")
+    except UnicodeEncodeError:
+        return None, [f"Invalid response language configuration at {path}: response_language must be valid UTF-8 text"]
+    if len(language.splitlines()) != 1:
+        return None, [f"Invalid response language configuration at {path}: response_language must be a single line"]
+    if len(language) > 80:
+        return None, [f"Invalid response language configuration at {path}: response_language must be at most 80 Unicode code points"]
+    return language, []
