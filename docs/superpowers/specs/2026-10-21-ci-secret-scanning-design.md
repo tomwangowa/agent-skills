@@ -85,9 +85,9 @@ SHA 透過環境變數傳給 shell，不把 PR 分支名稱或標題插入指令
 
 ### Safe output
 
-兩個工具的完整輸出都先寫到 `$RUNNER_TEMP` 下權限為 `0700` 的暫存目錄。Helper 將 Gitleaks JSON 報告當成單一 JSON 文件解析，逐行解析 TruffleHog JSON Lines。無命中時只接受 Gitleaks 的有效空結果及 TruffleHog 成功退出且無 JSON Lines；每筆命中都必須符合該固定版本的預期欄位結構，否則 fail closed。摘要只保留規則或偵測器名稱、檔案、行號、commit 和命中數；Python JSON filter 只輸出這些白名單欄位，並 JSON-encode 每筆資料，避免 PR 路徑的控制字元變成額外日誌行。摘要產生前，先從報告讀出候選值欄位（Gitleaks 的 `Secret`／`Match`，TruffleHog 的 `Raw`／`RawV2` 等），並從所有摘要文字中移除這些值。原始候選值和原始報告只留在暫存檔中供遮蔽處理，不列印、不上傳 artifact；TemporaryDirectory 在 helper 結束時移除檔案。這也避免只遮蔽 Gitleaks 的 `Secret`／`Match` 卻將含候選值的 `File` 路徑寫進摘要。
+兩個工具的完整輸出都先寫到 `$RUNNER_TEMP` 下權限為 `0700` 的暫存目錄。Helper 將 Gitleaks JSON 報告當成單一 JSON 文件解析，逐行解析 TruffleHog JSON Lines。無命中時只接受 Gitleaks 的有效空結果及 TruffleHog 成功退出且無 JSON Lines；每筆命中都必須符合該固定版本的預期欄位結構，否則 fail closed。摘要只保留規則或偵測器名稱、檔案、行號、commit 和命中數；Python JSON filter 只輸出這些白名單欄位，並 JSON-encode 每筆資料，避免 PR 路徑的控制字元變成額外日誌行。摘要產生前，先從報告讀出候選值欄位（Gitleaks 的 `Secret`／`Match`，TruffleHog 的 `Raw`／`RawV2` 等），並從所有摘要文字中移除這些值。這是以候選值原文逐字替換的盡力遮蔽；若掃描器回報的是截短、轉換或編碼後的形式，檔案路徑等摘要仍可能留下未匹配的字串，因此不得把它描述成保證移除所有憑證。原始候選值和原始報告只留在暫存檔中供遮蔽處理，不列印、不上傳 artifact；TemporaryDirectory 在 helper 結束時移除檔案。
 
-誤報仍會先阻擋合併。若之後需要例外，審查者應確認規則和最小路徑範圍，避免加入整類憑證的忽略設定。
+誤報仍會先阻擋合併。確認為誤報後，PR 必須說明判斷原因並由審查者確認最小範圍的例外。Gitleaks 可用命中行上的 `gitleaks:allow`，或以單筆 fingerprint 加入 `.gitleaksignore`（上游標示此功能為實驗性）；TruffleHog 可在支援行號的來源中，於命中行加上 `trufflehog:ignore`。若無法使用這些機制，先在 PR 討論並核准具體例外做法。不得停用整個掃描器、放寬整類憑證規則，或加入跨掃描器的通用 allowlist／baseline。[Gitleaks 8.30.1 文件](https://github.com/gitleaks/gitleaks/blob/v8.30.1/README.md) 說明行內標記和 fingerprint 忽略；[TruffleHog 3.97.4 文件](https://github.com/trufflesecurity/trufflehog/blob/v3.97.4/README.md) 說明支援行號的來源可用行內標記忽略。
 
 ## 6. Failure behavior
 
@@ -95,7 +95,7 @@ SHA 透過環境變數傳給 shell，不把 PR 分支名稱或標題插入指令
 
 - 工具下載、版本檢查、SHA-256 驗證或解壓失敗。
 - runner 架構不支援。
-- base/head/merge-base 無效、祖先驗證失敗，或 PR 範圍為空。
+- base/head/merge-base 無效、祖先驗證失敗，或 PR 範圍為空。空範圍刻意 fail closed，因為沒有新增 commit 可供掃描；只改 PR 標題或 base 等 metadata 不屬於這個掃描事件的預設觸發條件。
 - 預檢後的掃描範圍為空、Gitleaks 報告缺失／無法解析，或任一掃描命令失敗。
 - 任一掃描器找到結果。
 - 任一掃描器、摘要解析或範圍讀取發生錯誤。
@@ -134,7 +134,7 @@ SHA 透過環境變數傳給 shell，不把 PR 分支名稱或標題插入指令
 - 對 TruffleHog 的線上驗證維持停用，未驗證命中仍會失敗。
 - 使用者核准本書面規格後，才撰寫 implementation plan。
 
-實作後由既有 PR 必要 job 驗證 macOS runner、下載與雜湊檢查、範圍計算、兩個掃描器以及安全摘要。既有測試照常執行；本設計不另加含憑證值的測試樣本，也不新增測試套件。
+實作後由既有 PR 必要 job 驗證 macOS runner、下載與雜湊檢查、範圍計算、兩個掃描器以及安全摘要。Python 單元測試覆蓋報告解析、空結果、行號正規化、候選值遮蔽與 merge-base 範圍；測試使用虛構候選字串，不包含可用憑證。公開 canary PR 不在本設計範圍內。
 
 ## 10. References
 
@@ -143,6 +143,7 @@ SHA 透過環境變數傳給 shell，不把 PR 分支名稱或標題插入指令
 - [GitHub-hosted runners reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners) — `macos-26` 架構與公開 repo 的 runner 費用。
 - [macos-26 runner image](https://github.com/actions/runner-images/blob/main/images/macos/macos-26-Readme.md) — runner 軟體清單，用來確認文件是否列出 Docker。
 - [Gitleaks v8.30.1 `cmd/git.go`](https://github.com/gitleaks/gitleaks/blob/v8.30.1/cmd/git.go) 和 [root command](https://github.com/gitleaks/gitleaks/blob/v8.30.1/cmd/root.go) — Git 範圍與遮蔽參數。
+- [Gitleaks v8.30.1 README](https://github.com/gitleaks/gitleaks/blob/v8.30.1/README.md) — `gitleaks:allow` 和 fingerprint-specific `.gitleaksignore`。
 - [Gitleaks v8.30.1 release checksums](https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_checksums.txt) — 選定的 ARM64 發行檔雜湊。
 - [Gitleaks issue #2086](https://github.com/gitleaks/gitleaks/issues/2086) — tag 不在主線歷史，以及維護者承認發行出錯。
 - [Gitleaks issue #2170](https://github.com/gitleaks/gitleaks/issues/2170) — 後來確認測試值命中停用字、並已關閉的回報。
