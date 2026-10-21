@@ -56,14 +56,15 @@ class PackageTests(unittest.TestCase):
         self.assertTrue(validate_packages(packages, self.catalog))
 
     def test_display_names_require_towa_prefix_and_uniqueness(self):
-        for value in ['Quality Gates', 'Towa: ']:
+        for value in ['Quality Gates', 'Towa: ', 'Towa: Quality Gates ', None]:
             packages = copy.deepcopy(self.packages)
             packages[0]['display_name'] = value
             with self.subTest(value=value):
-                self.assertTrue(validate_packages(packages, self.catalog))
+                errors = validate_packages(packages, self.catalog)
+                self.assertIn('quality-gates: display_name must start with "Towa: "', errors)
         packages = copy.deepcopy(self.packages)
         packages[1]['display_name'] = packages[0]['display_name']
-        self.assertTrue(validate_packages(packages, self.catalog))
+        self.assertIn('Package display names must be unique', validate_packages(packages, self.catalog))
 
     def test_dependency_contract_not_just_any_nonempty_object(self):
         for dep in [None, {'kind': 'conditional', 'provider': 'superpowers', 'skills': ['writing-plans'],

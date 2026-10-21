@@ -64,7 +64,8 @@ def _tree(root: Path) -> dict:
     for path in root.rglob('*'):
         if path.is_symlink():
             raise ValueError(f'Symlink output is forbidden: {path.relative_to(root)}')
-        if '__pycache__' in path.relative_to(root).parts:
+        if (path.is_file() and '__pycache__' in path.relative_to(root).parts
+                and path.suffix == '.pyc'):
             continue
         if path.is_file():
             result[path.relative_to(root).as_posix()] = (digest(path), path.stat().st_mode & 0o777)

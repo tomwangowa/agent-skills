@@ -54,6 +54,11 @@ class ReleaseTests(unittest.TestCase):
         config.unlink()
         forget_generated_file(config)
         self.assertEqual(verify_release(self.root, CONTRACTS), [])
+        cache_config = package / 'runtime/__pycache__/config.json'
+        cache_config.parent.mkdir(parents=True)
+        cache_config.write_text('{}')
+        self.assertTrue(any('private config' in error for error in verify_release(self.root, CONTRACTS)))
+        cache_config.unlink()
         for personal_path in ['/Users/example-user/private/data', '/home/example-user/private/data']:
             p = package / 'personal.md'; p.write_text(personal_path)
             record_generated_file(p)

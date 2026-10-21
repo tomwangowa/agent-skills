@@ -106,7 +106,8 @@ def verify_release(repo_root: Path, contracts: dict) -> list[str]:
                     relative = path.relative_to(destination).as_posix()
                     if path.is_symlink():
                         errors.append(f'{label}: symlink {relative}'); continue
-                    if '__pycache__' in path.relative_to(destination).parts:
+                    if (path.is_file() and '__pycache__' in path.relative_to(destination).parts
+                            and path.suffix == '.pyc'):
                         continue
                     if not path.is_file() or relative == '.generated-files.json':
                         continue
