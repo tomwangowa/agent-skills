@@ -15,6 +15,11 @@ class RuntimeConfigTest(unittest.TestCase):
     def config(self):
         return importlib.import_module("agent_skills_runtime.config")
 
+    def read_response_language(self, config_root):
+        reader = getattr(self.config(), "read_response_language", None)
+        self.assertTrue(callable(reader), "read_response_language must be implemented")
+        return reader(config_root)
+
     def test_shared_cases(self):
         cases = json.loads((ROOT / "tests/fixtures/plugin-config-cases.json").read_text())
         for case in cases:
@@ -90,6 +95,101 @@ class RuntimeConfigTest(unittest.TestCase):
             result = doctor.check_environment(root, {"commands": [], "config": ["work-journal"]})
             self.assertEqual(result[0]["status"], "missing")
             self.assertFalse(root.exists())
+
+    def test_response_language_missing_config_is_unset(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.assertEqual(self.read_response_language(root), (None, []))
+
+            (root / "agent-skills.json").write_text("{}", encoding="utf-8")
+            self.assertEqual(self.read_response_language(root), (None, []))
+
+    def test_response_language_accepts_language_tag_and_name(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for value in ("ja", "繁體中文"):
+                with self.subTest(value=value):
+                    (root / "agent-skills.json").write_text(
+                        json.dumps({"session_preferences": {"response_language": f"  {value}  "}},
+                                   ensure_ascii=False),
+                        encoding="utf-8",
+                    )
+                    self.assertEqual(self.read_response_language(root), (value, []))
+
+    def test_response_language_ignores_unknown_keys(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "agent-skills.json").write_text(
+                json.dumps({"unknown": True, "session_preferences": {
+                    "response_language": "fr", "future_option": "ignored"}}),
+                encoding="utf-8",
+            )
+            self.assertEqual(self.read_response_language(root), ("fr", []))
+
+    def test_response_language_warns_for_invalid_json_and_shape(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "agent-skills.json"
+            for body in ("{", "[]", "null", '{"session_preferences": []}'):
+                with self.subTest(body=body):
+                    path.write_text(body, encoding="utf-8")
+                    language, warnings = self.read_response_language(root)
+                    self.assertIsNone(language)
+                    self.assertTrue(warnings)
+
+    def test_response_language_warns_on_invalid_utf8(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "agent-skills.json").write_bytes(b"\xff")
+            language, warnings = self.read_response_language(root)
+            self.assertIsNone(language)
+            self.assertTrue(warnings)
+
+    def test_response_language_rejects_invalid_values(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "agent-skills.json"
+            lone_surrogate = json.loads(r'"\ud800"')
+            for value in (None, 3, True, [], {}, "", " \t ", "English\nFrench", "English\rFrench",
+                          lone_surrogate):
+                with self.subTest(value=value):
+                    path.write_text(
+                        json.dumps({"session_preferences": {"response_language": value}}),
+                        encoding="utf-8",
+                    )
+                    language, warnings = self.read_response_language(root)
+                    self.assertIsNone(language)
+                    self.assertTrue(warnings)
+
+    def test_response_language_enforces_unicode_length_boundary(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "agent-skills.json"
+            accepted = "日" * 80
+            path.write_text(json.dumps({"session_preferences": {
+                "response_language": accepted}}, ensure_ascii=False), encoding="utf-8")
+            self.assertEqual(self.read_response_language(root), (accepted, []))
+
+            path.write_text(json.dumps({"session_preferences": {
+                "response_language": accepted + "日"}}, ensure_ascii=False), encoding="utf-8")
+            language, warnings = self.read_response_language(root)
+            self.assertIsNone(language)
+            self.assertTrue(warnings)
+
+    def test_response_language_rejects_cache_symlink(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            cache = root / "plugin-cache"
+            (cache / ".claude-plugin").mkdir(parents=True)
+            (cache / ".claude-plugin/plugin.json").write_text("{}", encoding="utf-8")
+            (cache / "agent-skills.json").write_text(json.dumps({"session_preferences": {
+                "response_language": "ja"}}), encoding="utf-8")
+            alias = root / "config-alias"
+            alias.symlink_to(cache, target_is_directory=True)
+
+            language, warnings = self.read_response_language(alias)
+            self.assertIsNone(language)
+            self.assertTrue(warnings)
 
 
 if __name__ == "__main__":
