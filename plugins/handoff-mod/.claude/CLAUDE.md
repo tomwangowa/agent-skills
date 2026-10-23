@@ -28,7 +28,7 @@ claude --plugin-dir "$PWD"          # 實際載入試用
 
 | 檔案 | 責任 |
 | --- | --- |
-| `register.js` | 事件接線。`session.start`（註冊 `/handoff-resume`、`/handoff-stats`、清掃舊暫存）、`classic.SessionStart`（啟動清單）、`prompt.submit`（記請求、收起清單、啟動訊號）、`command.run{handoff-mod:handoff}`（啟動訊號）、`turn.complete`（驗證新檔、T1、記回應）、`command.run{clear}`（T2）、`session.end`（結束筆記）、`ui.render{AbovePrompt}`（band） |
+| `register.js` | 事件接線。`session.start`（註冊 `/handoff-resume`、`/handoff-stats`、清掃舊暫存、啟動清單）、`prompt.submit`（記請求、收起清單、啟動訊號）、`command.run{handoff-mod:handoff}`（啟動訊號）、`turn.complete`（驗證新檔、T1、記回應）、`command.run{clear}`（T2）、`session.end`（結束筆記）、`ui.render{AbovePrompt}`（band） |
 | `config.js` | 環境變數 > `userConfig` > 預設 |
 | `i18n.js` | 繁中與英文字串，單一檔案，兩種語言必須有相同的 key 與占位符（有測試） |
 | `sanitize.js` | 去控制字元與 ANSI、截斷、祕密遮蔽（九種有特徵的形式） |
