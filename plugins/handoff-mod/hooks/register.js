@@ -675,7 +675,7 @@ export function register(on, options) {
       const text = result.text ?? e.text ?? '';
       if (text.startsWith('/')) trace($, `prompt.submit origin=${e.origin?.kind ?? '-'} command=${text.trim().split(/\s/)[0]}`);
       if (['composer', 'bridge', 'sdk'].includes(e.origin?.kind) && !text.startsWith('/')) await recordRequest($, text);
-      // skill.prompt does not fire for a typed plugin skill in every environment, so the command text starts a run too.
+      // The typed command text starts a run; a machine with cc-plugin-sec-default does not deliver skill.prompt.
       if (SKILL_COMMAND.test(text.trim())) await markHandoffStarted($);
       // The first real prompt ends the start-up list; slash commands such as /handoff-resume do not.
       if (list && ['composer', 'bridge', 'sdk'].includes(e.origin?.kind) && !text.startsWith('/')) {
@@ -686,19 +686,10 @@ export function register(on, options) {
     return result;
   });
 
-  // Debug only: show which skill names arrive, to see whether the matcher below would have fired.
-  on('skill.prompt', async ($, e, next) => {
-    trace($, `skill.prompt skill=${String(e.skill)}`);
-    return next(e);
-  });
-
-  on('skill.prompt', {skill: SKILL}, async ($, e, next) => {
-    const result = await next(e);
-    try { await markHandoffStarted($); } catch { /* ignore */ }
-    return result;
-  });
-
-  // A third way to see a run start: the skill is a command, however it was started (typed, or run by this mod).
+  // No skill.prompt hook on purpose: cc-plugin-sec-default passes that event over a user-tier plugin on a managed machine
+  // (managed settings, Team or Enterprise), which only produced a "hook was skipped" notice. The skill sets
+  // disable-model-invocation, so it starts only by being typed (prompt.submit above) or run as a command (below).
+  // The skill is a command, however it was started (typed, or run by this mod).
   on('command.run', {command: SKILL}, async ($, e, next) => {
     const result = await next(e);
     try {

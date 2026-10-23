@@ -24,7 +24,6 @@ export function world(on: any, o: {sessionId?: () => string; ask?: (e: any) => s
 
   on('session.start', () => ({cwd: '/work/app'}));
   on('prompt.submit', ($: any, e: any) => ({text: e.text}));
-  on('skill.prompt', ($: any, e: any) => ({text: e.text}));
   on('turn.complete', () => ({text: ''}));
   on('command.register', ($: any, e: any) => { rec.commands.push(e); return {value: undefined}; });
   on('session.end', ($: any, e: any) => ({sessionId: e.sessionId}));
