@@ -28,7 +28,7 @@ claude --plugin-dir "$PWD"          # 實際載入試用
 
 | 檔案 | 責任 |
 | --- | --- |
-| `register.js` | 事件接線。`session.start`（註冊 `/handoff-resume`、`/handoff-stats`、清掃舊暫存）、`classic.SessionStart`（啟動清單）、`prompt.submit`（記請求、收起清單、啟動訊號）、`skill.prompt`／`command.run{handoff-mod:handoff}`（啟動訊號）、`turn.complete`（驗證新檔、T1、記回應）、`command.run{clear}`（T2）、`session.end`（結束筆記）、`ui.render{AbovePrompt}`（band） |
+| `register.js` | 事件接線。`session.start`（註冊 `/handoff-resume`、`/handoff-stats`、清掃舊暫存）、`classic.SessionStart`（啟動清單）、`prompt.submit`（記請求、收起清單、啟動訊號）、`command.run{handoff-mod:handoff}`（啟動訊號）、`turn.complete`（驗證新檔、T1、記回應）、`command.run{clear}`（T2）、`session.end`（結束筆記）、`ui.render{AbovePrompt}`（band） |
 | `config.js` | 環境變數 > `userConfig` > 預設 |
 | `i18n.js` | 繁中與英文字串，單一檔案，兩種語言必須有相同的 key 與占位符（有測試） |
 | `sanitize.js` | 去控制字元與 ANSI、截斷、祕密遮蔽（九種有特徵的形式） |
@@ -59,7 +59,8 @@ claude --plugin-dir "$PWD"          # 實際載入試用
 
 ## 平台事實（踩過的坑）
 
-- **`skill.prompt` 在作者的 macOS 上輸入 plugin skill 時不會觸發**（Cloud 會）。偵測交接開始改為三個訊號任一個：`skill.prompt`、`prompt.submit` 文字以 `/handoff-mod:handoff` 開頭、`command.run` 的 `handoff-mod:handoff`；`markHandoffStarted` 保證只啟動一次。不要只靠其中一個，也不要只憑 Cloud 通過就下結論。
+- **`skill.prompt` 不註冊。** 內建的 `cc-plugin-sec-default` 把 `skill.prompt` 與部分 `session.append` door 直接送過 user-tier plugin。2.1.308 的 `claude -p` 在作者的機器上實測到被跳過；原始碼裡它的 manifest 描述寫的啟用條件是「有 managed settings 的機器，或 Team／Enterprise 組織」，作者這台屬於哪一種沒有確認，Team／Enterprise 也沒有用該類帳號實測。plugin 擋不掉，runtime 會對每次被跳過的 dispatch 發「its skill.prompt hook was skipped」通知。作者 macOS 上 2.1.292 的舊觀察（`skill.prompt` 不觸發）很可能是同一原因，但沒有在那個版本驗證。
+- 偵測交接開始改為兩個訊號任一個：`prompt.submit` 文字以 `/handoff-mod:handoff` 開頭、`command.run` 的 `handoff-mod:handoff`；`markHandoffStarted` 保證只啟動一次。交接 skill 設了 `disable-model-invocation: true`（文件行為；煙霧測試裡模型也拒絕呼叫它），模型不能用 Skill 工具啟動它，所以沒有 `tool.call` 路徑要處理。打字時兩個訊號都收得到（2.1.308 `claude -p` 與 2.1.309 互動 session 都實測過，互動時 `command.run` 先到、`prompt.submit` 後到被忽略；Cloud 沒測）。不要只憑 Cloud 通過就下結論。
 - `prompt.submit` 拒絕以 `/` 開頭的文字，要用 `$.command.run({command})`；兩者都不能在 `command.run` hook 內呼叫，要用 `$.clock.after`。
 - `session.end` hook 讀不到 `$.session.messages()`（REPL 已卸載），所以結束筆記走「平時記、結束時寫」（`$.store` 的 `last:<session id>`，先遮蔽再存）。
 - `usage().context.percent` 是已用百分比（整數），第一個回應前與壓縮後到下一個回應前沒有值；壓縮後會下降，靠「低於上次問過的門檻就重置」處理。

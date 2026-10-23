@@ -386,11 +386,12 @@ test('a file with a bad status or a path outside the handoff directories is igno
 });
 
 // --- slice d: verify the file the handoff wrote -------------------------------------------------------------------
-const START_SKILL = {skill: 'handoff-mod:handoff', text: 'draft the handoff'};
+// A run starts when the skill runs as a command, as the mod itself starts it; the typed text is covered below.
+const startRun = ($: any) => $.command.run({command: 'handoff-mod:handoff', args: ''});
 test('a handoff run is confirmed by the file it wrote, which is also kept out of git status', async ($, on) => {
   const w = world(on);
   await startSession($);
-  await $.skill.prompt(START_SKILL);
+  await startRun($);
   await doneTurn($);
   expect(w.rec.toasts.length).toBe(0);
   w.files.set(`${HANDOFF_DIR}/feat-x--20261007-120500.md`, {text: handoffText(), mtimeMs: NOW + 5000});
@@ -401,10 +402,11 @@ test('a handoff run is confirmed by the file it wrote, which is also kept out of
   await doneTurn($);
   expect(w.rec.toasts.length).toBe(1);
 });
-// The skill.prompt event does not fire for a typed plugin skill in Tom's environment (macOS, 2.1.292), so the command text
-// and the command itself must start a run as well.
+// cc-plugin-sec-default passes skill.prompt over a user-tier plugin on a managed machine, and the skill sets
+// disable-model-invocation (so the model cannot start it), so only the typed command text and the command itself start a
+// run (measured with claude -p on 2.1.308).
 const FILE_AFTER = `${HANDOFF_DIR}/feat-x--20261007-120500.md`;
-test('typing the skill command starts a run even when skill.prompt never fires', async ($, on) => {
+test('typing the skill command starts a run', async ($, on) => {
   const w = world(on);
   await startSession($);
   await $.prompt.submit({text: '/handoff-mod:handoff', wait: false, origin: {kind: 'composer'}});
@@ -413,7 +415,7 @@ test('typing the skill command starts a run even when skill.prompt never fires',
   await doneTurn($);
   expect(w.rec.toasts).toEqual([`交接已寫入 ${FILE_AFTER}`]);
 });
-test('running the skill as a command starts a run even when skill.prompt never fires', async ($, on) => {
+test('running the skill as a command starts a run', async ($, on) => {
   const w = world(on);
   await startSession($);
   await $.command.run({command: 'handoff-mod:handoff', args: ''});
@@ -433,12 +435,11 @@ test('other slash commands, and a longer command name, do not start a run', asyn
   await doneTurn($);
   expect(w.rec.fsCalls).toBe(before);
 });
-test('a start signal arriving three ways is one run', async ($, on) => {
+test('a start signal arriving two ways is one run', async ($, on) => {
   const w = world(on);
   await startSession($);
   await $.prompt.submit({text: '/handoff-mod:handoff', wait: false, origin: {kind: 'composer'}});
   await $.command.run({command: 'handoff-mod:handoff', args: ''});
-  await $.skill.prompt(START_SKILL);
   await doneTurn($);
   w.files.set(FILE_AFTER, {text: handoffText(), mtimeMs: NOW + 5000});
   await doneTurn($);
@@ -448,12 +449,12 @@ test('a start signal arriving three ways is one run', async ($, on) => {
 test('HANDOFF_DEBUG traces the detection, and without it nothing extra is logged', async ($, on) => {
   const w = world(on, {env: {HANDOFF_DEBUG: '1'}});
   await startSession($);
-  await $.skill.prompt(START_SKILL);
+  await startRun($);
   await doneTurn($);
   w.files.set(`${HANDOFF_DIR}/feat-x--20261007-120500.md`, {text: handoffText(), mtimeMs: NOW + 5000});
   await doneTurn($);
   const traced = w.rec.logs.filter((line) => line.startsWith('[handoff-mod debug]'));
-  expect(traced.some((line) => line.includes('skill.prompt skill=handoff-mod:handoff'))).toBe(true);
+  expect(traced.some((line) => line.includes('command.run command=handoff-mod:handoff'))).toBe(true);
   expect(traced.some((line) => line.includes('handoff run started'))).toBe(true);
   expect(traced.some((line) => line.includes('nothing valid yet'))).toBe(true);
   expect(traced.some((line) => line.includes('valid=true'))).toBe(true);
@@ -462,7 +463,7 @@ test('HANDOFF_DEBUG traces the detection, and without it nothing extra is logged
 test('without HANDOFF_DEBUG no trace line is logged', async ($, on) => {
   const w = world(on);
   await startSession($);
-  await $.skill.prompt(START_SKILL);
+  await startRun($);
   await doneTurn($);
   w.files.set(`${HANDOFF_DIR}/feat-x--20261007-120500.md`, {text: handoffText(), mtimeMs: NOW + 5000});
   await doneTurn($);
@@ -481,7 +482,7 @@ test('without a handoff run, turns do not touch the file system', async ($, on) 
 test('no file after four turns is reported once, and a later file is still confirmed', async ($, on) => {
   const w = world(on);
   await startSession($);
-  await $.skill.prompt(START_SKILL);
+  await startRun($);
   for (let i = 0; i < 6; i++) await doneTurn($);
   expect(w.rec.toasts).toEqual(['未偵測到有效交接檔']);
   w.files.set(`${HANDOFF_DIR}/feat-x--20261007-121500.md`, {text: handoffText(), mtimeMs: NOW + 9000});
@@ -492,7 +493,7 @@ test('no file after four turns is reported once, and a later file is still confi
 test('aborted turns and sub-agent turns neither count nor report', async ($, on) => {
   const w = world(on);
   await startSession($);
-  await $.skill.prompt(START_SKILL);
+  await startRun($);
   w.files.set(`${HANDOFF_DIR}/feat-x--20261007-120500.md`, {text: handoffText(), mtimeMs: NOW + 5000});
   await doneTurn($, {isAborted: true});
   await doneTurn($, {agentId: 'sub-1'});
@@ -503,7 +504,7 @@ test('aborted turns and sub-agent turns neither count nor report', async ($, on)
 test('a file with an invalid status, or one older than the run, is not reported as the handoff', async ($, on) => {
   const w = world(on);
   await startSession($);
-  await $.skill.prompt(START_SKILL);
+  await startRun($);
   w.files.set(`${HANDOFF_DIR}/feat-x--20261007-120500.md`, {text: handoffText({status: 'weird'}), mtimeMs: NOW + 5000});
   w.files.set(`${HANDOFF_DIR}/feat-y--20261001-010000.md`, {text: handoffText(), mtimeMs: NOW - 86_400_000});
   await doneTurn($);
@@ -512,10 +513,10 @@ test('a file with an invalid status, or one older than the run, is not reported 
 test('starting the skill twice does not restart the count', async ($, on) => {
   const w = world(on);
   await startSession($);
-  await $.skill.prompt(START_SKILL);
+  await startRun($);
   await doneTurn($);
   await doneTurn($);
-  await $.skill.prompt(START_SKILL);
+  await startRun($);
   await doneTurn($);
   await doneTurn($);
   expect(w.rec.toasts).toEqual(['未偵測到有效交接檔']);
@@ -768,7 +769,7 @@ test('the counts follow real use: a confirmed handoff and a resume each add one'
   const w = world(on, {files: twoHandoffs});
   await startSession($);
   await w.flush();
-  await $.skill.prompt(START_SKILL);
+  await startRun($);
   w.files.set(`${HANDOFF_DIR}/feat-x--20261007-120500.md`, {text: handoffText(), mtimeMs: NOW + 5000});
   await doneTurn($);
   const band = await mountBand($);
