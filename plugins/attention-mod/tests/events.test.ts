@@ -20,7 +20,7 @@ test('native concurrent tools and child calls keep their own lifetimes',async($,
 });
 test('native ask route is unknown until a question is drawn and completion releases it',async($,on)=>{
   let finish;
-  const h=host(on,{tool:()=>new Promise(r=>{finish=()=>r({result:'answer'});})});
+  const h=host(on,{check:'ask',tool:()=>new Promise(r=>{finish=()=>r({result:'answer'});})});
   await begin($);
   await $.tool.check({tool:'AskUserQuestion',tool_use_id:'q'});
   const pane=await $.ui.mount(paneTarget());
