@@ -371,6 +371,7 @@ function drawInline(view, els, bodyColumns, header) {
     ...inlineFields(view).map(field => labelled(Text, field, field.tone)),
     Text({wrap:'truncate', children:[Text({bold:true, color:colorFor(inputs.tone), children:`${inputs.label}：`}), inputs.empty ?? '']}),
     ...inputRowNodes(inputs.rows, els, 2),
+    ...inputs.notes.map(note => Text({wrap:'wrap', color:colorFor(note.tone), dimColor:note.tone === 'muted', children:note.text})),
     Text({wrap:'wrap', children:''}),
     ...footerNotes(view).map(note => Text({wrap:'wrap', color:colorFor(note.tone), dimColor:note.tone === 'muted', children:note.text})),
   ];
