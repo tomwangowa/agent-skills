@@ -14,3 +14,19 @@ plugins
 /synced
 .agents
 /plugin-packages.json
+# Repo files that are not skills. Anchored with a leading / so nested skill folders such as session-preferences/scripts still sync.
+/.github
+/.gitignore
+/.memory
+/AGENTS.md
+/CLAUDE.md
+/RELEASE_NOTES.md
+/README.md
+/README.zh.md
+/SKILLS_CATALOG.md
+/SKILLS_ROADMAP.md
+/commands
+/runtime
+/scripts
+/skills-catalog.json
+/tests
