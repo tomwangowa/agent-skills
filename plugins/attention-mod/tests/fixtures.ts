@@ -17,7 +17,7 @@ export function host(on, options={}) {
   on('command.run',()=>({}));
   on('tool.call',($,e)=>options.tool ? options.tool(e) : {result:'fixture-output'});
   // Allow by default. In the runtime we tested, an 'ask' is denied at once, so the call never shows as running.
-  on('tool.check',()=>({decision:options.check ?? 'allow'}));
+  on('tool.check',()=>({decision:options.check?.() ?? 'allow'}));
   on('turn.start',()=>({turnId:'turn-one'}));
   on('turn.complete',()=>({text:''}));
   on('ui.close',($,e)=>{record.closes.push(e.id);return {value:undefined};});
