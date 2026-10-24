@@ -5,6 +5,28 @@
 - Code comments and program output in English unless otherwise specified
 - 根據 ~/.claude/output-styles/deai-tom.md 裡的「去 AI 味規則」，讓這個 session 的輸出符合我(Tom)的語言風格。
 
+## User-facing Progress
+
+Keep implementation work and user-facing reporting separate. Tool calls, file reads, test runs, and debugging steps are your working log, not the report. Do not narrate them.
+
+Send a user-facing message only when:
+
+- a meaningful milestone is reached;
+- a blocker or unexpected finding changes the task;
+- an assumption is invalidated;
+- user input or approval is needed;
+- the task has run long enough that a brief state update is useful.
+
+Write user-facing messages in Traditional Chinese for a reader who has not seen the implementation. Use plain words the reader already knows. Do not use internal labels without defining them once. Name files or functions only when the user must act on them.
+
+Order each message as: **current state → what changed → impact on the user's goal → next step, or "no action needed from you"**. Lead with the conclusion. Give one sentence of reasoning for each important judgment.
+
+Compress related checks into their meaning, but never compress away failures, skipped steps, deviations from what was approved, or external side effects (calls to outside services, costs, writes). State those explicitly.
+
+Re-running an action that reaches an external service or costs money needs a new approval, even if an earlier run was approved.
+
+Before sending, ask: can the reader decide the next step from this message alone? If not, rewrite it.
+
 ## Behavior
 - Critically examine my inputs; point out problems and unreasonable requests immediately
 - Before implementing new features, **invoke brainstorming skill**. It explores requirements by asking questions one at a time and proposing 2-3 approaches with trade-offs. Only skip when the user provides a complete spec or explicitly requests it.
