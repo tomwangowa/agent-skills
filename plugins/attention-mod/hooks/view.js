@@ -44,8 +44,12 @@ export function actionDot(state) {
   return 'muted';
 }
 
-/** Observed state as sections; tones stay semantic so each layout picks its own colours. */
-export function paneRows(state, now) {
+/**
+ * Observed state as sections; tones stay semantic so each layout picks its own colours. The worktree and subagent
+ * sections appear only when the caller passes something for them, so a read that is not available keeps the 0.2.0 layout.
+ */
+export function paneRows(state, now, extras = {}) {
+  const {worktree = null, agents = null, agentsExpanded = false} = extras;
   const summary = state.summary;
   const active = state.activities;
   let action = state.turnStatus === 'ended' ? '本回合已結束' : state.turnStatus === 'active' ? '本回合進行中，尚無執行中工具' : '尚未觀測到工作動作';
@@ -56,7 +60,10 @@ export function paneRows(state, now) {
   if (summary && state.summaryRevision !== state.revision) notes.push({text:'有新活動，摘要待更新', tone:'muted'});
   if (state.summaryError) notes.push({text:'摘要更新失敗', tone:'danger'});
   const inputs = inputRows(state);
+  const worktreeSection = worktree ? [{id:'worktree', label:'工作樹', tone:'muted', meta:null, notes:[], rows:[{label:'路徑', text:worktree.path}, {label:'分支', text:worktree.branch}]}] : [];
+  const agentsSection = agents ? [agentsSectionOf(agents, agentsExpanded)] : [];
   return {title:`你到底在忙什麼？ v${VERSION}`, sections:[
+    ...worktreeSection,
     {id:'summary', label:'摘要', tone:'accent', meta:state.snapshotAt === null ? null : `脈絡與證據更新：${seconds(now, state.snapshotAt)} 秒前`, notes, rows:[
       {label:'目標', text:summary?.goal?.text ?? '目的尚不清楚'},
       {label:'脈絡', text:summary?.context?.text ?? '尚無摘要'},
@@ -66,8 +73,16 @@ export function paneRows(state, now) {
       {label:'動作', text:action, dot:actionDot(state)},
       {label:'需要你', text:attention, dot:state.waits.length ? 'warning' : 'muted'},
     ]},
+    ...agentsSection,
     {id:'inputs', label:inputs.label, tone:'input', meta:inputs.items.length ? `${inputs.items.length} 筆` : null, notes:[{text:INPUT_GAP_NOTE, tone:'muted'}], empty:inputs.empty, rows:inputs.items},
   ]};
+}
+
+/** The subagent section: one count while collapsed, and the listed rows only when the person expands it. */
+function agentsSectionOf(agents, expanded) {
+  const summary = agents.failed ? '無法讀取' : `${agents.runningCount} 個執行中`;
+  const rows = expanded && !agents.failed ? agents.rows.map(r => ({label:r.type, text:`${r.description}（${r.status}）`})) : [];
+  return {id:'agents', label:'子代理', tone:'muted', meta:null, expandable:true, summary, notes:[{text:`子代理：${summary}`, tone:'muted'}], rows};
 }
 
 /** A section by id, so layouts never depend on section order. */
@@ -93,7 +108,13 @@ export function inlineFields(view) {
   const [action, attention] = live.rows;
   const fromSummary = row => ({...row, tone:summary.tone});
   const fromLive = row => ({...row, tone:live.tone});
-  return [fromSummary(goal), fromSummary(context), fromLive(action), fromSummary(evidence), fromLive(attention)];
+  const fields = [fromSummary(goal), fromSummary(context), fromLive(action), fromSummary(evidence), fromLive(attention)];
+  const worktree = sectionById(view, 'worktree');
+  const agents = sectionById(view, 'agents');
+  // The new lines sit below 需要你, so the pending question keeps the row it had in 0.2.0.
+  if (worktree) fields.push({label:'工作樹', text:`${worktree.rows[0].text}（${worktree.rows[1].text}）`, tone:'muted'});
+  if (agents) fields.push({label:'子代理', text:agents.summary, tone:'muted'});
+  return fields;
 }
 
 /** Bottom lines of the flat layout, in the 0.2.0 order. */
@@ -104,8 +125,8 @@ export function footerNotes(view) {
 }
 
 /** Plain-text form of the flat layout. */
-export function paneLines(state, now) {
-  const view = paneRows(state, now);
+export function paneLines(state, now, extras = {}) {
+  const view = paneRows(state, now, extras);
   const inputs = sectionById(view, 'inputs');
   const inputLines = [`${inputs.label}：${inputs.empty ?? ''}`, ...inputs.rows.flatMap(i => [`  ${i.text}`, ...(i.excerpt ? [`    「${i.excerpt}」`] : [])]), ...inputs.notes.map(n => `  ${n.text}`)];
   return [view.title, '', ...inlineFields(view).map(f => `${f.label}：${f.text}`), ...inputLines, '', ...footerNotes(view).map(n => n.text)];

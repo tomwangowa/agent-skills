@@ -7,6 +7,8 @@ import {colorFor} from './theme.js';
 import {VERSION} from './meta.js';
 import {entryFromAppend} from './inputs.js';
 import {buildTeamsLink, composeMessage, parseRecipient, recipientStatus, SETUP_STEPS, SETUP_HEADLINE, SETUP_COPY_HINT} from './feedback.js';
+import {GIT_ARGS, GIT_TIMEOUT_MS, FAILED_READ, parseWorktree, worktreeView} from './worktree.js';
+import {noteEnded, agentsView} from './agents.js';
 
 let state = createState(UNKNOWN_SESSION);
 const schedule = createSchedule();
@@ -28,6 +30,20 @@ let feedback = closedFeedback();
 let recipient = null;
 // Why there is no recipient, so an unset value and a mistyped one get different guidance.
 let recipientNotice = 'unset';
+// The worktree read and the directory it was taken in; null hides the row. Reads run one at a time (readBranch).
+let worktreeRead = null;
+let branchInFlight = false;
+// The directory as the last tick saw it, so a read taken in another directory shows as waiting.
+let cwdNow = null;
+let cwdInFlight = false;
+// The subagent list as the last tick saw it: null hides the section, {failed} shows it as unreadable.
+let agentsRead = null;
+let agentsInFlight = false;
+let agentsStartedAt = null;
+// agent.list has no end time, so each ended subagent is stamped when a poll first sees it ended.
+let endedAt = new Map();
+// Memory only: whether the subagent rows are expanded. A reload collapses them again.
+let agentsExpanded = false;
 const sourceId = () => `e${state.epoch}-s${++sequence}`;
 const apply = event => {
   state = reduceState(state, event);
@@ -104,6 +120,66 @@ async function summarize($) {
   } catch { /* A refused clock call must not escape an unawaited timer. */ }
 }
 
+/**
+ * One git read at a time, so a hung read cannot pile up calls. A result that lands after a session reset is dropped,
+ * and the read runs again for the session now bound, so the panel does not wait for the next turn.
+ */
+async function readBranch($) {
+  if (branchInFlight) return;
+  branchInFlight = true;
+  const {epoch, sessionId} = state;
+  let stale = false;
+  try {
+    const read = await branchRead($);
+    stale = state.epoch !== epoch || state.sessionId !== sessionId;
+    if (!stale) worktreeRead = read;
+  } catch { /* A read that cannot run leaves the last result in place. */ }
+  finally {
+    branchInFlight = false;
+    if (stale && state.enabled) void readBranch($);
+    redraw($);
+  }
+}
+
+/** The worktree read for the current directory; null when there is no directory to read. */
+async function branchRead($) {
+  const cwd = await $.session.cwd().catch(() => null);
+  if (!cwd) return null;
+  try {
+    const result = await $.process.run(GIT_ARGS, {cwd, timeoutMs: GIT_TIMEOUT_MS});
+    return {cwd, ...parseWorktree(result.stdout, result.exitCode)};
+  } catch {
+    return {cwd, ...FAILED_READ};
+  }
+}
+
+/**
+ * Once a second: the directory and the subagent list. Each has its own in-flight flag, so one hung call holds back
+ * only itself. A subagent call still unanswered after the git budget counts as unreadable, not as the last list.
+ */
+async function refreshPanel($) {
+  if (!cwdInFlight) {
+    cwdInFlight = true;
+    try { cwdNow = await $.session.cwd(); }
+    catch { cwdNow = null; }
+    finally { cwdInFlight = false; }
+  }
+  if (!agentsInFlight) {
+    agentsInFlight = true;
+    agentsStartedAt = now;
+    try {
+      const list = await $.agent.list();
+      // The host always answers with an array; null is the fixture default that hides the section.
+      if (list === null) agentsRead = null;
+      else { endedAt = noteEnded(endedAt, list, now); agentsRead = {list}; }
+    }
+    catch { agentsRead = {failed:true}; }
+    finally { agentsInFlight = false; agentsStartedAt = null; }
+  } else if (now - agentsStartedAt >= GIT_TIMEOUT_MS) {
+    agentsRead = {failed:true};
+  }
+}
+
 /** Start one timer; neither tick nor UI awaits the model. */
 function startTimer($) {
   if (timer) return;
@@ -112,6 +188,7 @@ function startTimer($) {
     if (!state.enabled) return;
     now += 1000;
     redraw($);
+    void refreshPanel($);
     void summarize($);
   });
 }
@@ -142,6 +219,8 @@ async function rebind($) {
       if (state.sessionId === UNKNOWN_SESSION || sessionId === state.sessionId) return;
       apply({type:'session-reset', sessionId, at:await $.clock.now()});
     }
+    // /clear emits no session.start, so the newly bound conversation takes its branch read here.
+    void readBranch($);
     void restore($);
     redraw($);
   } catch { /* Keep waiting rather than restoring the ending conversation. */ }
@@ -161,6 +240,7 @@ export function register(on, options) {
       await $.command.register({name:'attention', description:'開啟目前工作脈絡面板', immediate:true});
       startTimer($);
       void restore($);
+      void readBranch($);
       if (!closed && e.isInteractive) await $.ui.open({id:'attention-mod', title:`你到底在忙什麼 v${VERSION}`, rows:18, columns:48});
     } catch { /* Panel setup cannot block the main session. */ }
     return result;
@@ -247,7 +327,7 @@ export function register(on, options) {
   });
   on('turn.start', async ($, e, next) => {
     const result = await next(e);
-    if (!e.agentId) { apply({type:'turn-start', at:now}); redraw($); }
+    if (!e.agentId) { apply({type:'turn-start', at:now}); redraw($); void readBranch($); }
     return result;
   });
   on('turn.complete', async ($, e, next) => {
@@ -268,7 +348,7 @@ export function register(on, options) {
   });
   on('ui.render', {component:'Pane', requestId:'attention-mod'}, ($, e) => {
     const els = $.ui.resolve(e);
-    const view = paneRows(state, now);
+    const view = paneRows(state, now, {worktree:worktreeView(worktreeRead, cwdNow), agents:agentsView(agentsRead, now, endedAt), agentsExpanded});
     // Only the dock reliably has the height for bordered sections; any other placement keeps the compact layout.
     const dock = e.props.placement === 'dock';
     // The dock's height belongs to the host, so folding it would only leave a tall empty frame.
@@ -277,7 +357,7 @@ export function register(on, options) {
       const line = collapsedLine(view);
       return els.Box({flexDirection:'column', children:[header, labelled(els.Text, line, line.tone, 'truncate')]});
     }
-    const body = dock ? drawDock(view, els, header) : drawInline(view, els, e.props.bodyColumns, header);
+    const body = dock ? drawDock($, view, els, header) : drawInline(view, els, e.props.bodyColumns, header);
     return els.Box({flexDirection:'column', children:[...body, ...drawFeedback($, els)]});
   });
 }
@@ -345,13 +425,14 @@ function drawHeader(view, {Box, Text, Button}, toggle, placement) {
 }
 
 /** Bordered sections for the dock, which has the height for them. */
-function drawDock(view, {Box, Text}, header) {
+function drawDock($, view, {Box, Text, Button}, header) {
   // A lone dock pane gets no tab strip, so the frame shows no title; the body carries it instead.
   return [header, ...view.sections.map(section => Box({flexDirection:'column', borderStyle:'round', borderColor:colorFor(section.tone), paddingX:1, children:[
     Box({flexDirection:'row', justifyContent:'space-between', children:[
       // No brackets: the host's Button draws "[ label ]", so only things you can press may wear them.
       Text({bold:true, color:colorFor(section.tone), wrap:'truncate', children:section.label}),
       ...(section.meta ? [Text({dimColor:true, wrap:'truncate', children:section.meta})] : []),
+      ...(section.expandable ? [Button({key:'toggle-agents', label:agentsExpanded ? '收起子代理' : '展開子代理', onPress:() => { agentsExpanded = !agentsExpanded; redraw($); }})] : []),
     ]}),
     ...(section.id === 'inputs'
       ? (section.empty ? [Text({dimColor:true, wrap:'truncate', children:section.empty})] : inputRowNodes(section.rows, {Box, Text}, 0))

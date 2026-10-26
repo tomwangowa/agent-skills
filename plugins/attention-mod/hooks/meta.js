@@ -1,2 +1,2 @@
-// Mirrors .claude-plugin/plugin.json; tests/meta.test.ts fails if the two drift, so bump both together.
-export const VERSION = '0.4.8';
+// Mirrors .claude-plugin/plugin.json. No test reads both, so bump them together and check by hand before a release (see .claude/CLAUDE.md).
+export const VERSION = '0.5.0';

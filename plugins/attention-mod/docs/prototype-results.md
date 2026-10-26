@@ -129,3 +129,30 @@ NOT VERIFIED（待實機）：
   - 自動化：`tests/feedback.test.ts`（前綴解析、收件人驗證與長度上限、`composeMessage`、連結內容、code point 截斷、lone surrogate、容量）、`tests/integration.test.ts`（terminal／desktop 表單流程、複製內容、無收件人與無效收件人、`session-reset` 清空草稿）。
   - VERIFIED（Tom 手動）：Teams `https://` 與 `msteams://` 連結可開啟。
   - NOT VERIFIED：面板內從點連結到 Teams 預填的完整流程；真實終端機與 Desktop 的輸入框焦點、`ui.copy` 實際寫入剪貼簿；`feedbackRecipient` 在安裝畫面與 `/config` 的呈現；dock 窄版面下表單的排版。
+
+## 工作樹與子代理面板（0.5.0）
+
+技術可行性（2026-10-26，2.1.310 型別檔與本機探針）：
+- H5：`turn.start` 不 await 時，從 `turn.start` 到第一次模型步驟為 49 毫秒（3 次樣本）。這是整段時間，含引擎本身的開銷，沒有另量無 hook 的基準。等待 2 秒程序的版本為 2032 毫秒（1 次樣本）。結論：`turn.start` 的 git 讀取不 await。
+- H6（更正）：先前「測試 kit 沒有 `process`、`agent`」只適用於測試本體的 `$`；外掛 hook 裡的 `$` 有這兩個命名空間。測試注入改用 `host()` 的 stub，不用 `register` 參數（決策 D8）。
+- Task 0 探針（在 scratch 副本上做，repo 未動）：
+  - test options 裡的函式值不會傳到 `register`，字串值會傳。
+  - 測試本體與外掛模組不共用模組實例，所以不能用模組 setter 注入。
+  - `pane.press({key})` 可按 Button 並重繪。
+  - `prompt` 會啟動回合，畫面出現「本回合進行中」。
+  - host 的 `process.run`、`agent.list`、`session.cwd` 可攔截，外掛拿到 stub 的結果。
+  - 沒有 stub 時三個呼叫都拒絕，訊息為 `HooksError: no implementation for process.run / agent.list / session.cwd`。
+
+自動化（`claude plugin test .`，142 個測試，0 失敗）：
+- 純函式：`parseWorktree`、`worktreeView`、`agentsView`、`noteEnded`、`summarizeAgents`。
+- 版面：工作樹區塊、子代理收起與展開、已結束列最多 5 筆、inline 沒有展開按鈕、最壞情況（120 字路徑、3 筆外部輸入、5 筆子代理）下「需要你」在外部輸入之前。這一項是行序與行數公式，不是繪製樹的節點數。
+- 面板與讀取：git 讀取丟錯顯示無法讀取、cwd 改變顯示待下一回合更新、detached HEAD、session 切換後舊結果被丟棄、卡住的 git 讀取不阻擋 `turn.start`、`agent.list` 丟錯顯示無法讀取、`agent.list` 卡住兩秒後顯示無法讀取、子代理工具呼叫不改動作。
+- `claude plugin validate --strict .` 通過；calls inventory 列出 `$.process.run`、`$.agent.list`、`$.session.cwd`；警告與 0.4.8 的基準相同。
+
+NOT VERIFIED（尚未在真機驗證，不可講成已驗證）：
+- 真機版面高度：48 欄最壞情況下「需要你」是否不捲動可見。這一項由 Task 9 量測，尚未做。
+- 連結工作樹中 `cd` 之後的實際回報：`session.cwd` 與 `git rev-parse` 在真實 session 的表現。
+- `/clear` 之後 `agent.list` 回傳什麼（目前只有測試的假資料）。
+- Team 或 Enterprise、且有 managed settings（sec-default）的機器上，`agent.list`、`process.run`、`session.cwd` 是否可用。不宣稱。
+- Claude Code 2.1.310 以下版本。最低版本依 2.1.310 型別檔定，沒有驗證更低的版本。
+- `--path-format=absolute` 在 git 2.31 以下的行為：只在本機 git 2.54 驗證過（主 checkout、主 checkout 子目錄、連結的工作樹、連結工作樹的子目錄、符號連結進入的子目錄，目錄都是絕對路徑）。舊版 git 若不套用此旗標，目錄會是相對路徑，面板顯示「無法讀取」，但實際行為未在舊版 git 上確認。

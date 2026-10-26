@@ -1,7 +1,7 @@
 # 工作樹與子代理資訊面板
 
 日期：2026-10-26  
-狀態：Tom 於 2026-10-26 逐段確認；目標版本 0.5.0。尚未實作；設計稿已 commit，審稿後才寫實作計畫。
+狀態：Tom 於 2026-10-26 逐段確認；目標版本 0.5.0。已實作，實機驗證（「測試」一節的實機項目）尚未做。
 
 ## 問題
 
@@ -13,25 +13,26 @@
 **工作樹小節**
 - 只在連結的 worktree 裡顯示。主 checkout 與非 git 目錄都隱藏，因為那不是任務另外開的工作樹。
 - 內容：完整絕對路徑（超過寬度時折行，不截斷）與分支。
-- 路徑來源是 `$.session.cwd()`，每次重繪讀取，會跟著 `cd` 更新。
-- 分支用一條唯讀指令讀出：`git --no-optional-locks rev-parse --git-dir --git-common-dir --abbrev-ref HEAD`。三行輸出分別是 git 目錄、共用的 git 目錄、分支名；前兩行不同，代表是連結的 worktree。
-- 分支在 session 啟動與每個回合開始時讀一次，不每秒讀。讀取時記下當時的目錄；目錄不同時顯示「待下一回合更新」，不顯示舊分支。因為不 await，結果可能在第一次模型步驟之後才到，面板會在下一次重繪時顯示。
+- 路徑來源是 `$.session.cwd()`，由每秒的計時器讀取（重繪是同步的，不能 await），會跟著 `cd` 更新。
+- 分支用一條唯讀指令讀出：`git --no-optional-locks rev-parse --path-format=absolute --git-dir --git-common-dir --abbrev-ref HEAD`。三行輸出分別是 git 目錄、共用的 git 目錄、分支名；前兩行不同，代表是連結的 worktree。`--path-format=absolute` 讓兩個目錄都是絕對路徑：在主 checkout 的子目錄，git 會把共用目錄印成相對的 `../.git`，直接比較會誤判成連結的 worktree。兩個目錄只要有一個不是絕對路徑，結果就是無法讀取，不猜。
+- 分支在 session 啟動、每個回合開始，以及 `/clear` 綁定新對話時讀一次，不每秒讀。讀取時記下當時的目錄；目錄不同時顯示「待下一回合更新」，不顯示舊分支。因為不 await，結果可能在第一次模型步驟之後才到，面板會在下一次重繪時顯示。讀取結果若在 session 換掉後才到，丟掉，並為新 session 重讀一次。
 - 分離 HEAD 顯示「分離 HEAD」。不顯示未提交改動。
-- 位置：標題下、摘要上方，獨立成一小節。
+- 位置：標題下、摘要上方，獨立成一小節（dock）。inline 版面（`rows: 18`）改為放在「需要你」之後，讓「需要你」維持在原來的位置（2026-10-26 Tom 確認）。
 
 **子代理小節**
 - 位於「即時」區下方。
 - 每列顯示類型、描述與狀態，不顯示路徑。描述超過寬度時折行。
 - 收起時只留一行：`子代理：N 個執行中`。N 只算 `running` 與 `waiting`。
-- 展開時列出執行中的全部，再加上最近結束的最多 5 筆，新的排前面。上限只套用在已結束的列，執行中的一律列出（這是對「最多 5 筆」的解讀，見審稿時的確認項目）。
+- 展開時列出執行中的全部，再加上最近結束的最多 5 筆，新的排前面。上限只套用在已結束的列，執行中的一律列出（這是對「最多 5 筆」的解讀，見審稿時的確認項目）。展開鈕只在 dock 版面出現；inline 版面只顯示收起的一行（D1）。
 - 每秒用既有的 1 秒計時器呼叫 `$.agent.list()`。
 - 只反映子代理，不改主面板的「動作」與「需要你」。
 
 **讀不到時**
-- 不在 git 目錄裡（結束碼 128）：隱藏工作樹小節。
+- 不在 git 目錄裡（結束碼 128）：隱藏工作樹小節。空的 repo（尚無 commit）也回 128，同樣隱藏。
 - 指令無法啟動（`process.run` reject）：判斷不了是不是連結的 worktree，所以仍顯示小節，路徑照常顯示，分支欄位顯示「無法讀取」。
-- git 指令逾時（預設 2 秒）：視為無法讀取。
+- git 指令逾時（預設 2 秒）：視為無法讀取。計時由主機執行，JS 端沒有自己的計時（見「尚未驗證」）。
 - `agent.list()` 失敗：子代理小節顯示一行「子代理：無法讀取」。
+- `agent.list()` 超過 2 秒仍未回應（用計時器計算）：同樣顯示「子代理：無法讀取」，不沿用舊列表。
 
 **版號**：`0.4.8` 改成 `0.5.0`，`plugin.json` 與 `hooks/meta.js` 一起改。
 
@@ -54,17 +55,17 @@
 
 ## 元件與資料流
 
-- `hooks/worktree.js`（純函式）：`parseWorktree(stdout, exitCode)`，回傳 `{ state, branch }`。`state` 為 `linked`、`main`、`not-git`、`unreadable` 其中之一。
-- `hooks/agents.js`（純函式）：`summarizeAgents(list, now)`，回傳 `{ runningCount, rows }`。`rows` 含所有執行中的列，加上最多 5 筆已結束的列。
+- `hooks/worktree.js`（純函式）：`parseWorktree(stdout, exitCode)`，回傳 `{ state, branch, detached }`；`worktreeView(read, cwd)` 決定面板要顯示的列（目錄不同時顯示「待下一回合更新」）。`state` 為 `linked`、`main`、`not-git`、`unreadable` 其中之一。
+- `hooks/agents.js`（純函式）：`noteEnded(endedAt, list, now)` 記下每個已結束子代理第一次被看到的時間（`agent.list()` 沒有結束時間）；`summarizeAgents(list, now, endedAt)` 回傳 `{ runningCount, rows }`。`rows` 含所有執行中的列，加上依 `endedAt` 由新到舊排序、最多 5 筆的已結束列。`agentsView` 把讀取結果轉成面板的形狀：沒有讀取時隱藏，失敗時顯示無法讀取。
 - `hooks/register.js`（接線）：
-  - `session.start` 與 `turn.start` 時發出 `$.process.run` 讀分支，**不 await**：`turn.start` 若等待，第一次模型步驟會被延遲整段讀取時間（H5 實測：等待 2 秒的程序時延遲 2032 毫秒）。結果寫進 state，並記下目錄與當時的 `epoch`、`sessionId`。
-  - `clock.every(1000)` 內呼叫 `$.agent.list()`，結果寫進 state。
-  - 重繪時呼叫 `$.session.cwd()`。
+  - `session.start`、`turn.start`（主迴圈）與 `/clear` 綁定新對話時發出 `$.process.run` 讀分支，**不 await**：`turn.start` 若等待，第一次模型步驟會被延遲整段讀取時間（H5 實測：等待 2 秒的程序時延遲 2032 毫秒）。結果寫進 state，並記下目錄與當時的 `epoch`、`sessionId`。
+  - `clock.every(1000)` 內呼叫 `$.session.cwd()` 與 `$.agent.list()`，結果寫進 state；兩者各有自己的在途旗標，一方卡住不影響另一方。
+  - 重繪是同步的，只讀 state，不呼叫 host。
 - `hooks/view.js`：新增兩個區塊，id 分別是 `worktree` 與 `agents`，依 id 取用，不依位置。
 
 ## 錯誤處理與不變條件
 
-- 分支結果寫入前核對 `epoch` 與 `sessionId`。session 已經換掉，就丟掉舊結果。
+- 分支結果寫入前核對 `epoch` 與 `sessionId`。session 已經換掉，就丟掉舊結果，並為新 session 重讀一次。
 - git 讀取與子代理輪詢都包在 try/catch 裡。失敗不改變 `next` 的結果與回傳值。
 - 分支讀取不 await，所以逾時計時也不會阻擋回合開始。
 - `process.run` 只允許上面那一條唯讀指令。不用檔案、store、http。
@@ -74,13 +75,13 @@
 ## 測試
 
 - **單元測試**：
-  - `worktree.js`：連結的 worktree、主 checkout、分離 HEAD、結束碼 128、無法啟動、逾時，各一個案例。
+  - `worktree.js`：連結的 worktree、主 checkout、分離 HEAD、結束碼 128、非絕對路徑（視為無法讀取），各一個案例。「無法啟動」與「分支無法讀取」在面板層測。「逾時」沒有單元測試：2 秒上限由主機執行（見「尚未驗證」）。
   - `agents.js`：執行中的列全部保留；已結束的列最多 5 筆，新的排前面；收起數字只算 `running` 與 `waiting`；空清單。
 - **繪製測試**：
   - 工作樹小節：連結的 worktree 顯示；主 checkout 與非 git 目錄隱藏；分支無法讀取時顯示「無法讀取」，路徑仍在。
   - 子代理小節：收起一行，展開列出，讀不到時顯示一行「子代理：無法讀取」。
-  - **行數回歸測試**：最壞情況（路徑折行、5 筆子代理、5 筆外部輸入）仍在 18 行內，而且「外部輸入」區仍會畫出。
-- **測試注入**：`host()` 無法注入 `process.run` 與 `agent.list`，因為測試 kit 的 `$` 沒有這兩個命名空間（H6 實測）。接線程式改成接收外部傳入的讀取函式，測試時傳入假函式，可注入失敗與慢回應。
+  - **行序與行數測試**：最壞情況（120 字路徑、5 筆子代理、3 筆外部輸入，摘要用預設值）下，「需要你」在邏輯行序上排在「動作」之後、「外部輸入」之前，行數符合公式。這個測試只檢查邏輯行的索引，不量折行，也不含 160 字摘要。外部輸入上限本來就是 3 筆（`state.js` 的 `slice(-3)`）。
+- **測試注入**：測試本體的 `$` 沒有 `process` 與 `agent`（H6 實測），但外掛 hook 裡的 `$` 有。`tests/fixtures.ts` 的 `host()` 用 host stub 回應 `process.run`、`session.cwd`、`agent.list`，可注入失敗、慢回應與不回應。接線程式不接收外部傳入的函式。
 - **實機驗證（發版前）**：
   - 在連結的 worktree 開 session，派一個子代理，確認收起數字與展開列。
   - 在主 checkout 開 session，確認工作樹小節隱藏。
@@ -111,9 +112,9 @@
   - `cwd()` 在連結的 worktree 中回傳該路徑，並跟著允許目錄內的 `cd` 更新。
   - `agent.list()` 存在，並回傳每個子代理的狀態。
   - 子代理的路徑不會出現在 Agent 工具的結果中，所以路徑改用 `cwd()` 取得。
-- **PoC 結果**（2026-10-26，採用參數注入與不 await 的設計）：
+- **PoC 結果**（2026-10-26，採用 host stub 注入與不 await 的設計）：
   - H5：不 await 的版本，從 `turn.start` 到第一次模型步驟為 49 毫秒（3 次樣本）。這是整段時間，含引擎本身的開銷，沒有另量無 hook 的基準，數字貼近 50 毫秒的門檻；等待 2 秒程序的版本為 2032 毫秒（1 次樣本）。引擎會等待 hook 返回，所以 `turn.start` 不能等待 git 讀取。
-  - H6：測試 kit 的 `$` 沒有 `process` 與 `agent`，`host()` 無法注入。改用參數注入，測試時傳入假函式。
+  - H6（更正）：測試本體的 `$` 沒有 `process` 與 `agent`；外掛 hook 的 `$` 有。測試改用 `host()` 的 stub 注入，不用參數注入。
 - **最低版本**：已決定為 2.1.310，H7 的未知因此不再影響設計（見「決定」一節）。
 - **殺死條件**：未觸發。
 
@@ -124,6 +125,11 @@
 - 前景（同步）子代理的工具結果是否帶 `worktreePath`。本 session 的 Agent 工具兩次都以背景方式啟動，無法產生前景子代理。
 - `cwd` 在 `/add-dir` 加入的允許目錄內，跟著 `cd` 的行為未測。
 - 允許目錄外的 `cd` 會被換回，這一點只做了部分驗證。
+- `git` 在 2.31 以下是否支援 `--path-format=absolute`：只在 git 2.54 驗證過。
+- 主機是否遵守 `timeoutMs`：測試用 stub 模擬，實機未確認。
+- 48 欄、摘要 160 字的最壞情況：「需要你」是否在 18 行內。依 48 欄估算（中文算兩格、貪婪折行），摘要三欄都到 160 字時，「需要你」落在第 25 行，超出 18 行；實機未量。這一項未通過，依計畫回到 D1 讓 Tom 決定，不發版。
+- 讀取進行中又遇到回合開始：這次觸發會被略過，不排隊；只有 session 換掉時才補讀。審查發現，未修。
+- 結束碼 128 的來源：空的 repo 已實測會回 128；其他 fatal 錯誤（例如 git 的 safe.directory 檢查）未測。
 
 ## 審稿時請確認
 

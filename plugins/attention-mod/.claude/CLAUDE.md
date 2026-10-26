@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 這是什麼
 
-`attention-mod`：Claude Code Mod（function hooks plugin）的本機原型。在目前工作階段旁開一個面板「你到底在忙什麼」，顯示目標、Claude 的工作脈絡、正在執行的工具、最近證據與待回答訊號。目標版本是 Claude Code 2.1.288。
+`attention-mod`：Claude Code Mod（function hooks plugin）的本機原型。在目前工作階段旁開一個面板「你到底在忙什麼」，顯示目標、Claude 的工作脈絡、正在執行的工具、最近證據與待回答訊號。目標版本是 Claude Code 2.1.310。
 
 改 `hooks/` 之前先載入 `plugin-authoring` skill，Mod 的 hook 介面、熱重載和除錯方式在那裡。
 
@@ -28,8 +28,10 @@ claude --plugin-dir "$PWD"          # 實際載入 Mod 試用，面板沒出現�
 - `snapshot.js`：從 sources 挑出目標來源、goal context、近期 user 提示，再補其他新素材，序列化後整份 prompt 不超過 8,000 code points（JSON escaping 也算在內）。
 - `summary.js`：固定的 system prompt，加上 `parseSummary` 嚴格驗證。只接受 `goal/context/evidence` 三個 key，每欄 null 或 `{text, sources}`，text 最多 160 code points，引用的來源必須存在於快照。`context` 只能引用 `assistant`，`evidence` 只能引用 `tool`／`tool-success`／`tool-error`／`tool-denied`／`tool-cancelled`。`unwrapSummaryJson` 只拆掉完整、單一的 ```` ```json ```` 外框。
 - `scheduler.js`：同一份 `sessionId:epoch:revision` 只試一次（失敗不重試），開始時間相隔至少 60 秒，同時最多一個呼叫。
-- `view.js`：`paneRows` 把狀態轉成三個區塊（摘要、即時、外部輸入），只帶語意色調不帶顏色；`liveTone` 決定即時區塊色調、`actionDot` 決定「動作」的點（「需要你」的點在 `paneRows` 裡依有無等待決定）；`inlineFields`／`footerNotes` 還原 0.2.0 的平面順序；`paneLines` 是純文字版本。不呼叫模型。`sectionById(view, id)` 讓兩種版面都依 id 取區塊，不依位置。
+- `view.js`：`paneRows` 把狀態轉成區塊（摘要、即時、外部輸入；有工作樹或子代理的讀取結果時，再加「工作樹」「子代理」），只帶語意色調不帶顏色；`liveTone` 決定即時區塊色調、`actionDot` 決定「動作」的點（「需要你」的點在 `paneRows` 裡依有無等待決定）；`inlineFields`／`footerNotes` 還原 0.2.0 的平面順序；`paneLines` 是純文字版本。不呼叫模型。`sectionById(view, id)` 讓兩種版面都依 id 取區塊，不依位置。
 - `theme.js`：`colorFor(tone)` 把色調對應到終端機具名色，未知色調回傳 undefined。`register.js` 依 `e.props.placement` 呼叫 `drawDock`（圓角框）或 `drawInline`（平面）。標題列由 `drawHeader` 畫（標題、一格空白、「收起面板／展開面板」toggle）。toggle 依 `e.props.placement` 分兩種：inline 切換 `collapsed`（記憶體變數、不隨 session-reset 重設），收起時只畫標題列與 `collapsedLine(view)`（有等待就顯示「需要你」，否則「動作」）；dock 的高度由 host 決定、縮不了，所以 toggle 呼叫 `park()`：設 `parked`、`$.ui.close`、並在 `redraw()` 裡每次用 `$.ui.status` 重新釘上一行狀態，`/attention` 才清掉。dock 一律畫完整版面、不理會 `collapsed`。測試 kit 的 `$` 沒有 `$.ui.close`，原生 × 觸發的 `closed` 旗標沒有自動化測試（`park()` 走的是外掛自己的 `$.ui.close`，有測）。
+- `worktree.js`：純函式。`parseWorktree` 讀 `git rev-parse` 的前三行（git dir、common dir、branch），判斷連結工作樹、主 checkout 或分離 HEAD；`worktreeView` 決定「工作樹」行顯示什麼，目錄跟讀取時不同就顯示「待下一回合更新」，不沿用舊分支。
+- `agents.js`：純函式。`noteEnded` 記下每個子代理第一次被看到已結束的時間（`agent.list` 沒有結束時間）；`summarizeAgents` 只把 running 與 waiting 算進數量，已結束的列最多 5 筆。
 - `feedback.js`：`buildTeamsLink(raw, recipient)` 把使用者輸入轉成 Teams 聊天 deep link（只含輸入文字與分類標籤，長度上限 `LINK_LIMIT`，超過以 code point 截斷並標 `[truncated]`；回傳的 `message` 永遠是完整純文字，供複製），`parseFeedback` 解析 `bug:`／`idea:` 前綴，`composeMessage` 產生帶標籤、清掉 lone surrogate 的訊息文字（連結與「複製內容」共用，只輸入前綴視為空），`parseRecipient` 把收件人限制成單一 email（上限 254 字元），避免夾帶額外參數、也保證連結放得下。收件人來自 `userConfig.feedbackRecipient`，程式碼與測試不得出現真實地址（repo 是公開的，測試用 `example.com`）。表單狀態 `feedback` 是 `register.js` 的記憶體變數，`drawFeedback` 負責畫出；沒設定收件人時只提供複製內容；`recipientStatus` 把設定值分成 `unset`／`invalid`／`ok`（判斷與 `parseRecipient` 一致），`SETUP_STEPS` 等常數是表單裡顯示的設定步驟，只寫維護者名字、不含地址。
 - `inputs.js`：`entryFromAppend(e, result)` 把 `session.append` 的列分類成外部輸入或 null；`NOISE` 黑名單每項附原因，沒列的種類照樣顯示；被拒絕的 append（`result.deny`）不算。外部輸入只進 `state.inputs`，不進 `sources`，所以不會進摘要快照。測試 kit 無法端到端觸發 `session.append`，分類邏輯要放在這個純函式裡測。
 
@@ -37,12 +39,12 @@ claude --plugin-dir "$PWD"          # 實際載入 Mod 試用，面板沒出現�
 
 改程式時要守住的不變條件（設計理由見 spec）：
 
-- **被動觀察**：不改寫提示、工具結果或權限決定；觀察失敗包在 `try/catch` 裡，不能影響呼叫端。只用 clock、model.complete、session.id/messages、command.register、ui（含回饋表單的 `ui.copy`、dock 收起用的 `ui.status`／`ui.close`）；不用 store、檔案、http、process，也不提交主對話提示。validate 的 calls inventory 會反映這點。
+- **被動觀察**：不改寫提示、工具結果或權限決定；觀察失敗包在 `try/catch` 裡，不能影響呼叫端。只用 clock、model.complete、session.id/messages、command.register、`agent.list`、`session.cwd`（兩者唯讀）、ui（含回饋表單的 `ui.copy`、dock 收起用的 `ui.status`／`ui.close`）；process 只有一項例外：唯讀的 `git --no-optional-locks rev-parse` 讀取工作樹與分支（範圍與理由見 `docs/decisions/2026-10-26-worktree-agents-process.md`）。不用 store、檔案、http，也不提交主對話提示。validate 的 calls inventory 會反映這點。
 - **世代保護**：`epoch` 在 new-prompt 和 session-reset 時加一。模型回應寫回前要核對 `sessionId` 和 `epoch`，晚到的舊回應直接丟掉。排程鎖跨 reset 仍然有效，不能因為世代失效就提早釋放。
 - **事件與模型分工**：「動作」「需要你」只由事件產生；「目標」「脈絡」「證據」只來自摘要，不能互相覆寫。`tool.check` 的 `ask` 只算「等待狀態不明」；`AskUserQuestion` 實際 render 才算等你回答；`permission_prompt` 只有在剛好一個執行中工具時才對應成權限等待。
 - **clear／resume**：實測不會再觸發 `session.start`，也不保證有 `classic.SessionStart`。`session.end` 記下 `endingSessionId` 後停用，由計時器在 `reconnect()` 輪詢 `session.id()`，看到 ID 改變才恢復並 `restore()`。
 - **重建素材**：`restore()` 從 `session.messages()` 重建（沒有穩定 row id，所以自己產生 `e{epoch}-s{n}` 識別），並排除 `<command-name>`／`<local-command>`／`<system-reminder>` 開頭的訊息。
-- 子代理事件（帶 `agentId`／`agent_id`）不影響主工作的動作與等待。
+- 子代理事件（帶 `agentId`／`agent_id`）不影響主工作的動作與等待。子代理區塊只讀 `agent.list`，已結束的列依首次看到的時間排序，不依列表位置。
 
 ## 開發與發佈
 
@@ -54,7 +56,7 @@ attention-mod 只在 agent-skills 的 `plugins/attention-mod/` 開發（2026-10-
 
 ## 測試
 
-測試用 `claude-code/testing` kit。`tests/fixtures.ts` 的 `host(on, options)` 把原生 host 全部 stub 掉，搭配 `mock.clock`，並在 `record` 收集 `models`／`opens`／`prompts`／`commands`；`options.model`、`options.tool`、`options.readMessages` 可注入慢回應、失敗或特定對話。測試不會真的呼叫模型或執行 Bash。
+測試用 `claude-code/testing` kit。`tests/fixtures.ts` 的 `host(on, options)` 把原生 host 全部 stub 掉，搭配 `mock.clock`，並在 `record` 收集 `models`／`opens`／`prompts`／`commands`；`options.model`、`options.tool`、`options.readMessages` 可注入慢回應、失敗或特定對話。`options.git`、`options.cwd`、`options.agents` 注入工作樹與子代理的讀取；沒有給時兩個區塊隱藏，既有測試的版面不變。測試不會真的呼叫模型或執行 Bash。
 
 既有慣例：斷言實際行為，例如模型請求數與時間、`JSON.parse(request.prompt)` 裡的 sources、`mounted.drawn()` 的畫面，不只比對 mock 的回傳字串。新回歸案例先寫出會失敗的測試再修。
 
