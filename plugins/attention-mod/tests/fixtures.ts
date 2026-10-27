@@ -20,6 +20,10 @@ export function host(on, options={}) {
   on('tool.check',()=>({decision:options.check?.() ?? 'allow'}));
   on('turn.start',()=>({turnId:'turn-one'}));
   on('turn.complete',()=>({text:''}));
+  // The panel's own reads. The defaults hide the worktree and subagent rows, so tests that do not ask for them keep the 0.2.0 layout.
+  on('process.run',async($,e)=>({value:options.git ? await options.git(e) : {exitCode:128,stdout:'',stderr:'fatal: not a git repository'}}));
+  on('session.cwd',async()=>({value:options.cwd ? await options.cwd() : '/repo/worktrees/feat-x'}));
+  on('agent.list',async()=>({value:options.agents ? await options.agents() : null}));
   on('ui.close',($,e)=>{record.closes.push(e.id);return {value:undefined};});
   on('ui.status',($,e)=>{record.statuses.push(e.text);return {value:undefined};});
   on('ui.render',($,e)=>e.component === 'AskUserQuestion' ? {type:'engine',ref:1} : $.ui.resolve(e).Text({children:'native-component'}));

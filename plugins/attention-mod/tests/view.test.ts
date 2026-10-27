@@ -1,6 +1,7 @@
 import {test,expect} from 'claude-code/testing';
 import {createState,reduceState,BETWEEN_SESSIONS} from '../hooks/state.js';
-import {paneLines,paneRows,clockTime,liveTone,actionDot,collapsedLine,inlineFields,footerNotes,inputRowNodes} from '../hooks/view.js';
+import {paneLines,paneRows,clockTime,liveTone,actionDot,collapsedLine,inlineFields,footerNotes,inputRowNodes,sectionById} from '../hooks/view.js';
+import {agentsView} from '../hooks/agents.js';
 test('pane uses snapshot age, marks newer data, and never claims task completion',()=>{
   const s={...createState('s'),revision:2,summaryRevision:1,snapshotAt:1000,summary:{goal:{text:'修正登入',sources:['s']},context:null,evidence:null},turnStatus:'ended'};
   const lines=paneLines(s,21000).join('\n');
@@ -19,7 +20,7 @@ test('waits are explicit, ask routes stay unknown, and concurrent tools are visi
 });
 test('pane rows expose the question title and each field label apart from its value',()=>{
   const view=paneRows(createState('s'),0);
-  expect(view.title).toBe('你到底在忙什麼？ v0.4.8');
+  expect(view.title).toBe('你到底在忙什麼？ v0.5.0');
   expect(view.sections.map(s=>s.label)).toEqual(['摘要','即時','外部輸入']);
   expect(inlineFields(view).map(f=>f.label)).toEqual(['目標','脈絡','動作','證據','需要你']);
   expect(inlineFields(view)[0].text).toBe('目的尚不清楚');
@@ -146,4 +147,42 @@ test('collapsed line shows the action, and swaps to the wait as soon as one is p
   s=reduceState(s,{type:'tool-start',epoch:s.epoch,id:'t',tool:'Bash',label:'ls',at:0});
   // A wait still wins over a running tool: the line exists so nobody misses a pending question.
   expect(collapsedLine(paneRows(s,0)).label).toBe('需要你');
+});
+
+const agentList=[{id:'r',type:'Explore',description:'find routes',status:'running'},{id:'w',type:'general-purpose',description:'write tests',status:'waiting'},{id:'c',type:'Explore',description:'done',status:'completed'}];
+
+test('the worktree section sits above the summary, with its path and branch as rows',()=>{
+  const view=paneRows(createState('s'),0,{worktree:{path:'/repo/worktrees/x',branch:'feat/x'}});
+  expect(view.sections.map(s=>s.label)).toEqual(['工作樹','摘要','即時','外部輸入']);
+  expect(sectionById(view,'worktree').rows).toEqual([{label:'路徑',text:'/repo/worktrees/x'},{label:'分支',text:'feat/x'}]);
+});
+
+test('the subagent section collapses to one count and expands to the live rows, then the newest ended ones',()=>{
+  const agents=agentsView({list:agentList},0,new Map([['c',0]]));
+  const collapsed=sectionById(paneRows(createState('s'),0,{agents}),'agents');
+  expect(collapsed.summary).toBe('2 個執行中');
+  expect(collapsed.notes).toEqual([{text:'子代理：2 個執行中',tone:'muted'}]);
+  expect(collapsed.expandable).toBe(true);
+  expect(collapsed.rows).toEqual([]);
+  const expanded=sectionById(paneRows(createState('s'),0,{agents,agentsExpanded:true}),'agents');
+  expect(expanded.rows).toEqual([{label:'Explore',text:'find routes（running）'},{label:'general-purpose',text:'write tests（waiting）'},{label:'Explore',text:'done（completed）'}]);
+});
+
+test('a failed subagent read shows the unreadable summary and no rows, even when expanded',()=>{
+  const section=sectionById(paneRows(createState('s'),0,{agents:{failed:true},agentsExpanded:true}),'agents');
+  expect(section.summary).toBe('無法讀取');
+  expect(section.notes).toEqual([{text:'子代理：無法讀取',tone:'muted'}]);
+  expect(section.rows).toEqual([]);
+});
+
+test('the flat layout puts the worktree after the need-you line, then the subagent line, in the plain text too',()=>{
+  const agents=agentsView({list:[agentList[0]]},0,new Map());
+  const extras={worktree:{path:'/repo/worktrees/x',branch:'feat/x'},agents};
+  const fields=inlineFields(paneRows(createState('s'),0,extras));
+  expect(fields.map(f=>f.label)).toEqual(['目標','脈絡','動作','證據','需要你','工作樹','子代理']);
+  expect(fields[5]).toEqual({label:'工作樹',text:'/repo/worktrees/x（feat/x）',tone:'muted'});
+  expect(fields[6]).toEqual({label:'子代理',text:'1 個執行中',tone:'muted'});
+  const lines=paneLines(createState('s'),0,extras).join('\n');
+  expect(lines).toContain('工作樹：/repo/worktrees/x（feat/x）');
+  expect(lines).toContain('子代理：1 個執行中');
 });
