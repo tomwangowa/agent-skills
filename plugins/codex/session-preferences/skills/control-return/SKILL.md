@@ -14,11 +14,25 @@ conversation, not a runtime setting.
 
 On `$control-return` or `/control-return`:
 
-1. Locate this installation's bundled `runtime/`. Resolve the personal root
-   with `resolve_config_root(os.environ, Path.home())` from
-   `agent_skills_runtime.config`, then call
-   `load_control_return(this_skill_md, config_root)` from
-   `agent_skills_runtime.preferences`. Read its effective content and warnings.
+1. Load the effective rule.
+   - If this installation's bundled `runtime/` is available, resolve the
+     personal root with `resolve_config_root(os.environ, Path.home())` from
+     `agent_skills_runtime.config`, then call
+     `load_control_return(this_skill_md, config_root)` from
+     `agent_skills_runtime.preferences`. Read its effective content and warnings.
+   - Without a runtime, do the same steps by hand:
+     a. Config root: `AGENT_SKILLS_CONFIG_DIR` if set, else
+        `XDG_CONFIG_HOME/agent-skills` if set, else `~/.config/agent-skills`.
+     b. If `<root>/preferences/control-return.md` exists, its whole trimmed
+        content is the effective rule. If the file or its `preferences/`
+        directory is a symlink, or the file is empty or not valid UTF-8, the
+        rule is inactive and a warning names that path. A plain read follows
+        symlinks, so check both paths for symlinks before reading; if you
+        cannot make that check, the rule is inactive and a warning says so.
+     c. If that file does not exist, the effective rule is the text inside
+        the first ```` ```text ```` block under `## Rule` in this `SKILL.md`,
+        stopping at the next `## ` heading. If there is no such block, the
+        rule is inactive and a warning says so.
 2. Apply readable effective content from this response onward until the
    session ends. Do not bypass personal content with the default below or
    apply it retroactively. If loading fails, name the warning and remain inactive.
@@ -41,6 +55,8 @@ hook warns and the rule is not active.
 ```text
 當你歸還控制權時，要順帶給我三個可行的下一步，並推薦其中一個且說明理由。
 三個 Next Steps 的描述要清楚，不要簡略，以免我又要問你釐清問題。
+每個下一步用一句話說明要做什麼、會得到什麼；每個下一步第一次出現的專有名詞，附一句白話解釋。
+另外附第四個選項：「詳細解釋以上三個選項」。我選第四個時，逐項說明做什麼、為什麼、會得到什麼、副作用、我要做什麼，並解釋其中的名詞。
 不要為了湊數硬編選項。
 例外：向我提問確認需求，或工作還在進行中的回報，不附。
 ```
@@ -62,10 +78,10 @@ The shared personal root resolves from `AGENT_SKILLS_CONFIG_DIR`, then
 content replaces the packaged Rule block. A broken or empty personal copy
 leaves the rule inactive with a warning, rather than reverting silently.
 
-On explicit manual activation, use `load_control_return(skill_md, config_root)`
-from this source repository's or plugin's bundled `runtime/`, then apply the
-returned content only when readable. Do not bypass a personal copy by reading
-the packaged Rule block alone. This file never belongs in the
+On explicit manual activation, follow Activation step 1: use the bundled
+runtime when available, otherwise the manual steps there. Apply the resulting
+content only when readable. Do not bypass a personal copy by reading the
+packaged Rule block alone. This file never belongs in the
 session-preferences personal INDEX.
 
 Changing a personal rule requires a complete preview and explicit user
@@ -108,6 +124,7 @@ Assistant: （review 結果）
            1. 修掉第 2 點的競態問題，再重跑測試。**建議**，因為它會讓結果不穩。
            2. ……
            3. ……
+           4. 詳細解釋以上三個選項
 ```
 
 ### Example 2: Clarification question (no block)

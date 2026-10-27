@@ -19,6 +19,8 @@ APPROVED = {
     'session-preferences': 'session-preferences control-return',
     'skill-toolbox': 'skill-auditor skill-router skill-sync claude-workflow-designer',
 }
+APPROVED_VERSIONS = {name: '0.1.0' for name in APPROVED}
+APPROVED_VERSIONS['session-preferences'] = '0.1.1'
 
 
 class PackageTests(unittest.TestCase):
@@ -32,8 +34,7 @@ class PackageTests(unittest.TestCase):
         members = [s for p in self.packages for s in p['skills']]
         self.assertEqual((len(members), len(set(members))), (40, 40))
         self.assertEqual(validate_packages(self.packages, self.catalog), [])
-        for p in self.packages:
-            self.assertEqual(p['version'], '0.1.0')
+        self.assertEqual({p['name']: p['version'] for p in self.packages}, APPROVED_VERSIONS)
         lifecycles = {s['id']: s['lifecycle'] for s in self.catalog}
         self.assertEqual(lifecycles['code-review-codex'], 'personal')
         self.assertEqual(lifecycles['work-log-analyzer'], 'personal')

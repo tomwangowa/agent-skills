@@ -57,7 +57,7 @@
       "displayName": "Towa: Session Preferences",
       "name": "session-preferences",
       "source": "./plugins/claude/session-preferences",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "description": "skill-toolbox skills",
