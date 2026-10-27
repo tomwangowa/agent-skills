@@ -1,6 +1,6 @@
 import {test,expect} from 'claude-code/testing';
 import {createState,reduceState,BETWEEN_SESSIONS} from '../hooks/state.js';
-import {paneLines,paneRows,clockTime,liveTone,actionDot,collapsedLine,inlineFields,footerNotes,inputRowNodes,sectionById} from '../hooks/view.js';
+import {paneLines,paneRows,clockTime,formatElapsed,liveTone,actionDot,collapsedLine,inlineFields,footerNotes,inputRowNodes,sectionById} from '../hooks/view.js';
 import {agentsView} from '../hooks/agents.js';
 test('pane uses snapshot age, marks newer data, and never claims task completion',()=>{
   const s={...createState('s'),revision:2,summaryRevision:1,snapshotAt:1000,summary:{goal:{text:'修正登入',sources:['s']},context:null,evidence:null},turnStatus:'ended'};
@@ -9,6 +9,15 @@ test('pane uses snapshot age, marks newer data, and never claims task completion
   expect(lines).toContain('有新活動，摘要待更新');
   expect(lines).toContain('本回合已結束');
   expect(lines).not.toContain('任務完成');
+});
+test('elapsed time reads as 時分秒 and drops only the leading zero units',()=>{
+  expect([0,42,185,60,3600,28089,90000].map(formatElapsed)).toEqual(['0 秒','42 秒','3 分 5 秒','1 分 0 秒','1 時 0 分 0 秒','7 時 48 分 9 秒','25 時 0 分 0 秒']);
+});
+test('a long gap shows 時分秒 in both the summary and the live meta, with 前 only on the summary',()=>{
+  const s={...createState('s'),snapshotAt:0,lastEventAt:0};
+  const view=paneRows(s,28089000);
+  expect(sectionById(view,'summary').meta).toBe('脈絡與證據更新：7 時 48 分 9 秒前');
+  expect(sectionById(view,'live').meta).toBe('距離最近事件：7 時 48 分 9 秒');
 });
 test('waits are explicit, ask routes stay unknown, and concurrent tools are visible',()=>{
   let s=reduceState(createState('s'),{type:'wait-unknown',at:0});
@@ -20,7 +29,7 @@ test('waits are explicit, ask routes stay unknown, and concurrent tools are visi
 });
 test('pane rows expose the question title and each field label apart from its value',()=>{
   const view=paneRows(createState('s'),0);
-  expect(view.title).toBe('你到底在忙什麼？ v0.5.0');
+  expect(view.title).toBe('你到底在忙什麼？ v0.5.1');
   expect(view.sections.map(s=>s.label)).toEqual(['摘要','即時','外部輸入']);
   expect(inlineFields(view).map(f=>f.label)).toEqual(['目標','脈絡','動作','證據','需要你']);
   expect(inlineFields(view)[0].text).toBe('目的尚不清楚');
