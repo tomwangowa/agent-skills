@@ -2,15 +2,15 @@
   "files": {
     ".claude-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "c5370eb9892c9b2f1e517451062d4253dc1012002ce22c5b4bd9ffdd36fe07e8"
+      "sha256": "866862039eadfe9c10230830958a4b94a06fbdc8dddf342bb699e499724d2c6f"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "f1bc708be5fde08503c118c12be7d16cab81ec5cc44907a0cc0cf1c819e90374"
+      "sha256": "78e905735c54ec3a48b476fff2b8812a73a8e2f723e430026f2d5fefdc40f3df"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "72c134f6fead8ea69ee16c5b2f9a9275bd2d287af45a34c370186c2a957b5de6"
+      "sha256": "133211c5d17850a2731a5132438518fc2f2d6140bd1d153d5f87224621984ca8"
     },
     "hooks/hooks.json": {
       "mode": 420,
@@ -54,7 +54,7 @@
     },
     "skills/control-return/SKILL.md": {
       "mode": 420,
-      "sha256": "75feb27e37949eaa0a38dd04ec572fc7dbc046e1fab0cafee439d2b737bd0696"
+      "sha256": "7f9bd25f9538fd3fb090263701f6661c3573d39124b880e4566df5160874998b"
     },
     "skills/control-return/agents/openai.yaml": {
       "mode": 420,

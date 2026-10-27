@@ -2,15 +2,15 @@
   "files": {
     ".codex-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "8b67d8d2b52e826e0874b04c7766ba106b7746c59dcfe1a10c2c08d43dc39874"
+      "sha256": "431024f4e1768d28c3d643d3cbb4762d027878f2bb8ba4224f9836b21c8ce7fa"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "f1bc708be5fde08503c118c12be7d16cab81ec5cc44907a0cc0cf1c819e90374"
+      "sha256": "78e905735c54ec3a48b476fff2b8812a73a8e2f723e430026f2d5fefdc40f3df"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "7d5d48d9cd61ee659a60aded8b7af066561527847ce6dabc1dd2ba72303f5e03"
+      "sha256": "fdbfc4ccdad3dd65112e174b11f9bdfe1bcb0fbe5a17b600fadaed379cd46aac"
     },
     "hooks/hooks.json": {
       "mode": 420,
@@ -54,7 +54,7 @@
     },
     "skills/control-return/SKILL.md": {
       "mode": 420,
-      "sha256": "75feb27e37949eaa0a38dd04ec572fc7dbc046e1fab0cafee439d2b737bd0696"
+      "sha256": "7f9bd25f9538fd3fb090263701f6661c3573d39124b880e4566df5160874998b"
     },
     "skills/control-return/agents/openai.yaml": {
       "mode": 420,

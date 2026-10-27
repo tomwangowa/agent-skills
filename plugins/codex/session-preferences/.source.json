@@ -46,10 +46,10 @@
       "session-preferences",
       "control-return"
     ],
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "resources": {
-    "control-return/SKILL.md": "75feb27e37949eaa0a38dd04ec572fc7dbc046e1fab0cafee439d2b737bd0696",
+    "control-return/SKILL.md": "7f9bd25f9538fd3fb090263701f6661c3573d39124b880e4566df5160874998b",
     "control-return/agents/openai.yaml": "7796d7e2d792d00fac486ae0b6cad7a5f4ebb00ab9117141b2f610ea012a2433",
     "control-return/scripts/session_start_hook.py": "0ef7db8c43a62a28c95b286582dd8ff983af09c8870639773556de8ed03ea4fe",
     "docs/plugins/installation.md": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff",
