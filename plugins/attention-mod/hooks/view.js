@@ -30,6 +30,13 @@ export function inputRowNodes(rows, {Box, Text}, indent) {
 
 const seconds = (now, at) => Math.max(0, Math.floor((now - at) / 1000));
 
+/** Elapsed seconds as hours, minutes and seconds; leading zero units are dropped, so 42 秒 and 3 分 5 秒 stay short. */
+export function formatElapsed(total) {
+  const units = [[Math.floor(total / 3600), '時'], [Math.floor(total % 3600 / 60), '分'], [total % 60, '秒']];
+  while (units.length > 1 && units[0][0] === 0) units.shift();
+  return units.map(([n, unit]) => `${n} ${unit}`).join(' ');
+}
+
 /** Live-section tone: a wait outranks a running tool, because "needs you" is what a glance must catch. */
 export function liveTone(state) {
   if (state.waits.length) return 'warning';
@@ -64,12 +71,12 @@ export function paneRows(state, now, extras = {}) {
   const agentsSection = agents ? [agentsSectionOf(agents, agentsExpanded)] : [];
   return {title:`你到底在忙什麼？ v${VERSION}`, sections:[
     ...worktreeSection,
-    {id:'summary', label:'摘要', tone:'accent', meta:state.snapshotAt === null ? null : `脈絡與證據更新：${seconds(now, state.snapshotAt)} 秒前`, notes, rows:[
+    {id:'summary', label:'摘要', tone:'accent', meta:state.snapshotAt === null ? null : `脈絡與證據更新：${formatElapsed(seconds(now, state.snapshotAt))}前`, notes, rows:[
       {label:'目標', text:summary?.goal?.text ?? '目的尚不清楚'},
       {label:'脈絡', text:summary?.context?.text ?? '尚無摘要'},
       {label:'證據', text:summary?.evidence?.text ?? '尚無摘要'},
     ]},
-    {id:'live', label:'即時', tone:liveTone(state), meta:state.lastEventAt === null ? null : `距離最近事件：${seconds(now, state.lastEventAt)} 秒`, notes:[], rows:[
+    {id:'live', label:'即時', tone:liveTone(state), meta:state.lastEventAt === null ? null : `距離最近事件：${formatElapsed(seconds(now, state.lastEventAt))}`, notes:[], rows:[
       {label:'動作', text:action, dot:actionDot(state)},
       {label:'需要你', text:attention, dot:state.waits.length ? 'warning' : 'muted'},
     ]},

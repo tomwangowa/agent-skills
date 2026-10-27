@@ -65,7 +65,7 @@ test('failed revision is attempted once and malformed update preserves previous 
   expect(count).toBe(2);
   const pane=await $.ui.mount(paneTarget());
   expect(await renderedText(pane)).toContain('摘要更新失敗');
-  expect(await renderedText(pane)).toContain('脈絡與證據更新：180 秒前');
+  expect(await renderedText(pane)).toContain('脈絡與證據更新：3 分 0 秒前');
 });
 
 test('restoration retains actual user goal before tool-result user rows',async($,on)=>{
@@ -131,7 +131,7 @@ test('API rejection and timeout retain old summary without retrying the same rev
   await h.clock.advance(120000);
   expect(count).toBe(3);
   pane=await $.ui.mount(paneTarget());
-  expect(await renderedText(pane)).toContain('脈絡與證據更新：240 秒前');
+  expect(await renderedText(pane)).toContain('脈絡與證據更新：4 分 0 秒前');
 });
 
 test('a dropped prompt is passed through without changing the task or requesting another summary',async($,on)=>{

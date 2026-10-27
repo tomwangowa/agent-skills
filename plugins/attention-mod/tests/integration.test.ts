@@ -35,7 +35,7 @@ test('whole JSON fence is displayed, while prose-wrapped updates preserve the pr
   await h.clock.advance(60000);
   expect(await renderedText(pane)).toContain('目標：修正登入');
   expect(await renderedText(pane)).toContain('摘要更新失敗');
-  expect(await renderedText(pane)).toContain('脈絡與證據更新：60 秒前');
+  expect(await renderedText(pane)).toContain('脈絡與證據更新：1 分 0 秒前');
 });
 
 test('slow background model does not block tools, or overwrite current action with old context',async($,on)=>{
@@ -88,12 +88,12 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
   const [titleRow,rule,...rest]=(await pane.drawn()).children;
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.5.0']});
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.5.1']});
   expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
   expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
   expect(rule.children).toEqual(['─'.repeat(40)]);
   const labels=rest.filter(row=>row.type==='Text').flatMap(row=>(row.children??[]).filter(c=>c?.props?.bold)).map(c=>({text:c.children[0],color:c.props.color}));
-  expect(labels).toEqual([{text:'目標：',color:'blue'},{text:'脈絡：',color:'blue'},{text:'動作：',color:undefined},{text:'證據：',color:'blue'},{text:'需要你：',color:undefined},{text:'外部輸入：',color:'magenta'}]);
+  expect(labels).toEqual([{text:'目標：',color:'cyan'},{text:'脈絡：',color:'cyan'},{text:'動作：',color:undefined},{text:'證據：',color:'cyan'},{text:'需要你：',color:undefined},{text:'外部輸入：',color:'magenta'}]);
   expect((await borderedBoxes(pane)).length).toBe(0);
   expect(await renderedText(pane)).toContain('目標：目的尚不清楚');
   expect(await renderedText(pane)).toContain('外部輸入：尚無');
@@ -114,7 +114,7 @@ test('dock pane draws a bold title above three round sections coloured by meanin
   const pane=await $.ui.mount(paneTarget('terminal','dock'));
   const boxes=await borderedBoxes(pane);
   expect(boxes.map(b=>b.borderStyle)).toEqual(['round','round','round']);
-  expect(boxes.map(b=>b.borderColor)).toEqual(['blue',undefined,'magenta']);
+  expect(boxes.map(b=>b.borderColor)).toEqual(['cyan',undefined,'magenta']);
   const text=await renderedText(pane);
   for(const header of ['摘要','即時','外部輸入']) expect(text).toContain(header);
   // Brackets are reserved for pressable things (the host Button draws them); section titles stay plain.
@@ -123,7 +123,7 @@ test('dock pane draws a bold title above three round sections coloured by meanin
   expect(text).toContain('在有 managed settings 的機器上，hook-context');
   // A lone dock pane has no tab strip, so the pane frame shows no title; the body must carry it.
   const [titleRow]=(await pane.drawn()).children;
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.5.0']});
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.5.1']});
   expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
   expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
 });
@@ -212,7 +212,7 @@ test('inline footer meta is dim while a successful summary keeps its field colou
   const goalLabel=textByContent(texts,'目標：');
   expect(metaNote.props.dimColor).toBe(true);
   expect(goalLabel.props.dimColor).toBe(undefined);
-  expect(goalLabel.props.color).toBe('blue');
+  expect(goalLabel.props.color).toBe('cyan');
 });
 
 const findNode=(node,pred)=>{
@@ -333,7 +333,7 @@ test('the inline toggle folds the pane to a title and one status line, and expan
   expect(await renderedText(pane)).toContain('目標：');
   await pane.press({key:'toggle-collapse'});
   const collapsed=await renderedText(pane);
-  expect(collapsed).toContain('你到底在忙什麼？ v0.5.0');
+  expect(collapsed).toContain('你到底在忙什麼？ v0.5.1');
   expect(collapsed).toContain('展開面板');
   expect(collapsed).toContain('動作：尚未觀測到工作動作');
   for(const hidden of ['目標：','外部輸入','需要你：']) expect(collapsed).not.toContain(hidden);
