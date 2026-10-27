@@ -13,6 +13,7 @@ EXPECTED_SENTINEL="$FIXTURE_ROOT/expected-keep.txt"
 BYTECODE_PREVIEW_PATH="__pycache__/sample.cpython-313.pyc"
 AUDIT_REPORT_PATH="skill-router-audit-report.md"
 NESTED_AUDIT_SAMPLE_PATH="skill-auditor/examples/sample-audit-report.md"
+RUNTIME_SAMPLE_PATH="runtime/agent_skills_runtime/config.py"
 
 cleanup() {
     rm -rf "$FIXTURE_ROOT"
@@ -140,13 +141,15 @@ run_interactive_sync_expect_failure() {
     [[ $status -ne 0 ]] || fail "expected interactive failure, got exit 0: $output"
 }
 
-mkdir -p "$SOURCE_ROOT/skill-sync/scripts" "$SOURCE_ROOT/sample-skill" "$EXISTING_TARGET" "$PREVIEW_DIFF_TARGET" "$FAKE_BIN"
+mkdir -p "$SOURCE_ROOT/skill-sync/scripts" "$SOURCE_ROOT/sample-skill" "$SOURCE_ROOT/runtime/agent_skills_runtime" "$EXISTING_TARGET" "$PREVIEW_DIFF_TARGET" "$FAKE_BIN"
 cp "$REPO_ROOT/skill-sync/scripts/sync.sh" "$SOURCE_ROOT/skill-sync/scripts/sync.sh"
+cp "$REPO_ROOT/.skill-sync-ignore" "$SOURCE_ROOT/.skill-sync-ignore"
 chmod +x "$SOURCE_ROOT/skill-sync/scripts/sync.sh"
 REAL_RSYNC="$(command -v rsync)"
 printf '%s\n' '#!/usr/bin/env bash' "if [[ \"\${!#}\" == \"$EXISTING_TARGET/\" ]]; then" '    echo "simulated rsync dry-run failure" >&2' '    exit 23' 'fi' "exec \"$REAL_RSYNC\" \"\$@\"" > "$FAKE_BIN/rsync"
 chmod +x "$FAKE_BIN/rsync"
 printf '%s\n' '---' 'name: sample-skill' '---' > "$SOURCE_ROOT/sample-skill/SKILL.md"
+printf 'shared runtime fixture\n' > "$SOURCE_ROOT/$RUNTIME_SAMPLE_PATH"
 mkdir -p "$SOURCE_ROOT/__pycache__"
 printf 'fixture bytecode\n' > "$SOURCE_ROOT/$BYTECODE_PREVIEW_PATH"
 printf 'fixture audit report\n' > "$SOURCE_ROOT/$AUDIT_REPORT_PATH"
@@ -155,7 +158,6 @@ printf 'fixture audit sample\n' > "$SOURCE_ROOT/$NESTED_AUDIT_SAMPLE_PATH"
 printf 'keep this target unchanged\n' > "$EXISTING_TARGET/keep.txt"
 cp "$EXISTING_TARGET/keep.txt" "$EXPECTED_SENTINEL"
 printf '%s\n%s\n' "$EXISTING_TARGET" "$MISSING_TARGET" > "$SOURCE_ROOT/.skill-sync-targets"
-printf 'skill-sync\n__pycache__/\n/*-audit-report.md\n' > "$SOURCE_ROOT/.skill-sync-ignore"
 INITIAL_TARGET_TREE="$(snapshot_target_tree "$EXISTING_TARGET")"
 
 run_dry_sync dry_output --dry-run
@@ -164,6 +166,7 @@ assert_contains "$dry_output" "deleting keep.txt"
 assert_not_contains "$dry_output" "$BYTECODE_PREVIEW_PATH"
 assert_not_contains "$dry_output" "$AUDIT_REPORT_PATH"
 assert_contains "$dry_output" "$NESTED_AUDIT_SAMPLE_PATH"
+assert_contains "$dry_output" "$RUNTIME_SAMPLE_PATH"
 assert_not_contains "$dry_output" "Proceed with sync?"
 assert_dry_run_unchanged_targets
 
@@ -173,6 +176,7 @@ assert_not_contains "$additive_output" "deleting keep.txt"
 assert_not_contains "$additive_output" "$BYTECODE_PREVIEW_PATH"
 assert_not_contains "$additive_output" "$AUDIT_REPORT_PATH"
 assert_contains "$additive_output" "$NESTED_AUDIT_SAMPLE_PATH"
+assert_contains "$additive_output" "$RUNTIME_SAMPLE_PATH"
 assert_not_contains "$additive_output" "Proceed with sync?"
 assert_dry_run_unchanged_targets
 
