@@ -6,7 +6,7 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "6ff63dc4ac74b8c4cc2cfa5fa00fd77ea2ba06c6881c17b6b42c9b9921b6a492"
+      "sha256": "c8068908baa3940361d739bfacf5a04737a181b2f0c563a59d0f62a9a5c5c1ff"
     },
     "README.md": {
       "mode": 420,
@@ -82,7 +82,7 @@
     },
     "skills/skill-sync/SKILL.md": {
       "mode": 420,
-      "sha256": "56a0dda220cdb11b9a787747ba3bc4e4e97250de04fa1c7d0beb247c861d8356"
+      "sha256": "053fd904f5b18ca7b88458329243ccbd84e43fbd481995d45d32f8c13581fc52"
     },
     "skills/skill-sync/agents/openai.yaml": {
       "mode": 420,

@@ -75,7 +75,7 @@
     "skill-router/SKILL.md": "6480a4ec73e72f0f4b35a08df39d1c7e4825d0b19ecb1963642e164e77e84868",
     "skill-router/agents/openai.yaml": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "skill-router/skill-registry.yaml": "f514512bc079077f7ff0fd49efbc8265dd62ea843bd9f9c0bd9fdac1bd79c699",
-    "skill-sync/SKILL.md": "56a0dda220cdb11b9a787747ba3bc4e4e97250de04fa1c7d0beb247c861d8356",
+    "skill-sync/SKILL.md": "053fd904f5b18ca7b88458329243ccbd84e43fbd481995d45d32f8c13581fc52",
     "skill-sync/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
     "skill-sync/scripts/sync.sh": "91dadec06f2b0bbedf220d559fc28e45dde2e7dd6699b5c28c5d93097313148a"
   }

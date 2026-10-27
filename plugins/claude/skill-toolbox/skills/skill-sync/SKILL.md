@@ -9,6 +9,8 @@ disable-model-invocation: true
 One-way mirror of `~/.claude/skills/` to configured agent skill folders.
 Always runs a dry-run preview first, then asks for confirmation before writing any files.
 
+The source root's `runtime/` directory is part of the mirror. It contains the shared Python package used by standalone hooks such as `session-preferences`; excluding it can leave a newer hook paired with an older runtime. `__pycache__/` remains excluded.
+
 `--dry-run` is different: it is a genuinely read-only command for inspecting a proposed sync. It never creates a missing target directory, prompts for confirmation, or runs a non-dry-run (mutating) `rsync`; missing targets are reported as skipped. The regular command's preview is followed by an interactive sync after confirmation, so it may create missing target directories before showing that preview.
 
 By default this is a **mirror** (`rsync --delete`). Pass `--no-delete` to run in **additive** mode, which syncs source skills into the targets but never removes target-only files — use it when targets hold agent-specific skills you want to keep.
