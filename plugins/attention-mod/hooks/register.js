@@ -33,6 +33,8 @@ let recipientNotice = 'unset';
 // The worktree read and the directory it was taken in; null hides the row. Reads run one at a time (readBranch).
 let worktreeRead = null;
 let branchInFlight = false;
+// A trigger that arrived mid-read; the read runs again once the current one lands, so no trigger is lost.
+let branchPending = false;
 // The directory as the last tick saw it, so a read taken in another directory shows as waiting.
 let cwdNow = null;
 let cwdInFlight = false;
@@ -121,12 +123,14 @@ async function summarize($) {
 }
 
 /**
- * One git read at a time, so a hung read cannot pile up calls. A result that lands after a session reset is dropped,
- * and the read runs again for the session now bound, so the panel does not wait for the next turn.
+ * One git read at a time, so a hung read cannot pile up calls. A trigger that lands mid-read is remembered and runs
+ * once the read finishes, so a turn that began after a cd is not left showing the old directory. A result that lands
+ * after a session reset is dropped, and the read runs again for the session now bound.
  */
 async function readBranch($) {
-  if (branchInFlight) return;
+  if (branchInFlight) { branchPending = true; return; }
   branchInFlight = true;
+  branchPending = false;
   const {epoch, sessionId} = state;
   let stale = false;
   try {
@@ -136,7 +140,9 @@ async function readBranch($) {
   } catch { /* A read that cannot run leaves the last result in place. */ }
   finally {
     branchInFlight = false;
-    if (stale && state.enabled) void readBranch($);
+    const again = stale || branchPending;
+    branchPending = false;
+    if (again && state.enabled) void readBranch($);
     redraw($);
   }
 }

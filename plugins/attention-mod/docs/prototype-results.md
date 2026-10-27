@@ -143,14 +143,21 @@ NOT VERIFIED（待實機）：
   - host 的 `process.run`、`agent.list`、`session.cwd` 可攔截，外掛拿到 stub 的結果。
   - 沒有 stub 時三個呼叫都拒絕，訊息為 `HooksError: no implementation for process.run / agent.list / session.cwd`。
 
-自動化（`claude plugin test .`，142 個測試，0 失敗）：
+自動化（`claude plugin test .`，146 個測試，0 失敗）：
 - 純函式：`parseWorktree`、`worktreeView`、`agentsView`、`noteEnded`、`summarizeAgents`。
 - 版面：工作樹區塊、子代理收起與展開、已結束列最多 5 筆、inline 沒有展開按鈕、最壞情況（120 字路徑、3 筆外部輸入、5 筆子代理）下「需要你」在外部輸入之前。這一項是行序與行數公式，不是繪製樹的節點數。
-- 面板與讀取：git 讀取丟錯顯示無法讀取、cwd 改變顯示待下一回合更新、detached HEAD、session 切換後舊結果被丟棄、卡住的 git 讀取不阻擋 `turn.start`、`agent.list` 丟錯顯示無法讀取、`agent.list` 卡住兩秒後顯示無法讀取、子代理工具呼叫不改動作。
+- 面板與讀取：git 讀取丟錯顯示無法讀取、cwd 改變顯示待下一回合更新、detached HEAD、session 切換後舊結果被丟棄、卡住的 git 讀取不阻擋 `turn.start`、讀取進行中的回合開始會在讀取結束後補跑一次、`agent.list` 丟錯顯示無法讀取、`agent.list` 卡住兩秒後顯示無法讀取、子代理工具呼叫不改動作。
 - `claude plugin validate --strict .` 通過；calls inventory 列出 `$.process.run`、`$.agent.list`、`$.session.cwd`；警告與 0.4.8 的基準相同。
 
+實機版面結果（2026-10-27，Tom 的終端機，inline 面板）：
+- 寬度：面板寬 80 格，跟終端機走。文件寫明 inline 忽略 `columns`，所以先前的「48 欄」不是 host 保證的數字。
+- 高度：依截圖判斷可見約 11 行。摘要三欄都是 160 字時，「需要你」在第 17 行（標題列為第 1 行），需要捲動才看得到。
+- 折行：字元級，「過／期」「格／式」斷在字中間，160 字全部顯示，沒有截斷。
+- 結論：Tom 確認接受此版面，不再調整。
+
 NOT VERIFIED（尚未在真機驗證，不可講成已驗證）：
-- 真機版面高度：48 欄最壞情況下「需要你」是否不捲動可見。這一項由 Task 9 量測，尚未做。
+- 真實 session 中，連結工作樹派出子代理後的收起數字與展開列（Task 9 第 1 項）。
+- 主 checkout 不顯示工作樹列（Task 9 第 2 項）。
 - 連結工作樹中 `cd` 之後的實際回報：`session.cwd` 與 `git rev-parse` 在真實 session 的表現。
 - `/clear` 之後 `agent.list` 回傳什麼（目前只有測試的假資料）。
 - Team 或 Enterprise、且有 managed settings（sec-default）的機器上，`agent.list`、`process.run`、`session.cwd` 是否可用。不宣稱。

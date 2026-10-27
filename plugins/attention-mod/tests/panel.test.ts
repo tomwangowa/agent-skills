@@ -80,6 +80,25 @@ test('a read that finishes after a session reset is dropped, and its branch neve
   expect(await renderedText(pane)).not.toContain('old/x');
 });
 
+test('a turn that starts while a read is in flight reads again once it lands, so the new directory is not left waiting',async($,on)=>{
+  const first=deferred();
+  let here=CWD;
+  let reads=0;
+  const h=host(on,{cwd:()=>here,git:()=>{ reads+=1; return reads===1 ? first.promise : linked('feat/y'); }});
+  await begin($);
+  const pane=await $.ui.mount(paneTarget());
+  await h.clock.advance(1000);
+  // The first read started in the old directory and is still pending when the next turn begins after a cd.
+  await $.turn.start({text:'turn two',turnId:'turn-two'});
+  here='/repo/worktrees/y';
+  expect(reads).toBe(1);
+  first.resolve(linked('feat/x'));
+  await h.clock.advance(1000);
+  expect(reads).toBe(2);
+  expect(await renderedText(pane)).toContain('feat/y');
+  expect(await renderedText(pane)).not.toContain('待下一回合更新');
+});
+
 test('a git read that never answers blocks no turn, and only one read is in flight',async($,on)=>{
   const never=deferred();
   let reads=0;
