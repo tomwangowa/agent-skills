@@ -31,8 +31,8 @@ Apply this policy only to new Traditional Chinese prose after the user enables
   compress necessary context or steps to keep the reply short.
 - When a question asks the user to choose, define in one clause any term the
   choice turns on, inside the question or option text itself. Always define
-  labels coined in this session or project-internal names. Do not define common
-  engineering terms, and do not make the user ask first.
+  labels coined in this session or project-internal names. Do not define a term
+  the user has already used in this session, and do not make the user ask first.
 
 ## Read a deferred reference when needed
 
