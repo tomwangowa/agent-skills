@@ -6,7 +6,7 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "0303e27216f5be37b2310bc473dd28badb1b050269e075ac093791ab1952a767"
+      "sha256": "58dbe726249db89e4e660e6404fe3a2c8e995afe5a2714dc66bc228959236691"
     },
     "README.md": {
       "mode": 420,
@@ -90,7 +90,7 @@
     },
     "skills/session-preferences/references/deai-voice.md": {
       "mode": 420,
-      "sha256": "7c30e86c1ce6137f4399acadbfde5dee3419f56747ce79c8a42429d939a4afb5"
+      "sha256": "c8b0672afd6f3cf5eb70ac3bf7bf26e0c43eedd7b00791937594c16ec12f23fc"
     },
     "skills/session-preferences/references/explanation-depth.md": {
       "mode": 420,
