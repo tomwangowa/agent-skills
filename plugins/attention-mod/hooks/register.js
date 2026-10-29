@@ -2,13 +2,14 @@ import {createState, reduceState, boundedText, UNKNOWN_SESSION, BETWEEN_SESSIONS
 import {buildSnapshot} from './snapshot.js';
 import {parseSummary, summarySystemPrompt, unwrapSummaryJson} from './summary.js';
 import {createSchedule, claimSnapshot, settleRequest} from './scheduler.js';
-import {paneRows, inlineFields, footerNotes, sectionById, inputRowNodes, collapsedLine} from './view.js';
+import {paneRows, inlineFields, footerNotes, sectionById, inputRowNodes, collapsedLine, pageFromArgs, pageSections} from './view.js';
 import {colorFor} from './theme.js';
 import {VERSION} from './meta.js';
 import {entryFromAppend, OBSERVED_DOORS, SUMMARY_DOORS} from './inputs.js';
 import {buildTeamsLink, composeMessage, parseRecipient, recipientStatus, SETUP_STEPS, SETUP_HEADLINE, SETUP_COPY_HINT} from './feedback.js';
 import {GIT_ARGS, GIT_TIMEOUT_MS, FAILED_READ, parseWorktree, worktreeView} from './worktree.js';
 import {noteEnded, agentsView} from './agents.js';
+import {createNotes, keyFor, beginRead, loaded, loadFailed, edit, nextSave, saveStarted, saveSettled, switchKey, NOTE_LIMIT} from './notes.js';
 
 let state = createState(UNKNOWN_SESSION);
 const schedule = createSchedule();
@@ -18,6 +19,8 @@ let reading = false;
 let closed = false;
 // A view preference, so it survives /clear and resume; only a reload returns the pane to expanded.
 let collapsed = false;
+// Which page the panel shows (1 to 3). Like collapsed, it survives /clear and resume; only a reload returns it to page one.
+let page = 1;
 // Dock only: the dock cannot shrink, so folding it closes the pane and pins a status line instead.
 let parked = false;
 let now = 0;
@@ -46,10 +49,24 @@ let agentsStartedAt = null;
 let endedAt = new Map();
 // Memory only: whether the subagent rows are expanded. A reload collapses them again.
 let agentsExpanded = false;
+// Page two's read-only session facts. Model and usage are read every five ticks; effort is taken from turn.step.
+let session = {model:null, effort:null, rateLimits:null, skills:null, mcpTools:null};
+let sessionInFlight = false;
+let ticks = 0;
+// Quick Notes: the note on screen, and the directory read that picked its key. The key is the git common dir, so every
+// worktree of a repository shares one note; a directory outside git keys by its path.
+let notes = createNotes();
+let keyRead = null;
+// True while a key switch is flushing unsaved text; one switch at a time.
+let switching = false;
 const sourceId = () => `e${state.epoch}-s${++sequence}`;
 const apply = event => {
   state = reduceState(state, event);
-  if (event.type === 'session-reset') feedback = closedFeedback();
+  if (event.type === 'session-reset') {
+    feedback = closedFeedback();
+    // Effort belongs to the conversation that set it; the next main-loop request reports the new one.
+    session = {...session, effort:null};
+  }
 };
 
 /** Keep observation failures from changing the caller's result. */
@@ -136,7 +153,8 @@ async function readBranch($) {
   try {
     const read = await branchRead($);
     stale = state.epoch !== epoch || state.sessionId !== sessionId;
-    if (!stale) worktreeRead = read;
+    // The same read also picks the note's key: it is the directory the session is in now.
+    if (!stale) { worktreeRead = read; keyRead = read; void bindNotes($); }
   } catch { /* A read that cannot run leaves the last result in place. */ }
   finally {
     branchInFlight = false;
@@ -166,7 +184,11 @@ async function branchRead($) {
 async function refreshPanel($) {
   if (!cwdInFlight) {
     cwdInFlight = true;
-    try { cwdNow = await $.session.cwd(); }
+    try {
+      cwdNow = await $.session.cwd();
+      // Checked here, right after the fresh directory lands: a check on the tick would compare a directory one tick old.
+      if (cwdNow && cwdNow !== keyRead?.cwd) void readKey($);
+    }
     catch { cwdNow = null; }
     finally { cwdInFlight = false; }
   }
@@ -186,6 +208,125 @@ async function refreshPanel($) {
   }
 }
 
+/**
+ * Model and usage for page two, read every five ticks. Both are read-only, and the usage read asks for the summary
+ * breakdown, which is estimated locally and sends nothing. A read that throws keeps the value it had.
+ */
+async function refreshSession($) {
+  if (sessionInFlight) return;
+  sessionInFlight = true;
+  try {
+    try { session = {...session, model: await $.session.model()}; }
+    catch { /* Keep the last model. */ }
+    try {
+      const usage = await $.session.usage({breakdown:'summary'});
+      const skills = usage.context?.breakdown?.skills;
+      // One entry per MCP tool, not per server, so the row counts tools.
+      const mcpTools = usage.context?.breakdown?.mcpTools;
+      session = {...session, rateLimits: usage.rateLimits, skills: skills ? {loaded: skills.includedSkills, total: skills.totalSkills} : null, mcpTools: Array.isArray(mcpTools) ? mcpTools.length : null};
+    }
+    catch { /* Keep the last usage reading. */ }
+  } finally { sessionInFlight = false; }
+}
+
+/**
+ * The directory read that picks the note's key, run once the directory has moved on since the last read. It shares
+ * readBranch's one-read-at-a-time gate and leaves the worktree row alone, so that row keeps waiting for the next turn.
+ */
+async function readKey($) {
+  if (branchInFlight) return;
+  branchInFlight = true;
+  const {epoch, sessionId} = state;
+  try {
+    const read = await branchRead($);
+    if (state.epoch === epoch && state.sessionId === sessionId) { keyRead = read; void bindNotes($); }
+  }
+  catch { /* A read that cannot run leaves the note as it was. */ }
+  finally {
+    branchInFlight = false;
+    // A turn that started during this read still needs its own worktree read.
+    if (branchPending && state.enabled) void readBranch($);
+    redraw($);
+  }
+}
+
+/**
+ * Puts the note under the key the directory read picked. Unsaved text goes to its own key before the switch, and the
+ * switch waits for that write: when it fails, or the text is too long to store, the note stays on screen with its notice.
+ * A directory git cannot read has no note to fall back on.
+ */
+async function bindNotes($) {
+  if (!keyRead || switching || notes.saving) return;
+  const want = keyRead.state === 'unreadable' ? null : keyFor(keyRead);
+  if (want === notes.key && (want !== null || notes.status === 'read-failed')) return;
+  if (notes.saveError === 'failed' && now < notes.retryAt) return;
+  switching = true;
+  try {
+    const {flush, notes: fresh} = switchKey(notes, want);
+    if (flush) {
+      if ([...flush.text].length > NOTE_LIMIT) { notes = {...notes, saveError:'too-long'}; return; }
+      notes = saveStarted(notes);
+      const ok = await writeNote($, flush.key, flush.text);
+      notes = saveSettled(notes, flush.text, ok, now);
+      // Typing during the write leaves the note dirty; the switch then waits for the next pass.
+      if (!ok || notes.dirty) return;
+    }
+    notes = want === null ? {...fresh, status:'read-failed'} : beginRead(fresh, want);
+    if (want !== null) void loadNote($, want);
+  }
+  finally { switching = false; redraw($); }
+}
+
+/**
+ * Saves the note when the save rules allow it. A write that finishes after the note has moved on changes nothing:
+ * the note on screen is another one by then.
+ */
+async function persistNotes($, force) {
+  const plan = nextSave(notes, now, force);
+  if (plan.action === 'refuse') { notes = {...notes, saveError:'too-long'}; redraw($); return; }
+  if (plan.action === 'none') return;
+  const {key, text} = notes;
+  notes = saveStarted(notes);
+  const ok = await writeNote($, key, text);
+  if (notes.key === key) notes = saveSettled(notes, text, ok, now);
+  redraw($);
+}
+
+/** One store write. A cleared note is deleted, so the store never keeps an empty string. */
+async function writeNote($, key, text) {
+  try {
+    if (text === '') await $.store.delete(key);
+    else await $.store.set(key, text);
+    return true;
+  }
+  catch { return false; }
+}
+
+/** Leaving Quick Notes saves what is typed there, so that text does not wait on a timer for a page nobody shows. */
+function setPage($, next) {
+  if (page === 3 && next !== 3) void persistNotes($, true);
+  page = next;
+  redraw($);
+}
+
+/** Reads one note from the store. A result for a key that is no longer on screen changes nothing, which loaded() checks. */
+async function loadNote($, key) {
+  try {
+    const value = await $.store.get(key);
+    notes = loaded(notes, key, value);
+  }
+  catch { notes = loadFailed(notes, key); }
+  finally { redraw($); }
+}
+
+/** The retry on a read failure: the note again, or the directory again when no key was ever picked. */
+function retryNotes($) {
+  if (!notes.key) { void readKey($); return; }
+  notes = beginRead(notes, notes.key);
+  void loadNote($, notes.key);
+  redraw($);
+}
+
 /** Start one timer; neither tick nor UI awaits the model. */
 function startTimer($) {
   if (timer) return;
@@ -193,8 +334,12 @@ function startTimer($) {
     void reconnect($);
     if (!state.enabled) return;
     now += 1000;
+    ticks += 1;
     redraw($);
     void refreshPanel($);
+    if (ticks % 5 === 0) void refreshSession($);
+    void bindNotes($);
+    void persistNotes($, false);
     void summarize($);
   });
 }
@@ -243,7 +388,7 @@ export function register(on, options) {
       endingSessionId = null;
       now = await $.clock.now();
       if (state.inputsSince === null) state = {...state, inputsSince:now};
-      await $.command.register({name:'attention', description:'開啟目前工作脈絡面板', immediate:true});
+      await $.command.register({name:'attention', description:'開啟目前工作脈絡面板；/attention 1–3 切頁', immediate:true});
       startTimer($);
       void restore($);
       void readBranch($);
@@ -254,6 +399,8 @@ export function register(on, options) {
   on('session.end', async ($, e, next) => {
     // Invalidate before awaiting downstream work, so late responses cannot land.
     apply({type:'session-reset', sessionId:BETWEEN_SESSIONS, at:now});
+    // Save what is typed before the timer stops, so the last second of typing is not lost.
+    void persistNotes($, true);
     state = {...state, enabled:false};
     endingSessionId = ['clear','resume'].includes(e.reason) ? e.sessionId : null;
     if (!['clear','resume'].includes(e.reason)) { timer?.cancel(); timer = null; }
@@ -337,6 +484,13 @@ export function register(on, options) {
     if (!e.agentId) { apply({type:'turn-start', at:now}); redraw($); void readBranch($); }
     return result;
   });
+  // A generator, the one form a streaming event loads in. Read-only: it forwards every chunk and records the effort.
+  on('turn.step', async function* ($, e, next) {
+    const result = yield* next(e);
+    // A model without effort leaves it out, which the page reads as 未知; a subagent's request is not the session's.
+    if (!e.agentId) session = {...session, effort: e.effort ?? null};
+    return result;
+  });
   on('turn.complete', async ($, e, next) => {
     const result = await next(e);
     if (!e.agentId) { apply({type:'turn-end', at:now}); redraw($); }
@@ -344,6 +498,9 @@ export function register(on, options) {
   });
   on('command.run', {command:'attention'}, async ($, e) => {
     closed = false;
+    // "/attention 2" picks a page; any other argument only opens the panel on the page it already shows.
+    const next = pageFromArgs(e.args);
+    if (next !== null) setPage($, next);
     if (parked) { parked = false; try { $.ui.status(undefined); } catch {} }
     await $.ui.open({id:'attention-mod', title:`你到底在忙什麼 v${VERSION}`, rows:18, columns:48});
     return {};
@@ -355,7 +512,7 @@ export function register(on, options) {
   });
   on('ui.render', {component:'Pane', requestId:'attention-mod'}, ($, e) => {
     const els = $.ui.resolve(e);
-    const view = paneRows(state, now, {worktree:worktreeView(worktreeRead, cwdNow), agents:agentsView(agentsRead, now, endedAt), agentsExpanded});
+    const view = paneRows(state, now, {worktree:worktreeView(worktreeRead, cwdNow), agents:agentsView(agentsRead, now, endedAt), agentsExpanded, session});
     // Only the dock reliably has the height for bordered sections; any other placement keeps the compact layout.
     const dock = e.props.placement === 'dock';
     // The dock's height belongs to the host, so folding it would only leave a tall empty frame.
@@ -364,9 +521,32 @@ export function register(on, options) {
       const line = collapsedLine(view);
       return els.Box({flexDirection:'column', children:[header, labelled(els.Text, line, line.tone, 'truncate')]});
     }
-    const body = dock ? drawDock($, view, els, header) : drawInline(view, els, e.props.bodyColumns, header);
-    return els.Box({flexDirection:'column', children:[...body, ...drawFeedback($, els)]});
+    // The tab strip sits under the title in every expanded layout; each page then draws only its own sections.
+    const head = [header, drawTabs(els, page, n => setPage($, n))];
+    const pageView = {...view, sections: pageSections(view, page)};
+    const body = dock ? drawDock($, pageView, els, head) : page === 1 ? drawInline(pageView, els, e.props.bodyColumns, head) : drawInlineSections(pageView, els, e.props.bodyColumns, head);
+    // The feedback form sits at the foot of page two; Quick Notes fills page three.
+    const foot = page === 3 ? drawNotes($, els) : page === 2 ? drawFeedback($, els) : [];
+    return els.Box({flexDirection:'column', children:[...body, ...foot]});
   });
+}
+
+/** Quick Notes. The input mounts only once the stored note is in hand, so a failed read can never be written over. */
+function drawNotes($, {Button, Text, Input}) {
+  if (notes.status === 'read-failed') return [
+    Text({color:colorFor('warning'), wrap:'wrap', children:'讀取失敗：筆記沒有載入，輸入框不會開啟。'}),
+    Button({key:'retry-notes', label:'重試', onPress:() => retryNotes($)}),
+  ];
+  if (notes.status !== 'ready') return [Text({dimColor:true, children:'讀取中…'})];
+  const notice = notes.saveError === 'too-long' ? `未存：超過上限（${NOTE_LIMIT} 字），請縮短後再按 Enter。`
+    : notes.saveError === 'failed' ? '未存：寫入失敗，5 秒後自動重試。' : null;
+  return [
+    // Enter saves at once; the timer saves a note left alone for a second.
+    Input({key:'attention-notes', label:'筆記', rows:3, value:notes.text,
+      onInput:value => { notes = edit(notes, value, now); redraw($); },
+      onSubmit:value => { notes = edit(notes, value, now); void persistNotes($, true); }}),
+    ...(notice ? [Text({color:colorFor('warning'), wrap:'wrap', children:notice})] : []),
+  ];
 }
 
 /**
@@ -388,7 +568,7 @@ function drawFeedback($, {Box, Text, Button, Input, Link}) {
       ...SETUP_STEPS.map(step => Text({wrap:'wrap', children:step})),
       Text({dimColor:true, wrap:'wrap', children:SETUP_COPY_HINT}),
     ]),
-    Input({key:'attention-feedback', label:'內容', placeholder:'bug: ...', value:feedback.draft, submitLabel:hasRecipient ? '產生連結' : '產生內容', autoFocus:true,
+    Input({key:'attention-feedback', label:'內容', placeholder:'bug: ...', value:feedback.draft, submitLabel:hasRecipient ? '產生連結' : '產生內容',
       // Editing invalidates a link made from the older text, so redraw to drop it.
       onInput:value => change({draft:value, link:null, copied:null, empty:false}),
       onSubmit:value => {
@@ -431,10 +611,16 @@ function drawHeader(view, {Box, Text, Button}, toggle, placement) {
   ]});
 }
 
+/** Page tabs, in hotkey order. The digit hotkeys work while the panel has focus; the current page's label carries a dot. */
+const PAGE_TABS = [[1, '即時'], [2, '次要'], [3, 'Quick Notes']];
+function drawTabs({Box, Button}, current, choose) {
+  return Box({flexDirection:'row', children:PAGE_TABS.map(([n, name]) => Button({key:`page-${n}`, hotkey:String(n), label:n === current ? `● ${name}` : name, onPress:() => choose(n)}))});
+}
+
 /** Bordered sections for the dock, which has the height for them. */
-function drawDock($, view, {Box, Text, Button}, header) {
+function drawDock($, view, {Box, Text, Button}, head) {
   // A lone dock pane gets no tab strip, so the frame shows no title; the body carries it instead.
-  return [header, ...view.sections.map(section => Box({flexDirection:'column', borderStyle:'round', borderColor:colorFor(section.tone), paddingX:1, children:[
+  return [...head, ...view.sections.map(section => Box({flexDirection:'column', borderStyle:'round', borderColor:colorFor(section.tone), paddingX:1, children:[
     Box({flexDirection:'row', justifyContent:'space-between', children:[
       // No brackets: the host's Button draws "[ label ]", so only things you can press may wear them.
       Text({bold:true, color:colorFor(section.tone), wrap:'truncate', children:section.label}),
@@ -449,11 +635,11 @@ function drawDock($, view, {Box, Text, Button}, header) {
 }
 
 /** The 0.2.0 flat rows with colour added; used wherever height is scarce. */
-function drawInline(view, els, bodyColumns, header) {
+function drawInline(view, els, bodyColumns, head) {
   const {Text} = els;
   const inputs = sectionById(view, 'inputs');
   return [
-    header,
+    ...head,
     // Box borders draw all four sides, so the rule is a line of box-drawing cells sized to the body.
     Text({dimColor:true, wrap:'truncate', children:'─'.repeat(Math.max(1, bodyColumns))}),
     ...inlineFields(view).map(field => labelled(Text, field, field.tone)),
@@ -462,6 +648,20 @@ function drawInline(view, els, bodyColumns, header) {
     ...inputs.notes.map(note => Text({wrap:'wrap', color:colorFor(note.tone), dimColor:note.tone === 'muted', children:note.text})),
     Text({wrap:'wrap', children:''}),
     ...footerNotes(view).map(note => Text({wrap:'wrap', color:colorFor(note.tone), dimColor:note.tone === 'muted', children:note.text})),
+  ];
+}
+
+/** Pages two and three in the flat layout: each section is a heading with its rows under it. */
+function drawInlineSections(view, els, bodyColumns, head) {
+  const {Text} = els;
+  return [
+    ...head,
+    Text({dimColor:true, wrap:'truncate', children:'─'.repeat(Math.max(1, bodyColumns))}),
+    ...view.sections.flatMap(section => [
+      Text({bold:true, color:colorFor(section.tone), wrap:'truncate', children:section.label}),
+      ...section.rows.map(row => labelled(Text, row, section.tone)),
+      ...section.notes.map(note => Text({wrap:'wrap', color:colorFor(note.tone), dimColor:note.tone === 'muted', children:note.text})),
+    ]),
   ];
 }
 

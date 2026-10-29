@@ -56,7 +56,7 @@ export function actionDot(state) {
  * sections appear only when the caller passes something for them, so a read that is not available keeps the 0.2.0 layout.
  */
 export function paneRows(state, now, extras = {}) {
-  const {worktree = null, agents = null, agentsExpanded = false} = extras;
+  const {worktree = null, agents = null, agentsExpanded = false, session = null} = extras;
   const summary = state.summary;
   const active = state.activities;
   let action = state.turnStatus === 'ended' ? '本回合已結束' : state.turnStatus === 'active' ? '本回合進行中，尚無執行中工具' : '尚未觀測到工作動作';
@@ -69,6 +69,7 @@ export function paneRows(state, now, extras = {}) {
   const inputs = inputRows(state);
   const worktreeSection = worktree ? [{id:'worktree', label:'工作樹', tone:'muted', meta:null, notes:[], rows:[{label:'路徑', text:worktree.path}, {label:'分支', text:worktree.branch}]}] : [];
   const agentsSection = agents ? [agentsSectionOf(agents, agentsExpanded)] : [];
+  const sessionSections = session ? sessionSectionsOf(session) : [];
   return {title:`你到底在忙什麼？ v${VERSION}`, sections:[
     ...worktreeSection,
     {id:'summary', label:'摘要', tone:'accent', meta:state.snapshotAt === null ? null : `脈絡與證據更新：${formatElapsed(seconds(now, state.snapshotAt))}前`, notes, rows:[
@@ -82,7 +83,41 @@ export function paneRows(state, now, extras = {}) {
     ]},
     ...agentsSection,
     {id:'inputs', label:inputs.label, tone:'input', meta:inputs.items.length ? `${inputs.items.length} 筆` : null, notes:[{text:INPUT_GAP_NOTE, tone:'muted'}], empty:inputs.empty, rows:inputs.items},
+    ...sessionSections,
   ]};
+}
+
+const WINDOW_LABELS = {five_hour: '5 小時', seven_day: '7 天'};
+
+/** The model, effort and usage sections. Only drawn when the caller passes session reads; an unknown value says 未知 or 尚無讀數. */
+function sessionSectionsOf({model, effort, rateLimits, skills, mcpTools}) {
+  const modelSection = {id:'model', label:'模型', tone:'muted', meta:null, notes:[], rows:[
+    {label:'模型', text:model ?? '未知'},
+    {label:'努力程度', text:effort == null ? '未知' : String(effort)},
+  ]};
+  const windows = rateLimits?.length
+    ? rateLimits.map(limit => ({label:`額度（${WINDOW_LABELS[limit.kind] ?? limit.kind}）`, text:`${limit.percentUsed}% 已用`}))
+    : [{label:'額度', text:'尚無讀數'}];
+  const usageSection = {id:'usage', label:'額度與載入', tone:'muted', meta:null, notes:[], rows:[
+    ...windows,
+    {label:'已載入 skill', text:skills ? `${skills.loaded} / ${skills.total}` : '未知'},
+    {label:'MCP 工具', text:mcpTools == null ? '未知' : `${mcpTools} 個`},
+  ]};
+  return [modelSection, usageSection];
+}
+
+/** Which sections each page draws, in page order. Page three draws its own input, so it has none here. */
+const PAGE_SECTIONS = {1: ['summary', 'live', 'agents', 'inputs'], 2: ['worktree', 'model', 'usage'], 3: []};
+
+/** The page a /attention argument names: only exactly 1, 2 or 3 once trimmed; anything else keeps the current page. */
+export function pageFromArgs(args) {
+  const word = String(args ?? '').trim();
+  return ['1', '2', '3'].includes(word) ? Number(word) : null;
+}
+
+/** The sections a page draws, in page order. A section the read did not produce is absent, not blank. */
+export function pageSections(view, page) {
+  return PAGE_SECTIONS[page].map(id => sectionById(view, id)).filter(Boolean);
 }
 
 /** The subagent section: one count while collapsed, and the listed rows only when the person expands it. */

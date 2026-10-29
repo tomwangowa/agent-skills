@@ -9,14 +9,14 @@ export const GIT_ARGS = Object.freeze(['git', '--no-optional-locks', 'rev-parse'
 export const GIT_TIMEOUT_MS = 2000;
 
 /** A read that could not finish: the row stays and says so, rather than disappearing. */
-export const FAILED_READ = Object.freeze({state: 'unreadable', branch: null, detached: false});
+export const FAILED_READ = Object.freeze({state: 'unreadable', branch: null, detached: false, commonDir: null});
 
 /**
  * Turns git's output into a read. A linked worktree has its own git dir, which differs from the common dir; the main
  * checkout's two are the same. Exit 128 is git's "not a repository", which hides the row instead of failing it.
  */
 export function parseWorktree(stdout, exitCode) {
-  if (exitCode === 128) return {state: 'not-git', branch: null, detached: false};
+  if (exitCode === 128) return {state: 'not-git', branch: null, detached: false, commonDir: null};
   if (exitCode !== 0) return FAILED_READ;
   // Only the first three lines are read, so a trailing newline or extra output changes nothing.
   const [gitDir, commonDir, branch] = String(stdout).split('\n');
@@ -24,7 +24,7 @@ export function parseWorktree(stdout, exitCode) {
   // checkout, so the row says unreadable instead.
   if (!gitDir?.startsWith('/') || !commonDir?.startsWith('/') || !branch) return FAILED_READ;
   const detached = branch === 'HEAD';
-  return {state: gitDir === commonDir ? 'main' : 'linked', branch: detached ? null : branch, detached};
+  return {state: gitDir === commonDir ? 'main' : 'linked', branch: detached ? null : branch, detached, commonDir};
 }
 
 /**

@@ -4,7 +4,7 @@ Claude Code Attention Mod 的本機原型。回到目前工作階段時，面板
 
 ## 安裝
 
-需要 Claude Code 2.1.310 以上。在終端機執行：
+需要 Claude Code 2.1.312 以上。在終端機執行：
 
 ```sh
 claude plugin marketplace add tomwangowa/agent-skills

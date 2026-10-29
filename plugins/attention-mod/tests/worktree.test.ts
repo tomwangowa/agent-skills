@@ -13,26 +13,32 @@ test('the git read is the one read-only command, with a two-second budget', ()=>
 });
 
 test('parseWorktree tells a linked worktree, the main checkout and a detached HEAD apart', ()=>{
-  expect(parseWorktree(LINKED,0)).toEqual({state:'linked',branch:'feat/x',detached:false});
-  expect(parseWorktree(MAIN,0)).toEqual({state:'main',branch:'main',detached:false});
-  expect(parseWorktree(DETACHED,0)).toEqual({state:'linked',branch:null,detached:true});
+  expect(parseWorktree(LINKED,0)).toEqual({state:'linked',branch:'feat/x',detached:false,commonDir:'/repo/.git'});
+  expect(parseWorktree(MAIN,0)).toEqual({state:'main',branch:'main',detached:false,commonDir:'/repo/.git'});
+  expect(parseWorktree(DETACHED,0)).toEqual({state:'linked',branch:null,detached:true,commonDir:'/repo/.git'});
+});
+
+test('the common dir is kept so a linked worktree and the main checkout share one notes key', ()=>{
+  expect(parseWorktree('/repo/.git/worktrees/x\n/other/.git\nfeat/x\n',0).commonDir).toBe('/other/.git');
+  expect(parseWorktree(LINKED,0).commonDir).toBe(parseWorktree(MAIN,0).commonDir);
 });
 
 test('a relative path in the output is unreadable, never guessed; the main checkout subdirectory is main', ()=>{
   // Without --path-format=absolute, git prints ../.git from a subdirectory of the main checkout, and that must not read as linked.
   expect(parseWorktree('/repo/.git\n../.git\nmain\n',0)).toEqual(FAILED_READ);
   expect(parseWorktree('.git\n.git\nmain\n',0)).toEqual(FAILED_READ);
-  expect(parseWorktree('/repo/.git\n/repo/.git\nmain\n',0)).toEqual({state:'main',branch:'main',detached:false});
+  expect(parseWorktree('/repo/.git\n/repo/.git\nmain\n',0)).toEqual({state:'main',branch:'main',detached:false,commonDir:'/repo/.git'});
 });
 
 test('a trailing newline or an extra line does not change the three fields read', ()=>{
-  expect(parseWorktree(LINKED+'\n',0)).toEqual({state:'linked',branch:'feat/x',detached:false});
-  expect(parseWorktree(LINKED+'extra\n',0)).toEqual({state:'linked',branch:'feat/x',detached:false});
+  expect(parseWorktree(LINKED+'\n',0)).toEqual({state:'linked',branch:'feat/x',detached:false,commonDir:'/repo/.git'});
+  expect(parseWorktree(LINKED+'extra\n',0)).toEqual({state:'linked',branch:'feat/x',detached:false,commonDir:'/repo/.git'});
 });
 
 test('exit 128 means not a repository; other failures and short output are unreadable', ()=>{
-  expect(parseWorktree('',128)).toEqual({state:'not-git',branch:null,detached:false});
+  expect(parseWorktree('',128)).toEqual({state:'not-git',branch:null,detached:false,commonDir:null});
   expect(parseWorktree('',1)).toEqual(FAILED_READ);
+  expect(FAILED_READ.commonDir).toBeNull();
   expect(parseWorktree('/repo/.git\n/repo/.git\n',0)).toEqual(FAILED_READ);
 });
 

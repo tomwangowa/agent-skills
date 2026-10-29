@@ -5,7 +5,8 @@ export const paneTarget=(surface='terminal',placement='dock',requestId='attentio
 /** Stub the native host before the test's first dispatch. */
 export function host(on, options={}) {
   const clock=mock.clock(on);
-  const record={opens:[],prompts:[],models:[],commands:[],closes:[],statuses:[]};
+  // `ops` keeps reads and writes in the order they happened, so a test can check one came before another.
+  const record={opens:[],prompts:[],models:[],commands:[],closes:[],statuses:[],usage:[],stored:[],sets:[],deletes:[],ops:[]};
   let sessionId='session-one';
   on('session.id',()=>({value:sessionId}));
   on('session.messages',()=>options.readMessages ? options.readMessages() : {value:options.messages ?? []});
@@ -28,6 +29,18 @@ export function host(on, options={}) {
   on('ui.status',($,e)=>{record.statuses.push(e.text);return {value:undefined};});
   on('ui.render',($,e)=>e.component === 'AskUserQuestion' ? {type:'engine',ref:1} : $.ui.resolve(e).Text({children:'native-component'}));
   on('model.complete',($,e)=>{record.models.push({request:e,at:clock.now()});return options.model ? options.model(e) : {value:{isAnswered:false,reason:'empty-reply',usage:{}}};});
+  // The session reads of page two. Defaults: a model name, no rate-limit reading, no context breakdown.
+  // `usage` may be a function, so a test can make a later read fail.
+  on('session.model',()=>{ if(options.modelFails) throw new Error('model read failed'); return {value:options.sessionModel ?? 'claude-haiku-5-5'}; });
+  on('session.usage',($,e)=>{ record.usage.push(e); const usage = typeof options.usage === 'function' ? options.usage() : options.usage; return {value:usage ?? {startedAt:0, context:{window:200000}, rateLimits:[]}}; });
+  // Quick Notes' store, as a test host: `store` answers a read of one key; the keys read are recorded.
+  on('store.get', async ($, e) => { record.stored.push(e.key); record.ops.push(`get ${e.key}`); return {value: options.store ? await options.store(e.key) : undefined}; });
+  // `storeWriteFails` makes every write reject, so a test can see the panel report it. An attempt is recorded in `ops` before the rejection, so a test can count retries.
+  // `storeWrite` runs before each write and may hold it open or reject it, so a test can edit the note while a write is in flight.
+  on('store.set', async ($, e) => { record.ops.push(`set ${e.key}`); if (options.storeWrite) await options.storeWrite(e.key); if (options.storeWriteFails) throw new Error('store write failed'); record.sets.push({key:e.key, value:e.value}); return {value:undefined}; });
+  on('store.delete', ($, e) => { record.ops.push(`delete ${e.key}`); if (options.storeWriteFails) throw new Error('store write failed'); record.deletes.push(e.key); return {value:undefined}; });
+  // The bottom of the turn.step chain: an empty reply, so a test only sees what the panel's hook recorded.
+  on('turn.step', async function*($,e){ return {turnId:e.turnId, index:e.index, text:'', answer:'', toolUses:[], stopReason:'end_turn', usage:null}; });
   return {clock,record,setSession:id=>{sessionId=id;}};
 }
 

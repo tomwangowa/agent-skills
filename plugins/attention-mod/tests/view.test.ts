@@ -1,6 +1,6 @@
 import {test,expect} from 'claude-code/testing';
 import {createState,reduceState,BETWEEN_SESSIONS} from '../hooks/state.js';
-import {paneLines,paneRows,clockTime,formatElapsed,liveTone,actionDot,collapsedLine,inlineFields,footerNotes,inputRowNodes,sectionById} from '../hooks/view.js';
+import {paneLines,paneRows,clockTime,formatElapsed,liveTone,actionDot,collapsedLine,inlineFields,footerNotes,inputRowNodes,sectionById,pageFromArgs,pageSections} from '../hooks/view.js';
 import {agentsView} from '../hooks/agents.js';
 test('pane uses snapshot age, marks newer data, and never claims task completion',()=>{
   const s={...createState('s'),revision:2,summaryRevision:1,snapshotAt:1000,summary:{goal:{text:'修正登入',sources:['s']},context:null,evidence:null},turnStatus:'ended'};
@@ -29,7 +29,7 @@ test('waits are explicit, ask routes stay unknown, and concurrent tools are visi
 });
 test('pane rows expose the question title and each field label apart from its value',()=>{
   const view=paneRows(createState('s'),0);
-  expect(view.title).toBe('你到底在忙什麼？ v0.5.2');
+  expect(view.title).toBe('你到底在忙什麼？ v0.6.0');
   expect(view.sections.map(s=>s.label)).toEqual(['摘要','即時','外部輸入']);
   expect(inlineFields(view).map(f=>f.label)).toEqual(['目標','脈絡','動作','證據','需要你']);
   expect(inlineFields(view)[0].text).toBe('目的尚不清楚');
@@ -194,4 +194,42 @@ test('the flat layout puts the worktree after the need-you line, then the subage
   const lines=paneLines(createState('s'),0,extras).join('\n');
   expect(lines).toContain('工作樹：/repo/worktrees/x（feat/x）');
   expect(lines).toContain('子代理：1 個執行中');
+});
+
+const session=(patch={})=>({model:null,effort:null,rateLimits:null,skills:null,mcpTools:null,...patch});
+
+test('the command argument picks a page only when it is exactly 1, 2 or 3 once trimmed',()=>{
+  expect(pageFromArgs(' 2 ')).toBe(2);
+  expect(pageFromArgs('3')).toBe(3);
+  expect(pageFromArgs('2 extra')).toBeNull();
+  expect(pageFromArgs('0')).toBeNull();
+  expect(pageFromArgs('04')).toBeNull();
+  expect(pageFromArgs('')).toBeNull();
+  expect(pageFromArgs(undefined)).toBeNull();
+});
+
+test('page one holds the live sections, page two the worktree and session reads, page three none',()=>{
+  const view=paneRows(createState('s'),0,{worktree:{path:'/r/x',branch:'feat/x'},session:session()});
+  expect(pageSections(view,1).map(s=>s.id)).toEqual(['summary','live','inputs']);
+  expect(pageSections(view,2).map(s=>s.id)).toEqual(['worktree','model','usage']);
+  expect(pageSections(view,3)).toEqual([]);
+});
+
+test('an empty rate-limit list reads as no reading yet, and each window gets its own row',()=>{
+  const usageRows=patch=>sectionById(paneRows(createState('s'),0,{session:session(patch)}),'usage').rows;
+  expect(usageRows({rateLimits:[]})).toContainEqual({label:'額度',text:'尚無讀數'});
+  const windows=usageRows({rateLimits:[{kind:'five_hour',percentUsed:11},{kind:'seven_day',percentUsed:24}]});
+  expect(windows.map(r=>r.label)).toEqual(['額度（5 小時）','額度（7 天）','已載入 skill','MCP 工具']);
+  expect(windows[0].text).toBe('11% 已用');
+});
+
+test('effort reads 未知 when absent and shows a number as its digits',()=>{
+  const effortText=patch=>sectionById(paneRows(createState('s'),0,{session:session(patch)}),'model').rows.find(r=>r.label==='努力程度').text;
+  expect(effortText({effort:null})).toBe('未知');
+  expect(effortText({effort:'high'})).toBe('high');
+  expect(effortText({effort:3})).toBe('3');
+});
+
+test('the 0.2.0 section list does not change when the caller passes no session reads',()=>{
+  expect(paneRows(createState('s'),0).sections.map(s=>s.id)).toEqual(['summary','live','inputs']);
 });

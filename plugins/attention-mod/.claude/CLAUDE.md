@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 這是什麼
 
-`attention-mod`：Claude Code Mod（function hooks plugin）的本機原型。在目前工作階段旁開一個面板「你到底在忙什麼」，顯示目標、Claude 的工作脈絡、正在執行的工具、最近證據與待回答訊號。目標版本是 Claude Code 2.1.310。
+`attention-mod`：Claude Code Mod（function hooks plugin）的本機原型。在目前工作階段旁開一個面板「你到底在忙什麼」，顯示目標、Claude 的工作脈絡、正在執行的工具、最近證據與待回答訊號。目標版本是 Claude Code 2.1.312。
 
 改 `hooks/` 之前先載入 `plugin-authoring` skill，Mod 的 hook 介面、熱重載和除錯方式在那裡。
 
@@ -39,7 +39,7 @@ claude --plugin-dir "$PWD"          # 實際載入 Mod 試用，面板沒出現�
 
 改程式時要守住的不變條件（設計理由見 spec）：
 
-- **被動觀察**：不改寫提示、工具結果或權限決定；觀察失敗包在 `try/catch` 裡，不能影響呼叫端。只用 clock、model.complete、session.id/messages、command.register、`agent.list`、`session.cwd`（兩者唯讀）、ui（含回饋表單的 `ui.copy`、dock 收起用的 `ui.status`／`ui.close`）；process 只有一項例外：唯讀的 `git --no-optional-locks rev-parse` 讀取工作樹與分支（範圍與理由見 `docs/decisions/2026-10-26-worktree-agents-process.md`）。不用 store、檔案、http，也不提交主對話提示。validate 的 calls inventory 會反映這點。
+- **被動觀察**：不改寫提示、工具結果或權限決定；觀察失敗包在 `try/catch` 裡，不能影響呼叫端。只用 clock、model.complete、session.id/messages/model/usage（唯讀；usage 只用 breakdown summary）、command.register、`agent.list`、`session.cwd`（兩者唯讀）、`turn.step`（唯讀取 effort）、ui（含回饋表單的 `ui.copy`、dock 收起用的 `ui.status`／`ui.close`）、store（只存 Quick Notes 文字）；process 只有一項例外：唯讀的 `git --no-optional-locks rev-parse` 讀取工作樹與分支（範圍與理由見 `docs/decisions/2026-10-26-worktree-agents-process.md`）。不把提示、工具結果或摘要寫進 store、檔案或 http，也不提交主對話提示。validate 的 calls inventory 會反映這點。
 - **世代保護**：`epoch` 在 new-prompt 和 session-reset 時加一。模型回應寫回前要核對 `sessionId` 和 `epoch`，晚到的舊回應直接丟掉。排程鎖跨 reset 仍然有效，不能因為世代失效就提早釋放。
 - **事件與模型分工**：「動作」「需要你」只由事件產生；「目標」「脈絡」「證據」只來自摘要，不能互相覆寫。`tool.check` 的 `ask` 只算「等待狀態不明」；`AskUserQuestion` 實際 render 才算等你回答；`permission_prompt` 只有在剛好一個執行中工具時才對應成權限等待。
 - **clear／resume**：實測不會再觸發 `session.start`，也不保證有 `classic.SessionStart`。`session.end` 記下 `endingSessionId` 後停用，由計時器在 `reconnect()` 輪詢 `session.id()`，看到 ID 改變才恢復並 `restore()`。
