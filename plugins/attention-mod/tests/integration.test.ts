@@ -88,7 +88,7 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
   const [titleRow,rule,...rest]=(await pane.drawn()).children;
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.5.1']});
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.5.2']});
   expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
   expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
   expect(rule.children).toEqual(['─'.repeat(40)]);
@@ -97,7 +97,7 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   expect((await borderedBoxes(pane)).length).toBe(0);
   expect(await renderedText(pane)).toContain('目標：目的尚不清楚');
   expect(await renderedText(pane)).toContain('外部輸入：尚無');
-  expect(await renderedText(pane)).toContain('在有 managed settings 的機器上，hook-context');
+  expect(await renderedText(pane)).toContain('以下幾類 attention-mod 不接收，所以不會顯示：hook-context');
   // 0.2.0 row count (commit ed1c236, hooks/register.js) for this idle state:
   // title(1) + rule(1) + 5 fields(5) + inputs label line(1) + 0 input rows (none yet)
   // + inputs gap note(1, since 0.4.8) + blank line(1) + 0 notes (no snapshot/summary/error/lastEvent yet) + close button(1) = 11.
@@ -120,10 +120,10 @@ test('dock pane draws a bold title above three round sections coloured by meanin
   // Brackets are reserved for pressable things (the host Button draws them); section titles stay plain.
   for(const header of ['[ 摘要 ]','[ 即時 ]','[ 外部輸入 ]']) expect(text).not.toContain(header);
   expect(text).toContain('收起面板');
-  expect(text).toContain('在有 managed settings 的機器上，hook-context');
+  expect(text).toContain('以下幾類 attention-mod 不接收，所以不會顯示：hook-context');
   // A lone dock pane has no tab strip, so the pane frame shows no title; the body must carry it.
   const [titleRow]=(await pane.drawn()).children;
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.5.1']});
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.5.2']});
   expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
   expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
 });
@@ -333,7 +333,7 @@ test('the inline toggle folds the pane to a title and one status line, and expan
   expect(await renderedText(pane)).toContain('目標：');
   await pane.press({key:'toggle-collapse'});
   const collapsed=await renderedText(pane);
-  expect(collapsed).toContain('你到底在忙什麼？ v0.5.1');
+  expect(collapsed).toContain('你到底在忙什麼？ v0.5.2');
   expect(collapsed).toContain('展開面板');
   expect(collapsed).toContain('動作：尚未觀測到工作動作');
   for(const hidden of ['目標：','外部輸入','需要你：']) expect(collapsed).not.toContain(hidden);

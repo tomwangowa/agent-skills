@@ -9,8 +9,8 @@ export function clockTime(ms) {
 /** A note's label is just its door name, so only its excerpt says what it is; it keeps one at any age. */
 const ALWAYS_EXCERPT_DOORS = new Set(['note']);
 
-/** Shown under the inputs: sec-default routes these doors past user plugins on a managed machine, so they never reach the pane. */
-export const INPUT_GAP_NOTE = '在有 managed settings 的機器上，hook-context（SessionStart 注入）、attachment（附件）與 compaction 不會顯示在這裡。';
+/** Shown under the inputs: attention-mod never registers these doors, because sec-default would pass them over with a notice. */
+export const INPUT_GAP_NOTE = '以下幾類 attention-mod 不接收，所以不會顯示：hook-context（SessionStart 注入）、attachment（附件）、compaction、tool-message、note。';
 
 /** Newest first; only the two newest keep an excerpt to limit pane height, plus any door that cannot name itself. */
 export function inputRows(state) {

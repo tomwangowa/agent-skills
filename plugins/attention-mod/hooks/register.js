@@ -5,7 +5,7 @@ import {createSchedule, claimSnapshot, settleRequest} from './scheduler.js';
 import {paneRows, inlineFields, footerNotes, sectionById, inputRowNodes, collapsedLine} from './view.js';
 import {colorFor} from './theme.js';
 import {VERSION} from './meta.js';
-import {entryFromAppend} from './inputs.js';
+import {entryFromAppend, OBSERVED_DOORS, SUMMARY_DOORS} from './inputs.js';
 import {buildTeamsLink, composeMessage, parseRecipient, recipientStatus, SETUP_STEPS, SETUP_HEADLINE, SETUP_COPY_HINT} from './feedback.js';
 import {GIT_ARGS, GIT_TIMEOUT_MS, FAILED_READ, parseWorktree, worktreeView} from './worktree.js';
 import {noteEnded, agentsView} from './agents.js';
@@ -274,7 +274,8 @@ export function register(on, options) {
     } catch {}
     return result;
   });
-  on('session.append', async ($, e, next) => {
+  // The matcher is what keeps sec-default from passing this hook over; PASSED_OVER_DOORS in inputs.js says which doors.
+  on('session.append', {door: OBSERVED_DOORS}, async ($, e, next) => {
     const epoch = state.epoch;
     const result = await next(e);
     try {
@@ -290,7 +291,7 @@ export function register(on, options) {
         else if (unbound) { apply({type:'external-input', entry, sessionId:state.sessionId, epoch:state.epoch, at}); redraw($); }
       }
     } catch { /* Classification failures must not change the stored row or the caller's result. */ }
-    if (e.agentId || e.message.isMeta || !['response','tool-result'].includes(e.door)) return result;
+    if (e.agentId || e.message.isMeta || !SUMMARY_DOORS.includes(e.door)) return result;
     try {
       const content = result.message?.content ?? e.message.content;
       const text = content.map(block => block.type === 'text' ? block.text : block.type === 'tool_result' ? typeof block.content === 'string' ? block.content : (block.content ?? []).filter(b => b.type === 'text').map(b => b.text).join('\n') : '').filter(Boolean).join('\n');
