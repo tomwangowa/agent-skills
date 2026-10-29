@@ -93,7 +93,7 @@ SessionStart (matcher: startup|clear|compact) → run-hook.cmd session-start
 - 本文是「整合視圖」，**不是**權威定義。新增 / 移除自製 skill 或調整路由時，先改 `global/CLAUDE.md` 與本 repo `CLAUDE.md`，再回頭更新此表。
 - 升級 superpowers 版本後，若它新增了與自製 skill 重疊的功能，請在 §4 補一列覆蓋規則（預設立場：user-skill-first）。
 - 驗證 plugin 現況：`cat ~/.claude/plugins/installed_plugins.json`、`ls ~/.claude/plugins/cache/superpowers-dev/superpowers/<version>/skills/`。
-- `global/CLAUDE.md` 與 `global/AGENTS.md` 是**鏡像檔**：源頭分別是 `~/.claude/CLAUDE.md` 與 `~/.codex/AGENTS.md`。要改全域指示請先改源頭再重新鏡像，別只改 repo 內的鏡像（會漂移）。詳見 [`../global/README.md`](../global/README.md)。
+- `global/CLAUDE.md` 與 `global/AGENTS.md` 是**生效的全域指示來源**，切換完成後，`~/.claude/CLAUDE.md` 與 `~/.codex/AGENTS.md` 會是指向它們的 symlink。要改全域指示請走 PR，不要直接改 `~/.claude` 或 `~/.codex` 下的檔案。詳見 [`../global/README.md`](../global/README.md)。
 
 ---
 
