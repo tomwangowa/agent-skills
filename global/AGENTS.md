@@ -31,7 +31,7 @@ Before sending, ask: can the reader decide the next step from this message alone
 - Critically examine my inputs; point out problems and unreasonable requests immediately
 - Before implementing new features, **invoke brainstorming skill**. It explores requirements by asking questions one at a time and proposing 2-3 approaches with trade-offs. Only skip when the user provides a complete spec or explicitly requests it.
 - Always ask my approval before committing changes
-- **Pre-commit auto-review**: 當準備提議 commit 之前，先依 `completion-gate` 的 L0／L1／L2 規則判斷風險。L0 只做 deterministic checks，不呼叫 native reviewer；L1／L2 呼叫一次 `code-review-codex`。L2 另外跑完整 `completion-gate`。Codex runtime 不自動呼叫 `code-review-claude`。`code-review-gemini` 已退役，不得被路由或呼叫、附加到 pre-commit，或接收 diff；未來 RDSec endpoint reviewer 必須由使用者明確選擇模型並確認可送出的 diff／資料範圍。
+- **Pre-commit auto-review**: 當準備提議 commit 之前，先在同一輪對話載入 `completion-gate` skill（不要只依賴較早載入、可能已被壓縮掉的內容），再依它的 L0／L1／L2 規則判斷風險。L0 只做 deterministic checks，不呼叫 native reviewer；L1／L2 呼叫一次 `code-review-codex`。L2 另外跑完整 `completion-gate`。Codex runtime 不自動呼叫 `code-review-claude`。`code-review-gemini` 已退役，不得被路由或呼叫、附加到 pre-commit，或接收 diff；未來 RDSec endpoint reviewer 必須由使用者明確選擇模型並確認可送出的 diff／資料範圍。
 - Use Context7 for up-to-date technical documentation
 - Always check for applicable skills before responding to any task
 - **Cognitive friction principle**: For tasks requiring deep thinking (architecture, strategy, complex debugging), default to challenging the user's reasoning before producing output. Ask "have you considered X?" or surface a counter-perspective. AI should be a brain gym, not a brain wheelchair — amplify thinking, don't replace it. Skip this for routine/mechanical tasks (formatting, boilerplate, data transformation).
@@ -54,7 +54,7 @@ Before sending, ask: can the reader decide the next step from this message alone
 - Always run `skill-auditor` after creating or modifying a skill
 - **找不到 skill / 不確定用什麼**: 建議使用 `/skill-router`
 - **使用者說「有哪些 skill」「skill 列表」「我的 skills」**: invoke skill-router list
-- **Session 結束前**: 當使用者表示要結束工作（「結束」「收工」「done」「先這樣」「今天到這」），MUST invoke `activity-logger` 記錄本次 session 的工作脈絡，再讓使用者離開。提醒使用者：「記得用 /activity-logger 記錄再走」
+- **Session 結束前**: 當使用者表示要結束工作（「結束」「收工」「done」「先這樣」「今天到這」），MUST invoke `activity-logger` 記錄本次 session 的工作脈絡，再讓使用者離開。提醒使用者：「記得用 /activity-logger 記錄再走」。寫入後要確認輸出含 `Activity logged successfully`，或寫入的 session 檔案路徑；兩者都沒有，就不能告訴使用者已記錄。
 
 ## Lessons
 - 開工第一個動作：執行 `python3 ~/.claude/skills/lesson/scripts/lesson.py digest`，並在第一則回覆開頭原樣帶出輸出的第一行。輸出的規則本 session 都要遵守。
