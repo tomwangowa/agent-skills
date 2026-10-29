@@ -87,8 +87,9 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   host(on);
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
-  const [titleRow,rule,...rest]=(await pane.drawn()).children;
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.5.2']});
+  const [titleRow,tabs,rule,...rest]=(await pane.drawn()).children;
+  expect(tabs.children.map(b=>b.props.hotkey)).toEqual(['1','2','3']);
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.6.0']});
   expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
   expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
   expect(rule.children).toEqual(['─'.repeat(40)]);
@@ -104,8 +105,9 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   // 0.4.0 added the feedback open button; 0.4.3 moves the toggle into the title row and drops the
   // bottom close button (native × closes the pane), so the count stayed 10 until the 0.4.8 gap note made it 11.
   const rows=(await pane.drawn()).children;
+  // Task 4: the tab strip takes the row the feedback button used to end with, so the count stays 11.
   expect(rows.length).toBe(11);
-  expect(rows.at(-1).props.key).toBe('open-feedback');
+  expect(findNode(await pane.drawn(),n=>n.props?.key==='open-feedback')).toBeUndefined();
   expect(findNode(await pane.drawn(),n=>n.props?.key==='close-attention')).toBeUndefined();
 });
 test('dock pane draws a bold title above three round sections coloured by meaning',async($,on)=>{
@@ -123,7 +125,7 @@ test('dock pane draws a bold title above three round sections coloured by meanin
   expect(text).toContain('以下幾類 attention-mod 不接收，所以不會顯示：hook-context');
   // A lone dock pane has no tab strip, so the pane frame shows no title; the body must carry it.
   const [titleRow]=(await pane.drawn()).children;
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.5.2']});
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.6.0']});
   expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
   expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
 });
@@ -232,6 +234,7 @@ for(const surface of ['terminal','desktop'] as const){
     const h=hostWithCopy(on);
     await begin($);
     const pane=await $.ui.mount(paneTarget(surface,'inline'));
+    await pane.press({key:'page-2'});
     expect(await renderedText(pane)).toContain('回饋');
     expect(findNode(await pane.drawn(),n=>n.type==='Input')).toBeUndefined();
 
@@ -272,6 +275,7 @@ test('without a recipient the form says so, draws no link, and still offers the 
   hostWithCopy(on);
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'page-2'});
   await pane.press({key:'open-feedback'});
   const shown=await renderedText(pane);
   expect(shown).toContain('尚未設定回饋收件人');
@@ -290,6 +294,7 @@ test('a category prefix alone counts as empty feedback, with or without a recipi
   hostWithCopy(on);
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'page-2'});
   await pane.press({key:'open-feedback'});
   await pane.input({key:'attention-feedback',text:'bug:',kind:'submit'});
   expect(await renderedText(pane)).toContain('請先輸入內容');
@@ -301,6 +306,7 @@ test('an invalid recipient builds no link and says the value is wrong, not missi
   hostWithCopy(on);
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'page-2'});
   await pane.press({key:'open-feedback'});
   await pane.input({key:'attention-feedback',text:'bug: x',kind:'submit'});
   const shown=await renderedText(pane);
@@ -314,6 +320,7 @@ test('feedback draft and link are cleared when the session is cleared',{options:
   host(on);
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'page-2'});
   await pane.press({key:'open-feedback'});
   await pane.input({key:'attention-feedback',text:'bug: 還沒送出',kind:'submit'});
   expect(findNode(await pane.drawn(),n=>n.type==='Link')).toBeDefined();
@@ -333,7 +340,7 @@ test('the inline toggle folds the pane to a title and one status line, and expan
   expect(await renderedText(pane)).toContain('目標：');
   await pane.press({key:'toggle-collapse'});
   const collapsed=await renderedText(pane);
-  expect(collapsed).toContain('你到底在忙什麼？ v0.5.2');
+  expect(collapsed).toContain('你到底在忙什麼？ v0.6.0');
   expect(collapsed).toContain('展開面板');
   expect(collapsed).toContain('動作：尚未觀測到工作動作');
   for(const hidden of ['目標：','外部輸入','需要你：']) expect(collapsed).not.toContain(hidden);

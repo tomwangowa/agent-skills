@@ -9,13 +9,16 @@ const CWD='/repo/worktrees/feat-x';
 const deferred=()=>{ let resolve; const promise=new Promise(r=>{ resolve=r; }); return {promise,resolve}; };
 const linked=branch=>({exitCode:0,stdout:`/repo/.git/worktrees/x\n/repo/.git\n${branch}\n`,stderr:''});
 const agent=(id,status,description=`task ${id}`)=>({id,type:'Explore',description,status});
+// The worktree row lives on page two, so a test that reads it turns there first.
+const onPageTwo=async pane=>{ await pane.press({key:'page-2'}); return pane; };
 
 test('a linked worktree shows its path and branch, read with the one allowed git call',async($,on)=>{
   const calls=[];
   const h=host(on,{cwd:()=>CWD,git:e=>{calls.push(e);return linked('feat/x');}});
   await begin($);
   await h.clock.advance(1000);
-  const shown=await renderedText(await $.ui.mount(paneTarget()));
+  // Task 4: the worktree row moved to page two, so this test now turns there first.
+  const shown=await renderedText(await onPageTwo(await $.ui.mount(paneTarget())));
   expect(shown).toContain('工作樹');
   expect(shown).toContain(CWD);
   expect(shown).toContain('feat/x');
@@ -27,14 +30,14 @@ test('the main checkout shows no worktree row',async($,on)=>{
   const h=host(on,{cwd:()=>CWD,git:()=>({exitCode:0,stdout:'/repo/.git\n/repo/.git\nmain\n',stderr:''})});
   await begin($);
   await h.clock.advance(1000);
-  expect(await renderedText(await $.ui.mount(paneTarget()))).not.toContain('工作樹');
+  expect(await renderedText(await onPageTwo(await $.ui.mount(paneTarget())))).not.toContain('工作樹');
 });
 
 test('a git read that throws keeps the path and marks the branch unreadable',async($,on)=>{
   const h=host(on,{cwd:()=>CWD,git:async()=>{ throw new Error('spawn failed'); }});
   await begin($);
   await h.clock.advance(1000);
-  const shown=await renderedText(await $.ui.mount(paneTarget()));
+  const shown=await renderedText(await onPageTwo(await $.ui.mount(paneTarget())));
   expect(shown).toContain(CWD);
   expect(shown).toContain('無法讀取');
 });
@@ -46,7 +49,7 @@ test('a directory change after the read shows the waiting label, never the old b
   await h.clock.advance(1000);
   here='/repo/worktrees/y';
   await h.clock.advance(1000);
-  const shown=await renderedText(await $.ui.mount(paneTarget()));
+  const shown=await renderedText(await onPageTwo(await $.ui.mount(paneTarget())));
   expect(shown).toContain('待下一回合更新');
   expect(shown).toContain('/repo/worktrees/y');
   expect(shown).not.toContain('feat/x');
@@ -56,7 +59,7 @@ test('a detached HEAD shows the detached label',async($,on)=>{
   const h=host(on,{cwd:()=>CWD,git:()=>({exitCode:0,stdout:'/repo/.git/worktrees/x\n/repo/.git\nHEAD\n',stderr:''})});
   await begin($);
   await h.clock.advance(1000);
-  expect(await renderedText(await $.ui.mount(paneTarget()))).toContain('分離 HEAD');
+  expect(await renderedText(await onPageTwo(await $.ui.mount(paneTarget())))).toContain('分離 HEAD');
 });
 
 test('a read that finishes after a session reset is dropped, and its branch never shows',async($,on)=>{
@@ -65,7 +68,7 @@ test('a read that finishes after a session reset is dropped, and its branch neve
   let reads=0;
   const h=host(on,{cwd:()=>CWD,git:()=>{ reads+=1; return reads===1 ? first.promise : second.promise; }});
   await begin($);
-  const pane=await $.ui.mount(paneTarget());
+  const pane=await onPageTwo(await $.ui.mount(paneTarget()));
   await $.session.end({reason:'clear',sessionId:'session-one',resume:{}});
   h.setSession('session-two');
   await h.clock.advance(1000);
@@ -86,7 +89,7 @@ test('a turn that starts while a read is in flight reads again once it lands, so
   let reads=0;
   const h=host(on,{cwd:()=>here,git:()=>{ reads+=1; return reads===1 ? first.promise : linked('feat/y'); }});
   await begin($);
-  const pane=await $.ui.mount(paneTarget());
+  const pane=await onPageTwo(await $.ui.mount(paneTarget()));
   await h.clock.advance(1000);
   // The first read started in the old directory and is still pending when the next turn begins after a cd.
   await $.turn.start({text:'turn two',turnId:'turn-two'});
@@ -163,9 +166,10 @@ test('without git or subagent answers, the worktree and subagent rows stay hidde
   const h=host(on);
   await begin($);
   await h.clock.advance(1000);
-  const shown=await renderedText(await $.ui.mount(paneTarget()));
-  expect(shown).not.toContain('工作樹');
-  expect(shown).not.toContain('子代理');
+  const pane=await $.ui.mount(paneTarget());
+  expect(await renderedText(pane)).not.toContain('子代理');
+  await pane.press({key:'page-2'});
+  expect(await renderedText(pane)).not.toContain('工作樹');
 });
 
 /** The key of every Button in a drawn pane, in tree order. */
@@ -209,7 +213,7 @@ test('a long path with CJK characters and spaces is drawn as a wrapping row, wit
   const h=host(on,{cwd:()=>path,git:()=>linked('feat/x')});
   await begin($);
   await h.clock.advance(1000);
-  const pane=await $.ui.mount(paneTarget());
+  const pane=await onPageTwo(await $.ui.mount(paneTarget()));
   const rows=await textNodesWith(pane,path);
   expect(rows.length).toBeGreaterThan(0);
   expect(rows.every(node=>node.props?.wrap==='wrap')).toBe(true);
@@ -247,4 +251,76 @@ test('the inline layout shows the subagent count without the button',async($,on)
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
   expect(await buttonKeys(pane)).not.toContain('toggle-agents');
   expect(await renderedText(pane)).toContain('子代理：1 個執行中');
+});
+
+/** Every node of one type in a drawn pane, in tree order. */
+const nodesOf=async(pane,type)=>{
+  const found=[];
+  const walk=node=>{ if(node && typeof node==='object'){ if(node.type===type) found.push(node); (node.children??[]).forEach(walk); } };
+  walk(await pane.drawn());
+  return found;
+};
+
+test('the panel opens on page one, where the summary is, with neither the worktree row nor the feedback form',async($,on)=>{
+  const h=host(on,{cwd:()=>CWD,git:()=>linked('feat/x')});
+  await begin($);
+  await h.clock.advance(1000);
+  const shown=await renderedText(await $.ui.mount(paneTarget('terminal','inline')));
+  expect(shown).toContain('摘要');
+  expect(shown).not.toContain('工作樹');
+  expect(shown).not.toContain('回饋');
+});
+
+test('the command argument picks the page: 2 turns to the worktree page, 9 changes nothing',async($,on)=>{
+  const h=host(on,{cwd:()=>CWD,git:()=>linked('feat/x')});
+  await begin($);
+  await h.clock.advance(1000);
+  await $.command.run({command:'attention',args:'9',origin:{kind:'composer'}});
+  const first=await $.ui.mount(paneTarget('terminal','inline'));
+  expect(await renderedText(first)).toContain('摘要');
+  await first.unmount();
+  await $.command.run({command:'attention',args:'2',origin:{kind:'composer'}});
+  const shown=await renderedText(await $.ui.mount(paneTarget('terminal','inline')));
+  expect(shown).toContain('工作樹');
+  expect(shown).not.toContain('摘要');
+});
+
+test('the command description names the page argument',async($,on)=>{
+  const h=host(on);
+  await begin($);
+  expect(h.record.commands[0].description).toBe('開啟目前工作脈絡面板；/attention 1–3 切頁');
+});
+
+test('the three tabs carry the digit hotkeys in order, and the current page is marked with a dot',async($,on)=>{
+  host(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  const tabs=async()=>(await nodesOf(pane,'Button')).filter(b=>b.props.hotkey).map(b=>b.props);
+  expect((await tabs()).map(p=>p.hotkey)).toEqual(['1','2','3']);
+  expect((await tabs()).map(p=>p.label)).toEqual(['● 即時','次要','Quick Notes']);
+  await pane.press({key:'page-2'});
+  expect((await tabs()).map(p=>p.label)).toEqual(['即時','● 次要','Quick Notes']);
+});
+
+test('the feedback form is on page two only, and its input takes no automatic focus',async($,on)=>{
+  host(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  expect(await renderedText(pane)).not.toContain('回饋');
+  await pane.press({key:'page-2'});
+  expect(await renderedText(pane)).toContain('回饋');
+  await pane.press({key:'open-feedback'});
+  const [input]=await nodesOf(pane,'Input');
+  expect(input.props.key).toBe('attention-feedback');
+  expect(input.props.autoFocus).toBeUndefined();
+});
+
+test('the page survives a session clear, as the fold does',async($,on)=>{
+  host(on);
+  await begin($);
+  const pane=await $.ui.mount(paneTarget('terminal','inline'));
+  await pane.press({key:'page-2'});
+  await $.session.end({reason:'clear',sessionId:'session-one',resume:{}});
+  const labels=(await nodesOf(pane,'Button')).filter(b=>b.props.hotkey).map(b=>b.props.label);
+  expect(labels).toEqual(['即時','● 次要','Quick Notes']);
 });
