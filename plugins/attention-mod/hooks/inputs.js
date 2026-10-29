@@ -1,6 +1,15 @@
 /** Doors whose rows Tom did not type; most reach the main model, notices only reach the screen. */
 const DOORS = new Set(['delivery','attachment','hook-context','notice','note','compaction','tool-message']);
 
+/** sec-default (2.1.312) passes these doors over and raises a notice: attachment, hook-context and compaction always, tool-message and note on some rows. Never registered. */
+export const PASSED_OVER_DOORS = ['attachment','hook-context','compaction','tool-message','note'];
+
+/** Doors the summary reads: prompt responses and tool results. */
+export const SUMMARY_DOORS = ['response','tool-result'];
+
+/** The session.append matcher: every door this plugin can use, and none that sec-default passes over. */
+export const OBSERVED_DOORS = [...DOORS, ...SUMMARY_DOORS].filter(door => !PASSED_OVER_DOORS.includes(door));
+
 /** Engine-generated attachments, each with the reason it is noise. Unlisted names stay visible on purpose. */
 export const NOISE = new Map([
   ['total_tokens_reminder', 'token balance reminder on every turn'],

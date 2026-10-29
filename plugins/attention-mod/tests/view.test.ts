@@ -29,7 +29,7 @@ test('waits are explicit, ask routes stay unknown, and concurrent tools are visi
 });
 test('pane rows expose the question title and each field label apart from its value',()=>{
   const view=paneRows(createState('s'),0);
-  expect(view.title).toBe('你到底在忙什麼？ v0.5.1');
+  expect(view.title).toBe('你到底在忙什麼？ v0.5.2');
   expect(view.sections.map(s=>s.label)).toEqual(['摘要','即時','外部輸入']);
   expect(inlineFields(view).map(f=>f.label)).toEqual(['目標','脈絡','動作','證據','需要你']);
   expect(inlineFields(view)[0].text).toBe('目的尚不清楚');
@@ -80,7 +80,7 @@ test('empty inputs say when recording started, without inventing a time',()=>{
   expect(paneLines(s,0).join('\n')).toContain(`外部輸入：尚無（${clockTime(60000)} 起記錄）`);
 });
 test('external inputs say which doors this panel cannot see, in the section and the flat text',()=>{
-  const note='在有 managed settings 的機器上，hook-context（SessionStart 注入）、attachment（附件）與 compaction 不會顯示在這裡。';
+  const note='以下幾類 attention-mod 不接收，所以不會顯示：hook-context（SessionStart 注入）、attachment（附件）、compaction、tool-message、note。';
   expect(paneRows(createState('s'),0).sections[2].notes).toEqual([{text:note,tone:'muted'}]);
   expect(paneLines(createState('s'),0).join('\n')).toContain(note);
 });
