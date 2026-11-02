@@ -524,7 +524,7 @@ export function register(on, options) {
     // The tab strip sits under the title in every expanded layout; each page then draws only its own sections.
     const head = [header, drawTabs(els, page, n => setPage($, n))];
     const pageView = {...view, sections: pageSections(view, page)};
-    const body = dock ? drawDock($, pageView, els, head) : page === 1 ? drawInline(pageView, els, e.props.bodyColumns, head) : drawInlineSections(pageView, els, e.props.bodyColumns, head);
+    const body = dock ? drawDock($, pageView, els, head, page !== 2) : page === 1 ? drawInline(pageView, els, e.props.bodyColumns, head) : drawInlineSections(pageView, els, e.props.bodyColumns, head);
     // The feedback form sits at the foot of page two; Quick Notes fills page three.
     const foot = page === 3 ? drawNotes($, els) : page === 2 ? drawFeedback($, els) : [];
     return els.Box({flexDirection:'column', children:[...body, ...foot]});
@@ -611,22 +611,28 @@ function drawHeader(view, {Box, Text, Button}, toggle, placement) {
   ]});
 }
 
-/** Page tabs, in hotkey order. The digit hotkeys work while the panel has focus; the current page's label carries a dot. */
-const PAGE_TABS = [[1, '即時'], [2, '次要'], [3, 'Quick Notes']];
+/**
+ * Page tabs, in hotkey order. The digit hotkeys work while the panel has focus; the current page's label carries a dot.
+ * Quick Notes (page 3) has no tab for now: `/attention 3` still opens it, and its store and saved notes are kept.
+ */
+const PAGE_TABS = [[1, '即時'], [2, '更多']];
 function drawTabs({Box, Button}, current, choose) {
   return Box({flexDirection:'row', children:PAGE_TABS.map(([n, name]) => Button({key:`page-${n}`, hotkey:String(n), label:n === current ? `● ${name}` : name, onPress:() => choose(n)}))});
 }
 
-/** Bordered sections for the dock, which has the height for them. */
-function drawDock($, view, {Box, Text, Button}, head) {
+/**
+ * Bordered sections for the dock, which has the height for them. `titled` false drops each heading (page two):
+ * its rows carry their own labels, and a title row left with nothing to show is not drawn.
+ */
+function drawDock($, view, {Box, Text, Button}, head, titled = true) {
   // A lone dock pane gets no tab strip, so the frame shows no title; the body carries it instead.
   return [...head, ...view.sections.map(section => Box({flexDirection:'column', borderStyle:'round', borderColor:colorFor(section.tone), paddingX:1, children:[
-    Box({flexDirection:'row', justifyContent:'space-between', children:[
+    ...(titled || section.meta || section.expandable ? [Box({flexDirection:'row', justifyContent:'space-between', children:[
       // No brackets: the host's Button draws "[ label ]", so only things you can press may wear them.
-      Text({bold:true, color:colorFor(section.tone), wrap:'truncate', children:section.label}),
+      ...(titled ? [Text({bold:true, color:colorFor(section.tone), wrap:'truncate', children:section.label})] : []),
       ...(section.meta ? [Text({dimColor:true, wrap:'truncate', children:section.meta})] : []),
       ...(section.expandable ? [Button({key:'toggle-agents', label:agentsExpanded ? '收起子代理' : '展開子代理', onPress:() => { agentsExpanded = !agentsExpanded; redraw($); }})] : []),
-    ]}),
+    ]})] : []),
     ...(section.id === 'inputs'
       ? (section.empty ? [Text({dimColor:true, wrap:'truncate', children:section.empty})] : inputRowNodes(section.rows, {Box, Text}, 0))
       : section.rows.map(row => labelled(Text, row, section.tone))),
@@ -651,14 +657,13 @@ function drawInline(view, els, bodyColumns, head) {
   ];
 }
 
-/** Pages two and three in the flat layout: each section is a heading with its rows under it. */
+/** Pages two and three in the flat layout: each section's rows in order, with no heading; each row's own label says what it is. */
 function drawInlineSections(view, els, bodyColumns, head) {
   const {Text} = els;
   return [
     ...head,
     Text({dimColor:true, wrap:'truncate', children:'─'.repeat(Math.max(1, bodyColumns))}),
     ...view.sections.flatMap(section => [
-      Text({bold:true, color:colorFor(section.tone), wrap:'truncate', children:section.label}),
       ...section.rows.map(row => labelled(Text, row, section.tone)),
       ...section.notes.map(note => Text({wrap:'wrap', color:colorFor(note.tone), dimColor:note.tone === 'muted', children:note.text})),
     ]),

@@ -19,7 +19,8 @@ test('a linked worktree shows its path and branch, read with the one allowed git
   await h.clock.advance(1000);
   // Task 4: the worktree row moved to page two, so this test now turns there first.
   const shown=await renderedText(await onPageTwo(await $.ui.mount(paneTarget())));
-  expect(shown).toContain('工作樹');
+  // Page two has no "工作樹" heading any more; the path row carries the section.
+  expect(shown).toContain('路徑：');
   expect(shown).toContain(CWD);
   expect(shown).toContain('feat/x');
   expect(calls[0].argv).toEqual(GIT_ARGS);
@@ -281,7 +282,7 @@ test('the command argument picks the page: 2 turns to the worktree page, 9 chang
   await first.unmount();
   await $.command.run({command:'attention',args:'2',origin:{kind:'composer'}});
   const shown=await renderedText(await $.ui.mount(paneTarget('terminal','inline')));
-  expect(shown).toContain('工作樹');
+  expect(shown).toContain('路徑：');
   expect(shown).not.toContain('摘要');
 });
 
@@ -291,15 +292,53 @@ test('the command description names the page argument',async($,on)=>{
   expect(h.record.commands[0].description).toBe('開啟目前工作脈絡面板；/attention 1–3 切頁');
 });
 
-test('the three tabs carry the digit hotkeys in order, and the current page is marked with a dot',async($,on)=>{
+test('two tabs carry the digit hotkeys in order, Quick Notes has none, and the current page is marked with a dot',async($,on)=>{
   host(on);
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
   const tabs=async()=>(await nodesOf(pane,'Button')).filter(b=>b.props.hotkey).map(b=>b.props);
-  expect((await tabs()).map(p=>p.hotkey)).toEqual(['1','2','3']);
-  expect((await tabs()).map(p=>p.label)).toEqual(['● 即時','次要','Quick Notes']);
+  expect((await tabs()).map(p=>p.hotkey)).toEqual(['1','2']);
+  expect((await tabs()).map(p=>p.label)).toEqual(['● 即時','更多']);
   await pane.press({key:'page-2'});
-  expect((await tabs()).map(p=>p.label)).toEqual(['即時','● 次要','Quick Notes']);
+  expect((await tabs()).map(p=>p.label)).toEqual(['即時','● 更多']);
+});
+
+// The three groups on page two are told apart by their row labels, so the headings are gone.
+const PAGE_TWO_GROUPS=['工作樹','模型','額度與載入'];
+const headingsOf=async pane=>{
+  const found=[];
+  const walk=node=>{
+    if(node && typeof node==='object'){
+      const kids=Array.isArray(node.children)?node.children:[node.children];
+      if(node.type==='Text' && kids.length===1 && PAGE_TWO_GROUPS.includes(kids[0])) found.push(kids[0]);
+      kids.forEach(walk);
+    }
+  };
+  walk(await pane.drawn());
+  return found;
+};
+
+test('page two draws its groups without headings, and each row keeps its own label',async($,on)=>{
+  const h=host(on,{cwd:()=>CWD,git:()=>linked('feat/x')});
+  await begin($);
+  await h.clock.advance(1000);
+  const pane=await onPageTwo(await $.ui.mount(paneTarget('terminal','inline')));
+  expect(await headingsOf(pane)).toEqual([]);
+  const shown=await renderedText(pane);
+  for(const label of ['路徑：','分支：','模型：','已載入 skill：']) expect(shown).toContain(label);
+});
+
+test('dock page two draws its three bordered groups without headings',async($,on)=>{
+  const h=host(on,{cwd:()=>CWD,git:()=>linked('feat/x')});
+  await begin($);
+  await h.clock.advance(1000);
+  const pane=await onPageTwo(await $.ui.mount(paneTarget('terminal','dock')));
+  expect(await headingsOf(pane)).toEqual([]);
+  const borders=[];
+  const walk=node=>{ if(node && typeof node==='object'){ if(node.props?.borderStyle) borders.push(node.props.borderStyle); (node.children??[]).forEach(walk); } };
+  walk(await pane.drawn());
+  expect(borders).toEqual(['round','round','round']);
+  expect(await renderedText(pane)).toContain('路徑：');
 });
 
 test('the feedback form is on page two only, and its input takes no automatic focus',async($,on)=>{
@@ -322,5 +361,5 @@ test('the page survives a session clear, as the fold does',async($,on)=>{
   await pane.press({key:'page-2'});
   await $.session.end({reason:'clear',sessionId:'session-one',resume:{}});
   const labels=(await nodesOf(pane,'Button')).filter(b=>b.props.hotkey).map(b=>b.props.label);
-  expect(labels).toEqual(['即時','● 次要','Quick Notes']);
+  expect(labels).toEqual(['即時','● 更多']);
 });

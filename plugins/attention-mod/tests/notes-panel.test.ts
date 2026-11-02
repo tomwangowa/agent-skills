@@ -4,8 +4,8 @@ import {host,begin,paneTarget,renderedText} from './fixtures.js';
 const CWD='/repo/worktrees/feat-x';
 const linked=(commonDir='/repo/.git')=>({exitCode:0,stdout:`/repo/.git/worktrees/x\n${commonDir}\nfeat/x\n`,stderr:''});
 const deferred=()=>{ let resolve; const promise=new Promise(r=>{ resolve=r; }); return {promise,resolve}; };
-/** Page three, where Quick Notes lives. */
-const pageThree=async pane=>{ await pane.press({key:'page-3'}); return pane; };
+/** Page three, where Quick Notes lives. It has no tab now, so the test reaches it the way a person can: `/attention 3`. */
+const mountOnPageThree=async($,target)=>{ await $.command.run({command:'attention',args:'3',origin:{kind:'composer'}}); return $.ui.mount(target); };
 /** The props of every Input node in a drawn pane, in tree order. */
 const inputProps=async pane=>{
   const found=[];
@@ -19,7 +19,7 @@ test('the note input stays unmounted until the stored note has been read, then o
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>read.promise});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   expect(await renderedText(pane)).toContain('讀取中');
   expect((await inputProps(pane)).filter(p=>p.key==='attention-notes')).toEqual([]);
   read.resolve(undefined);
@@ -34,7 +34,7 @@ test('a stored note reads into the input as its saved text',async($,on)=>{
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>'saved text'});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   const [note]=(await inputProps(pane)).filter(p=>p.key==='attention-notes');
   expect(note.value).toBe('saved text');
 });
@@ -43,7 +43,7 @@ test('a stored value that is not text shows the read failure, and retry reads th
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>42});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   expect(await renderedText(pane)).toContain('讀取失敗');
   expect((await inputProps(pane)).filter(p=>p.key==='attention-notes')).toEqual([]);
   await pane.press({key:'retry-notes'});
@@ -55,7 +55,7 @@ test('a store read that throws shows the read failure with a retry',async($,on)=
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>{ throw new Error('store unavailable'); }});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   expect(await renderedText(pane)).toContain('讀取失敗');
   expect(await renderedText(pane)).toContain('重試');
 });
@@ -64,7 +64,7 @@ test('an unreadable git read shows the read failure and never reads the store',a
   const h=host(on,{cwd:()=>CWD,git:async()=>{ throw new Error('spawn failed'); }});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   expect(await renderedText(pane)).toContain('讀取失敗');
   expect(h.record.stored).toEqual([]);
 });
@@ -106,7 +106,7 @@ test('an idle edit is saved on the first tick a second after it, not before',asy
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>undefined});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   await typeNote(pane,'draft');
   await h.clock.advance(999);
   expect(h.record.sets).toEqual([]);
@@ -114,11 +114,23 @@ test('an idle edit is saved on the first tick a second after it, not before',asy
   expect(h.record.sets).toEqual([{key:'notes:/repo/.git',value:'draft'}]);
 });
 
+test('Quick Notes has no tab, yet /attention 3 still opens its page',async($,on)=>{
+  const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>undefined});
+  await begin($);
+  await h.clock.settle();
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
+  const tabLabels=[];
+  const walk=node=>{ if(node && typeof node==='object'){ if(node.type==='Button' && node.props?.hotkey) tabLabels.push(node.props.label); (node.children??[]).forEach(walk); } };
+  walk(await pane.drawn());
+  expect(tabLabels).toEqual(['即時','更多']);
+  expect((await inputProps(pane)).filter(p=>p.key==='attention-notes')).toHaveLength(1);
+});
+
 test('Enter saves at once, without waiting for the timer',async($,on)=>{
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>undefined});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   await typeNote(pane,'hello','submit');
   expect(h.record.sets).toEqual([{key:'notes:/repo/.git',value:'hello'}]);
 });
@@ -127,7 +139,7 @@ test('a note of exactly 32,768 code points is saved, and one more is held back w
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>undefined});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   const exact='😀'.repeat(32768);
   await typeNote(pane,exact,'submit');
   expect(h.record.sets).toEqual([{key:'notes:/repo/.git',value:exact}]);
@@ -140,7 +152,7 @@ test('a write that fails shows 未存, waits five seconds, then tries again',asy
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>undefined,storeWriteFails:true});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   await typeNote(pane,'draft','submit');
   expect(await renderedText(pane)).toContain('未存：寫入失敗');
   const attempts=()=>h.record.ops.filter(op=>op.startsWith('set ')).length;
@@ -155,7 +167,7 @@ test('clearing the note deletes its key instead of storing an empty string',asyn
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>undefined});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   await typeNote(pane,'draft','submit');
   await typeNote(pane,'','submit');
   expect(h.record.deletes).toEqual(['notes:/repo/.git']);
@@ -166,7 +178,7 @@ test('leaving page three saves the unsaved note first',async($,on)=>{
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>undefined});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   await typeNote(pane,'draft');
   await pane.press({key:'page-1'});
   expect(h.record.sets).toEqual([{key:'notes:/repo/.git',value:'draft'}]);
@@ -178,7 +190,7 @@ test('a directory change saves the unsaved note under its own key before the new
   const h=host(on,{cwd:()=>here,git:()=>linked(common),store:()=>undefined});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   await typeNote(pane,'draft');
   here='/other/worktree';
   common='/other/.git';
@@ -194,7 +206,7 @@ test('a note too long to save holds the directory switch, so its text is not dro
   const h=host(on,{cwd:()=>here,git:()=>linked(common),store:()=>undefined});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   await typeNote(pane,'😀'.repeat(32769));
   here='/other/worktree';
   common='/other/.git';
@@ -217,7 +229,7 @@ test('a failed write does not replace the too-long notice when the person pasted
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>undefined,storeWrite:async()=>{ await gate.promise; throw new Error('store write failed'); }});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   await typeNote(pane,'draft','submit');
   await typeNote(pane,'😀'.repeat(32769));
   gate.resolve();
@@ -231,7 +243,7 @@ test('ending the session saves the unsaved note before the panel goes quiet',asy
   const h=host(on,{cwd:()=>CWD,git:()=>linked(),store:()=>undefined});
   await begin($);
   await h.clock.settle();
-  const pane=await pageThree(await $.ui.mount(paneTarget('terminal','inline')));
+  const pane=await mountOnPageThree($,paneTarget('terminal','inline'));
   await typeNote(pane,'draft');
   await $.session.end({reason:'exit',sessionId:'session-one',resume:{}});
   expect(h.record.sets).toEqual([{key:'notes:/repo/.git',value:'draft'}]);
