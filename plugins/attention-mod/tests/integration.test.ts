@@ -88,8 +88,8 @@ test('inline pane keeps the 0.2.0 rows, draws no borders, and colours the labels
   await begin($);
   const pane=await $.ui.mount(paneTarget('terminal','inline'));
   const [titleRow,tabs,rule,...rest]=(await pane.drawn()).children;
-  expect(tabs.children.map(b=>b.props.hotkey)).toEqual(['1','2','3']);
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.6.0']});
+  expect(tabs.children.map(b=>b.props.hotkey)).toEqual(['1','2']);
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.6.1']});
   expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
   expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
   expect(rule.children).toEqual(['─'.repeat(40)]);
@@ -125,7 +125,7 @@ test('dock pane draws a bold title above three round sections coloured by meanin
   expect(text).toContain('以下幾類 attention-mod 不接收，所以不會顯示：hook-context');
   // A lone dock pane has no tab strip, so the pane frame shows no title; the body must carry it.
   const [titleRow]=(await pane.drawn()).children;
-  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.6.0']});
+  expect(titleRow.children[0]).toMatchObject({type:'Text',props:{bold:true},children:['你到底在忙什麼？ v0.6.1']});
   expect(titleRow.children[1]).toMatchObject({type:'Text',children:[' ']});
   expect(titleRow.children[2]).toMatchObject({type:'Button',props:{key:'toggle-collapse',label:'收起面板'}});
 });
@@ -340,7 +340,7 @@ test('the inline toggle folds the pane to a title and one status line, and expan
   expect(await renderedText(pane)).toContain('目標：');
   await pane.press({key:'toggle-collapse'});
   const collapsed=await renderedText(pane);
-  expect(collapsed).toContain('你到底在忙什麼？ v0.6.0');
+  expect(collapsed).toContain('你到底在忙什麼？ v0.6.1');
   expect(collapsed).toContain('展開面板');
   expect(collapsed).toContain('動作：尚未觀測到工作動作');
   for(const hidden of ['目標：','外部輸入','需要你：']) expect(collapsed).not.toContain(hidden);
