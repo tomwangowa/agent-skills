@@ -2,15 +2,15 @@
   "files": {
     ".claude-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "7c3f1464c034bb53336e8d51b9b09265257cbd507000f716010ca9b580c91713"
+      "sha256": "1da5604863aa85de0be764356e319f225a83c11094377f9fdb73c9e79ed9339d"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "f0a401fc63dff567a2fb3b8996fba47bda96b18633d1ec2d5058f9a41db915e2"
+      "sha256": "4a3964890f24e6aa5a3e9176429fc28929d7fa34d9921407bd6f2fd488ca0be1"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "ca0218456f6eb19c41da3a3ced0e38a1a48684174bcbe9e68e74a9ef2a0fa320"
+      "sha256": "050371fbc643f516327d2ef8f13a68713755c14a647d79ba4c1d39bca8a1cf90"
     },
     "installation.md": {
       "mode": 420,

@@ -73,7 +73,7 @@
       "activity-logger",
       "work-log-analyzer"
     ],
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "resources": {
     "activity-logger/SKILL.md": "b0df5b887e8993174876d73e636ff09cc8303791e83642231004bb2b5edcb424",
@@ -90,8 +90,8 @@
     "runtime/agent_skills_runtime/migration.py": "046253103a6f027478e77b4a67dcab180329cbc4e186442087dd97bfea9b8a3f",
     "runtime/agent_skills_runtime/preferences.py": "baaaa0493fa44a5943c25d5c0d27d375886875f5cfac6e08ab70dc5ca8c0c052",
     "runtime/agent_skills_runtime/setup.py": "829ced45bf3175504485178d0449a9129a4e081f43665013d518d8179505180a",
-    "skills-query-server/package-lock.json": "3f5dc16f0baa66796e844111889dc14dd938c1ab7b0030cc03235e9467789a38",
-    "skills-query-server/package.json": "868c51dcfe0d5bd059b0d2716fa818d7e25b54d541257bdd812be9698af0913b",
+    "skills-query-server/package-lock.json": "ad8774d595d8a294662a4d44ccc9e239ce864969bc771e65e170bc5da6aa2326",
+    "skills-query-server/package.json": "3ebf7e26bad74a43a670b9969f7b07d1ba72415a81e9473e02462d07f9587719",
     "skills-query-server/src/config.ts": "02f5e58420029345d3dcef49088c03230401d22298a010ae5ab9366c387ec9bb",
     "skills-query-server/src/index.ts": "5f0648a59241a85ef66684ce6e2814f8579305784dc2aeab44d19eca004dcb63",
     "skills-query-server/src/runtime-config.ts": "c41e5ae1aca048275f69d18b3cf00e950ef9b45b4c80328d364c4d23813d42aa",

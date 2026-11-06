@@ -54,7 +54,7 @@
       "skill-sync",
       "claude-workflow-designer"
     ],
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "resources": {
     "claude-workflow-designer/SKILL.md": "7223029f9c2cf8dc8ad3d2e2f3fbfb4f2c9033ad80484e2f3c6b9d8f38ba6c23",
