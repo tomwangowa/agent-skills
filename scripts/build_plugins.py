@@ -17,6 +17,31 @@ from scripts.plugin_packaging.resources import collect_resources
 from scripts.probe_plugin_runtimes import validate_runtime_contracts
 
 
+TEST_DIR_NAMES = frozenset({'test', 'tests', '__tests__', 'benchmark'})
+
+
+def strip_dependency_test_dirs(node_modules: Path) -> None:
+    """Remove dependency test and benchmark folders at any depth.
+
+    The server never loads them, and their fixture credentials (sample URIs with
+    passwords, database URLs) trip PR secret scans. Package folders that happen to
+    use one of these names are kept.
+    """
+    def is_package_root(path: Path) -> bool:
+        # A dependency may itself be named "test" or "benchmark"; never delete a package.
+        parent = path.parent
+        return parent.name == 'node_modules' or (
+            parent.name.startswith('@') and parent.parent.name == 'node_modules')
+
+    folders = [p for p in node_modules.rglob('*')
+               if p.name in TEST_DIR_NAMES and p.is_dir() and not p.is_symlink()
+               and not is_package_root(p)]
+    # Shallowest first, so removing a parent never leaves a stale child path to visit.
+    for folder in sorted(folders, key=lambda p: len(p.parts)):
+        if folder.exists():
+            shutil.rmtree(folder)
+
+
 def prepare_server(root: Path, destination: Path) -> None:
     """Compile in a disposable workspace and install lockfile-only production dependencies."""
     source = root / 'skills-query-server'
@@ -44,6 +69,7 @@ def prepare_server(root: Path, destination: Path) -> None:
     shutil.rmtree(destination / 'node_modules/.bin', ignore_errors=True)
     # npm's hidden lockfile is npm-only bookkeeping the server does not load; omit it from releases.
     (destination / 'node_modules/.package-lock.json').unlink(missing_ok=True)
+    strip_dependency_test_dirs(destination / 'node_modules')
     for path in (destination / 'node_modules').rglob('*'):
         if path.is_symlink():
             raise ValueError(f'Unexpected production dependency symlink: {path.relative_to(destination)}')

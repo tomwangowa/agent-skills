@@ -1,6 +1,6 @@
 # repo-workflow
 
-Version 0.1.0; codex CLI.
+Version 0.2.0; codex CLI.
 
 Included skills:
 

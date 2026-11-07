@@ -81,7 +81,7 @@
       "technical-proposal-review",
       "ui-design-analyzer"
     ],
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "resources": {
     "assumption-extractor/SKILL.md": "baded6842af910b0abbef9692dc2eb16a5a41dd507af02e963cabbc168449080",

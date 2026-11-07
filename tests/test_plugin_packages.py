@@ -20,7 +20,13 @@ APPROVED = {
     'skill-toolbox': 'skill-auditor skill-router skill-sync claude-workflow-designer',
 }
 APPROVED_VERSIONS = {name: '0.1.0' for name in APPROVED}
-APPROVED_VERSIONS['session-preferences'] = '0.1.1'
+APPROVED_VERSIONS.update({
+    'technical-decisions': '0.1.1',
+    'repo-workflow': '0.2.0',
+    'work-journal': '0.1.1',
+    'session-preferences': '0.1.2',
+    'skill-toolbox': '0.1.1',
+})
 
 
 class PackageTests(unittest.TestCase):

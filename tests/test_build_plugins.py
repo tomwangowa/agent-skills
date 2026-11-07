@@ -6,7 +6,7 @@ from pathlib import Path
 
 from scripts.plugin_packaging.catalog import load_packages
 from scripts.plugin_packaging.render import render_package, render_marketplaces
-from scripts.build_plugins import prepare_server, _tree
+from scripts.build_plugins import TEST_DIR_NAMES, prepare_server, strip_dependency_test_dirs, _tree
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACTS = json.loads((ROOT / 'docs/validation/skill-plugins/runtime-contracts.json').read_text())
@@ -162,6 +162,30 @@ class BuildTests(unittest.TestCase):
             self.assertTrue((destination / 'dist/index.js').is_file())
             self.assertFalse((destination / 'dist/private-data.js').exists())
             self.assertFalse((destination / 'src').exists())
+
+    def test_strip_removes_test_directories_and_keeps_runtime_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            modules = Path(tmp) / 'node_modules'
+            for relative in ['plain/test/fixture.js', 'plain/benchmark/run.js', '@scope/pkg/tests/a.js',
+                             '@scope/pkg/__tests__/b.js', 'deep/src/v4/tests/c.ts', 'plain/test/tests/d.js',
+                             'plain/index.js', 'plain/testing/keep.js', 'deep/src/v4/index.ts',
+                             'benchmark/index.js', '@scope/test/index.js',
+                             'plain/node_modules/tests/index.js']:
+                (modules / relative).parent.mkdir(parents=True, exist_ok=True)
+                (modules / relative).write_text('')
+            strip_dependency_test_dirs(modules)
+            for removed in ['plain/test', 'plain/benchmark', '@scope/pkg/tests', '@scope/pkg/__tests__',
+                            'deep/src/v4/tests']:
+                self.assertFalse((modules / removed).exists(), removed)
+            for kept in ['plain/index.js', 'plain/testing/keep.js', 'deep/src/v4/index.ts',
+                         'benchmark/index.js', '@scope/test/index.js', 'plain/node_modules/tests/index.js']:
+                self.assertTrue((modules / kept).is_file(), kept)
+
+    def test_generated_server_bundles_omit_dependency_test_directories(self):
+        for surface in ('claude', 'codex'):
+            modules = ROOT / 'plugins' / surface / 'work-journal/server/node_modules'
+            leftovers = [p for p in modules.rglob('*') if p.is_dir() and p.name in TEST_DIR_NAMES]
+            self.assertEqual(leftovers, [])
 
     def test_generated_server_bundles_omit_npm_hidden_lockfile(self):
         for surface in ('claude', 'codex'):
