@@ -2,15 +2,15 @@
   "files": {
     ".claude-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "9fc411c7694750a08736719249a9c2b2957627a4b73621bcb0877a7dfab10acf"
+      "sha256": "fa9c02ff13747e9b44f8befaa94f97e907d82603af765601c71b7b6e1a7f3736"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "90ff3bf0642e0484e31f023430149c2a5920b4071365d425dbced93f6a846e23"
+      "sha256": "1727f340e8ceed4c451151f00c0fb669d0fe9c9a65e9a275710e3a36c87cb804"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "28e6586af3250efe29193ba8c0a67f21945755ec4bbe91a2ad0e169345c14c80"
+      "sha256": "c3d0bdf5a45f0f0d38e5bae6569a734ff9ba0dace1460b98170e8bdd8748d335"
     },
     "hooks/hooks.json": {
       "mode": 420,
@@ -26,7 +26,7 @@
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff"
+      "sha256": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69"
     },
     "migration.md": {
       "mode": 420,
@@ -54,7 +54,7 @@
     },
     "skills/package-index.json": {
       "mode": 420,
-      "sha256": "8cc7a2cf31a0bf1dc513ea9b24a1268ab101d25b68b813b323afa5f478d73afe"
+      "sha256": "054197b0bb6a48316bbc99448260900b3a5b6f7e5f86e4decc332fb25cd3a69c"
     },
     "skills/skill-auditor/README.md": {
       "mode": 420,

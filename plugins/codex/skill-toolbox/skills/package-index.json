@@ -73,6 +73,20 @@
     },
     {
       "availability": "available_to_install",
+      "category": "quality-gates",
+      "id": "review-convergence-gate",
+      "invocation_intent": "model",
+      "lifecycle": "experimental",
+      "package": "quality-gates",
+      "provider": "quality-gates:review-convergence-gate",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": false,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
       "category": "design-planning",
       "id": "brainstorming",
       "invocation_intent": "model",
@@ -367,6 +381,48 @@
     },
     {
       "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "understand-file",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "package": "repo-workflow",
+      "provider": "repo-workflow:understand-file",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "understand-function",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "package": "repo-workflow",
+      "provider": "repo-workflow:understand-function",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "research-critical-thinking",
+      "id": "understand-repo",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "package": "repo-workflow",
+      "provider": "repo-workflow:understand-repo",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
       "category": "content-generation",
       "id": "presentation-planner",
       "invocation_intent": "model",
@@ -437,6 +493,48 @@
     },
     {
       "availability": "available_to_install",
+      "category": "content-generation",
+      "id": "newsletter-digest",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "package": "content-tools",
+      "provider": "content-tools:newsletter-digest",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "content-generation",
+      "id": "qa-to-notes",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "package": "content-tools",
+      "provider": "content-tools:qa-to-notes",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "content-generation",
+      "id": "arxiv-digest",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "package": "content-tools",
+      "provider": "content-tools:arxiv-digest",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
       "category": "productivity-tracking",
       "id": "activity-logger",
       "invocation_intent": "model",
@@ -457,6 +555,20 @@
       "lifecycle": "personal",
       "package": "work-journal",
       "provider": "work-journal:work-log-analyzer",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
+      "category": "content-generation",
+      "id": "report-generator",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "package": "work-journal",
+      "provider": "work-journal:report-generator",
       "surfaces": {
         "listed_in_readme": false,
         "routable": true,

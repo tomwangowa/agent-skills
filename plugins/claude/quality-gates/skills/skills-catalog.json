@@ -47,6 +47,17 @@
     },
     {
       "category": "quality-gates",
+      "id": "review-convergence-gate",
+      "invocation_intent": "model",
+      "lifecycle": "experimental",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": false,
+        "sync": true
+      }
+    },
+    {
+      "category": "quality-gates",
       "id": "secure-ai-development-gate",
       "invocation_intent": "model",
       "lifecycle": "promoted",

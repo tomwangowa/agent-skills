@@ -13,6 +13,17 @@
       }
     },
     {
+      "category": "content-generation",
+      "id": "report-generator",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
       "category": "productivity-tracking",
       "id": "work-log-analyzer",
       "invocation_intent": "model",

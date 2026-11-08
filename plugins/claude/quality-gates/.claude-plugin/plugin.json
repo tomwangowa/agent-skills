@@ -4,5 +4,5 @@
   },
   "description": "quality-gates skills for claude CLI",
   "name": "quality-gates",
-  "version": "0.1.1"
+  "version": "0.2.0"
 }

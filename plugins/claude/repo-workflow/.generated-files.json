@@ -2,19 +2,19 @@
   "files": {
     ".claude-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "93ffbc58e8a6f72663bda18bf4b74c7fb662d830251cbfc89c3466182dfa2040"
+      "sha256": "cee938d313ad84dc325e4b17413bddb5873eca65e3abf89ffda765719f802a54"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "55f15189b805a01073017c25f7399cc4eacce6d1b974e0572872970e642236d9"
+      "sha256": "d0da70efe8d110be784e37fc585cc0cbc9b7812dcaa208991bd641225317c528"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "423246acd0ee564475493a8cfd62393a6e2224fcb430be10fc81e303979e7fb2"
+      "sha256": "05e10d99038f6c9e10cbb8c6ec9f11ef90e027181cc16ca2a0b2354079c413ba"
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff"
+      "sha256": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69"
     },
     "migration.md": {
       "mode": 420,
@@ -54,7 +54,7 @@
     },
     "skills/skills-catalog.json": {
       "mode": 420,
-      "sha256": "ba2152d015a9d37c724587d7b6766811d0da11b5ab6cb0fa9e7cbede2e273de9"
+      "sha256": "786525503e2585f22a5f0413aeca872287da5ac47ad5cae847f1c4cbdc4a000e"
     },
     "skills/task-bootstrap/SKILL.md": {
       "mode": 420,
@@ -67,6 +67,30 @@
     "skills/task-bootstrap/scripts/bootstrap_worktree.py": {
       "mode": 420,
       "sha256": "1500215619434bd0d8666e7bff720a46e610fabf6014f97f3a8ac4bda134ab73"
+    },
+    "skills/understand-file/SKILL.md": {
+      "mode": 420,
+      "sha256": "81b3cfd6a22e037af3ce1b670a57f429033d04f171be0f549cf0884eb50ccf0b"
+    },
+    "skills/understand-file/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+    },
+    "skills/understand-function/SKILL.md": {
+      "mode": 420,
+      "sha256": "c5afb69d656afbb0259708df00ade8f110eab2cd911947480e9e007a046befe3"
+    },
+    "skills/understand-function/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+    },
+    "skills/understand-repo/SKILL.md": {
+      "mode": 420,
+      "sha256": "8de108fd9a1dd8b24182a1f3e1ac69ebb986c881279ae9c13e3bd8b5693668dc"
+    },
+    "skills/understand-repo/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
     },
     "superpowers-compatibility.md": {
       "mode": 420,

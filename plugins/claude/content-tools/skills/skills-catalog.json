@@ -3,6 +3,17 @@
   "skills": [
     {
       "category": "content-generation",
+      "id": "arxiv-digest",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "content-generation",
       "id": "interactive-presentation-generator",
       "invocation_intent": "model",
       "lifecycle": "promoted",
@@ -25,6 +36,17 @@
     },
     {
       "category": "content-generation",
+      "id": "newsletter-digest",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "content-generation",
       "id": "pptx-to-md",
       "invocation_intent": "model",
       "lifecycle": "promoted",
@@ -39,6 +61,17 @@
       "id": "presentation-planner",
       "invocation_intent": "model",
       "lifecycle": "promoted",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "content-generation",
+      "id": "qa-to-notes",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
       "surfaces": {
         "listed_in_readme": false,
         "routable": true,

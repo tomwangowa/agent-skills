@@ -2,15 +2,15 @@
   "files": {
     ".codex-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "d6f46d12f53996d165405d9c6358bf19362ff117caee69e1ebcbd4ce9da7de4d"
+      "sha256": "ad23e400f829f27501e25042579a5ce2f58b72d202239082f53293d7cb462d49"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "90ff3bf0642e0484e31f023430149c2a5920b4071365d425dbced93f6a846e23"
+      "sha256": "1727f340e8ceed4c451151f00c0fb669d0fe9c9a65e9a275710e3a36c87cb804"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "c5edb41b56238ce2628736a8402f9a08c29f717c45649cfe020032c4d551ecb1"
+      "sha256": "9154c2c3e019c01a98c207074734cc0f8cd101b5b6f574cac1406c70d9a238da"
     },
     "hooks/hooks.json": {
       "mode": 420,
@@ -26,7 +26,7 @@
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff"
+      "sha256": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69"
     },
     "migration.md": {
       "mode": 420,
@@ -42,7 +42,7 @@
     },
     "skills/package-index.json": {
       "mode": 420,
-      "sha256": "78fe7686b8e70bdf9e9604d4e7a94b276fe753d8fb0cc7bcff06577c592bf965"
+      "sha256": "046804f9da4c2b62e5cac60984b0ac696d5011903f0b355ed99bcb76c4c5e37c"
     },
     "skills/skill-auditor/README.md": {
       "mode": 420,

@@ -20,6 +20,9 @@
       "session-start/agents/openai.yaml",
       "task-bootstrap/scripts/bootstrap_worktree.py",
       "task-bootstrap/agents/openai.yaml",
+      "understand-file/agents/openai.yaml",
+      "understand-function/agents/openai.yaml",
+      "understand-repo/agents/openai.yaml",
       "docs/plugins/installation.md",
       "docs/plugins/migration.md",
       "docs/plugins/team-instructions.md",
@@ -30,14 +33,17 @@
       "repo-sync",
       "handoff",
       "session-start",
-      "task-bootstrap"
+      "task-bootstrap",
+      "understand-file",
+      "understand-function",
+      "understand-repo"
     ],
-    "version": "0.2.1"
+    "version": "0.3.0"
   },
   "resources": {
     "code-story-teller/README.md": "a2301984e17aec2646f9d71cd88036a20f36048fc59381a56bd64f455dab422e",
     "code-story-teller/SKILL.md": "f68939f9ea5d6516463b3da0dcfb4aa6ab529779dd06432ef8c46359eea3497c",
-    "docs/plugins/installation.md": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff",
+    "docs/plugins/installation.md": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69",
     "docs/plugins/migration.md": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16",
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
     "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",
@@ -49,6 +55,12 @@
     "session-start/scripts/handoffs.py": "b7e5440704eb06bf5cddca4663239176bdd291818214f4a1ac73c0073e54251e",
     "task-bootstrap/SKILL.md": "455b25b9d3ca8f981d999d8dc969017a32517f6c6639e2abbdf3a6d845c0190c",
     "task-bootstrap/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
-    "task-bootstrap/scripts/bootstrap_worktree.py": "1500215619434bd0d8666e7bff720a46e610fabf6014f97f3a8ac4bda134ab73"
+    "task-bootstrap/scripts/bootstrap_worktree.py": "1500215619434bd0d8666e7bff720a46e610fabf6014f97f3a8ac4bda134ab73",
+    "understand-file/SKILL.md": "81b3cfd6a22e037af3ce1b670a57f429033d04f171be0f549cf0884eb50ccf0b",
+    "understand-file/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+    "understand-function/SKILL.md": "c5afb69d656afbb0259708df00ade8f110eab2cd911947480e9e007a046befe3",
+    "understand-function/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+    "understand-repo/SKILL.md": "8de108fd9a1dd8b24182a1f3e1ac69ebb986c881279ae9c13e3bd8b5693668dc",
+    "understand-repo/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
   }
 }

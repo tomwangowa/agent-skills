@@ -64,10 +64,12 @@ report"), skip this question and confirm the scope:
 
 Run data collection in parallel where possible:
 
-**From activity-logger** (if records exist):
+**From activity-logger** (if records exist). `<skill_base_directory>` is the
+base directory shown when this skill loads; these sibling skills ship in the
+same work-journal package:
 ```bash
-bash ~/.claude/skills/activity-logger/scripts/init_activities.sh list
-bash ~/.claude/skills/work-log-analyzer/scripts/aggregate_activities.sh \
+bash <skill_base_directory>/../activity-logger/scripts/init_activities.sh list
+bash <skill_base_directory>/../work-log-analyzer/scripts/aggregate_activities.sh \
   -m json -r <range>
 ```
 

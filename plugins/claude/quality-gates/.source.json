@@ -48,9 +48,10 @@
       "completion-gate",
       "codebase-audit",
       "pr-review-assistant",
-      "secure-ai-development-gate"
+      "secure-ai-development-gate",
+      "review-convergence-gate"
     ],
-    "version": "0.1.1"
+    "version": "0.2.0"
   },
   "resources": {
     "code-review-claude/README.md": "9dd90f16634e075512f702092f9bcba8f5f8cb32e3c6531ac97a67bad916c90b",
@@ -59,13 +60,14 @@
     "code-review-codex/SKILL.md": "1f64cc575d0c06cf960fd2067263d5a14ad176027a4d30757abdbf1d75222a4f",
     "codebase-audit/SKILL.md": "78a5e8990216743b1850f1b5075af03585537eecf5b93288532a9c8ba3ac571a",
     "completion-gate/SKILL.md": "e8ebc33785fbf42bcd614a002674f7c7d1de0769b550d493bd5bbebba82900bd",
-    "docs/plugins/installation.md": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff",
+    "docs/plugins/installation.md": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69",
     "docs/plugins/migration.md": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16",
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
     "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",
     "pr-review-assistant/README.md": "01bf20ce053afa030169f3b5981cc6ab0ac7b51e15ab270893fbb44fd3c162c0",
     "pr-review-assistant/SKILL.md": "43406539bddf59429f87b98d1c2d8eb55989023814d607ea1e97a1f6d94fc9cb",
     "pr-review-assistant/scripts/review_pr.sh": "624fc964d9a614f13a3bb5522b09817da43f5618411058b762142eff25f7f717",
+    "review-convergence-gate/SKILL.md": "8fc81000517431c516efdf2012c99637181ff37e205c25a7a97c2bb889086805",
     "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
     "runtime/agent_skills_runtime/policy.py": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a",
     "secure-ai-development-gate/SKILL.md": "4d3360a99c1b835065631fa1c6957012109c99b85e2c045521706db62f0b4728",
