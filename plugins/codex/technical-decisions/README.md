@@ -1,6 +1,6 @@
 # technical-decisions
 
-Version 0.1.1; codex CLI.
+Version 0.1.2; codex CLI.
 
 Included skills:
 

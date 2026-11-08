@@ -73,7 +73,7 @@
       "activity-logger",
       "work-log-analyzer"
     ],
-    "version": "0.1.1"
+    "version": "0.1.2"
   },
   "resources": {
     "activity-logger/SKILL.md": "b0df5b887e8993174876d73e636ff09cc8303791e83642231004bb2b5edcb424",

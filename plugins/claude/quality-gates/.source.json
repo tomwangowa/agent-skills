@@ -50,7 +50,7 @@
       "pr-review-assistant",
       "secure-ai-development-gate"
     ],
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "resources": {
     "code-review-claude/README.md": "9dd90f16634e075512f702092f9bcba8f5f8cb32e3c6531ac97a67bad916c90b",

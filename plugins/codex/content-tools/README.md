@@ -1,6 +1,6 @@
 # content-tools
 
-Version 0.1.0; codex CLI.
+Version 0.1.1; codex CLI.
 
 Included skills:
 

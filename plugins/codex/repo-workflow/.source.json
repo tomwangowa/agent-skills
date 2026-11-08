@@ -32,7 +32,7 @@
       "session-start",
       "task-bootstrap"
     ],
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "resources": {
     "code-story-teller/README.md": "a2301984e17aec2646f9d71cd88036a20f36048fc59381a56bd64f455dab422e",

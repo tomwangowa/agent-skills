@@ -1,7 +1,10 @@
 {
+  "author": {
+    "name": "Tom Wang"
+  },
   "description": "session-preferences skills for codex CLI",
   "hooks": "./hooks/hooks.json",
   "name": "session-preferences",
   "skills": "./skills/",
-  "version": "0.1.2"
+  "version": "0.1.3"
 }

@@ -1,6 +1,6 @@
 # quality-gates
 
-Version 0.1.0; claude CLI.
+Version 0.1.1; claude CLI.
 
 Included skills:
 

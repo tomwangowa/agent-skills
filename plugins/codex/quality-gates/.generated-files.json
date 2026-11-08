@@ -2,15 +2,15 @@
   "files": {
     ".codex-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "4f64186cb7d151481a50ca76bc55cb8fd062f23766c0bcd26da34a4706a5eb82"
+      "sha256": "7de3f47506b2a827d76b8d5b4148886e44019d87eaa2529c231b9621290c042b"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "f030b24452eae28789d30d33b31cfb5f51c177a01d2a19fe2dcd376935bec578"
+      "sha256": "59efde0e48911b02a613ddf691cf1d2db9e93348201670abdda83eafca2145ae"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "54a991513b638bb97aa5b8c7929225f2ad67eb621adb57fd1c175505bc745da3"
+      "sha256": "db73d01530e0974c197ed709915123abec93636a4ec70d78fb66262e38eb73cf"
     },
     "hooks/hooks.json": {
       "mode": 420,
