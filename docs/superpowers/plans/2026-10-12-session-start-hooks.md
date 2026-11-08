@@ -37,7 +37,7 @@
 - [ ] **Step 1: Create a feature branch.** The untracked spec and plan files carry over to the new branch.
 
 ```bash
-git -C /Users/tom_wang/Development/harness/agent-skills switch -c feat/session-start-hooks
+git -C ~/Development/harness/agent-skills switch -c feat/session-start-hooks
 ```
 
 Expected: `Switched to a new branch 'feat/session-start-hooks'`
@@ -679,7 +679,7 @@ This file provides guidance to coding agents working in this repository. Claude 
 - [ ] **Step 3: Create the symlink**
 
 ```bash
-cd /Users/tom_wang/Development/harness/agent-skills && ln -s CLAUDE.md AGENTS.md && ls -l AGENTS.md && head -3 AGENTS.md
+cd ~/Development/harness/agent-skills && ln -s CLAUDE.md AGENTS.md && ls -l AGENTS.md && head -3 AGENTS.md
 ```
 
 Expected: `AGENTS.md -> CLAUDE.md`, followed by the new first lines.
@@ -720,7 +720,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - [ ] **Step 2: After `main` has the commits, ask approval to fast-forward production**
 
 ```bash
-git -C /Users/tom_wang/Development/harness/agent-skills-production merge --ff-only main
+git -C ~/Development/harness/agent-skills-production merge --ff-only main
 ```
 
 Expected: `Fast-forward`. If it is not a fast-forward, stop and report to Tom; do not merge or rebase on your own.
@@ -750,8 +750,8 @@ cp ~/.claude/settings.json ~/.claude/settings.json.bak-session-start-hooks
 {
   "matcher": "startup|clear|compact",
   "hooks": [
-    { "type": "command", "command": "python3 /Users/tom_wang/.claude/skills/session-preferences/scripts/session_start_hook.py", "timeout": 5 },
-    { "type": "command", "command": "python3 /Users/tom_wang/.claude/skills/control-return/scripts/session_start_hook.py", "timeout": 5 }
+    { "type": "command", "command": "python3 $HOME/.claude/skills/session-preferences/scripts/session_start_hook.py", "timeout": 5 },
+    { "type": "command", "command": "python3 $HOME/.claude/skills/control-return/scripts/session_start_hook.py", "timeout": 5 }
   ]
 }
 ```
@@ -759,7 +759,7 @@ cp ~/.claude/settings.json ~/.claude/settings.json.bak-session-start-hooks
 - [ ] **Step 3: Validate the JSON and show the diff**
 
 ```bash
-python3 -c "import json; d=json.load(open('/Users/tom_wang/.claude/settings.json')); print(json.dumps(d['hooks']['SessionStart'], indent=1))" && \
+python3 -c "import json, os; d=json.load(open(os.path.expanduser('~/.claude/settings.json'))); print(json.dumps(d['hooks']['SessionStart'], indent=1))" && \
 diff ~/.claude/settings.json.bak-session-start-hooks ~/.claude/settings.json
 ```
 
@@ -819,7 +819,7 @@ from pathlib import Path
 
 path = Path.home() / ".codex" / "hooks.json"
 data = json.loads(path.read_text())
-base = "/Users/tom_wang/.codex/skills"
+base = Path.home() / ".codex" / "skills"
 data["hooks"]["SessionStart"] = [{
     "matcher": "startup|clear|compact",
     "hooks": [

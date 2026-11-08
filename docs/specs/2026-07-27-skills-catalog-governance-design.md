@@ -4,7 +4,7 @@
 
 ## Goal
 
-Make `/Users/tom_wang/.claude/skills` a maintainable, cross-agent source of truth without moving its existing flat skill directories or changing runtime invocation behaviour.
+Make `~/.claude/skills` a maintainable, cross-agent source of truth without moving its existing flat skill directories or changing runtime invocation behaviour.
 
 The repository will gain one machine-readable catalog, deterministic validation, and a generated index. The catalog owns governance metadata; each `SKILL.md` remains the source of its operational instructions.
 

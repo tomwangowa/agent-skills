@@ -109,8 +109,8 @@
 **Files:**
 - Modify: `global/AGENTS.md`
 - Modify: `global/CLAUDE.md`
-- Modify: `/Users/tom_wang/.codex/AGENTS.md`
-- Modify: `/Users/tom_wang/.claude/CLAUDE.md`
+- Modify: `~/.codex/AGENTS.md`
+- Modify: `~/.claude/CLAUDE.md`
 - Test: `tests/test_right_sized_verification_policy.py`
 
 **Interfaces:**
@@ -133,9 +133,9 @@
 
   Run: `python3 -m unittest tests.test_right_sized_verification_policy -v`
 
-  Run: `diff -u global/AGENTS.md /Users/tom_wang/.codex/AGENTS.md` and confirm no unexpected differences.
+  Run: `diff -u global/AGENTS.md ~/.codex/AGENTS.md` and confirm no unexpected differences.
 
-  Run: `diff -u global/CLAUDE.md /Users/tom_wang/.claude/CLAUDE.md` and confirm only the known runtime-only rules differ.
+  Run: `diff -u global/CLAUDE.md ~/.claude/CLAUDE.md` and confirm only the known runtime-only rules differ.
 
 ### Task 4: Run repository and skill-quality verification
 

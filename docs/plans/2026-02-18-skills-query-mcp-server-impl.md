@@ -1511,7 +1511,7 @@ git commit -m "feat(skills-query-server): add MCP server entry point and integra
 Add to Claude Code's MCP settings (via `claude mcp add` or manual edit):
 
 ```bash
-claude mcp add skills-query -- npx tsx /Users/tom_wang/.claude/skills/skills-query-server/src/index.ts
+claude mcp add skills-query -- npx tsx ~/.claude/skills/skills-query-server/src/index.ts
 ```
 
 **Step 2: Verify in Claude Code**
