@@ -255,6 +255,8 @@ rc=0; LESSON_CONFIG="$SETUP_CFG" python3 "$SCRIPT" setup --dir "$NEW_DIR" >/dev/
 assert_eq "$rc" "1" "missing dir needs --create"
 LESSON_CONFIG="$SETUP_CFG" python3 "$SCRIPT" setup --dir "$NEW_DIR" --create >/dev/null
 [[ -d "$NEW_DIR" ]] || { echo "setup did not create dir" >&2; exit 1; }
+assert_eq "$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["cap_global"], d["cap_project"])' "$SETUP_CFG")" \
+    "50 20" "setup writes default caps"
 rc=0; LESSON_CONFIG="$SETUP_CFG" python3 "$SCRIPT" setup --dir "$NEW_DIR" >/dev/null 2>&1 || rc=$?
 assert_eq "$rc" "1" "no overwrite without --force"
 
