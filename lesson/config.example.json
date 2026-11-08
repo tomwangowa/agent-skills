@@ -1,5 +1,5 @@
 {
   "lessons_dir": "~/lessons",
-  "cap_global": 20,
-  "cap_project": 10
+  "cap_global": 50,
+  "cap_project": 20
 }

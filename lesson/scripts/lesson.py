@@ -16,7 +16,7 @@ from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
 DEFAULT_CONFIG = SKILL_DIR / "config.json"
-DEFAULTS = {"cap_global": 20, "cap_project": 10}
+DEFAULTS = {"cap_global": 50, "cap_project": 20}
 RULE_MAX = 120
 CONFLICT_RE = re.compile(r"\(\d+\)|conflicted copy", re.IGNORECASE)
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")

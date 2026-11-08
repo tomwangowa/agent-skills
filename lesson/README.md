@@ -48,7 +48,7 @@ Add the text from step 2 to the global instruction file of each agent you use (f
 | `lessons: ⚠ 讀不到資料夾` | The lessons folder is missing or a sync folder is not mounted |
 | `lessons: ⚠ 找到 N 個檔案，載入 0 條` | Every file is retired or unparsable; check with `list` |
 | `⚠ 略過 N 個` | Some files could not be parsed (empty or half-synced files are common) |
-| `⚠ 已超過上限，請執行 /lesson review` | More lessons than the cap (default 20 global, 10 per project); merge or retire some |
+| `⚠ 已超過上限，請執行 /lesson review` | More lessons than the cap (default 50 global, 20 per project); merge or retire some |
 
 ## Tests
 
