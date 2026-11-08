@@ -52,14 +52,12 @@ class PackageTests(unittest.TestCase):
     def test_packaged_skills_use_portable_script_paths(self):
         # Plugin installs live in a versioned cache, not under ~/.claude/skills.
         pattern = re.compile(r'~/\.claude/skills/[a-z0-9-]+/(scripts|templates|references)/')
-        offenders = [s for p in self.packages for s in p['skills']
-                     if pattern.search((ROOT / s / 'SKILL.md').read_text(encoding='utf-8'))]
+        texts = {s: (ROOT / s / 'SKILL.md').read_text(encoding='utf-8')
+                 for p in self.packages for s in p['skills']}
+        offenders = [s for s, text in texts.items()
+                     if pattern.search(text)
+                     or s in {'newsletter-digest', 'report-generator'} and '~/.claude/skills/' in text]
         self.assertEqual(offenders, [])
-
-    def test_new_members_use_portable_script_paths(self):
-        for skill in ['newsletter-digest', 'report-generator']:
-            text = (ROOT / skill / 'SKILL.md').read_text(encoding='utf-8')
-            self.assertFalse('~/.claude/skills/' in text, f'{skill} hardcodes ~/.claude/skills/')
 
     def test_cross_package_dependency_must_be_offered(self):
         packages = copy.deepcopy(self.packages)
@@ -67,6 +65,38 @@ class PackageTests(unittest.TestCase):
         journal['skills'].remove('report-generator')
         self.assertTrue(any('absent from work-journal' in e
                             for e in validate_packages(packages, self.catalog)))
+
+    def test_optional_report_and_writing_integrations_are_declared(self):
+        expected = {
+            'repo-workflow': {'content-tools': {'sepia'}},
+            'work-journal': {
+                'content-tools': {'interactive-presentation-generator'},
+                'repo-workflow': {'code-story-teller'},
+                'document-skills': {'docx'},
+            },
+            'content-tools': {'technical-decisions': {'narrative-auditor'}},
+        }
+        by_name = {p['name']: p for p in self.packages}
+        for name, providers in expected.items():
+            for provider, skills in providers.items():
+                with self.subTest(package=name, provider=provider):
+                    declared = {skill for dep in by_name[name]['dependencies']
+                                if dep['provider'] == provider and dep['kind'] == 'optional'
+                                for skill in dep['skills']}
+                    self.assertTrue(skills <= declared, f'{name} is missing optional {provider}: {skills - declared}')
+
+    def test_new_integrations_reject_missing_provider_skills(self):
+        for consumer, provider, skill in [
+            ('repo-workflow', 'content-tools', 'sepia'),
+            ('work-journal', 'content-tools', 'interactive-presentation-generator'),
+            ('work-journal', 'repo-workflow', 'code-story-teller'),
+            ('content-tools', 'technical-decisions', 'narrative-auditor'),
+        ]:
+            with self.subTest(consumer=consumer, provider=provider):
+                packages = copy.deepcopy(self.packages)
+                next(p for p in packages if p['name'] == provider)['skills'].remove(skill)
+                self.assertIn(f'{consumer}: dependency skill is absent from {provider}',
+                              validate_packages(packages, self.catalog))
 
     def test_unknown_duplicate_retired_and_bad_dependencies_rejected(self):
         for field, value in [('skills', ['missing-skill']), ('skills', ['code-review-gemini']),

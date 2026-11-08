@@ -20,6 +20,15 @@
           "deep-reading"
         ],
         "tested_versions": []
+      },
+      {
+        "condition": "Only when qa-to-notes recommends a fact-check before conversion and the provider is installed",
+        "kind": "optional",
+        "provider": "technical-decisions",
+        "skills": [
+          "narrative-auditor"
+        ],
+        "tested_versions": []
       }
     ],
     "display_name": "Towa: Content Tools",

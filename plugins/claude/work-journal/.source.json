@@ -11,6 +11,33 @@
           "lesson"
         ],
         "tested_versions": []
+      },
+      {
+        "condition": "Only when the user requests presentation conversion and the provider is installed",
+        "kind": "optional",
+        "provider": "content-tools",
+        "skills": [
+          "interactive-presentation-generator"
+        ],
+        "tested_versions": []
+      },
+      {
+        "condition": "Only when adding a file-history narrative and the provider is installed",
+        "kind": "optional",
+        "provider": "repo-workflow",
+        "skills": [
+          "code-story-teller"
+        ],
+        "tested_versions": []
+      },
+      {
+        "condition": "Only when the user requests optional DOCX conversion and the external provider is installed",
+        "kind": "optional",
+        "provider": "document-skills",
+        "skills": [
+          "docx"
+        ],
+        "tested_versions": []
       }
     ],
     "display_name": "Towa: Work Journal",

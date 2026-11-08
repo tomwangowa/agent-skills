@@ -172,7 +172,17 @@
         "commands": [],
         "config": []
       },
-      "dependencies": []
+      "dependencies": [
+        {
+          "kind": "optional",
+          "provider": "content-tools",
+          "skills": [
+            "sepia"
+          ],
+          "condition": "Only when the optional final writing pass is available; otherwise disclose the gap and apply the explanation requirements directly",
+          "tested_versions": []
+        }
+      ]
     },
     {
       "name": "content-tools",
@@ -267,6 +277,15 @@
           ],
           "condition": "Only when the user asks arxiv-digest for a deep read and technical-decisions is installed",
           "tested_versions": []
+        },
+        {
+          "kind": "optional",
+          "provider": "technical-decisions",
+          "skills": [
+            "narrative-auditor"
+          ],
+          "condition": "Only when qa-to-notes recommends a fact-check before conversion and the provider is installed",
+          "tested_versions": []
         }
       ]
     },
@@ -342,6 +361,33 @@
             "lesson"
           ],
           "condition": "Record lessons only when explicitly requested and installed",
+          "tested_versions": []
+        },
+        {
+          "kind": "optional",
+          "provider": "content-tools",
+          "skills": [
+            "interactive-presentation-generator"
+          ],
+          "condition": "Only when the user requests presentation conversion and the provider is installed",
+          "tested_versions": []
+        },
+        {
+          "kind": "optional",
+          "provider": "repo-workflow",
+          "skills": [
+            "code-story-teller"
+          ],
+          "condition": "Only when adding a file-history narrative and the provider is installed",
+          "tested_versions": []
+        },
+        {
+          "kind": "optional",
+          "provider": "document-skills",
+          "skills": [
+            "docx"
+          ],
+          "condition": "Only when the user requests optional DOCX conversion and the external provider is installed",
           "tested_versions": []
         }
       ]
