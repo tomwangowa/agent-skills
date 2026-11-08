@@ -36,6 +36,16 @@ def _contract(contracts: dict, surface: str) -> dict:
     return record
 
 
+def _author(root: Path) -> dict:
+    """Credit the marketplace owner so the name lives in one tracked place, not in this code."""
+    owner = json.loads((root / '.claude-plugin/marketplace.json').read_text(encoding='utf-8')).get('owner')
+    name = owner.get('name') if isinstance(owner, dict) else None
+    if not isinstance(name, str) or not name.strip():
+        raise ValueError('Marketplace owner name is required for plugin author')
+    # Copy the name only; the repository is public, so contact fields stay out of manifests.
+    return {'name': name.strip()}
+
+
 def _scoped_registry(content: str, selected: set[str]) -> str:
     """Filter category entries in the repository's block format; workflows stay contextual."""
     lines = content.splitlines(keepends=True)
@@ -65,6 +75,7 @@ def render_package(repo_root: Path, package: dict, surface: str, destination: Pa
     """Create a new package; validate all source resources before any output is written."""
     root = repo_root.resolve()
     _contract(contracts, surface)
+    author = _author(root)
     selected = surface_skills(package, surface)
     resources = collect_resources(root, package)
     if package['name'] == 'work-journal' and (server_bundle is None or not (server_bundle / 'dist/index.js').is_file()):
@@ -91,7 +102,7 @@ def render_package(repo_root: Path, package: dict, surface: str, destination: Pa
     source_catalog = json.loads((root / 'skills-catalog.json').read_text())
     write_json(destination / 'skills/skills-catalog.json', {
         'schema_version': 1, 'skills': [s for s in source_catalog['skills'] if s['id'] in selected]})
-    identity = {'name': package['name'], 'version': package['version'],
+    identity = {'name': package['name'], 'version': package['version'], 'author': author,
                 'description': f"{package['name']} skills for {surface} CLI"}
     if surface == 'codex':
         identity['skills'] = './skills/'

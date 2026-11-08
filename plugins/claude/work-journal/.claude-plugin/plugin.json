@@ -1,5 +1,8 @@
 {
+  "author": {
+    "name": "Tom Wang"
+  },
   "description": "work-journal skills for claude CLI",
   "name": "work-journal",
-  "version": "0.1.1"
+  "version": "0.1.2"
 }

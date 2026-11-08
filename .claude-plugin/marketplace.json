@@ -22,49 +22,49 @@
       "displayName": "Towa: Quality Gates",
       "name": "quality-gates",
       "source": "./plugins/claude/quality-gates",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "description": "technical-decisions skills",
       "displayName": "Towa: Technical Decisions",
       "name": "technical-decisions",
       "source": "./plugins/claude/technical-decisions",
-      "version": "0.1.1"
+      "version": "0.1.2"
     },
     {
       "description": "repo-workflow skills",
       "displayName": "Towa: Repo Workflow",
       "name": "repo-workflow",
       "source": "./plugins/claude/repo-workflow",
-      "version": "0.2.0"
+      "version": "0.2.1"
     },
     {
       "description": "content-tools skills",
       "displayName": "Towa: Content Tools",
       "name": "content-tools",
       "source": "./plugins/claude/content-tools",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "description": "work-journal skills",
       "displayName": "Towa: Work Journal",
       "name": "work-journal",
       "source": "./plugins/claude/work-journal",
-      "version": "0.1.1"
+      "version": "0.1.2"
     },
     {
       "description": "session-preferences skills",
       "displayName": "Towa: Session Preferences",
       "name": "session-preferences",
       "source": "./plugins/claude/session-preferences",
-      "version": "0.1.2"
+      "version": "0.1.3"
     },
     {
       "description": "skill-toolbox skills",
       "displayName": "Towa: Skill Toolbox",
       "name": "skill-toolbox",
       "source": "./plugins/claude/skill-toolbox",
-      "version": "0.1.1"
+      "version": "0.1.2"
     }
   ]
 }

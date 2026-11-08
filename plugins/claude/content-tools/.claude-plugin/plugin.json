@@ -1,5 +1,8 @@
 {
+  "author": {
+    "name": "Tom Wang"
+  },
   "description": "content-tools skills for claude CLI",
   "name": "content-tools",
-  "version": "0.1.0"
+  "version": "0.1.1"
 }

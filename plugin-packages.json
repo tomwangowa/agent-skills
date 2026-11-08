@@ -4,7 +4,7 @@
     {
       "name": "quality-gates",
       "display_name": "Towa: Quality Gates",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "skills": [
         "code-review-claude",
         "code-review-codex",
@@ -55,7 +55,7 @@
     {
       "name": "technical-decisions",
       "display_name": "Towa: Technical Decisions",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "skills": [
         "brainstorming",
         "assumption-extractor",
@@ -137,7 +137,7 @@
     {
       "name": "repo-workflow",
       "display_name": "Towa: Repo Workflow",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "skills": [
         "code-story-teller",
         "repo-sync",
@@ -170,7 +170,7 @@
     {
       "name": "content-tools",
       "display_name": "Towa: Content Tools",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "skills": [
         "presentation-planner",
         "interactive-presentation-generator",
@@ -247,7 +247,7 @@
     {
       "name": "work-journal",
       "display_name": "Towa: Work Journal",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "skills": [
         "activity-logger",
         "work-log-analyzer"
@@ -321,7 +321,7 @@
     {
       "name": "session-preferences",
       "display_name": "Towa: Session Preferences",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "skills": [
         "session-preferences",
         "control-return"
@@ -368,7 +368,7 @@
     {
       "name": "skill-toolbox",
       "display_name": "Towa: Skill Toolbox",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "skills": [
         "skill-auditor",
         "skill-router",

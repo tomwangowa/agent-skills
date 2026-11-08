@@ -76,7 +76,7 @@
       "md-translate",
       "pptx-to-md"
     ],
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "resources": {
     "docs/plugins/installation.md": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff",

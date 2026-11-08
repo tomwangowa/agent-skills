@@ -19,14 +19,15 @@ APPROVED = {
     'session-preferences': 'session-preferences control-return',
     'skill-toolbox': 'skill-auditor skill-router skill-sync claude-workflow-designer',
 }
-APPROVED_VERSIONS = {name: '0.1.0' for name in APPROVED}
-APPROVED_VERSIONS.update({
-    'technical-decisions': '0.1.1',
-    'repo-workflow': '0.2.0',
-    'work-journal': '0.1.1',
-    'session-preferences': '0.1.2',
-    'skill-toolbox': '0.1.1',
-})
+APPROVED_VERSIONS = {
+    'quality-gates': '0.1.1',
+    'technical-decisions': '0.1.2',
+    'repo-workflow': '0.2.1',
+    'content-tools': '0.1.1',
+    'work-journal': '0.1.2',
+    'session-preferences': '0.1.3',
+    'skill-toolbox': '0.1.2',
+}
 
 
 class PackageTests(unittest.TestCase):

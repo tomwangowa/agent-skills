@@ -1,7 +1,10 @@
 {
+  "author": {
+    "name": "Tom Wang"
+  },
   "description": "quality-gates skills for codex CLI",
   "hooks": "./hooks/hooks.json",
   "name": "quality-gates",
   "skills": "./skills/",
-  "version": "0.1.0"
+  "version": "0.1.1"
 }

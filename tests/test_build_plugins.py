@@ -26,7 +26,7 @@ def fixture(root):
                             + '---\n\nFixture instructions.\n')
     (root / 'plugin-packages.json').write_text(json.dumps(data))
     marketplace = root / '.claude-plugin/marketplace.json'; marketplace.parent.mkdir()
-    marketplace.write_text(json.dumps({'name': 'fixture', 'owner': {'name': 'Fixture'}, 'plugins': [
+    marketplace.write_text(json.dumps({'name': 'fixture', 'owner': {'name': 'Fixture', 'email': 'fixture@example.invalid'}, 'plugins': [
         {'name': 'attention-mod', 'displayName': 'Towa: Attention Panel',
          'source': './plugins/attention-mod'},
         {'name': 'handoff-mod', 'displayName': 'Towa: Session Handoff',
@@ -50,7 +50,9 @@ class BuildTests(unittest.TestCase):
                 self.assertFalse((dest / 'skills' / excluded).exists())
                 self.assertFalse((dest / 'plugin.json').exists())
                 manifest = json.loads((dest / f'.{surface}-plugin/plugin.json').read_text())
-                self.assertEqual(manifest['version'], '0.1.0')
+                self.assertEqual(manifest['version'], packages[0]['version'])
+                # Only the owner's name is copied, so a contact field never reaches the manifest.
+                self.assertEqual(manifest['author'], {'name': 'Fixture'})
             toolbox = next(p for p in packages if p['name'] == 'skill-toolbox')
             dest = root / 'plugins/codex/skill-toolbox'
             render_package(root, toolbox, 'codex', dest, CONTRACTS)
@@ -120,6 +122,14 @@ class BuildTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 render_package(root, p, 'codex', dest, {'surfaces': {}})
             self.assertFalse(dest.exists())
+            marketplace = root / '.claude-plugin/marketplace.json'
+            for owner in [None, {}, {'name': '  '}, 'Fixture']:
+                data = json.loads(marketplace.read_text())
+                data['owner'] = owner
+                marketplace.write_text(json.dumps(data))
+                with self.assertRaises(ValueError):
+                    render_package(root, p, 'codex', dest, CONTRACTS)
+                self.assertFalse(dest.exists())
 
     def test_router_registry_is_scoped_and_index_is_not_installation_evidence(self):
         with tempfile.TemporaryDirectory() as tmp:
