@@ -66,6 +66,8 @@ python3 <skill_base_directory>/scripts/handoffs.py list            # 使用者�
 
 輸出的欄位是 `scope`、`items`、`remaining`、`skipped`。
 
+- `resumed`、`closed`、`done` 不列出，也不計入 `remaining`；`--all` 同樣排除。
+  其他狀態仍列入候選，避免拼錯的狀態讓交接消失。
 - `items` 做成表格，欄位：編號、任務、status、建立時間、來源 worktree／分支。
   `current` 為 true 的是目前的 worktree，標出來。`branch` 是 null 就填 `-`。
 - `malformed` 為 true 的，status 欄標「格式異常」（`status` 有值就併列）。選中這類檔案時怎麼處理，看步驟 5 第 4 點。

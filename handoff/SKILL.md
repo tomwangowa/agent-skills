@@ -95,7 +95,7 @@ branch: tom/post-profile-invite-later-copy   # 權威值，未 sanitize
 worktree: /path/to/your-repo                   # 當前 worktree / repo 根
 created: 2026-06-29T18:30:00+08:00
 task: L10N upstream 條件式同步                # 一行任務標題
-status: in-progress                           # in-progress | blocked | ready-for-review | resumed
+status: in-progress                           # in-progress | blocked | ready-for-review | resumed | closed | done
 assertions:                                   # 機器可驗前提；無則省略整個 key
   - kind: expect_head
     repo: /path/to/related-repo

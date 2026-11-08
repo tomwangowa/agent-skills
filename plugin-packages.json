@@ -137,7 +137,7 @@
     {
       "name": "repo-workflow",
       "display_name": "Towa: Repo Workflow",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "skills": [
         "code-story-teller",
         "repo-sync",
