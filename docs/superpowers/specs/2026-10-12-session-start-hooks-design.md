@@ -88,15 +88,15 @@ control-return 用同樣格式的開頭，接規則全文。
 {
   "matcher": "startup|clear|compact",
   "hooks": [
-    { "type": "command", "command": "python3 /Users/tom_wang/.claude/skills/session-preferences/scripts/session_start_hook.py", "timeout": 5 },
-    { "type": "command", "command": "python3 /Users/tom_wang/.claude/skills/control-return/scripts/session_start_hook.py", "timeout": 5 }
+    { "type": "command", "command": "python3 $HOME/.claude/skills/session-preferences/scripts/session_start_hook.py", "timeout": 5 },
+    { "type": "command", "command": "python3 $HOME/.claude/skills/control-return/scripts/session_start_hook.py", "timeout": 5 }
   ]
 }
 ```
 
 ### Codex：`~/.codex/hooks.json`
 
-新增 `SessionStart`，格式照現有已核准的 `PreToolUse` entry，路徑改為 `/Users/tom_wang/.codex/skills/...`。上線順序：
+新增 `SessionStart`，格式照現有已核准的 `PreToolUse` entry，路徑改為 `~/.codex/skills/...`。上線順序：
 
 1. repo 改動合併到 production（`~/.claude/skills` 才會有新腳本）。
 2. 先給使用者看 skill-sync 預覽（含刪除數），確認後才同步到 `~/.codex/skills`。

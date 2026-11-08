@@ -130,7 +130,7 @@ assert_eq "trunc none"   "短"  "$(trunc_end 短 18)"
 assert_eq "trunc end"    "code-review-claud…" "$(trunc_end 'code-review-claude/SKILL.md' 18)"
 # CJK end-truncate must stay within display width
 assert_eq "trunc cjk width" "7" "$(disp_width "$(trunc_end '中文檔名測試很長很長' 8)")"
-assert_contains "trunc mid" "…" "$(trunc_mid '/Users/tom_wang/.claude/skills/git-status-tui/scripts' 30)"
+assert_contains "trunc mid" "…" "$(trunc_mid '/home/user/.claude/skills/git-status-tui/scripts' 30)"
 assert_eq "abbrev home" "~/x" "$(HOME=/home/u abbrev_path /home/u/x 40)"
 ```
 

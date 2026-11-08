@@ -49,7 +49,7 @@ Use a minimal integration rather than importing the external skills as-is.
 ### 1. Enrich `brainstorming` with four writing patterns
 
 The first implementation updated
-`/Users/tom_wang/.claude/skills/brainstorming/SKILL.md` with only these patterns:
+`~/.claude/skills/brainstorming/SKILL.md` with only these patterns:
 
 1. **Completion criteria** — every phase and decision ends with an observable
    condition that says what is resolved and what remains open.
