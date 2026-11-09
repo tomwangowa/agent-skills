@@ -22,7 +22,7 @@ APPROVED = {
 APPROVED_VERSIONS = {
     'quality-gates': '0.1.1',
     'technical-decisions': '0.1.2',
-    'repo-workflow': '0.2.1',
+    'repo-workflow': '0.2.2',
     'content-tools': '0.1.1',
     'work-journal': '0.1.2',
     'session-preferences': '0.1.3',

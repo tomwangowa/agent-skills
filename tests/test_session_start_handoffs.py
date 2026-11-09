@@ -819,13 +819,24 @@ class ListTests(RepoTestCase):
         self.assertEqual(locations[0].worktree, self.repo.resolve())
         self.assertTrue(locations[0].current)
 
-    def test_excludes_resumed(self) -> None:
-        self.put("done.md", created=ago(hours=1), status="resumed")
+    def test_excludes_resumed_and_finished_from_default_and_all(self) -> None:
+        for status in ("resumed", "closed", "done"):
+            self.put(f"{status}.md", created=ago(hours=1), status=status)
         for status in ("in-progress", "blocked", "ready-for-review"):
             self.put(f"{status}.md", created=ago(hours=2), status=status)
-        _, out = self.listing()
-        self.assertEqual(sorted(self.names(out)), ["blocked.md", "in-progress.md", "ready-for-review.md"])
-        self.assertEqual(out["remaining"], 0)
+        for args in ((), ("--all",)):
+            with self.subTest(args=args):
+                code, out = self.listing(*args)
+                self.assertEqual(code, 0)
+                self.assertEqual(sorted(self.names(out)), ["blocked.md", "in-progress.md", "ready-for-review.md"])
+                self.assertEqual(out["remaining"], 0)
+
+    def test_unknown_status_stays_visible(self) -> None:
+        self.put("typo.md", created=ago(hours=1), status="cloaed")
+        code, out = self.listing()
+        self.assertEqual(code, 0)
+        self.assertEqual(self.names(out), ["typo.md"])
+        self.assertEqual(out["items"][0]["status"], "cloaed")
 
     def test_current_worktree_is_capped_with_remaining(self) -> None:
         for index in range(7):

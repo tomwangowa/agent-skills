@@ -553,7 +553,7 @@ def _scan_handoffs(location: Location) -> tuple[list[tuple[datetime, dict]], lis
 
         parsed = parse_handoff(raw)
         status = parsed.fields.get("status")
-        if status == "resumed":
+        if status in {"resumed", "closed", "done"}:
             continue
         created = parse_created(parsed.fields.get("created"), info.st_mtime)
         item = {

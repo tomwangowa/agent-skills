@@ -36,7 +36,7 @@
       "displayName": "Towa: Repo Workflow",
       "name": "repo-workflow",
       "source": "./plugins/claude/repo-workflow",
-      "version": "0.2.1"
+      "version": "0.2.2"
     },
     {
       "description": "content-tools skills",
