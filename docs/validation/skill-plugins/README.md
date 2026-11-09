@@ -6,8 +6,11 @@ and Codex CLI 0.162.1 using a unique local marketplace and disposable fixtures.
 session-preferences and work-journal changed after that run (d738ec4 changed
 runtime migration path matching; a later change removed npm's hidden lockfile
 from the work-journal server bundle). repo-workflow (session-start and task-bootstrap added) and
-skill-toolbox (package index) also changed after that run. The recorded
-bindings for all four packages are stale, so
+skill-toolbox (package index) also changed after that run. On 2026-11-08
+quality-gates, content-tools, work-journal and repo-workflow gained skills,
+skill-toolbox's package index changed again, and the shipped acceptance wording
+changed in technical-decisions and session-preferences.
+The recorded bindings for all seven packages are stale, so
 `check_plugin_release.py --require-acceptance` fails. The checker requires one
 evidence record per surface that binds all seven packages, so passing it again
 needs a new seven-package native acceptance run; the release version bump

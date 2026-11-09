@@ -4,14 +4,15 @@
     {
       "name": "quality-gates",
       "display_name": "Towa: Quality Gates",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "skills": [
         "code-review-claude",
         "code-review-codex",
         "completion-gate",
         "codebase-audit",
         "pr-review-assistant",
-        "secure-ai-development-gate"
+        "secure-ai-development-gate",
+        "review-convergence-gate"
       ],
       "platforms": [
         "claude",
@@ -55,7 +56,7 @@
     {
       "name": "technical-decisions",
       "display_name": "Towa: Technical Decisions",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "skills": [
         "brainstorming",
         "assumption-extractor",
@@ -137,13 +138,16 @@
     {
       "name": "repo-workflow",
       "display_name": "Towa: Repo Workflow",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "skills": [
         "code-story-teller",
         "repo-sync",
         "handoff",
         "session-start",
-        "task-bootstrap"
+        "task-bootstrap",
+        "understand-file",
+        "understand-function",
+        "understand-repo"
       ],
       "platforms": [
         "claude",
@@ -156,6 +160,9 @@
         "session-start/agents/openai.yaml",
         "task-bootstrap/scripts/bootstrap_worktree.py",
         "task-bootstrap/agents/openai.yaml",
+        "understand-file/agents/openai.yaml",
+        "understand-function/agents/openai.yaml",
+        "understand-repo/agents/openai.yaml",
         "docs/plugins/installation.md",
         "docs/plugins/migration.md",
         "docs/plugins/team-instructions.md",
@@ -165,18 +172,31 @@
         "commands": [],
         "config": []
       },
-      "dependencies": []
+      "dependencies": [
+        {
+          "kind": "optional",
+          "provider": "content-tools",
+          "skills": [
+            "sepia"
+          ],
+          "condition": "Only when the optional final writing pass is available; otherwise disclose the gap and apply the explanation requirements directly",
+          "tested_versions": []
+        }
+      ]
     },
     {
       "name": "content-tools",
       "display_name": "Towa: Content Tools",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "skills": [
         "presentation-planner",
         "interactive-presentation-generator",
         "sepia",
         "md-translate",
-        "pptx-to-md"
+        "pptx-to-md",
+        "newsletter-digest",
+        "qa-to-notes",
+        "arxiv-digest"
       ],
       "platforms": [
         "claude",
@@ -223,23 +243,48 @@
         "sepia/references/professional-pass.md",
         "sepia/references/rubric.md",
         "sepia/references/style-pass.md",
+        "newsletter-digest/agents/openai.yaml",
+        "newsletter-digest/scripts/parse_emls.py",
+        "qa-to-notes/agents/openai.yaml",
+        "arxiv-digest/agents/openai.yaml",
+        "arxiv-digest/references/deep-reading-handoff.md",
         "docs/plugins/installation.md",
         "docs/plugins/migration.md",
         "docs/plugins/team-instructions.md",
         "docs/plugins/superpowers-compatibility.md"
       ],
       "requirements": {
-        "commands": [],
+        "commands": [
+          "python3"
+        ],
         "config": []
       },
       "dependencies": [
         {
           "kind": "optional",
-          "provider": "external",
+          "provider": "work-journal",
           "skills": [
             "report-generator"
           ],
-          "condition": "Only when selected and installed",
+          "condition": "Only when the work-journal package is installed",
+          "tested_versions": []
+        },
+        {
+          "kind": "optional",
+          "provider": "technical-decisions",
+          "skills": [
+            "deep-reading"
+          ],
+          "condition": "Only when the user asks arxiv-digest for a deep read and technical-decisions is installed",
+          "tested_versions": []
+        },
+        {
+          "kind": "optional",
+          "provider": "technical-decisions",
+          "skills": [
+            "narrative-auditor"
+          ],
+          "condition": "Only when qa-to-notes recommends a fact-check before conversion and the provider is installed",
           "tested_versions": []
         }
       ]
@@ -247,10 +292,11 @@
     {
       "name": "work-journal",
       "display_name": "Towa: Work Journal",
-      "version": "0.1.2",
+      "version": "0.2.0",
       "skills": [
         "activity-logger",
-        "work-log-analyzer"
+        "work-log-analyzer",
+        "report-generator"
       ],
       "platforms": [
         "claude",
@@ -265,6 +311,7 @@
         "work-log-analyzer/references/log-formats.md",
         "work-log-analyzer/scripts/aggregate_activities.sh",
         "work-log-analyzer/scripts/find_referenced_documents.py",
+        "report-generator/agents/openai.yaml",
         "runtime/agent_skills_runtime/__init__.py",
         "runtime/agent_skills_runtime/config.py",
         "runtime/agent_skills_runtime/doctor.py",
@@ -315,13 +362,40 @@
           ],
           "condition": "Record lessons only when explicitly requested and installed",
           "tested_versions": []
+        },
+        {
+          "kind": "optional",
+          "provider": "content-tools",
+          "skills": [
+            "interactive-presentation-generator"
+          ],
+          "condition": "Only when the user requests presentation conversion and the provider is installed",
+          "tested_versions": []
+        },
+        {
+          "kind": "optional",
+          "provider": "repo-workflow",
+          "skills": [
+            "code-story-teller"
+          ],
+          "condition": "Only when adding a file-history narrative and the provider is installed",
+          "tested_versions": []
+        },
+        {
+          "kind": "optional",
+          "provider": "document-skills",
+          "skills": [
+            "docx"
+          ],
+          "condition": "Only when the user requests optional DOCX conversion and the external provider is installed",
+          "tested_versions": []
         }
       ]
     },
     {
       "name": "session-preferences",
       "display_name": "Towa: Session Preferences",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "skills": [
         "session-preferences",
         "control-return"
@@ -368,7 +442,7 @@
     {
       "name": "skill-toolbox",
       "display_name": "Towa: Skill Toolbox",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "skills": [
         "skill-auditor",
         "skill-router",

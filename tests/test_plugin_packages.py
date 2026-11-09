@@ -1,6 +1,7 @@
 """Approved package membership and fail-closed resource selection."""
 import copy
 import json
+import re
 import subprocess
 import tempfile
 import unittest
@@ -11,22 +12,22 @@ from scripts.plugin_packaging.resources import collect_resources
 
 ROOT = Path(__file__).resolve().parents[1]
 APPROVED = {
-    'quality-gates': 'code-review-claude code-review-codex completion-gate codebase-audit pr-review-assistant secure-ai-development-gate',
+    'quality-gates': 'code-review-claude code-review-codex completion-gate codebase-audit pr-review-assistant secure-ai-development-gate review-convergence-gate',
     'technical-decisions': 'brainstorming assumption-extractor critical-research deep-reading micro-poc-validator narrative-auditor research-cross-validator research-synthesis tech-feasibility tech-research-pipeline role-orchestrator role-pm role-rd spec-gap-finder technical-proposal-review ui-design-analyzer',
-    'repo-workflow': 'code-story-teller repo-sync handoff session-start task-bootstrap',
-    'content-tools': 'presentation-planner interactive-presentation-generator sepia md-translate pptx-to-md',
-    'work-journal': 'activity-logger work-log-analyzer',
+    'repo-workflow': 'code-story-teller repo-sync handoff session-start task-bootstrap understand-file understand-function understand-repo',
+    'content-tools': 'presentation-planner interactive-presentation-generator sepia md-translate pptx-to-md newsletter-digest qa-to-notes arxiv-digest',
+    'work-journal': 'activity-logger work-log-analyzer report-generator',
     'session-preferences': 'session-preferences control-return',
     'skill-toolbox': 'skill-auditor skill-router skill-sync claude-workflow-designer',
 }
 APPROVED_VERSIONS = {
-    'quality-gates': '0.1.1',
-    'technical-decisions': '0.1.2',
-    'repo-workflow': '0.2.2',
-    'content-tools': '0.1.1',
-    'work-journal': '0.1.2',
-    'session-preferences': '0.1.3',
-    'skill-toolbox': '0.1.2',
+    'quality-gates': '0.2.0',
+    'technical-decisions': '0.1.3',
+    'repo-workflow': '0.3.0',
+    'content-tools': '0.2.0',
+    'work-journal': '0.2.0',
+    'session-preferences': '0.1.4',
+    'skill-toolbox': '0.1.3',
 }
 
 
@@ -39,7 +40,7 @@ class PackageTests(unittest.TestCase):
         self.assertEqual({p['name']: p['skills'] for p in self.packages},
                          {name: skills.split() for name, skills in APPROVED.items()})
         members = [s for p in self.packages for s in p['skills']]
-        self.assertEqual((len(members), len(set(members))), (40, 40))
+        self.assertEqual((len(members), len(set(members))), (48, 48))
         self.assertEqual(validate_packages(self.packages, self.catalog), [])
         self.assertEqual({p['name']: p['version'] for p in self.packages}, APPROVED_VERSIONS)
         lifecycles = {s['id']: s['lifecycle'] for s in self.catalog}
@@ -47,6 +48,55 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(lifecycles['work-log-analyzer'], 'personal')
         self.assertEqual(lifecycles['session-preferences'], 'experimental')
         self.assertEqual(lifecycles['control-return'], 'experimental')
+
+    def test_packaged_skills_use_portable_script_paths(self):
+        # Plugin installs live in a versioned cache, not under ~/.claude/skills.
+        pattern = re.compile(r'~/\.claude/skills/[a-z0-9-]+/(scripts|templates|references)/')
+        texts = {s: (ROOT / s / 'SKILL.md').read_text(encoding='utf-8')
+                 for p in self.packages for s in p['skills']}
+        offenders = [s for s, text in texts.items()
+                     if pattern.search(text)
+                     or s in {'newsletter-digest', 'report-generator'} and '~/.claude/skills/' in text]
+        self.assertEqual(offenders, [])
+
+    def test_cross_package_dependency_must_be_offered(self):
+        packages = copy.deepcopy(self.packages)
+        journal = next(p for p in packages if p['name'] == 'work-journal')
+        journal['skills'].remove('report-generator')
+        self.assertTrue(any('absent from work-journal' in e
+                            for e in validate_packages(packages, self.catalog)))
+
+    def test_optional_report_and_writing_integrations_are_declared(self):
+        expected = {
+            'repo-workflow': {'content-tools': {'sepia'}},
+            'work-journal': {
+                'content-tools': {'interactive-presentation-generator'},
+                'repo-workflow': {'code-story-teller'},
+                'document-skills': {'docx'},
+            },
+            'content-tools': {'technical-decisions': {'narrative-auditor'}},
+        }
+        by_name = {p['name']: p for p in self.packages}
+        for name, providers in expected.items():
+            for provider, skills in providers.items():
+                with self.subTest(package=name, provider=provider):
+                    declared = {skill for dep in by_name[name]['dependencies']
+                                if dep['provider'] == provider and dep['kind'] == 'optional'
+                                for skill in dep['skills']}
+                    self.assertTrue(skills <= declared, f'{name} is missing optional {provider}: {skills - declared}')
+
+    def test_new_integrations_reject_missing_provider_skills(self):
+        for consumer, provider, skill in [
+            ('repo-workflow', 'content-tools', 'sepia'),
+            ('work-journal', 'content-tools', 'interactive-presentation-generator'),
+            ('work-journal', 'repo-workflow', 'code-story-teller'),
+            ('content-tools', 'technical-decisions', 'narrative-auditor'),
+        ]:
+            with self.subTest(consumer=consumer, provider=provider):
+                packages = copy.deepcopy(self.packages)
+                next(p for p in packages if p['name'] == provider)['skills'].remove(skill)
+                self.assertIn(f'{consumer}: dependency skill is absent from {provider}',
+                              validate_packages(packages, self.catalog))
 
     def test_unknown_duplicate_retired_and_bad_dependencies_rejected(self):
         for field, value in [('skills', ['missing-skill']), ('skills', ['code-review-gemini']),

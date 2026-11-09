@@ -55,6 +55,39 @@
         "routable": true,
         "sync": true
       }
+    },
+    {
+      "category": "research-critical-thinking",
+      "id": "understand-file",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "research-critical-thinking",
+      "id": "understand-function",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "category": "research-critical-thinking",
+      "id": "understand-repo",
+      "invocation_intent": "user",
+      "lifecycle": "personal",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
     }
   ]
 }

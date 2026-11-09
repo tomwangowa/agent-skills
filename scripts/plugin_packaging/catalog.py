@@ -99,8 +99,8 @@ def validate_packages(packages: list[dict], catalog: list[dict]) -> list[str]:
         errors.append('Exactly the seven approved packages are required')
     if len(display_names) != len(set(display_names)):
         errors.append('Package display names must be unique')
-    if len(members) != 40 or len(set(members)) != 40:
-        errors.append('Exactly 40 distinct source skills are required')
+    if len(members) != 48 or len(set(members)) != 48:
+        errors.append('Exactly 48 distinct source skills are required')
     return errors
 
 

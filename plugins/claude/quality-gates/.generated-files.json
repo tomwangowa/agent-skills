@@ -2,15 +2,15 @@
   "files": {
     ".claude-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "233a9dd733ee31b7c5ed4498455d93d1038d508a190bc14ebb8ab58aed789a04"
+      "sha256": "0ae5961038965753acd765d3a658f59e087905d0475856f6bef4a46f3960895e"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "59efde0e48911b02a613ddf691cf1d2db9e93348201670abdda83eafca2145ae"
+      "sha256": "92e651f096d409621383fc837655aa906d8f7a479f47f8efb1bc1266f29c95e2"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "1a8a0997b867300b0c8c917b946e82dc6820f7e8a1baa4581cf04e4d13591bfa"
+      "sha256": "8cab1fee35e55ea5ec045556df58dd89a0fddc6fe8f77c930b3a4fd155278cd6"
     },
     "hooks/hooks.json": {
       "mode": 420,
@@ -26,7 +26,7 @@
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff"
+      "sha256": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69"
     },
     "migration.md": {
       "mode": 420,
@@ -72,6 +72,10 @@
       "mode": 493,
       "sha256": "624fc964d9a614f13a3bb5522b09817da43f5618411058b762142eff25f7f717"
     },
+    "skills/review-convergence-gate/SKILL.md": {
+      "mode": 420,
+      "sha256": "8fc81000517431c516efdf2012c99637181ff37e205c25a7a97c2bb889086805"
+    },
     "skills/secure-ai-development-gate/SKILL.md": {
       "mode": 420,
       "sha256": "4d3360a99c1b835065631fa1c6957012109c99b85e2c045521706db62f0b4728"
@@ -90,7 +94,7 @@
     },
     "skills/skills-catalog.json": {
       "mode": 420,
-      "sha256": "2b362352843791c7125a89e370f68a358c72f64482d475e41f574ffab6c7bc91"
+      "sha256": "c57ec1897102469a5e56387579809f887dc3996a7ab10027b8072b812a28850c"
     },
     "superpowers-compatibility.md": {
       "mode": 420,

@@ -4,11 +4,29 @@
   "package": {
     "dependencies": [
       {
-        "condition": "Only when selected and installed",
+        "condition": "Only when the work-journal package is installed",
         "kind": "optional",
-        "provider": "external",
+        "provider": "work-journal",
         "skills": [
           "report-generator"
+        ],
+        "tested_versions": []
+      },
+      {
+        "condition": "Only when the user asks arxiv-digest for a deep read and technical-decisions is installed",
+        "kind": "optional",
+        "provider": "technical-decisions",
+        "skills": [
+          "deep-reading"
+        ],
+        "tested_versions": []
+      },
+      {
+        "condition": "Only when qa-to-notes recommends a fact-check before conversion and the provider is installed",
+        "kind": "optional",
+        "provider": "technical-decisions",
+        "skills": [
+          "narrative-auditor"
         ],
         "tested_versions": []
       }
@@ -20,7 +38,9 @@
       "codex"
     ],
     "requirements": {
-      "commands": [],
+      "commands": [
+        "python3"
+      ],
       "config": []
     },
     "runtime_resources": [
@@ -64,6 +84,11 @@
       "sepia/references/professional-pass.md",
       "sepia/references/rubric.md",
       "sepia/references/style-pass.md",
+      "newsletter-digest/agents/openai.yaml",
+      "newsletter-digest/scripts/parse_emls.py",
+      "qa-to-notes/agents/openai.yaml",
+      "arxiv-digest/agents/openai.yaml",
+      "arxiv-digest/references/deep-reading-handoff.md",
       "docs/plugins/installation.md",
       "docs/plugins/migration.md",
       "docs/plugins/team-instructions.md",
@@ -74,12 +99,18 @@
       "interactive-presentation-generator",
       "sepia",
       "md-translate",
-      "pptx-to-md"
+      "pptx-to-md",
+      "newsletter-digest",
+      "qa-to-notes",
+      "arxiv-digest"
     ],
-    "version": "0.1.1"
+    "version": "0.2.0"
   },
   "resources": {
-    "docs/plugins/installation.md": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff",
+    "arxiv-digest/SKILL.md": "8dea2a17289c1f832169d6433092c67fb1617fcae3dbe647afcdfd635a3aa2c9",
+    "arxiv-digest/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+    "arxiv-digest/references/deep-reading-handoff.md": "98165f787334b19f0ca53d0357963c1ed4dad3d71795ed5f2971d1cf62edb3ba",
+    "docs/plugins/installation.md": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69",
     "docs/plugins/migration.md": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16",
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
     "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",
@@ -113,8 +144,13 @@
     "interactive-presentation-generator/styles/traditional/kabuki-gold.yaml": "911332e38a9d9eb97b1d973f115d5055e21fb6dd7258d6966d6b1ae9c40b09a3",
     "interactive-presentation-generator/styles/traditional/ukiyo-e.yaml": "de63c01e1d77d30b7edd505d26c997fd58b0f0e5c3720406cf907a4567edc8b1",
     "md-translate/SKILL.md": "8dd6e0ca77a7455465298df1c133836ae484f8d99d78ec161e0e3af19c1a0415",
+    "newsletter-digest/SKILL.md": "4f9e010dd8d959b343ee67d9a89524a99c24630a87da9470f91d290d20f341d6",
+    "newsletter-digest/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+    "newsletter-digest/scripts/parse_emls.py": "05e9634648d7d7fb0ae00eaa6d6efc4390b72a15894c11a8ea2547d1531af024",
     "pptx-to-md/SKILL.md": "ba9c3b6d4c016c843b6fc66e7c6fe1c5c048d043b1065620563c98ae82eeb8d2",
     "presentation-planner/SKILL.md": "d88b6b6c4ca4feec915e461dc17371cf91ca0f82885efff91a11954a64a3e61c",
+    "qa-to-notes/SKILL.md": "995c0b2386cc9616d94812c3b760c4a68924ac1630280a517be3406ef76c8569",
+    "qa-to-notes/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
     "sepia/SKILL.md": "bc94bca5fa0bdcac51dd4c758298ba215a04e930301016afe9939c5ac8abc417",
     "sepia/agents/openai.yaml": "00e5dc7886eb61913387db3120e63ba6da80c314ceadb4957ed945eef07f66dd",
     "sepia/references/discourse-pass.md": "3117ad4909fbcce3048b061ed5d98e38b27e3d256aea89a7a3dfa48cfdfcd9f3",

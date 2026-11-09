@@ -46,13 +46,13 @@
       "session-preferences",
       "control-return"
     ],
-    "version": "0.1.3"
+    "version": "0.1.4"
   },
   "resources": {
     "control-return/SKILL.md": "7f9bd25f9538fd3fb090263701f6661c3573d39124b880e4566df5160874998b",
     "control-return/agents/openai.yaml": "7796d7e2d792d00fac486ae0b6cad7a5f4ebb00ab9117141b2f610ea012a2433",
     "control-return/scripts/session_start_hook.py": "0ef7db8c43a62a28c95b286582dd8ff983af09c8870639773556de8ed03ea4fe",
-    "docs/plugins/installation.md": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff",
+    "docs/plugins/installation.md": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69",
     "docs/plugins/migration.md": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16",
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
     "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",

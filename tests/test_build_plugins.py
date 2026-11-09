@@ -226,20 +226,27 @@ class BuildTests(unittest.TestCase):
             for old in stale + ['完成原生驗收']:
                 self.assertNotIn(old, text, path)
 
-    def test_docs_name_repo_workflow_for_reacceptance(self):
-        # Adding session-start and task-bootstrap changed repo-workflow, so its recorded native acceptance binding is stale.
-        self.assertIn('repo-workflow and skill-toolbox changed afterward', (ROOT / 'README.md').read_text())
-        for path in ('README.zh.md', 'docs/plugins/README.md', 'docs/plugins/installation.md'):
-            self.assertIn('`repo-workflow` 與 `skill-toolbox` 在那之後有修改', (ROOT / path).read_text(), path)
-        # Collapse line wraps so the check does not depend on how the paragraph is folded.
-        validation = ' '.join((ROOT / 'docs/validation/skill-plugins/README.md').read_text().split())
-        self.assertIn('repo-workflow (session-start and task-bootstrap added) and skill-toolbox (package index) also changed after that run',
-                      validation)
+    def test_shipped_docs_do_not_enumerate_reacceptance_packages(self):
+        # Naming packages in shipped text changes every package whenever one changes, forcing a bump of all seven.
+        installation = (ROOT / 'docs/plugins/installation.md').read_text()
+        self.assertIn('那次之後有修改的套件，發布前需要重新驗收', installation)
+        self.assertNotIn('在那之後有修改', installation)
         readmes = sorted((ROOT / 'plugins').glob('*/*/README.md'))
         self.assertEqual(len(readmes), 14)
         for readme in readmes:
-            self.assertIn('repo-workflow and skill-toolbox changed after that run', readme.read_text(),
+            text = readme.read_text()
+            self.assertIn('Packages changed after that run need native acceptance again before release', text,
                           str(readme.relative_to(ROOT)))
+            self.assertNotIn('skill-toolbox changed after that run', text, str(readme.relative_to(ROOT)))
+
+    def test_unshipped_docs_record_that_all_seven_bindings_are_stale(self):
+        # These files are not copied into plugins, so they can name the stale packages exactly.
+        self.assertIn('all seven packages changed afterward', (ROOT / 'README.md').read_text())
+        self.assertIn('七包在那之後都有修改', (ROOT / 'README.zh.md').read_text())
+        self.assertIn('七包在那之後都有修改', (ROOT / 'docs/plugins/README.md').read_text())
+        # Collapse line wraps so the check does not depend on how the paragraph is folded.
+        validation = ' '.join((ROOT / 'docs/validation/skill-plugins/README.md').read_text().split())
+        self.assertIn('The recorded bindings for all seven packages are stale', validation)
 
 
 if __name__ == '__main__':

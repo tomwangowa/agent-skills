@@ -58,10 +58,10 @@ Follow the Process section step by step.
 
 ### Step 1: Parse .eml Files
 
-Run the bundled parser script to extract structured data from all .eml files:
+Run the bundled parser script to extract structured data from all .eml files. `<skill_base_directory>` is the base directory shown when this skill loads:
 
 ```bash
-python3 ~/.claude/skills/newsletter-digest/scripts/parse_emls.py "<folder_path>" -o /tmp/newsletter-digest.json
+python3 <skill_base_directory>/scripts/parse_emls.py "<folder_path>" -o /tmp/newsletter-digest.json
 ```
 
 - If the folder has subfolders, ask user whether to include them (add `--recursive` flag)
@@ -173,7 +173,7 @@ At the top of the digest, add:
 - **File not found / unreadable**: Log the filename and skip; continue processing remaining files. Report skipped files at the end of the digest.
 - **MIME parse failure**: Attempt plain-text fallback. If still fails, note the file as unparseable and skip.
 - **Empty folder**: Inform the user that no `.eml` files were found; suggest checking the path.
-- **parse_emls.py not found**: Inform the user and provide the expected path (`~/.claude/skills/newsletter-digest/scripts/parse_emls.py`).
+- **parse_emls.py not found**: Inform the user and provide the expected path (`<skill_base_directory>/scripts/parse_emls.py`).
 - **All files fail**: Do not produce a partial or empty digest; report the failure clearly.
 
 ## Security Considerations

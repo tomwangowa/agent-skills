@@ -2,7 +2,7 @@
   "files": {
     ".codex-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "f8e34cf2d0561ad224377b0a48b9aacfd3e302688ccb1a46d4b29b9bb947b84a"
+      "sha256": "0be7fba1b0f8263feff04f45638940b9c815c12149a2be4cd0c3129f58cfa39f"
     },
     ".mcp.json": {
       "mode": 420,
@@ -10,15 +10,15 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "963ef1277ef63656ea9979676a1706028966dba83f648f891def9c826cef003a"
+      "sha256": "38efef22e2e23df51f5a4a2cb437ad5fe8349d11b3127cf5aec166256dec2810"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "c23bf93535b70b07750e3b2229afd3013a4bfa89e5107e909915ecd92441c614"
+      "sha256": "2f505971c8c921a7a654a498195bcd6b3b71fdf056581936049a704771d3f170"
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "277f6a215752e6a3269889d522c30d564c6e0324b227c147cbff9cd8a6649eff"
+      "sha256": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69"
     },
     "migration.md": {
       "mode": 420,
@@ -14608,9 +14608,17 @@
       "mode": 493,
       "sha256": "2e9105646731d9919765f60ff707b1cc969f1124d60af11922a2c045466148ad"
     },
+    "skills/report-generator/SKILL.md": {
+      "mode": 420,
+      "sha256": "321a7d1dc221bfe4a1540f54a0eac50bf4699e18a36390b0adf02fc761664264"
+    },
+    "skills/report-generator/agents/openai.yaml": {
+      "mode": 420,
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+    },
     "skills/skills-catalog.json": {
       "mode": 420,
-      "sha256": "93eaff09c6cba4806aa6615dee42a0e82a950814c11d0b103c798dd728ddf846"
+      "sha256": "1e4acb6c5ab6129c2e6332b73e8fdee58ae39aadbac99542bccd6959f1b810e9"
     },
     "skills/work-log-analyzer/README.md": {
       "mode": 420,
