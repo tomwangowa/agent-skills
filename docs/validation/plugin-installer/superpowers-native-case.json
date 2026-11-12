@@ -1,0 +1,83 @@
+{
+  "status": "PROPOSED_NOT_RUN",
+  "binary": "$CLAUDE_BINARY",
+  "binary_target": "$CLAUDE_BINARY_TARGET",
+  "binary_sha256": "abc9feeeca8091d51b623291e044cf0528c2f6b74e0c1d6ef671d52c73f7cd3c",
+  "expected_cli_version": "2.1.319",
+  "cwd": "$CASE_ROOT/project",
+  "environment_overrides": {
+    "HOME": "$CASE_ROOT/home",
+    "CLAUDE_CONFIG_DIR": "$CASE_ROOT/claude-config",
+    "CODEX_HOME": "$CASE_ROOT/codex-unused",
+    "AGENT_SKILLS_CONFIG_DIR": "$CASE_ROOT/shared-unused"
+  },
+  "environment_policy": "Do not inherit Claude/Anthropic API key, auth, credential or proxy overrides; preserve only required executable/OS environment after review.",
+  "source_action": [
+    "$CLAUDE_BINARY",
+    "plugin",
+    "marketplace",
+    "add",
+    "https://github.com/anthropics/claude-plugins-official.git",
+    "--scope",
+    "user",
+    "--json"
+  ],
+  "install_action": [
+    "$CLAUDE_BINARY",
+    "plugin",
+    "install",
+    "superpowers@claude-plugins-official",
+    "--scope",
+    "user",
+    "--json"
+  ],
+  "source_budget": 1,
+  "install_budget": 1,
+  "model_calls": 0,
+  "selected_target": {
+    "host": "claude",
+    "name": "superpowers",
+    "marketplace": "claude-plugins-official",
+    "source": "https://github.com/anthropics/claude-plugins-official.git",
+    "version": "7.0.0",
+    "skills": [
+      "writing-plans",
+      "test-driven-development",
+      "systematic-debugging",
+      "executing-plans",
+      "subagent-driven-development",
+      "requesting-code-review",
+      "finishing-a-development-branch"
+    ],
+    "notices": [
+      "STRONGLY RECOMMENDED: optional workflow support; not preselected.",
+      "Official catalog and payload versions differ by host. Existing providers are preserved.",
+      "Installation, exposed entries and real behavior require separate validation."
+    ],
+    "content_hash": null,
+    "provider": {
+      "catalog_kind": "configured-git",
+      "catalog_repository": "https://github.com/anthropics/claude-plugins-official.git",
+      "payload_kind": "git",
+      "payload_repository": "https://github.com/obra/superpowers.git",
+      "payload_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "payload_path": null,
+      "entry_hash": "d85f0111dd6cfcd54268f46dbadbd54d4df344c160cda075134e2d35aae9f888"
+    }
+  },
+  "evidence_dir": "$CASE_ROOT/evidence",
+  "stop_conditions": [
+    "binary/version drift",
+    "catalog origin/entry/pin drift",
+    "unexpected prompt/prerequisite/write",
+    "native error",
+    "unexplained materialization bytes"
+  ],
+  "read_allowlist": [
+    "isolated native --version/marketplace-list/plugin-list",
+    "Python 3.12.1 stdlib json/hashlib/pathlib/os/platform/zipfile/subprocess",
+    "local Git config --local --get remote.origin.url",
+    "local Git rev-parse --verify HEAD"
+  ],
+  "record_update": "Not automatic; review full payload and NativeAcceptance tuple first."
+}

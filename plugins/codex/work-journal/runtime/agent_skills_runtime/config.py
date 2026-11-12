@@ -62,8 +62,8 @@ def validate_work_journal(settings: object) -> dict:
     if not isinstance(activities, str) or not activities.strip() or "\0" in activities:
         raise ValueError("sources.activities must be a non-empty path")
     notes = sources.get("notes")
-    if not isinstance(notes, dict) or not isinstance(notes.get("paths"), list) or not notes["paths"]:
-        raise ValueError("sources.notes.paths must be a non-empty array")
+    if not isinstance(notes, dict) or not isinstance(notes.get("paths"), list):
+        raise ValueError("sources.notes.paths must be an array")
     if any(not isinstance(p, str) or not p.strip() or "\0" in p for p in notes["paths"]):
         raise ValueError("sources.notes.paths must contain non-empty paths")
     for name in ("recursive", "exclude_hidden"):

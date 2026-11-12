@@ -138,7 +138,7 @@ read into the activity record.
 Resolve the personal settings root from `AGENT_SKILLS_CONFIG_DIR`, otherwise
 `XDG_CONFIG_HOME/agent-skills`, otherwise the current user's
 `~/.config/agent-skills`. The external `work-journal.json` supplies
-`sources.activities` and a non-empty `sources.notes.paths`. Relative data
+`sources.activities` and `sources.notes.paths` (which may be empty). Relative data
 paths resolve from that settings root; `~/` resolves from the current home.
 
 The logger, initializer, local aggregator and normal MCP startup use the same
@@ -163,7 +163,8 @@ Preview the selected activity/note directories before setting them up:
 PYTHONPATH=runtime python3 -m agent_skills_runtime.setup --activities "<selected-activity-directory>" --notes "<selected-notes-directory>"
 ```
 
-Replace the placeholders with the user's selected directories. Setup preserves
+Replace the placeholders with the user's selected directories. Omit `--notes`
+when no notes directory has been selected. Setup preserves
 an existing configuration. The initializer creates only the selected activity
 and processed directories; it does not create legacy private configuration.
 

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "records": [
+    {
+      "host": "claude",
+      "cli_version": "2.1.322 (Claude Code)",
+      "platform": "macos",
+      "architecture": "arm64",
+      "catalog_name": "claude-plugins-official",
+      "catalog_commit": "43fd1f9db0941b2b83cb62268e35970d4a67c202",
+      "entry_hash": "d85f0111dd6cfcd54268f46dbadbd54d4df344c160cda075134e2d35aae9f888",
+      "manifest_version": "7.0.0",
+      "content_hash": "d9ae919521df6591becf75601b64bd6e9ca358e389bbe95050f966555a7ef704",
+      "evidence_ref": "acceptance-evidence/claude-login-matrix-evidence.json"
+    },
+    {
+      "host": "codex",
+      "cli_version": "codex-cli 0.167.0",
+      "platform": "macos",
+      "architecture": "arm64",
+      "catalog_name": "openai-api-curated",
+      "catalog_commit": "d420d13051bffe4543ed39e30fa46b87148e47dd",
+      "entry_hash": "fcf75e5ef3e9fb29b75714eaf2727ea32b412037736dd92b744ab437d1a3ddc1",
+      "manifest_version": "6.3.0",
+      "content_hash": "2bc88a8ad42d3b2a5f2b7f0b6711b0ae4d18895bfa870dcfeb7c9fc5d31fdba0",
+      "evidence_ref": "acceptance-evidence/codex-no-account-native-evidence.json"
+    }
+  ]
+}

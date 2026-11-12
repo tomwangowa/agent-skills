@@ -1,0 +1,24 @@
+{
+  "host": "claude",
+  "cli_version": "2.1.321 (Claude Code)",
+  "platform": "macos",
+  "architecture": "arm64",
+  "provenance": "Observed in the approved isolated Claude official-source capability case on 2026-11-10; paths anonymized. Native install returned zero; post-install Git-only source verification failed. Not full native/candidate/function acceptance.",
+  "command": [
+    "claude",
+    "plugin",
+    "install",
+    "superpowers@claude-plugins-official",
+    "--scope",
+    "user",
+    "--json"
+  ],
+  "output": {
+    "command": "install",
+    "outcome": "ok",
+    "plugin": "superpowers@claude-plugins-official",
+    "pluginId": "superpowers@claude-plugins-official",
+    "scope": "user",
+    "message": "Successfully installed plugin: superpowers@claude-plugins-official (scope: user)"
+  }
+}

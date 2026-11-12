@@ -1,0 +1,53 @@
+{
+  "sha256": "31cc34fa6df68627bfab4ed552256e7efa2f1be192fdd6cc9d40beea5b84c18e",
+  "bytes": 59461,
+  "zip_entries": 28,
+  "provenance_files": 27,
+  "provenance_inputs": 31,
+  "reproducible": true,
+  "catalog_and_provider_records_unchanged_from_r8": true,
+  "real_host_runs": 0,
+  "keyboard_and_scope_replay": {
+    "status": "passed",
+    "archive_sha256": "31cc34fa6df68627bfab4ed552256e7efa2f1be192fdd6cc9d40beea5b84c18e",
+    "entry": "relocated install-macos.command -> install.py -> bundled runtime",
+    "terminal_rows": 18,
+    "terminal_columns": 80,
+    "selection": [
+      "quality-gates"
+    ],
+    "eight_unneeded_defaults_unchecked": true,
+    "unrelated_scoped_copies_retained": true,
+    "new_package_install_proposed": true,
+    "cancel_exit": 130,
+    "post_exit_terminal_mode_check": "not observable after launcher exit: 25",
+    "fake_host_mutations": 0,
+    "real_host_invocations": 0,
+    "external_operations": 0,
+    "model_requests": 0
+  },
+  "tests": {
+    "installer": {
+      "total": 113,
+      "passed": 112,
+      "skipped": 1,
+      "skip_reason": "PowerShell unavailable"
+    },
+    "packages_passed": 14,
+    "config_passed": 15,
+    "catalog_check_exit": 0
+  },
+  "real_native_r9_installation": "not run",
+  "personal_settings_changes": 0,
+  "secret_scan": {
+    "scope": "fresh exact ZIP extraction",
+    "tool": "gitleaks dir",
+    "findings": 0,
+    "exit": 0
+  },
+  "preservation": {
+    "old_archives_unchanged": true,
+    "personal_settings_unchanged": 4,
+    "head_stashes_staged_unchanged": true
+  }
+}

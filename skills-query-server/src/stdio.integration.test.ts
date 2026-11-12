@@ -97,7 +97,7 @@ describe('production stdio shared configuration', () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toMatch(/work-journal.json/);
     expect(result.stdout).toBe('');
-    writeFileSync(path, '{"sources":{"activities":"journal","notes":{"paths":[]}}}');
+    writeFileSync(path, '{"sources":{"activities":"journal"}}');
     result = spawnSync(process.execPath, [f.entry], { cwd: f.cwd, env: f.env, encoding: 'utf8', timeout: 5000 });
     expect(result.status).toBe(1);
     expect(result.stderr).toMatch(/notes.paths/);

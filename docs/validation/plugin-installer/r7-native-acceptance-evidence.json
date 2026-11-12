@@ -1,0 +1,109 @@
+{
+  "status": "r7-native-installation-and-rerun-passed",
+  "archive_sha256": "d598a8170b57ba27a29a1ecdcbef3c450ec0acf4f25c9a4edca8f864f8b0f4ea",
+  "platform": "macos",
+  "architecture": "arm64",
+  "installer_runs": 6,
+  "source_adds": 2,
+  "plugin_installs": 3,
+  "rerun_mutations": 0,
+  "native_codex_catalog_startups": 1,
+  "native_isolated_logins": 1,
+  "model_requests_sent_by_observer": 0,
+  "cases": [
+    {
+      "case": "claude-no-account",
+      "cli_version": "2.1.322 (Claude Code)",
+      "auth_before": {
+        "loggedIn": false,
+        "authMethod": "none",
+        "apiProvider": "firstParty"
+      },
+      "auth_after": {
+        "loggedIn": false,
+        "authMethod": "none",
+        "apiProvider": "firstParty"
+      },
+      "first_installer_exit": 0,
+      "rerun_installer_exit": 0,
+      "first_source_adds": 1,
+      "first_plugin_installs": 1,
+      "rerun_mutations": 0,
+      "manifest_version": "7.0.0",
+      "native_cache_version": "7.0.0",
+      "files": 238,
+      "content_hash": "d9ae919521df6591becf75601b64bd6e9ca358e389bbe95050f966555a7ef704",
+      "enabled": true,
+      "single_cache_directory": true,
+      "payload_modes_and_settings_unchanged_on_rerun": true,
+      "committed_content_and_modes_match": true
+    },
+    {
+      "case": "claude-signed-in",
+      "cli_version": "2.1.322 (Claude Code)",
+      "auth_before": {
+        "loggedIn": true,
+        "authMethod": "claude.ai",
+        "apiProvider": "firstParty"
+      },
+      "auth_after": {
+        "loggedIn": true,
+        "authMethod": "claude.ai",
+        "apiProvider": "firstParty"
+      },
+      "first_installer_exit": 0,
+      "rerun_installer_exit": 0,
+      "first_source_adds": 1,
+      "first_plugin_installs": 1,
+      "rerun_mutations": 0,
+      "manifest_version": "7.0.0",
+      "native_cache_version": "7.0.0",
+      "files": 238,
+      "content_hash": "d9ae919521df6591becf75601b64bd6e9ca358e389bbe95050f966555a7ef704",
+      "enabled": true,
+      "single_cache_directory": true,
+      "payload_modes_and_settings_unchanged_on_rerun": true,
+      "committed_content_and_modes_match": true
+    },
+    {
+      "case": "codex-no-account",
+      "cli_version": "codex-cli 0.167.0",
+      "auth_before": {
+        "account_auth_file_absent": true
+      },
+      "auth_after": {
+        "account_auth_file_absent": true
+      },
+      "first_installer_exit": 0,
+      "rerun_installer_exit": 0,
+      "first_source_adds": 0,
+      "first_plugin_installs": 1,
+      "rerun_mutations": 0,
+      "manifest_version": "6.3.0",
+      "native_cache_version": "d420d130",
+      "files": 73,
+      "content_hash": "2bc88a8ad42d3b2a5f2b7f0b6711b0ae4d18895bfa870dcfeb7c9fc5d31fdba0",
+      "enabled": true,
+      "single_cache_directory": true,
+      "payload_modes_and_settings_unchanged_on_rerun": true,
+      "committed_content_and_modes_match": true
+    }
+  ],
+  "preservation": {
+    "protected_files_unchanged": 76,
+    "known_intentional_document_update": "docs/validation/plugin-installer/README.md (changed before approval)",
+    "original_settings_unchanged": 4,
+    "head_stashes_staged_unchanged": true,
+    "archive_unchanged": true
+  },
+  "instrumentation": "Unmodified candidate entry via runpy, PTY menu driver, Python subprocess audit hook; no fake CLI or replaced runtime functions.",
+  "unverified": [
+    "Windows/Linux and other versions/architectures",
+    "Native older/newer/disabled/alternate-provider cases beyond offline matrix",
+    "Actual company endpoint connectivity and network policy",
+    "All-packages coexistence",
+    "OS launcher end-to-end flow",
+    "Workflow/hook/model behavior",
+    "Complete network/keychain/whole-computer audit"
+  ]
+}

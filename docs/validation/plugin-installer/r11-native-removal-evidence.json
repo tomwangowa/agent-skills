@@ -1,0 +1,65 @@
+{
+  "status": "passed-native-r11-isolated-removal",
+  "date": "2026-11-12",
+  "archive_sha256": "c686ec875a61a81793782ec6621e424889ad14d1f643a4a3f52113f0e5a36414",
+  "cli_version": "2.1.322 (Claude Code)",
+  "platform": "macos",
+  "architecture": "arm64",
+  "entry": "exact R11 install-macos.command -> install.py -> bundled runtime",
+  "fixture_preparation": "Prepared synthetic registry/settings using real package bytes; no native install or catalog download is claimed",
+  "native_uninstall_attempts": 2,
+  "native_uninstall_receipts": [
+    {
+      "command": "uninstall",
+      "outcome": "ok",
+      "pluginId": "quality-gates@tomwangowa",
+      "scope": "user",
+      "keptData": true
+    },
+    {
+      "command": "uninstall",
+      "outcome": "ok",
+      "pluginId": "work-journal@tomwangowa",
+      "scope": "user",
+      "keptData": true
+    }
+  ],
+  "native_uninstall_retries": 0,
+  "native_read_queries": 16,
+  "launcher_exit": 0,
+  "final_native_inventory": [
+    {
+      "id": "quality-gates@tomwangowa",
+      "scope": "project",
+      "version": "0.2.0",
+      "enabled": true
+    }
+  ],
+  "project_payload_hash_matches": true,
+  "project_settings_byte_identical": true,
+  "synthetic_journal_notes_records_plugin_data_files_preserved": 9,
+  "fixture_user_plugin_entries_removed": true,
+  "unrelated_fixture_settings_preserved": true,
+  "real_personal_files_checked": 5,
+  "real_personal_files_byte_identical": true,
+  "existing_archives_checked": 11,
+  "existing_archives_byte_identical": true,
+  "head_stashes_staged_unchanged": true,
+  "outbound_network_denied": true,
+  "real_credential_reads_and_keychain_access_denied": true,
+  "writes_confined_to_fixture_and_terminal": true,
+  "credentials_copied": false,
+  "normal_model_sessions_started": 0,
+  "native_install_or_source_setup_attempts": 0,
+  "secret_scan_initial_findings": 8,
+  "secret_scan_review": "six corroborated source-file SHA256 values and two header examples without a key payload",
+  "not_verified": [
+    "Native installation-to-removal round trip",
+    "Actual credential/secret cleanup (keychain deliberately inaccessible)",
+    "Windows/Linux and other CLI versions",
+    "Codex removal",
+    "Restarted model, hook and MCP workflows",
+    "Personal production-package deletion (outside authorized scope)",
+    "Atomic concurrent file-change protection"
+  ]
+}

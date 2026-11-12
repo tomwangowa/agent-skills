@@ -1,0 +1,72 @@
+{
+  "host": "claude",
+  "cli_version": "2.1.321 (Claude Code)",
+  "platform": "macos",
+  "architecture": "arm64",
+  "provenance": "Observed in the approved isolated Claude official-source capability case on 2026-11-10; paths anonymized. Native install returned zero; post-install Git-only source verification failed. Not full native/candidate/function acceptance.",
+  "before": {
+    "command": [
+      "claude",
+      "plugin",
+      "marketplace",
+      "list",
+      "--json"
+    ],
+    "output": [
+      {
+        "name": "claude-plugins-official",
+        "source": "git",
+        "url": "https://github.com/anthropics/claude-plugins-official.git",
+        "installLocation": "<CASE_ROOT>/claude-config/plugins/marketplaces/claude-plugins-official"
+      }
+    ],
+    "verified_snapshot": {
+      "catalog_commit": "dceb15d50832e6adf380bedc26dde03d251324b9",
+      "catalog_kind": "configured-git",
+      "catalog_name": "claude-plugins-official",
+      "catalog_repository": "https://github.com/anthropics/claude-plugins-official.git",
+      "catalog_root": "<CASE_ROOT>/claude-config/plugins/marketplaces/claude-plugins-official",
+      "entry_hash": "d85f0111dd6cfcd54268f46dbadbd54d4df344c160cda075134e2d35aae9f888",
+      "payload_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "payload_hash": "",
+      "payload_kind": "git",
+      "payload_path": "",
+      "payload_repository": "https://github.com/obra/superpowers.git"
+    }
+  },
+  "after": {
+    "command": [
+      "claude",
+      "plugin",
+      "marketplace",
+      "list",
+      "--json"
+    ],
+    "output": [
+      {
+        "name": "claude-plugins-official",
+        "source": "git",
+        "url": "https://github.com/anthropics/claude-plugins-official.git",
+        "installLocation": "<CASE_ROOT>/claude-config/plugins/marketplaces/claude-plugins-official"
+      }
+    ],
+    "catalog_observation": {
+      "git_present": false,
+      "gcs_sha_present": true,
+      "gcs_sha": "dceb15d50832e6adf380bedc26dde03d251324b9",
+      "entry_hash": "d85f0111dd6cfcd54268f46dbadbd54d4df344c160cda075134e2d35aae9f888",
+      "entry_still_matches": true,
+      "catalog_tree_hash": "19dc4f48e2de396e7c26ec7f42ab5d742aac5efa36a67fbace82cff1692ad0ab"
+    }
+  },
+  "installed_file_count": 238,
+  "installed_tree_hash": "d9ae919521df6591becf75601b64bd6e9ca358e389bbe95050f966555a7ef704",
+  "native_registry_evidence": [
+    {
+      "scope": "user",
+      "version": "7.0.0",
+      "gitCommitSha": "bb92a77741419a4ab5f06e711a283343f1ada0c3"
+    }
+  ],
+  "causing_native_command": "NOT ISOLATED: first observed after install and subsequent inventory reads"
+}

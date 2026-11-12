@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "package_commands": {
+    "quality-gates": ["git"],
+    "technical-decisions": ["git"],
+    "repo-workflow": ["git", "python3", "bash"],
+    "content-tools": [],
+    "work-journal": [],
+    "session-preferences": [],
+    "skill-toolbox": []
+  },
+  "managers": {
+    "macos": {
+      "brew": {
+        "python3": "python@3.13", "node": "node@24", "jq": "jq",
+        "bash": "bash", "rsync": "rsync", "git": "git"
+      }
+    },
+    "windows": {
+      "winget": {
+        "python3": "Python.Python.3.13", "node": "OpenJS.NodeJS.LTS", "jq": "jqlang.jq"
+      }
+    },
+    "linux": {
+      "apt-get": {"python3": "python3", "jq": "jq", "bash": "bash", "rsync": "rsync", "git": "git"}
+    }
+  },
+  "notices": ["Package managers may install transitive dependencies, download metadata, change system directories and request administrator approval.", "No manager is installed automatically; no whole-system upgrade or automatic retry.", "APT mappings require an Ubuntu/Debian host; Python availability must be rechecked against 3.11+.", "Homebrew node@24 is keg-only; existing PATH may need manual configuration after installation.", "Windows Bash/rsync functionality is not automatically supplied or verified."],
+  "references": [
+    "https://formulae.brew.sh/formula/python@3.13",
+    "https://formulae.brew.sh/formula/node@24",
+    "https://formulae.brew.sh/formula/jq",
+    "https://formulae.brew.sh/formula/bash",
+    "https://formulae.brew.sh/formula/rsync",
+    "https://packages.ubuntu.com/noble/python3",
+    "https://jqlang.org/download/"
+  ]
+}

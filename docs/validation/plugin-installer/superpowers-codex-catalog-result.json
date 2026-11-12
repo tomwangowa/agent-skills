@@ -1,0 +1,125 @@
+{
+  "status": "verified-catalog-only",
+  "cli_version": "codex-cli 0.167.0",
+  "startup": {
+    "catalog_materialized": true,
+    "initialize_answered": true,
+    "app_server_starts": 1,
+    "model_requests_sent": 0,
+    "install_requests_sent": 0,
+    "observed_sha_text": "d420d13051bffe4543ed39e30fa46b87148e47dd\n",
+    "server_exit": 0
+  },
+  "visible_marketplace": "openai-api-curated",
+  "catalog_commit": "d420d13051bffe4543ed39e30fa46b87148e47dd",
+  "catalog_git_origin": null,
+  "catalog_git_clean": true,
+  "transport_limit": "Native-created clean Git checkout and exact HEAD observed, without a configured origin. Wire requests and earlier native transport attempts were not traced.",
+  "entries": [
+    {
+      "file": ".agents/plugins/marketplace.json",
+      "catalog_name": "openai-curated",
+      "file_sha256": "62ed7a1c906a7e486a84ee3f2f7eba048d075e360e355072e1b0823a128f432e",
+      "entry_hash": "fcf75e5ef3e9fb29b75714eaf2727ea32b412037736dd92b744ab437d1a3ddc1",
+      "source": {
+        "source": "local",
+        "path": "./plugins/superpowers"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      }
+    },
+    {
+      "file": ".agents/plugins/api_marketplace.json",
+      "catalog_name": "openai-api-curated",
+      "file_sha256": "fda4c5f92d57f3e1ed267780f4a3416184466a29312604b02a84d798db7bca2e",
+      "entry_hash": "fcf75e5ef3e9fb29b75714eaf2727ea32b412037736dd92b744ab437d1a3ddc1",
+      "source": {
+        "source": "local",
+        "path": "./plugins/superpowers"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      }
+    }
+  ],
+  "payload": {
+    "name": "superpowers",
+    "version": "6.3.0",
+    "file_count": 73,
+    "manifest_sha256": "18eb497a5c3c5aade93fe1982db0fbd2ab23d4a428fc552da6ee3cc520c9706d",
+    "observed_tree_hash": "2bc88a8ad42d3b2a5f2b7f0b6711b0ae4d18895bfa870dcfeb7c9fc5d31fdba0",
+    "accepted": false
+  },
+  "reads": [
+    {
+      "index": 0,
+      "returncode": 0,
+      "result": {
+        "marketplaces": [
+          {
+            "name": "openai-api-curated",
+            "root": "$CODEX_HOME/.tmp/plugins"
+          }
+        ]
+      }
+    },
+    {
+      "index": 1,
+      "returncode": 0,
+      "result": {
+        "installed": [],
+        "available": []
+      }
+    },
+    {
+      "index": 2,
+      "returncode": 0,
+      "result": {
+        "installed": [],
+        "available": []
+      }
+    }
+  ],
+  "query_limit": "Both plugin list commands omitted --available; empty available arrays do not prove absence or eligibility. No query was repeated.",
+  "preservation": {
+    "protected_files_checked": 52,
+    "original_settings_checked": 4,
+    "all_equal": true,
+    "head_stashes_staged_equal": true
+  },
+  "unverified": [
+    "Native --available response",
+    "Installation and enabled state",
+    "Installer support for API-curated catalog",
+    "Claude current-version archive transition",
+    "Windows and Linux",
+    "Model/skill/hook behavior"
+  ],
+  "local_verifier_correction": "Initial assertion expected remote.origin.url, but native Git init/fetch creates no named remote. Corrected observation to null; no native action repeated.",
+  "raw_evidence_hashes": {
+    "version.json": "1faf2e2f9b9fa36b16ad8dc012822b7622a676d29af3b1931e539460136e2935",
+    "read-1.json": "af4af9f4a261732e73ea27f31fa7b267fc83b0961921129b401bdd7c7b90b799",
+    "app-server.stdout.jsonl": "389e4b90f37cf1ec0e04f64ac97f2fc4d5298608ae1d3148f4306e5967bfc69b",
+    "read-0.json": "0ca849b4c3855d050aad685452bb31b39d51aa9570c6d7bf30093ba99fdc0dad",
+    "probe-started": "7e4d1fc150c94a1561c6695778c4d292b14fb45b9941de77eeba8942f4039d95",
+    "probe_once.py": "9bbccc6caf62d885d2ad3febe102f2ac6bf2876344174760b7298babef76c610",
+    "rpc-sent.jsonl": "9a367a5379ec729effda15b89140f65d63f8926705e356adc02e098956527b97",
+    "baseline.json": "375815872d3c0ebd6ddb32b452226b2b6224922715aa9c40e7c6118797a22a60",
+    "read-0-started": "1e77f04ab59db1ceafccd1b146bed77252d87d51fa41c78c67c14648af598e64",
+    "read-2.json": "8900156fa0a13c7acfa88e6bd722073068467255136e67645bb427840b53a855",
+    "read-1-started": "1e77f04ab59db1ceafccd1b146bed77252d87d51fa41c78c67c14648af598e64",
+    "app-server.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "startup-result.json": "c892f9c01e0f87f91f9e94e270e8cfc09a4e1474c34f20b65b0b43e529d0adea",
+    "read-2-started": "1e77f04ab59db1ceafccd1b146bed77252d87d51fa41c78c67c14648af598e64"
+  },
+  "evidence_root": ".superpowers/sdd/2026-11-11-superpowers-codex-catalog/prepared-wiw4qxz0"
+}

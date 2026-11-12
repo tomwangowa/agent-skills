@@ -1,0 +1,52 @@
+{
+  "archive": "dist/agent-skills-installer-fe55c04-candidate-r5.zip",
+  "size_bytes": 51800,
+  "sha256": "3047be151e9e89644a35d6542356badf90bf4e34dd3f7497d14a13c05a932ace",
+  "archive_files": 25,
+  "provenance_files_verified": 24,
+  "source_inputs_verified": 28,
+  "catalog_entries": 18,
+  "own_payload_hashes_verified": 16,
+  "source_commit": "fe55c04bf9202fe82f1a68b7f5985305c82249f0",
+  "changed_vs_r4": [
+    "provenance.json",
+    "runtime/agent_skills_installer/planning.py"
+  ],
+  "relocated_help_exit": 0,
+  "posix_launcher_syntax": "passed",
+  "relocated_cases": {
+    "bundled_runtime_only": true,
+    "cases": [
+      {
+        "host": "claude",
+        "shared_missing_source": "passed",
+        "declined_source_then_install_approval": "passed",
+        "exit_code": 1,
+        "native_mutation_calls": 0,
+        "personal_files_preserved": true
+      },
+      {
+        "host": "codex",
+        "shared_missing_source": "passed",
+        "declined_source_then_install_approval": "passed",
+        "exit_code": 1,
+        "native_mutation_calls": 0,
+        "personal_files_preserved": true
+      }
+    ],
+    "superpowers_automatic_writes": "still disabled"
+  },
+  "native_acceptance": "not run",
+  "reproducible_bytes": true,
+  "bundle_tests_passed": 6,
+  "gitleaks_version": "8.30.1",
+  "gitleaks_findings": 0,
+  "preserved_state": {
+    "older_archives": 4,
+    "native_evidence_files": 25,
+    "source_inputs_unchanged": true,
+    "head_unchanged": true,
+    "staged_changes": 0,
+    "stashes_unchanged": 4
+  }
+}

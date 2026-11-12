@@ -1,0 +1,28 @@
+{
+  "host": "claude",
+  "cli_version": "2.1.319",
+  "platform": "macos",
+  "architecture": "arm64",
+  "command": [
+    "claude",
+    "plugin",
+    "marketplace",
+    "list",
+    "--json"
+  ],
+  "provenance": "Observed 2026-11-09 native R2 acceptance, macOS 26.6.2 arm64; source listing fields captured including url; only installLocation anonymized. No native command rerun to obtain this fixture.",
+  "original_entry_fields": [
+    "installLocation",
+    "name",
+    "source",
+    "url"
+  ],
+  "output": [
+    {
+      "name": "tomwangowa",
+      "source": "git",
+      "url": "https://github.com/tomwangowa/agent-skills.git",
+      "installLocation": "<MARKETPLACE_ROOT>"
+    }
+  ]
+}

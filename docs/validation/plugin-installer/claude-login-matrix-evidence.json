@@ -1,0 +1,124 @@
+{
+  "status": "both-native-auth-state-installations-passed",
+  "cases": {
+    "no-account": {
+      "status": "verified-native-installation-capability",
+      "case": "no-account",
+      "platform": "macos",
+      "architecture": "arm64",
+      "cli_version": "2.1.322 (Claude Code)",
+      "auth_before": {
+        "loggedIn": false,
+        "authMethod": "none",
+        "apiProvider": "firstParty"
+      },
+      "auth_after": {
+        "loggedIn": false,
+        "authMethod": "none",
+        "apiProvider": "firstParty"
+      },
+      "manifest_version": "7.0.0",
+      "scope": "user",
+      "enabled": true,
+      "payload_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "installed_files": 238,
+      "content_hash": "d9ae919521df6591becf75601b64bd6e9ca358e389bbe95050f966555a7ef704",
+      "executable_modes_match": true,
+      "catalog_commit": "43fd1f9db0941b2b83cb62268e35970d4a67c202",
+      "catalog_stayed_git_at_all_observation_points": true,
+      "archive_transition_observed": false,
+      "source_add_attempts": 1,
+      "source_add_exit": 0,
+      "plugin_install_attempts": 1,
+      "plugin_install_exit": 0,
+      "model_requests_sent": 0,
+      "preservation": {
+        "protected_files": 52,
+        "original_settings": 4,
+        "all_equal": true,
+        "head_stashes_staged_equal": true
+      },
+      "candidate_acceptance": false,
+      "unverified": [
+        "Other authentication case unless separately completed",
+        "Installer ZIP end-to-end flow",
+        "Windows/Linux",
+        "Actual company endpoint connectivity",
+        "Workflow/hook/model behavior",
+        "Complete network/keychain/whole-computer side-effect audit"
+      ],
+      "evidence_root": ".superpowers/sdd/2026-11-11-claude-login-matrix/prepared-0ua9ulq8/no-account",
+      "saved_results_hashes": {
+        "version": "11963253fec127eda3c03b65deef042b950981f96606f4f2de401023343a0f02",
+        "source-add": "5fa0ef0b1b5a27b9f1ea9f04cd0c15fc8bf4e6cb636ffb8597562cb8b76ee826",
+        "market-before": "e037815b60018b6eb606b1296419e7c919de00bebbe0ab8ebf61ea903997ccf9",
+        "plugins-before": "1ad6fd1d4004c08551e1bc1f0fa3f31f174d7c3b622a829f520bce6a0c330632",
+        "plugin-install": "2be3a0fcae8c1a22f7ea23f81cb325c71d28eb20ba1ea74a719f6914f241fdb8",
+        "market-after": "e037815b60018b6eb606b1296419e7c919de00bebbe0ab8ebf61ea903997ccf9",
+        "plugins-after": "f48f7fb6d523234966d5990b1c741bf698a3cecc56226dc88c4990c0d4d6ebdf"
+      },
+      "auth_state_unchanged": true
+    },
+    "signed-in-isolated": {
+      "status": "verified-native-installation-capability",
+      "case": "signed-in-isolated",
+      "platform": "macos",
+      "architecture": "arm64",
+      "cli_version": "2.1.322 (Claude Code)",
+      "auth_before": {
+        "loggedIn": true,
+        "authMethod": "claude.ai",
+        "apiProvider": "firstParty"
+      },
+      "auth_after": {
+        "loggedIn": true,
+        "authMethod": "claude.ai",
+        "apiProvider": "firstParty"
+      },
+      "manifest_version": "7.0.0",
+      "scope": "user",
+      "enabled": true,
+      "payload_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+      "installed_files": 238,
+      "content_hash": "d9ae919521df6591becf75601b64bd6e9ca358e389bbe95050f966555a7ef704",
+      "executable_modes_match": true,
+      "catalog_commit": "43fd1f9db0941b2b83cb62268e35970d4a67c202",
+      "catalog_stayed_git_at_all_observation_points": true,
+      "archive_transition_observed": false,
+      "source_add_attempts": 1,
+      "source_add_exit": 0,
+      "plugin_install_attempts": 1,
+      "plugin_install_exit": 0,
+      "model_requests_sent": 0,
+      "preservation": {
+        "protected_files": 52,
+        "original_settings": 4,
+        "all_equal": true,
+        "head_stashes_staged_equal": true
+      },
+      "candidate_acceptance": false,
+      "unverified": [
+        "Other authentication case unless separately completed",
+        "Installer ZIP end-to-end flow",
+        "Windows/Linux",
+        "Actual company endpoint connectivity",
+        "Workflow/hook/model behavior",
+        "Complete network/keychain/whole-computer side-effect audit"
+      ],
+      "evidence_root": ".superpowers/sdd/2026-11-11-claude-login-matrix/prepared-0ua9ulq8/signed-in-isolated",
+      "saved_results_hashes": {
+        "version": "11963253fec127eda3c03b65deef042b950981f96606f4f2de401023343a0f02",
+        "source-add": "5fa0ef0b1b5a27b9f1ea9f04cd0c15fc8bf4e6cb636ffb8597562cb8b76ee826",
+        "market-before": "b6dd52e8c2fc93f6853fe35b38d3187af184979f3533a532276f0a1c0456a7ca",
+        "plugins-before": "1ad6fd1d4004c08551e1bc1f0fa3f31f174d7c3b622a829f520bce6a0c330632",
+        "plugin-install": "2be3a0fcae8c1a22f7ea23f81cb325c71d28eb20ba1ea74a719f6914f241fdb8",
+        "market-after": "b6dd52e8c2fc93f6853fe35b38d3187af184979f3533a532276f0a1c0456a7ca",
+        "plugins-after": "0d8591cfd8940c3ab4e02594395d2e3a1cbfab675563fed949e8b07e5af991ed"
+      },
+      "auth_state_unchanged": true
+    }
+  },
+  "native_login_exit": 0,
+  "candidate_acceptance": false,
+  "runtime_or_archive_changed": false
+}

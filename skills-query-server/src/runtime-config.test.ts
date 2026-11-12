@@ -35,11 +35,11 @@ describe('shared config contract', () => {
     } finally { rmSync(root, { recursive: true, force: true }); }
   });
 
-  it('rejects missing, malformed and empty-note settings', () => {
+  it('rejects missing, malformed and invalid-note settings', () => {
     const root = mkdtempSync(join(tmpdir(), 'runtime config '));
     try {
       expect(() => readWorkJournal(root)).toThrow();
-      for (const body of ['{', '[]', '{"sources":{"activities":"data","notes":{"paths":[]}}}',
+      for (const body of ['{', '[]', '{"sources":{"activities":"data"}}',
         '{"sources":{"activities":"data","notes":{"paths":[""]}}}']) {
         writeFileSync(join(root, 'work-journal.json'), body);
         expect(() => readWorkJournal(root)).toThrow();

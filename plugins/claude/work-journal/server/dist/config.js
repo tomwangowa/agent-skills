@@ -19,8 +19,8 @@ export function loadConfig(configPath) {
     if (!raw.sources?.activities) {
         throw new Error('Config must have sources.activities');
     }
-    if (!raw.sources?.notes?.paths || !Array.isArray(raw.sources.notes.paths) || raw.sources.notes.paths.length === 0) {
-        throw new Error('Config must have sources.notes.paths (non-empty array of strings)');
+    if (!raw.sources?.notes?.paths || !Array.isArray(raw.sources.notes.paths)) {
+        throw new Error('Config must have sources.notes.paths (array of strings)');
     }
     return {
         sources: {

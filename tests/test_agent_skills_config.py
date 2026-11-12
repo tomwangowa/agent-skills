@@ -36,13 +36,13 @@ class RuntimeConfigTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.config().resolve_config_root({"AGENT_SKILLS_CONFIG_DIR": "relative"}, Path("/fixture/home"))
 
-    def test_missing_invalid_and_empty_notes_settings_fail(self):
+    def test_missing_invalid_and_malformed_notes_settings_fail(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             with self.assertRaises(FileNotFoundError):
                 self.config().read_work_journal(root)
             path = root / "work-journal.json"
-            for body in ["{", "[]", '{"sources":{"activities":"data","notes":{"paths":[]}}}',
+            for body in ["{", "[]", '{"sources":{"activities":"data"}}',
                          '{"sources":{"activities":"data","notes":{"paths":[""]}}}']:
                 path.write_text(body)
                 with self.subTest(body=body), self.assertRaises(ValueError):
@@ -62,13 +62,13 @@ class RuntimeConfigTest(unittest.TestCase):
             self.assertFalse(changed.exists())
             self.assertEqual(self.config().read_work_journal(config_root)["sources"]["activities"], str(activities))
 
-    def test_setup_rejects_empty_notes_without_creating_files(self):
+    def test_setup_accepts_empty_notes(self):
         setup = importlib.import_module("agent_skills_runtime.setup")
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            with self.assertRaises(ValueError):
-                setup.setup_work_journal(root / "config", root / "journal", [])
-            self.assertEqual(list(root.iterdir()), [])
+            path = setup.setup_work_journal(root / "config", root / "journal", [])
+            self.assertEqual(self.config().read_work_journal(path.parent)["sources"]["notes"]["paths"], [])
+            self.assertTrue((root / "journal").is_dir())
 
     def test_setup_relative_data_paths_use_the_config_root(self):
         setup = importlib.import_module("agent_skills_runtime.setup")

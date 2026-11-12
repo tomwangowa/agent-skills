@@ -1,0 +1,22 @@
+{
+  "host": "codex",
+  "cli_version": "0.167.0",
+  "platform": "macos",
+  "architecture": "arm64",
+  "command": [
+    "codex",
+    "plugin",
+    "add",
+    "quality-gates@tomwangowa",
+    "--json"
+  ],
+  "provenance": "Observed 2026-11-10 in the approved isolated R3 continuation; installedPath anonymized; other output fields retained.",
+  "output": {
+    "pluginId": "quality-gates@tomwangowa",
+    "name": "quality-gates",
+    "marketplaceName": "tomwangowa",
+    "version": "0.2.0",
+    "installedPath": "<CODEX_HOME>/plugins/cache/tomwangowa/quality-gates/0.2.0",
+    "authPolicy": "ON_INSTALL"
+  }
+}
