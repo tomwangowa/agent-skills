@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "status": "installation_verified_only",
+  "observed_date": "2026-11-12",
+  "platform": {
+    "os": "Darwin",
+    "architecture": "arm64",
+    "claude_cli": "2.1.322",
+    "codex_cli": "0.167.0"
+  },
+  "source_commit": "8f10460e9afbcc755f0968539a127189da8aa7fe",
+  "marketplace_source": "Local marketplace manifests in the tested worktree; no GitHub remote was contacted.",
+  "method": {
+    "claude": "Native claude plugin marketplace add, followed by plugin install for each package.",
+    "codex": "Native codex plugin marketplace add, followed by plugin add for each package."
+  },
+  "isolation": {
+    "temporary_home_config_xdg_and_tmp": true,
+    "credentials_copied": false,
+    "model_requests": 0,
+    "host_sessions_started": false,
+    "temporary_profiles_removed": true
+  },
+  "surfaces": {
+    "claude-cli": {
+      "cli_version": "2.1.322",
+      "inventory": "verified_all_seven_packages",
+      "packages": {
+        "quality-gates": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.2.0",
+          "binding_sha256": "f36ba323be455df409b739a3eb9b8cc9f23c0919299b3aef394fe516aa7ccca1",
+          "resource_count": 20
+        },
+        "technical-decisions": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.1.3",
+          "binding_sha256": "46e320cae107edb5fe1c24c5666f217483a096fed696ec91163463e23b112fd6",
+          "resource_count": 43
+        },
+        "repo-workflow": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.3.0",
+          "binding_sha256": "6fa535af73f5ddedfbd75f332cd078b4d45723bf9990471fb2ca53c7c867caf2",
+          "resource_count": 19
+        },
+        "content-tools": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.2.0",
+          "binding_sha256": "3938562b4abf610d08ba8f293e093d60a33a6c2c3bd865068d3dd365b0d64497",
+          "resource_count": 55
+        },
+        "work-journal": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.2.1",
+          "binding_sha256": "1baf5f0015f98992ac467edb3020fbe09a90e0ba7b3bc8b9ed698917000f06e2",
+          "resource_count": 3658
+        },
+        "session-preferences": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.1.5",
+          "binding_sha256": "a5ac2ef53433e3f1cbf62996e9d198aba7fb8859d2f8bfcbf50fe7e79435d3e1",
+          "resource_count": 24
+        },
+        "skill-toolbox": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.1.3",
+          "binding_sha256": "5f728b464e3bd6ff3cfbac1796ff3219ba87634f7a0c364abeeccbe62c845891",
+          "resource_count": 23
+        }
+      }
+    },
+    "codex-cli": {
+      "cli_version": "0.167.0",
+      "inventory": "verified_all_seven_packages",
+      "packages": {
+        "quality-gates": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.2.0",
+          "binding_sha256": "4ae863413c2168fd143d193f23d61c9ea3684d3dd908617391e39e9478e115a9",
+          "resource_count": 18
+        },
+        "technical-decisions": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.1.3",
+          "binding_sha256": "2f23d98ccca7779f5e5c2d95f7fc67859abc1022732bbd51ac9c14b0722989ef",
+          "resource_count": 43
+        },
+        "repo-workflow": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.3.0",
+          "binding_sha256": "8c974993612236650649a3491d98d43885017af34d7afd1aae139294f641d3d2",
+          "resource_count": 19
+        },
+        "content-tools": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.2.0",
+          "binding_sha256": "7caa00300a88b0e7f7854bb221674dcb0a3487ce4dea468cb77ec7f4e145f094",
+          "resource_count": 55
+        },
+        "work-journal": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.2.1",
+          "binding_sha256": "92625ac91ecd6d84cf71d5567f547703a093d006912085c1a2f169caa9699d13",
+          "resource_count": 3658
+        },
+        "session-preferences": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.1.5",
+          "binding_sha256": "096d5f016d8f52729f2deff68ee02e26a9528f8400f3467c3a214be742b914f6",
+          "resource_count": 24
+        },
+        "skill-toolbox": {
+          "status": "installed_and_source_binding_matched",
+          "version": "0.1.3",
+          "binding_sha256": "15de253853e2f55cd7fa2b092672c3d479eadb43589fc798b6455e288752ed36",
+          "resource_count": 20
+        }
+      }
+    }
+  },
+  "not_verified": [
+    "MCP round trips and server execution",
+    "Startup, resume, clear, compact and preference-off behavior",
+    "Native skill routing, manual invocation and Superpowers workflows",
+    "Plugin update and migration behavior",
+    "GitHub-hosted remote marketplace installation and Codex remote marketplace refresh"
+  ],
+  "release_gate": "Not satisfied: the full native behavior evidence remains stale and check_plugin_release.py --require-acceptance still requires those checks."
+}

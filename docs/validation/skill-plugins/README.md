@@ -15,6 +15,15 @@ The recorded bindings for all seven packages are stale, so
 evidence record per surface that binds all seven packages, so passing it again
 needs a new seven-package native acceptance run; the release version bump
 changes every package manifest and would require that run anyway.
+
+An install-only follow-up on 2026-11-12 used Claude Code CLI 2.1.322 and Codex
+CLI 0.167.0 with isolated profiles and the local marketplace manifests from the
+tested worktree. Each of the seven packages installed on both hosts, appeared in
+the native inventory, and matched its source artifact binding. No model session
+was started. This does not verify MCP round trips, host lifecycle behavior,
+skill invocation, updates or migration, so it does not satisfy the release gate;
+see [`native-install-matrix-2026-11-12.json`](native-install-matrix-2026-11-12.json).
+
 A 2026-10-17 follow-up verified GitHub marketplace installation and no-op
 updates with Claude Code CLI 2.1.302; a positive version transition used a
 temporary local Git remote. Codex CLI remote Git marketplace installation and
