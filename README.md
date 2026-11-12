@@ -18,7 +18,7 @@ These principles don't require you to agree with my approach — they're indepen
 
 ## CLI Plugin Packages
 
-Seven package definitions cover 48 source skills for Claude Code CLI and Codex CLI. Native acceptance on 2026-10-15 covered all seven packages on macOS with isolated fixtures using Claude Code CLI 2.1.300 and Codex CLI 0.162.1; all seven packages changed afterward and need native acceptance again before release. A 2026-10-17 follow-up verified GitHub marketplace installation and update checks with Claude Code CLI 2.1.302; Codex CLI remote marketplace installation and release approval remain pending. See the [acceptance record](docs/validation/skill-plugins/acceptance.json) and [plugin installation and migration](docs/plugins/README.md). Source lifecycle is unchanged. Standalone hooks and journal tools now also require the bundled runtime and external shared settings described below.
+Seven package definitions cover 48 source skills for Claude Code CLI and Codex CLI. The bounded native validation recorded on 2026-11-12 used isolated macOS profiles with Claude Code CLI 2.1.322 and Codex CLI 0.167.0; the [acceptance record](docs/validation/skill-plugins/acceptance.json) gives the per-host results and exact artifact bindings. Claude packages were installed from the remote GitHub marketplace. Codex packages were installed from an isolated local marketplace, so Codex remote Git marketplace installation and update remain unverified. Other CLI versions and operating systems are outside this run. See [plugin installation and migration](docs/plugins/README.md). Source lifecycle is unchanged. Standalone hooks and journal tools now also require the bundled runtime and external shared settings described below.
 
 ## Installer candidate
 

@@ -1,35 +1,29 @@
 # CLI plugin runtime validation
 
-Supported surfaces: Claude Code CLI and Codex CLI. On 2026-10-15 the seven
-packages passed bounded native acceptance on macOS with Claude Code CLI 2.1.300
-and Codex CLI 0.162.1 using a unique local marketplace and disposable fixtures.
-session-preferences and work-journal changed after that run (d738ec4 changed
-runtime migration path matching; a later change removed npm's hidden lockfile
-from the work-journal server bundle). repo-workflow (session-start and task-bootstrap added) and
-skill-toolbox (package index) also changed after that run. On 2026-11-08
-quality-gates, content-tools, work-journal and repo-workflow gained skills,
-skill-toolbox's package index changed again, and the shipped acceptance wording
-changed in technical-decisions and session-preferences.
-The recorded bindings for all seven packages are stale, so
-`check_plugin_release.py --require-acceptance` fails. The checker requires one
-evidence record per surface that binds all seven packages, so passing it again
-needs a new seven-package native acceptance run; the release version bump
-changes every package manifest and would require that run anyway.
+Supported surfaces: Claude Code CLI and Codex CLI. The bounded native validation
+recorded on 2026-11-12 used Claude Code CLI 2.1.322 and Codex CLI 0.167.0 on
+macOS with isolated profiles and synthetic project data. The per-host records
+bind each result to the exact seven package artifacts and list the checks and
+limits: [`acceptance.json`](acceptance.json),
+[`native-acceptance-claude.json`](native-acceptance-claude.json), and
+[`native-acceptance-codex.json`](native-acceptance-codex.json).
+All required artifact, native-host and recorded production-security checks pass
+for this evidence set:
 
-An install-only follow-up on 2026-11-12 used Claude Code CLI 2.1.322 and Codex
-CLI 0.167.0 with isolated profiles and the local marketplace manifests from the
-tested worktree. Each of the seven packages installed on both hosts, appeared in
-the native inventory, and matched its source artifact binding. No model session
-was started. This does not verify MCP round trips, host lifecycle behavior,
-skill invocation, updates or migration, so it does not satisfy the release gate;
-see [`native-install-matrix-2026-11-12.json`](native-install-matrix-2026-11-12.json).
+```sh
+python3 scripts/check_plugin_release.py --require-acceptance
+```
 
-A 2026-10-17 follow-up verified GitHub marketplace installation and no-op
-updates with Claude Code CLI 2.1.302; a positive version transition used a
-temporary local Git remote. Codex CLI remote Git marketplace installation and
-update remain untested. See `remote-marketplace-validation.md` and
-`acceptance.json` for evidence and remaining limits. The user explicitly
-removed Codex desktop support on 2026-10-13.
+Claude packages were installed from the remote GitHub marketplace. Codex
+packages were installed from the isolated local marketplace; remote Git
+marketplace installation and update for Codex remain unverified. Only the two
+recorded macOS CLI versions were exercised. Synthetic prompts were sent to the
+native models for behavior checks and consumed model tokens; no private user
+content was supplied.
+
+The 2026-10-15 and 2026-10-17 records below are historical snapshots and do not
+replace the current per-host acceptance records. The user explicitly removed
+Codex desktop support on 2026-10-13.
 
 The desktop failure remains in runtime-contracts.json historical_excluded_surfaces:
 its tool call reached the live activity source and its injected policy named the
