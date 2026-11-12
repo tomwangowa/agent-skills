@@ -1,6 +1,6 @@
 # 七包 CLI plugins
 
-這組產物仍是未發布草稿。來源與暫存資料測試已有證據，2026-10-15 已在 macOS 隔離 fixture 以 Claude Code 2.1.300、Codex 0.162.1 完成兩個 CLI 的原生驗收，檢查項目與限制見 `docs/validation/skill-plugins/acceptance.json`；七包在那之後都有修改，發布前需要重新進行原生驗收。依賴安全檢查與原生驗收是兩個獨立門檻。不要把 artifact checker 通過當成可以發布。
+2026-11-12 已在 macOS 隔離設定完成 Claude Code CLI 2.1.322 與 Codex CLI 0.167.0 的原生驗收紀錄；兩個宿主的七包安裝都綁定到精確的套件內容。Claude 套件從遠端 GitHub marketplace 安裝，Codex 套件從隔離的本機 marketplace 安裝；Codex 遠端 Git marketplace 路徑仍未驗證。驗收項目、逐包結果與限制見[原生驗收紀錄](../validation/skill-plugins/acceptance.json)。其他版本、作業系統，以及 Claude 一般設定下的自動 MCP 探索仍未驗證。依賴安全檢查與原生安裝驗收是不同項目，需分別核對。
 
 | 套件 | 用途範例 |
 | --- | --- |
