@@ -60,9 +60,9 @@ export function validateWorkJournal(settings) {
     if (typeof activities !== 'string' || !activities.trim() || activities.includes('\0')) {
         throw new Error('sources.activities must be a non-empty path');
     }
-    if (!notes || !Array.isArray(notes.paths) || notes.paths.length === 0
+    if (!notes || !Array.isArray(notes.paths)
         || notes.paths.some(p => typeof p !== 'string' || !p.trim() || p.includes('\0'))) {
-        throw new Error('sources.notes.paths must contain non-empty paths');
+        throw new Error('sources.notes.paths must contain valid paths');
     }
     for (const key of ['recursive', 'exclude_hidden']) {
         if (key in notes && typeof notes[key] !== 'boolean')

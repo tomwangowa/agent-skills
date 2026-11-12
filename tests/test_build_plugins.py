@@ -209,7 +209,7 @@ class BuildTests(unittest.TestCase):
         stale = ['Native acceptance passed', '七包已在',
                  'Remote marketplace installation and release approval remain pending',
                  '完整更新行為仍待 native 驗收', '模型路由及更新驗收仍待完成']
-        current = {'README.md': 'need native acceptance again before release',
+        current = {'README.md': 'Native acceptance is version-specific.',
                    'installation.md': '發布前需要重新驗收',
                    'migration.md': '原生遷移流程要在發布前重新驗收'}
         for surface in ('claude', 'codex'):
@@ -223,10 +223,10 @@ class BuildTests(unittest.TestCase):
                      'docs/validation/skill-plugins/README.md',
                      'docs/validation/skill-plugins/acceptance.json'):
             text = (ROOT / path).read_text()
-            for old in stale + ['完成原生驗收']:
+            for old in stale:
                 self.assertNotIn(old, text, path)
 
-    def test_shipped_docs_do_not_enumerate_reacceptance_packages(self):
+    def test_shipped_docs_link_to_current_acceptance_record(self):
         # Naming packages in shipped text changes every package whenever one changes, forcing a bump of all seven.
         installation = (ROOT / 'docs/plugins/installation.md').read_text()
         self.assertIn('那次之後有修改的套件，發布前需要重新驗收', installation)
@@ -235,18 +235,33 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(len(readmes), 14)
         for readme in readmes:
             text = readme.read_text()
-            self.assertIn('Packages changed after that run need native acceptance again before release', text,
+            self.assertIn('Native acceptance is version-specific.', text,
                           str(readme.relative_to(ROOT)))
+            self.assertIn('https://github.com/tomwangowa/agent-skills/blob/main/docs/validation/skill-plugins/acceptance.json', text,
+                          str(readme.relative_to(ROOT)))
+            self.assertNotIn('Packages changed after that run need native acceptance again before release', text,
+                             str(readme.relative_to(ROOT)))
             self.assertNotIn('skill-toolbox changed after that run', text, str(readme.relative_to(ROOT)))
 
-    def test_unshipped_docs_record_that_all_seven_bindings_are_stale(self):
-        # These files are not copied into plugins, so they can name the stale packages exactly.
-        self.assertIn('all seven packages changed afterward', (ROOT / 'README.md').read_text())
-        self.assertIn('七包在那之後都有修改', (ROOT / 'README.zh.md').read_text())
-        self.assertIn('七包在那之後都有修改', (ROOT / 'docs/plugins/README.md').read_text())
-        # Collapse line wraps so the check does not depend on how the paragraph is folded.
-        validation = ' '.join((ROOT / 'docs/validation/skill-plugins/README.md').read_text().split())
-        self.assertIn('The recorded bindings for all seven packages are stale', validation)
+    def test_unshipped_docs_record_current_acceptance_state(self):
+        readme_en = (ROOT / 'README.md').read_text()
+        readme_zh = (ROOT / 'README.zh.md').read_text()
+        plugin_docs = (ROOT / 'docs/plugins/README.md').read_text()
+        self.assertIn('native validation recorded on 2026-11-12', readme_en)
+        self.assertIn('Claude packages were installed from the remote GitHub marketplace', readme_en)
+        self.assertIn('Codex packages were installed from an isolated local marketplace', readme_en)
+        self.assertIn('2026-11-12', readme_zh)
+        self.assertIn('GitHub marketplace', readme_zh)
+        self.assertIn('本機 marketplace', readme_zh)
+        self.assertIn('原生驗收紀錄', plugin_docs)
+
+        acceptance = json.loads((ROOT / 'docs/validation/skill-plugins/acceptance.json').read_text())
+        self.assertEqual(acceptance['status'], 'verified')
+        self.assertEqual(acceptance['surfaces']['claude-cli']['observed_client_version'], '2.1.322')
+        self.assertEqual(acceptance['surfaces']['codex-cli']['observed_client_version'], '0.167.0')
+        for record in acceptance['surfaces'].values():
+            self.assertEqual(record['status'], 'verified')
+            self.assertTrue(all(value == 'verified' for value in record['checks'].values()))
 
 
 if __name__ == '__main__':

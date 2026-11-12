@@ -1,0 +1,23 @@
+{
+  "host": "codex",
+  "cli_version": "0.167.0",
+  "platform": "macos",
+  "architecture": "arm64",
+  "command": ["codex", "plugin", "list", "--marketplace", "tomwangowa", "--json"],
+  "provenance": "Observed 2026-11-09; one entry retained; source path anonymized",
+  "output": {
+    "installed": [{
+      "pluginId": "quality-gates@tomwangowa",
+      "name": "quality-gates",
+      "marketplaceName": "tomwangowa",
+      "version": "0.1.0",
+      "installed": true,
+      "enabled": true,
+      "source": {"source": "local", "path": "<SOURCE_ROOT>/plugins/codex/quality-gates"},
+      "marketplaceSource": {"sourceType": "git", "source": "https://github.com/tomwangowa/agent-skills.git"},
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    }],
+    "available": []
+  }
+}

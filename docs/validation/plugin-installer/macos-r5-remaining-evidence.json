@@ -1,0 +1,475 @@
+{
+  "date": "2026-11-11",
+  "platform": "macos 26.6.2",
+  "architecture": "arm64",
+  "python": "3.12.1",
+  "archive": "dist/agent-skills-installer-fe55c04-candidate-r5.zip",
+  "archive_sha256": "3047be151e9e89644a35d6542356badf90bf4e34dd3f7497d14a13c05a932ace",
+  "current_batch_installations_verified": 14,
+  "prior_quality_gates_installations_verified": 2,
+  "cumulative_host_package_pairs_verified": 16,
+  "all_packages_together_in_one_config_verified": false,
+  "results": [
+    {
+      "host": "claude",
+      "cli_version": "2.1.322 (Claude Code)",
+      "installer_exit": 0,
+      "final_inventory_exit": 0,
+      "source_add_attempts": 1,
+      "source_add_exit": 0,
+      "plugin_install_attempts": 8,
+      "retries": 0,
+      "journal_setup": "declined",
+      "packages": [
+        {
+          "host": "claude",
+          "name": "technical-decisions",
+          "version": "0.1.3",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": "user",
+          "files_compared": 50,
+          "payload_sha256": "58204581e1759b465dc05b09f63aa13f137939592eeb0ff0f82bbcd81bad7024",
+          "installed_root_relative": "plugins/cache/tomwangowa/technical-decisions/0.1.3",
+          "raw_receipt_retained": true,
+          "receipt_evidence": "native-terminal-receipts.json"
+        },
+        {
+          "host": "claude",
+          "name": "repo-workflow",
+          "version": "0.3.0",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": "user",
+          "files_compared": 26,
+          "payload_sha256": "3b23f0b0b8ecd1d739069d78711a48e9417214dc0502e74cbdaef3a333d712d2",
+          "installed_root_relative": "plugins/cache/tomwangowa/repo-workflow/0.3.0",
+          "raw_receipt_retained": true,
+          "receipt_evidence": "native-terminal-receipts.json"
+        },
+        {
+          "host": "claude",
+          "name": "content-tools",
+          "version": "0.2.0",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": "user",
+          "files_compared": 62,
+          "payload_sha256": "1c0f0daf8a299dfb39be9253a0c8d1f849bc9a0bed321eb35157e24998d2585f",
+          "installed_root_relative": "plugins/cache/tomwangowa/content-tools/0.2.0",
+          "raw_receipt_retained": true,
+          "receipt_evidence": "native-terminal-receipts.json"
+        },
+        {
+          "host": "claude",
+          "name": "work-journal",
+          "version": "0.2.0",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": "user",
+          "files_compared": 3665,
+          "payload_sha256": "c85886a4a461dfea5d787a5bc24817908716b07c2a32951e72f06d81010a8c08",
+          "installed_root_relative": "plugins/cache/tomwangowa/work-journal/0.2.0",
+          "raw_receipt_retained": true,
+          "receipt_evidence": "native-terminal-receipts.json"
+        },
+        {
+          "host": "claude",
+          "name": "session-preferences",
+          "version": "0.1.4",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": "user",
+          "files_compared": 31,
+          "payload_sha256": "a60a68a3d4c234f7054dd627fa7adfde8e14853a02d003c5341fa8c7fba0f443",
+          "installed_root_relative": "plugins/cache/tomwangowa/session-preferences/0.1.4",
+          "raw_receipt_retained": true,
+          "receipt_evidence": "native-terminal-receipts.json"
+        },
+        {
+          "host": "claude",
+          "name": "skill-toolbox",
+          "version": "0.1.3",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": "user",
+          "files_compared": 30,
+          "payload_sha256": "a3bad3c33a4f85382556537f3b167718d2f3bbe37c8607c450568c127c539aff",
+          "installed_root_relative": "plugins/cache/tomwangowa/skill-toolbox/0.1.3",
+          "raw_receipt_retained": true,
+          "receipt_evidence": "native-terminal-receipts.json"
+        },
+        {
+          "host": "claude",
+          "name": "handoff-mod",
+          "version": "0.2.2",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": "user",
+          "files_compared": 50,
+          "payload_sha256": "be89d05838e2ebed0311d28612db8a6aa632dbb06df795125dccfab8a7dd9b50",
+          "installed_root_relative": "plugins/cache/tomwangowa/handoff-mod/0.2.2",
+          "raw_receipt_retained": true,
+          "receipt_evidence": "native-terminal-receipts.json"
+        },
+        {
+          "host": "claude",
+          "name": "attention-mod",
+          "version": "0.6.1",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": "user",
+          "files_compared": 61,
+          "payload_sha256": "e70ca37adaa6394d05b275b78269e3626b124ae39404fdc2ea0e9435ea3c79ff",
+          "installed_root_relative": "plugins/cache/tomwangowa/attention-mod/0.6.1",
+          "raw_receipt_retained": true,
+          "receipt_evidence": "native-terminal-receipts.json"
+        }
+      ]
+    },
+    {
+      "host": "codex",
+      "cli_version": "codex-cli 0.167.0",
+      "installer_exit": 0,
+      "final_inventory_exit": 0,
+      "source_add_attempts": 1,
+      "source_add_exit": 0,
+      "plugin_install_attempts": 6,
+      "retries": 0,
+      "journal_setup": "declined",
+      "packages": [
+        {
+          "host": "codex",
+          "name": "technical-decisions",
+          "version": "0.1.3",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": null,
+          "files_compared": 50,
+          "payload_sha256": "581cf9eaa6b3a4e8b4ddbd1dc71ccfbd8727c90c90cb70019599d39e098323ce",
+          "installed_root_relative": "plugins/cache/tomwangowa/technical-decisions/0.1.3",
+          "raw_receipt_retained": true
+        },
+        {
+          "host": "codex",
+          "name": "repo-workflow",
+          "version": "0.3.0",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": null,
+          "files_compared": 26,
+          "payload_sha256": "be64337cddc87acf6ac94ff0aa21666f78cdc5dda8beddae014b38baa9208fd6",
+          "installed_root_relative": "plugins/cache/tomwangowa/repo-workflow/0.3.0",
+          "raw_receipt_retained": true
+        },
+        {
+          "host": "codex",
+          "name": "content-tools",
+          "version": "0.2.0",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": null,
+          "files_compared": 62,
+          "payload_sha256": "d3d65f957fabf39a459a4d2f80aa6ced254ff8737d63a5d373134086a149cb62",
+          "installed_root_relative": "plugins/cache/tomwangowa/content-tools/0.2.0",
+          "raw_receipt_retained": true
+        },
+        {
+          "host": "codex",
+          "name": "work-journal",
+          "version": "0.2.0",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": null,
+          "files_compared": 3665,
+          "payload_sha256": "c998b93b0040229db2db79c82f8521e5f27907c719151d921d1a12d5c169fa99",
+          "installed_root_relative": "plugins/cache/tomwangowa/work-journal/0.2.0",
+          "raw_receipt_retained": true
+        },
+        {
+          "host": "codex",
+          "name": "session-preferences",
+          "version": "0.1.4",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": null,
+          "files_compared": 31,
+          "payload_sha256": "4e044dca6664cc456995f86ca2a6b451e64719ccb7ff2b2cda6e266c3b903b82",
+          "installed_root_relative": "plugins/cache/tomwangowa/session-preferences/0.1.4",
+          "raw_receipt_retained": true
+        },
+        {
+          "host": "codex",
+          "name": "skill-toolbox",
+          "version": "0.1.3",
+          "status": "installed-verified",
+          "native_exit": 0,
+          "enabled": true,
+          "scope": null,
+          "files_compared": 27,
+          "payload_sha256": "cfa8fef963e33a0b0aaee5df8f92189f59c7e9f320b40024b9a3d9fb05601870",
+          "installed_root_relative": "plugins/cache/tomwangowa/skill-toolbox/0.1.3",
+          "raw_receipt_retained": true
+        }
+      ]
+    }
+  ],
+  "native_mutations": [
+    {
+      "host": "claude",
+      "argv": [
+        "claude",
+        "plugin",
+        "marketplace",
+        "add",
+        "https://github.com/tomwangowa/agent-skills.git",
+        "--scope",
+        "user",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "claude",
+      "argv": [
+        "claude",
+        "plugin",
+        "install",
+        "technical-decisions@tomwangowa",
+        "--scope",
+        "user",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "claude",
+      "argv": [
+        "claude",
+        "plugin",
+        "install",
+        "repo-workflow@tomwangowa",
+        "--scope",
+        "user",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "claude",
+      "argv": [
+        "claude",
+        "plugin",
+        "install",
+        "content-tools@tomwangowa",
+        "--scope",
+        "user",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "claude",
+      "argv": [
+        "claude",
+        "plugin",
+        "install",
+        "work-journal@tomwangowa",
+        "--scope",
+        "user",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "claude",
+      "argv": [
+        "claude",
+        "plugin",
+        "install",
+        "session-preferences@tomwangowa",
+        "--scope",
+        "user",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "claude",
+      "argv": [
+        "claude",
+        "plugin",
+        "install",
+        "skill-toolbox@tomwangowa",
+        "--scope",
+        "user",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "claude",
+      "argv": [
+        "claude",
+        "plugin",
+        "install",
+        "handoff-mod@tomwangowa",
+        "--scope",
+        "user",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "claude",
+      "argv": [
+        "claude",
+        "plugin",
+        "install",
+        "attention-mod@tomwangowa",
+        "--scope",
+        "user",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "codex",
+      "argv": [
+        "codex",
+        "plugin",
+        "marketplace",
+        "add",
+        "https://github.com/tomwangowa/agent-skills.git",
+        "--ref",
+        "main",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "codex",
+      "argv": [
+        "codex",
+        "plugin",
+        "add",
+        "technical-decisions@tomwangowa",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "codex",
+      "argv": [
+        "codex",
+        "plugin",
+        "add",
+        "repo-workflow@tomwangowa",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "codex",
+      "argv": [
+        "codex",
+        "plugin",
+        "add",
+        "content-tools@tomwangowa",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "codex",
+      "argv": [
+        "codex",
+        "plugin",
+        "add",
+        "work-journal@tomwangowa",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "codex",
+      "argv": [
+        "codex",
+        "plugin",
+        "add",
+        "session-preferences@tomwangowa",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "host": "codex",
+      "argv": [
+        "codex",
+        "plugin",
+        "add",
+        "skill-toolbox@tomwangowa",
+        "--json"
+      ],
+      "attempts": 1,
+      "exit_code": 0
+    }
+  ],
+  "preservation": {
+    "baseline_files_unchanged": 25123,
+    "original_named_settings_files_unchanged": 4,
+    "previous_native_cases_unchanged": true,
+    "all_archives_unchanged": true,
+    "head_unchanged": true,
+    "stashes_unchanged": true,
+    "staged_changes": 0
+  },
+  "external_actions": {
+    "source_additions": 2,
+    "package_installations": 14,
+    "retries": 0,
+    "model_sessions_started": 0
+  },
+  "evidence_root": ".superpowers/sdd/2026-11-11-r5-remaining-packages/prepared-fwh91yoc",
+  "pending_configuration": [
+    "Optional journal locations declined on both hosts.",
+    "Claude reported three handoff-mod userConfig options and one attention-mod option unset; no configure action taken."
+  ],
+  "not_verified": [
+    "Windows/Linux/other architectures",
+    "Superpowers",
+    "Skill/hook/MCP/model workflows or restarted-host entries",
+    "Journal setup and module personal configuration",
+    "All nine/seven packages in one isolated config including quality-gates",
+    "Existing-user migration/updates and missing-tool installation",
+    "Whole-machine/network audit or remote-ref race elimination"
+  ]
+}

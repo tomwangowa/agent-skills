@@ -18,7 +18,74 @@ These principles don't require you to agree with my approach — they're indepen
 
 ## CLI Plugin Packages
 
-Seven package definitions cover 48 source skills for Claude Code CLI and Codex CLI. Native acceptance on 2026-10-15 covered all seven packages on macOS with isolated fixtures using Claude Code CLI 2.1.300 and Codex CLI 0.162.1; all seven packages changed afterward and need native acceptance again before release. A 2026-10-17 follow-up verified GitHub marketplace installation and update checks with Claude Code CLI 2.1.302; Codex CLI remote marketplace installation and release approval remain pending. See the [acceptance record](docs/validation/skill-plugins/acceptance.json) and [plugin installation and migration](docs/plugins/README.md). Source lifecycle is unchanged. Standalone hooks and journal tools now also require the bundled runtime and external shared settings described below.
+Seven package definitions cover 48 source skills for Claude Code CLI and Codex CLI. The bounded native validation recorded on 2026-11-12 used isolated macOS profiles with Claude Code CLI 2.1.322 and Codex CLI 0.167.0; the [acceptance record](docs/validation/skill-plugins/acceptance.json) gives the per-host results and exact artifact bindings. Claude packages were installed from the remote GitHub marketplace. Codex packages were installed from an isolated local marketplace, so Codex remote Git marketplace installation and update remain unverified. Other CLI versions and operating systems are outside this run. See [plugin installation and migration](docs/plugins/README.md). Source lifecycle is unchanged. Standalone hooks and journal tools now also require the bundled runtime and external shared settings described below.
+
+## Installer candidate
+
+Build one archive for colleagues without downloading tools or rebuilding plugins:
+
+```bash
+python3 scripts/build_plugin_installer.py --output dist/agent-skills-installer.zip
+```
+
+Latest archived validation: [R19](docs/validation/plugin-installer/candidate-r19.md). Its ZIP and checksum are local QA artifacts, not included here or published. R19 predates the branch's Codex removal capability update, so it does not represent the current installer source. R19 permits post-install Superpowers verification only across two independently compared Claude catalog snapshots; unknown snapshots remain unverified. First-use work-journal setup defaults records to `~/.agent-skills/activities` and makes notes optional; valid existing settings are reused, and the installed runtime is rechecked before settings are written. The current source is not ready for colleague installation: work-journal 0.2.1 and session-preferences 0.1.5 exist only in this working tree, and current Claude/Codex native acceptance bindings are stale. Earlier candidates and R11-specific native evidence remain preserved.
+
+Extract the entire archive, then open `install-macos.command`, run `bash install-linux.sh`, or run `./install-windows.ps1` under the existing PowerShell policy. A real Python 3.11+ interpreter and an installed Claude Code CLI or Codex CLI are required; the launchers can propose Python installation through an existing supported manager. They do not install either host, a package manager, or credentials. See the [archive guide](installer/README.md) and [validation record](docs/validation/plugin-installer/README.md).
+
+The menus preview source downloads, missing dependencies, plugin installation and optional journal settings at separate confirmation points. Applicable repo packages are checked by default; existing plugins are kept unless an update is selected. Superpowers is strongly recommended and unchecked. Cancel stops later work and retains earlier approved writes. Windows preference writes/migration still have POSIX-lock limitations. **This is an installer candidate, not completed three-platform acceptance.** Codex new installs on audited CLI 0.167.0 use the actual JSON receipt and exact installed bytes; existing Codex updates stay blocked. Superpowers prefers each CLI's official catalog: Claude `claude-plugins-official` (observed manifest `7.0.0`, pinned upstream Git payload), Codex `openai-curated` or native-selected `openai-api-curated` (observed manifest `6.3.0`, catalog-relative payload). Versions may differ. Any existing provider, including `7.0.2`, is retained without update, enable, duplicate install or downgrade. Codex official setup must be performed by the native `/plugins` flow; this installer does not seed managed state or add/refresh that reserved catalog. Missing payload hashes or exact CLI/platform/architecture acceptance disable only Superpowers and its dependency proposals. R7 capability records enable only the verified macOS arm64 Claude 2.1.322 official-catalog and Codex 0.167.0 API-curated routes; other environments remain withheld. Installation, exposed entries after restart and real workflow behavior are separate results; the latter two are unverified. No published archive URL is claimed.
+
+For colleagues already using a company AI endpoint without ChatGPT login, the R7 adapter follows the official catalog exposed by native Codex and preserves existing endpoint/authentication settings. Plugin download access is separate from model endpoint access. Offline tests and a [macOS Codex 0.167.0 native case](docs/validation/plugin-installer/codex-no-account-native-results.md) cover this route; the native case installed Superpowers without login while preserving a synthetic company provider. Actual company connectivity and other-platform acceptance remain unverified; R5 predates the adapter change. See the [company endpoint scenario](installer/README.md). Claude Code 2.1.322 on macOS arm64 also passed [separate logged-in and logged-out native Superpowers installations](docs/validation/plugin-installer/claude-login-matrix-results.md), both at manifest version 7.0.0. R7 incorporates these capability results and minimized evidence summaries; the unchanged ZIP subsequently passed [native first-install and rerun acceptance](docs/validation/plugin-installer/r7-native-acceptance-results.md) in all three macOS arm64 cases.
+
+## Choose a workflow
+
+R5 installation checks on macOS 26.6.2 arm64 / Claude Code 2.1.322 and Codex
+0.167.0 cover all 16 own-package host/package pairs across separate cases:
+nine Claude packages and seven Codex packages. See the [quality-gates cases](docs/validation/plugin-installer/macos-r5-native-results.md)
+and [remaining packages](docs/validation/plugin-installer/macos-r5-remaining-results.md).
+These verify installation and complete file contents; Superpowers, other
+platforms and hooks/MCP/skill behavior remain unverified.
+
+Examples below name the actual packaged entry points. `/package:skill` is for Claude Code; `$package:skill` is for Codex. An example that explicitly names an entry must be invoked by the person; routing to another package does not install it or count as manual invocation.
+
+### Scenario: turn a vague request into a verified change
+
+Use `technical-decisions`, Superpowers and `quality-gates` when a request such as “add a colleague onboarding flow” still needs decisions. Start with “Explore the requirements and alternatives before implementation; ask one question at a time.” Approve the design, then select a planning/execution method. Ask for a review of the resulting changes; the active host uses `code-review-claude` or `code-review-codex`. Expect an approved design, a task plan, reviewed changes and evidence with remaining gaps. Superpowers must be installed/verified separately for its steps; the other packages retain their independent research/review functions without it. Browsing, model calls and project tests follow the selected workflow's approval rules.
+
+### Scenario: understand a repository and resume work later
+
+Use `repo-workflow` before touching an unfamiliar module. Explicitly run `/repo-workflow:understand-repo <path>` or `$repo-workflow:understand-repo <path>`, then `/repo-workflow:task-bootstrap <task>` or `$repo-workflow:task-bootstrap <task>` to preview a new branch/worktree. Before leaving, explicitly invoke the package's `handoff`; next time invoke its `session-start`, as in `$repo-workflow:session-start`. Expect source-backed understanding, isolated work and a handoff whose premises are rechecked. Git is needed; branch creation and copying local files have their own previews. These manual entries do not run just because a workflow recommends them.
+
+### Scenario: see progress during a long Claude Code session
+
+Add `attention-mod` and `handoff-mod` to Claude Code. `/attention` opens the attention panel; `/handoff-mod:handoff` explicitly creates a handoff, and `/handoff-resume` lists resumable work. Expect a progress panel and a note for the next session. Attention summaries call `haiku` on conversation/tool excerpts and consume model tokens; the handoff mod itself makes no model call, while running its skill uses the session model. Automatic notes/store writes and redaction limits are explained in the [handoff guide](plugins/handoff-mod/README-en.md). Attention requires Claude Code 2.1.312+; both are prototypes and are not Codex options. These are separate from `repo-workflow`'s handoff/session-start entries.
+
+### Scenario: turn work records into a weekly report
+
+Use `work-journal`: “Record today's completed work and the documents actually consulted,” then “Summarize this week's work, with decisions and unfinished items.” Expect dated activity records and a source-backed report. First setup defaults records to `~/.agent-skills/activities`; adding your own notes folder lets `work-log-analyzer` search notes alongside those records. Notes are optional, existing settings are reused, and the installer does not move/read the contents. Journal queries need Node.js/Python and the declared command-line tools; restart the host after MCP registration changes. Add `content-tools` only when turning the report into a presentation.
+
+### Scenario: explain technical work to another audience
+
+Use `content-tools`: “Plan a ten-minute presentation for new colleagues from this outline,” or explicitly run `/content-tools:presentation-planner` / `$content-tools:presentation-planner` with the brief. Expect an audience-aware slide plan followed by the chosen presentation format. “Translate this Markdown to English and Traditional Chinese” uses `md-translate` and preserves code/links. Pair with `work-journal` for recorded evidence or `technical-decisions` for technical analysis. Office extraction can require markitdown and an approved dependency download; publishing and external services remain separate actions.
+
+### Scenario: keep response rules consistent
+
+Use `session-preferences` when you want a consistent language, explanation depth or return-of-control style. Explicitly invoke `/session-preferences:session-preferences` or `$session-preferences:session-preferences` to review/reapply rules, or propose a new preference. `control-return` governs how next steps are offered. Expect session instructions and a separately confirmed personal override when requested. External shared settings remain outside plugin caches; native Windows preference writes/migration are not supplied by this installer.
+
+### Scenario: find a skill or inspect your own
+
+Use `skill-toolbox`: “List my skills and distinguish installed, available and unavailable,” or `/skill-toolbox:skill-router list` / `$skill-toolbox:skill-router list`. For a skill you wrote, ask for a `skill-auditor` audit and expect findings plus explicit dispositions. A catalog entry does not prove installation. `skill-sync` is a separate, manual standalone mirror that can delete destination files; this installer never runs it. `claude-workflow-designer` is Claude-only and is omitted from the Codex package.
+
+| Package | Scenario |
+| --- | --- |
+| `technical-decisions` | Vague request → design; technical analysis for content |
+| Superpowers | Selected planning, TDD and execution steps; separate installation/verification |
+| `quality-gates` | Review and verify changes |
+| `repo-workflow` | Understand a repository, start work, hand off and resume |
+| `attention-mod`, `handoff-mod` | Claude Code progress panel and session handoff |
+| `work-journal` | Activity records and weekly reports |
+| `content-tools` | Presentations, translation and outward-facing text |
+| `session-preferences` | Response rules and next steps |
+| `skill-toolbox` | Skill discovery and audits |
 
 ## Skills Catalog
 

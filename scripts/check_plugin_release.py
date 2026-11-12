@@ -29,7 +29,10 @@ def main(argv: list[str] | None = None) -> int:
     for error in errors:
         print(error, file=sys.stderr)
     if not errors:
-        print('Artifact integrity checks passed; native host acceptance and dependency security are separate gates')
+        if args.require_acceptance:
+            print('Artifact integrity, native acceptance and recorded production security evidence passed')
+        else:
+            print('Artifact integrity checks passed; native host acceptance and dependency security are separate gates')
     return int(bool(errors))
 
 

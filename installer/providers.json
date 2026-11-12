@@ -1,0 +1,69 @@
+{
+  "schema_version": 2,
+  "repository": "https://github.com/tomwangowa/agent-skills.git",
+  "marketplace": "tomwangowa",
+  "external": [
+    {
+      "host": "claude",
+      "name": "superpowers",
+      "marketplace": "claude-plugins-official",
+      "source": "https://github.com/anthropics/claude-plugins-official.git",
+      "version": "7.0.0",
+      "skills": [
+        "writing-plans",
+        "test-driven-development",
+        "systematic-debugging",
+        "executing-plans",
+        "subagent-driven-development",
+        "requesting-code-review",
+        "finishing-a-development-branch"
+      ],
+      "notices": [
+        "STRONGLY RECOMMENDED: optional workflow support; not preselected.",
+        "Official catalog and payload versions differ by host. Existing providers are preserved.",
+        "Installation, exposed entries and real behavior require separate validation."
+      ],
+      "content_hash": "d9ae919521df6591becf75601b64bd6e9ca358e389bbe95050f966555a7ef704",
+      "provider": {
+        "catalog_kind": "configured-git",
+        "catalog_repository": "https://github.com/anthropics/claude-plugins-official.git",
+        "payload_kind": "git",
+        "payload_repository": "https://github.com/obra/superpowers.git",
+        "payload_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+        "payload_path": null,
+        "entry_hash": "d85f0111dd6cfcd54268f46dbadbd54d4df344c160cda075134e2d35aae9f888"
+      }
+    },
+    {
+      "host": "codex",
+      "name": "superpowers",
+      "marketplace": "openai-curated",
+      "source": "https://github.com/openai/plugins.git",
+      "version": "6.3.0",
+      "skills": [
+        "writing-plans",
+        "test-driven-development",
+        "systematic-debugging",
+        "executing-plans",
+        "subagent-driven-development",
+        "requesting-code-review",
+        "finishing-a-development-branch"
+      ],
+      "notices": [
+        "STRONGLY RECOMMENDED: optional workflow support; not preselected.",
+        "Official catalog and payload versions differ by host. Existing providers are preserved.",
+        "Installation, exposed entries and real behavior require separate validation."
+      ],
+      "content_hash": "2bc88a8ad42d3b2a5f2b7f0b6711b0ae4d18895bfa870dcfeb7c9fc5d31fdba0",
+      "provider": {
+        "catalog_kind": "native-managed",
+        "catalog_repository": "https://github.com/openai/plugins.git",
+        "payload_kind": "catalog-relative",
+        "payload_repository": null,
+        "payload_commit": null,
+        "payload_path": "./plugins/superpowers",
+        "entry_hash": "fcf75e5ef3e9fb29b75714eaf2727ea32b412037736dd92b744ab437d1a3ddc1"
+      }
+    }
+  ]
+}

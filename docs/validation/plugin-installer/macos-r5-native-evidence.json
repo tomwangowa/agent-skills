@@ -1,0 +1,83 @@
+{
+  "date": "2026-11-11",
+  "platform": "macos 26.6.2",
+  "architecture": "arm64",
+  "python": "3.12.1",
+  "archive": "dist/agent-skills-installer-fe55c04-candidate-r5.zip",
+  "archive_sha256": "3047be151e9e89644a35d6542356badf90bf4e34dd3f7497d14a13c05a932ace",
+  "scope": "Two actual R5 quality-gates 0.2.0 installations only; not all-package/platform/function acceptance.",
+  "results": [
+    {
+      "host": "claude",
+      "cli_version": "2.1.322 (Claude Code)",
+      "installer_exit": 0,
+      "final_inventory_exit": 0,
+      "plugin_id": "quality-gates@tomwangowa",
+      "version": "0.2.0",
+      "enabled": true,
+      "scope": "user",
+      "installed_root_relative": "plugins/cache/tomwangowa/quality-gates/0.2.0",
+      "files_compared": 27,
+      "payload_sha256": "a7c6e396a54fa316a837bd3cc7479254cadb4b09672475649820720eca81add3",
+      "matches_r5_and_downloaded_source": true,
+      "native_exit_evidence": "R5 executor reports installed only after native returncode zero and postcondition verification.",
+      "source_add_attempts": 1,
+      "plugin_install_attempts": 1,
+      "retries": 0,
+      "packaged_files_unchanged": 24,
+      "attempt_evidence": "One source and one install approval/command preview in a single R5 flow; unchanged executor has no native retry."
+    },
+    {
+      "host": "codex",
+      "cli_version": "codex-cli 0.167.0",
+      "installer_exit": 0,
+      "final_inventory_exit": 0,
+      "plugin_id": "quality-gates@tomwangowa",
+      "version": "0.2.0",
+      "enabled": true,
+      "scope": null,
+      "installed_root_relative": "plugins/cache/tomwangowa/quality-gates/0.2.0",
+      "installed_root_evidence": "R5 receipt verifier output; corroborated by manifest and complete file comparison.",
+      "files_compared": 25,
+      "payload_sha256": "bdd888a67f1728221208937bfc554efbd17fc19bdda1590697628eb40b05ed5c",
+      "matches_r5_and_downloaded_source": true,
+      "isolated_config_enabled": true,
+      "native_exit_evidence": "R5 executor reports installed only after native returncode zero and receipt/postcondition verification.",
+      "raw_add_receipt_retained": false,
+      "transcript_note": "The package-description menu chunk was truncated by tool output budget; approval previews and final result were retained.",
+      "source_add_attempts": 1,
+      "plugin_install_attempts": 1,
+      "retries": 0,
+      "packaged_files_unchanged": 24,
+      "attempt_evidence": "One source and one install approval/command preview in a single R5 flow; unchanged executor has no native retry."
+    }
+  ],
+  "preservation": {
+    "original_named_settings_files_unchanged": 4,
+    "all_fingerprinted_inputs_and_archives_unchanged": true,
+    "old_native_evidence_files_unchanged": 25,
+    "head_unchanged": true,
+    "stashes_unchanged": true,
+    "staged_changes": 0
+  },
+  "external_actions": {
+    "source_adds": 2,
+    "plugin_installs": 2,
+    "retries": 0,
+    "model_calls": 0
+  },
+  "evidence_root": ".superpowers/sdd/2026-11-11-r5-native-acceptance/prepared-n8v9i6g1",
+  "evidence_limits": [
+    "Initial inventory and per-command native return codes were consumed by the unchanged installer but were not separately captured as raw machine events. Successful executor outcomes require native returncode zero.",
+    "Codex add receipt was consumed by the unchanged R5 verifier; raw receipt was not separately retained. Its printed installed root was independently verified against actual files and final inventory.",
+    "One Codex package-description menu chunk was truncated by tool output budget; source/install approval previews and final outcomes were retained."
+  ],
+  "not_verified": [
+    "Windows/Linux",
+    "Other packages and Superpowers",
+    "Dependency installation",
+    "Hooks/MCP/skills and restarted-host behavior",
+    "Whole-machine filesystem/network audit",
+    "Remote-ref race elimination"
+  ]
+}

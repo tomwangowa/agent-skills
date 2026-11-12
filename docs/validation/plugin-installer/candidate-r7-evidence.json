@@ -1,0 +1,98 @@
+{
+  "archive": "dist/agent-skills-installer-fe55c04-candidate-r7.zip",
+  "bytes": 56060,
+  "sha256": "d598a8170b57ba27a29a1ecdcbef3c450ec0acf4f25c9a4edca8f864f8b0f4ea",
+  "zip_entries": 27,
+  "payload_fingerprints_verified": 26,
+  "input_fingerprints_verified": 30,
+  "catalog_entries": 18,
+  "own_catalog_entries_unchanged": 16,
+  "new_entries": [
+    "agent-skills-installer/acceptance-evidence/claude-login-matrix-evidence.json",
+    "agent-skills-installer/acceptance-evidence/codex-no-account-native-evidence.json"
+  ],
+  "changed_entries_from_r5": [
+    "agent-skills-installer/README.md",
+    "agent-skills-installer/catalog.json",
+    "agent-skills-installer/provenance.json",
+    "agent-skills-installer/provider-acceptance.json",
+    "agent-skills-installer/providers.json",
+    "agent-skills-installer/runtime/agent_skills_installer/hosts.py",
+    "agent-skills-installer/runtime/agent_skills_installer/planning.py",
+    "agent-skills-installer/runtime/agent_skills_installer/providers.py",
+    "agent-skills-installer/runtime/agent_skills_installer/ui.py"
+  ],
+  "removed_entries": [],
+  "reproducible": true,
+  "relocated_help_exit": 0,
+  "relocated_saved_native_planning": [
+    {
+      "case": "no-account",
+      "target": "superpowers@claude-plugins-official",
+      "status": "offline-planning-passed"
+    },
+    {
+      "case": "signed-in-isolated",
+      "target": "superpowers@claude-plugins-official",
+      "status": "offline-planning-passed"
+    },
+    {
+      "case": "codex-no-account",
+      "target": "superpowers@openai-api-curated",
+      "status": "offline-planning-passed"
+    }
+  ],
+  "shell_syntax": "passed",
+  "old_protected_files_unchanged": 73,
+  "original_settings_unchanged": 4,
+  "head_stashes_staged_unchanged": true,
+  "native_calls": 0,
+  "model_calls": 0,
+  "exact_archive_native_installation": "passed-three-macos-arm64-python-entry-cases",
+  "final_installer_tests": {
+    "total": 101,
+    "passed": 100,
+    "skipped": 1,
+    "exit": 0
+  },
+  "gitleaks": {
+    "version": "8.30.1",
+    "exit": 0,
+    "findings": 0,
+    "ignore_rules_added": false
+  },
+  "initial_r6_scan": {
+    "exit": 1,
+    "findings": 4,
+    "verified_file_hash_false_positives": 4,
+    "artifact_preserved": true
+  },
+  "final_preservation": {
+    "status": "complete-local-integration-and-packaging",
+    "delivered_candidate": "dist/agent-skills-installer-fe55c04-candidate-r7.zip",
+    "sha256": "d598a8170b57ba27a29a1ecdcbef3c450ec0acf4f25c9a4edca8f864f8b0f4ea",
+    "prior_protected_files_unchanged": 72,
+    "intentional_prior_doc_updates": [
+      "docs/validation/plugin-installer/README.md"
+    ],
+    "original_settings_unchanged": 4,
+    "head_stashes_staged_unchanged": true,
+    "local_links_checked": 173,
+    "native_host_calls": 0,
+    "model_calls": 0,
+    "environment": {
+      "python": "3.14.6",
+      "system": "Darwin",
+      "architecture": "arm64"
+    },
+    "exact_zip_native_installation": "not-verified"
+  },
+  "earlier_fields_scope": "Archive packaging checks; native_calls/model_calls count that earlier local-only step.",
+  "native_acceptance": {
+    "result_ref": "r7-native-acceptance-evidence.json",
+    "installer_runs": 6,
+    "plugin_installs": 3,
+    "rerun_mutations": 0,
+    "archive_unchanged": true
+  }
+}

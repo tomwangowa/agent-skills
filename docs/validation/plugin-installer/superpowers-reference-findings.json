@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-11",
+  "scope": "Two approved reference fetches and local source inspection; no native plugin/App Server/model operation.",
+  "external_fetches": [
+    {
+      "source": "superpowers",
+      "attempts": 1,
+      "exit_code": 0
+    },
+    {
+      "source": "codex",
+      "attempts": 1,
+      "exit_code": 0
+    }
+  ],
+  "superpowers": {
+    "source_repository": "https://github.com/obra/superpowers.git",
+    "fixed_commit": "bb92a77741419a4ab5f06e711a283343f1ada0c3",
+    "committed_file_count": 238,
+    "git_modes": {
+      "100644": 183,
+      "100755": 55
+    },
+    "full_path_byte_hash_agreement": true,
+    "matches_preserved_native_files": true,
+    "matches_saved_native_observation": true,
+    "independent_payload_sha256": "d9ae919521df6591becf75601b64bd6e9ca358e389bbe95050f966555a7ef704",
+    "executable_mode_mismatches": [],
+    "excluded_committed_files": [],
+    "basis": "All committed blobs read directly from fetched Git objects; no checkout filters, scripts or arbitrary ignores. Git administrative metadata is not a committed entry.",
+    "verification_correction": {
+      "initial_string_sorted_aggregate": "7493110fb6a565dee68a11679a2af89b1cc9bb0c27e442ad765803831f4a6223",
+      "actual_contract": "Path-component ordering, matching tree_hash and the preserved native record.",
+      "file_maps_agreed_before_correction": true,
+      "network_fetch_repeated": false
+    },
+    "does_not_verify": [
+      "Claude archive transition trigger",
+      "Current CLI native acceptance",
+      "Codex official preparation",
+      "Skill/model behavior"
+    ]
+  },
+  "native_probe_started": false,
+  "product_changes": false,
+  "source_inspection_errors": [
+    "The initial independent aggregate used string ordering instead of the existing Path-component hash ordering; all per-file maps already agreed. Corrected locally without any new fetch.",
+    "One local git grep pattern starting with -- was interpreted as an option; corrected by using -e. No source or native behavior was changed."
+  ],
+  "not_verified": [
+    "Claude archive transition trigger and current-version native acceptance",
+    "Actual Codex startup synchronization or API-curated Superpowers availability",
+    "Cold-start archive trust",
+    "Installer changes or model/skill behavior"
+  ],
+  "codex": {
+    "requested_ref": "refs/tags/rust-v0.167.0",
+    "resolved_commit": "086ccc833bc9cf01024ad2dd6af7dbd421b6bf9a",
+    "facts": [
+      "App Server default startup enables plugin startup tasks, which invoke the native curated-repository sync when plugins are enabled and the authenticated remote global catalog is not active.",
+      "The named CLI plugin-list path reads existing local curated roots; it does not call the curated startup sync. Non-global qualified names avoid fetch_remote_marketplaces.",
+      "Without Codex-backend auth, target_curated_marketplace selects the API curated manifest; backend auth and remote-plugin settings select different paths.",
+      "Native curated sync may fall back from trusted Git to GitHub HTTP and then, for an absent snapshot, the official export backup.",
+      "Plugins and discovery prefetch default to enabled; a bounded probe must explicitly disable remote-plugin/discovery prefetch behavior and keep fresh empty configuration."
+    ],
+    "candidate_probe": "One isolated stdio App Server startup without thread/start or turn/start, then bounded named catalog observations. Runtime behavior remains unverified."
+  },
+  "evidence_root": ".superpowers/sdd/2026-11-11-superpowers-evidence/prepared-_zbibmjg"
+}

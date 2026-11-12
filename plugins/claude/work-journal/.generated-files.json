@@ -2,7 +2,7 @@
   "files": {
     ".claude-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "f71f0b1a4f39faed6a4c35f0faf6fc47a37ba22d790e4c26710ec4738047d2d0"
+      "sha256": "0595029285d25d90557c8a1085fcf63206f9c5cbbc8834fef542d6c43e438262"
     },
     ".mcp.json": {
       "mode": 420,
@@ -10,11 +10,11 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "38efef22e2e23df51f5a4a2cb437ad5fe8349d11b3127cf5aec166256dec2810"
+      "sha256": "fc46a4c2b870315c2815d0c43c5fc308701e42538f329ffd87bdc8f51474f2ea"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "878e1ba0d670b83f4f47daa72f831ff0ae44356b51ef93eaad58b57c0c6c6438"
+      "sha256": "ed9e4d07ce31e3e3d02c6f3b408a764cb5459ebbad2b90dfb580345a1c7c4701"
     },
     "installation.md": {
       "mode": 420,
@@ -30,7 +30,7 @@
     },
     "runtime/agent_skills_runtime/config.py": {
       "mode": 420,
-      "sha256": "65a0a7861359f7e4dd8781e5cf4e7845f271602f645d2b3638e6e6581bcce110"
+      "sha256": "028ebca24c0fbfb7f58b5c14f6849654b596598245bc18190936886be064096b"
     },
     "runtime/agent_skills_runtime/doctor.py": {
       "mode": 420,
@@ -50,11 +50,11 @@
     },
     "runtime/agent_skills_runtime/setup.py": {
       "mode": 420,
-      "sha256": "829ced45bf3175504485178d0449a9129a4e081f43665013d518d8179505180a"
+      "sha256": "36862dcd4a1b4e724dd44c24c16279af4d2ece5bdbb6703628739a9d26bb5f7a"
     },
     "server/dist/config.js": {
       "mode": 420,
-      "sha256": "2118911d1a126dc6da75ef1202701be2df665ae2bc1850bd919eb00fd6598303"
+      "sha256": "75e481a80ef13856cfc743cef74f54d71b2de2ca2cb0d11959e599e081ec8512"
     },
     "server/dist/index.js": {
       "mode": 420,
@@ -62,7 +62,7 @@
     },
     "server/dist/runtime-config.js": {
       "mode": 420,
-      "sha256": "749e4cc4429ccef3a1140fbac8224eb097d10f448e992f21d5a0840a30732ed7"
+      "sha256": "72b78ab01b9214d3c11fa8047854d57e5d24f500fb05b76ce930e911fa0a9d81"
     },
     "server/dist/sources/activities.js": {
       "mode": 420,
@@ -14598,7 +14598,7 @@
     },
     "skills/activity-logger/SKILL.md": {
       "mode": 420,
-      "sha256": "b0df5b887e8993174876d73e636ff09cc8303791e83642231004bb2b5edcb424"
+      "sha256": "78f5a76517e6185019630d09f1d2ab706bd6c3139c5ae0cb6ebe5e6ec7841fa3"
     },
     "skills/activity-logger/scripts/init_activities.sh": {
       "mode": 493,
@@ -14626,7 +14626,7 @@
     },
     "skills/work-log-analyzer/SKILL.md": {
       "mode": 420,
-      "sha256": "233773a95831b9d19ec033256f48a303348c4f68686d83c5512ea9aaba12f63d"
+      "sha256": "618895218dabc37c50041f2df7c48d1e3b6947f38bc32b8e6aabd99a257438bc"
     },
     "skills/work-log-analyzer/agents/openai.yaml": {
       "mode": 420,

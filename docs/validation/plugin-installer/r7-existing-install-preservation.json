@@ -1,0 +1,446 @@
+{
+  "archive_sha256": "d598a8170b57ba27a29a1ecdcbef3c450ec0acf4f25c9a4edca8f864f8b0f4ea",
+  "kind": "exact-archive-runtime-with-synthetic-native-inventory",
+  "scenarios": 29,
+  "installer_runs": 58,
+  "mutation_commands": 0,
+  "all_fixture_files_unchanged": true,
+  "actual_native_preservation": "not-yet-verified",
+  "results": [
+    {
+      "host": "claude",
+      "version": "6.0.0",
+      "enabled": true,
+      "marketplace": "claude-plugins-official",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "6.0.0",
+      "enabled": true,
+      "marketplace": "existing-provider",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "6.0.0",
+      "enabled": false,
+      "marketplace": "claude-plugins-official",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "6.0.0",
+      "enabled": false,
+      "marketplace": "existing-provider",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "7.0.0",
+      "enabled": true,
+      "marketplace": "claude-plugins-official",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "7.0.0",
+      "enabled": true,
+      "marketplace": "existing-provider",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "7.0.0",
+      "enabled": false,
+      "marketplace": "claude-plugins-official",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "7.0.0",
+      "enabled": false,
+      "marketplace": "existing-provider",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "7.0.2",
+      "enabled": true,
+      "marketplace": "claude-plugins-official",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "7.0.2",
+      "enabled": true,
+      "marketplace": "existing-provider",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "7.0.2",
+      "enabled": false,
+      "marketplace": "claude-plugins-official",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "7.0.2",
+      "enabled": false,
+      "marketplace": "existing-provider",
+      "scope": "user",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": null,
+      "enabled": null,
+      "marketplace": "existing-provider",
+      "scope": "project",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "7.0.2",
+      "enabled": true,
+      "marketplace": "claude-plugins-official",
+      "scope": "user",
+      "duplicate_inventory": true,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "claude",
+      "version": "7.0.0",
+      "enabled": false,
+      "marketplace": "claude-plugins-official",
+      "scope": "local",
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "5.0.0",
+      "enabled": true,
+      "marketplace": "openai-api-curated",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "5.0.0",
+      "enabled": true,
+      "marketplace": "existing-provider",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "5.0.0",
+      "enabled": false,
+      "marketplace": "openai-api-curated",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "5.0.0",
+      "enabled": false,
+      "marketplace": "existing-provider",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "6.3.0",
+      "enabled": true,
+      "marketplace": "openai-api-curated",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "6.3.0",
+      "enabled": true,
+      "marketplace": "existing-provider",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "6.3.0",
+      "enabled": false,
+      "marketplace": "openai-api-curated",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "6.3.0",
+      "enabled": false,
+      "marketplace": "existing-provider",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "7.0.2",
+      "enabled": true,
+      "marketplace": "openai-api-curated",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "7.0.2",
+      "enabled": true,
+      "marketplace": "existing-provider",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "7.0.2",
+      "enabled": false,
+      "marketplace": "openai-api-curated",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "7.0.2",
+      "enabled": false,
+      "marketplace": "existing-provider",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": null,
+      "enabled": null,
+      "marketplace": "existing-provider",
+      "scope": null,
+      "duplicate_inventory": false,
+      "runs": 2,
+      "exit_codes": [
+        1,
+        1
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    },
+    {
+      "host": "codex",
+      "version": "7.0.2",
+      "enabled": true,
+      "marketplace": "openai-api-curated",
+      "scope": null,
+      "duplicate_inventory": true,
+      "runs": 2,
+      "exit_codes": [
+        0,
+        0
+      ],
+      "mutations": 0,
+      "fixture_files_unchanged": true
+    }
+  ]
+}

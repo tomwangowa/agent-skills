@@ -1,0 +1,259 @@
+{
+  "status": "installation-coexistence-and-preservation-verified-with-codex-status-gap",
+  "archive_sha256": "d598a8170b57ba27a29a1ecdcbef3c450ec0acf4f25c9a4edca8f864f8b0f4ea",
+  "platform": "macos",
+  "architecture": "arm64",
+  "installer_runs": 4,
+  "source_adds": 3,
+  "plugin_installs": 18,
+  "installed_files_verified": 8199,
+  "rerun_mutations": 0,
+  "native_codex_catalog_startups": 1,
+  "native_logins": 0,
+  "model_requests_sent_by_observer": 0,
+  "cases": [
+    {
+      "host": "claude",
+      "cli_version": "2.1.322 (Claude Code)",
+      "account_logged_in": false,
+      "first_installer_exit": 0,
+      "rerun_installer_exit": 0,
+      "packages": [
+        {
+          "name": "attention-mod",
+          "version": "0.6.1",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.6.1",
+          "files": 61,
+          "content_hash": "e70ca37adaa6394d05b275b78269e3626b124ae39404fdc2ea0e9435ea3c79ff",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "content-tools",
+          "version": "0.2.0",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.2.0",
+          "files": 62,
+          "content_hash": "1c0f0daf8a299dfb39be9253a0c8d1f849bc9a0bed321eb35157e24998d2585f",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "handoff-mod",
+          "version": "0.2.2",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.2.2",
+          "files": 50,
+          "content_hash": "be89d05838e2ebed0311d28612db8a6aa632dbb06df795125dccfab8a7dd9b50",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "quality-gates",
+          "version": "0.2.0",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.2.0",
+          "files": 27,
+          "content_hash": "a7c6e396a54fa316a837bd3cc7479254cadb4b09672475649820720eca81add3",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "repo-workflow",
+          "version": "0.3.0",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.3.0",
+          "files": 26,
+          "content_hash": "3b23f0b0b8ecd1d739069d78711a48e9417214dc0502e74cbdaef3a333d712d2",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "session-preferences",
+          "version": "0.1.4",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.1.4",
+          "files": 31,
+          "content_hash": "a60a68a3d4c234f7054dd627fa7adfde8e14853a02d003c5341fa8c7fba0f443",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "skill-toolbox",
+          "version": "0.1.3",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.1.3",
+          "files": 30,
+          "content_hash": "a3bad3c33a4f85382556537f3b167718d2f3bbe37c8607c450568c127c539aff",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "superpowers",
+          "version": "7.0.0",
+          "marketplace": "claude-plugins-official",
+          "native_cache_version": "7.0.0",
+          "files": 238,
+          "content_hash": "d9ae919521df6591becf75601b64bd6e9ca358e389bbe95050f966555a7ef704",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "technical-decisions",
+          "version": "0.1.3",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.1.3",
+          "files": 50,
+          "content_hash": "58204581e1759b465dc05b09f63aa13f137939592eeb0ff0f82bbcd81bad7024",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "work-journal",
+          "version": "0.2.0",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.2.0",
+          "files": 3665,
+          "content_hash": "c85886a4a461dfea5d787a5bc24817908716b07c2a32951e72f06d81010a8c08",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        }
+      ],
+      "installed_files": 4240,
+      "rerun_mutations": 0,
+      "payload_settings_unchanged_on_rerun": true,
+      "journal_configuration": "declined",
+      "known_codex_rerun_success_status_gap": false
+    },
+    {
+      "host": "codex",
+      "cli_version": "codex-cli 0.167.0",
+      "account_logged_in": false,
+      "first_installer_exit": 0,
+      "rerun_installer_exit": 1,
+      "packages": [
+        {
+          "name": "quality-gates",
+          "version": "0.2.0",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.2.0",
+          "files": 25,
+          "content_hash": "bdd888a67f1728221208937bfc554efbd17fc19bdda1590697628eb40b05ed5c",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "technical-decisions",
+          "version": "0.1.3",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.1.3",
+          "files": 50,
+          "content_hash": "581cf9eaa6b3a4e8b4ddbd1dc71ccfbd8727c90c90cb70019599d39e098323ce",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "repo-workflow",
+          "version": "0.3.0",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.3.0",
+          "files": 26,
+          "content_hash": "be64337cddc87acf6ac94ff0aa21666f78cdc5dda8beddae014b38baa9208fd6",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "content-tools",
+          "version": "0.2.0",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.2.0",
+          "files": 62,
+          "content_hash": "d3d65f957fabf39a459a4d2f80aa6ced254ff8737d63a5d373134086a149cb62",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "work-journal",
+          "version": "0.2.0",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.2.0",
+          "files": 3665,
+          "content_hash": "c998b93b0040229db2db79c82f8521e5f27907c719151d921d1a12d5c169fa99",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "session-preferences",
+          "version": "0.1.4",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.1.4",
+          "files": 31,
+          "content_hash": "4e044dca6664cc456995f86ca2a6b451e64719ccb7ff2b2cda6e266c3b903b82",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "skill-toolbox",
+          "version": "0.1.3",
+          "marketplace": "tomwangowa",
+          "native_cache_version": "0.1.3",
+          "files": 27,
+          "content_hash": "cfa8fef963e33a0b0aaee5df8f92189f59c7e9f320b40024b9a3d9fb05601870",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        },
+        {
+          "name": "superpowers",
+          "version": "6.3.0",
+          "marketplace": "openai-api-curated",
+          "native_cache_version": "d420d130",
+          "files": 73,
+          "content_hash": "2bc88a8ad42d3b2a5f2b7f0b6711b0ae4d18895bfa870dcfeb7c9fc5d31fdba0",
+          "enabled": true,
+          "committed_content_and_modes_match": true,
+          "single_cache_directory": true
+        }
+      ],
+      "installed_files": 3959,
+      "rerun_mutations": 0,
+      "payload_settings_unchanged_on_rerun": true,
+      "journal_configuration": "declined",
+      "known_codex_rerun_success_status_gap": true
+    }
+  ],
+  "known_limit": "Codex rerun returns exit 1 for seven preserved own packages whose update ownership is not verified.",
+  "preservation": {
+    "baseline_files_checked": 7641,
+    "personal_settings_unchanged": 4,
+    "only_allowed_document_delta": "docs/validation/plugin-installer/README.md",
+    "head_stashes_staged_unchanged": true,
+    "archive_unchanged": true
+  },
+  "not_verified": [
+    "Model/hook/MCP runtime coexistence",
+    "Windows/Linux or other CLI versions/architectures",
+    "Logged-in full-package coexistence",
+    "Actual company endpoint connectivity",
+    "Journal setup and mod personal configuration",
+    "Native older/newer/disabled package cases",
+    "Complete network/keychain/whole-computer audit"
+  ]
+}

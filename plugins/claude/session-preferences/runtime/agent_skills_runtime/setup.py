@@ -49,7 +49,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config-root", type=Path)
     parser.add_argument("--activities", type=Path, required=True)
-    parser.add_argument("--notes", type=Path, nargs="+", required=True)
+    parser.add_argument("--notes", type=Path, nargs="*", default=[])
     parser.add_argument("--preview", action="store_true")
     args = parser.parse_args(argv)
     env = dict(os.environ)

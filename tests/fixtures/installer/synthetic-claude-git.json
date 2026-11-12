@@ -1,0 +1,14 @@
+{
+  "host": "claude",
+  "cli_version": "2.1.319",
+  "platform": "macos",
+  "architecture": "arm64",
+  "command": ["claude", "plugin", "marketplace", "list", "--json"],
+  "provenance": "Synthetic reconstruction: native run observed name/source=git/installLocation and no repo; url is independently confirmed by native known_marketplaces.json and the official CLI schema. The original observer omitted url, so this is not a full observed CLI capture.",
+  "output": [{
+    "name": "tomwangowa",
+    "source": "git",
+    "url": "https://github.com/tomwangowa/agent-skills.git",
+    "installLocation": "<MARKETPLACE_ROOT>"
+  }]
+}

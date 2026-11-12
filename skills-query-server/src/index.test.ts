@@ -24,6 +24,16 @@ describe('integration: disposable external data sources', () => {
     expect(config.sources.notes.paths).toEqual([join(root, 'notes')]);
   });
 
+  it('starts and reads activities when notes are not configured', () => {
+    writeFileSync(join(root, 'work-journal.json'), JSON.stringify({ sources: {
+      activities: 'journal', notes: { paths: [] },
+    } }));
+    const config = loadRuntimeConfig({ AGENT_SKILLS_CONFIG_DIR: root }, '/fixture/home');
+    expect(config.sources.notes.paths).toEqual([]);
+    expect(loadNotes(config.sources.notes)).toEqual([]);
+    expect(loadActivities(config.sources.activities)).toEqual([]);
+  });
+
   it('reads a known activity from the selected fixture directory', () => {
     writeFileSync(join(root, 'journal/fixture.json'), JSON.stringify({
       session_id: 'fixture', timestamp: '2026-10-14T12:00:00Z', project_name: 'fixture',

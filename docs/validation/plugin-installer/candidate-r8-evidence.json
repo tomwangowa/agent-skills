@@ -1,0 +1,48 @@
+{
+  "sha256": "bd3dfe2cf169114985a42f0c4ac9d0b691b1aa99e53789751c2ad1e7d2e8c488",
+  "bytes": 58544,
+  "zip_entries": 28,
+  "provenance_files": 27,
+  "provenance_inputs": 31,
+  "reproducible": true,
+  "catalog_and_native_capability_records_unchanged_from_r7": true,
+  "installer_launched_against_real_hosts": false,
+  "keyboard_proof": {
+    "status": "passed",
+    "archive_sha256": "bd3dfe2cf169114985a42f0c4ac9d0b691b1aa99e53789751c2ad1e7d2e8c488",
+    "entry": "relocated install-macos.command -> install.py -> bundled runtime",
+    "terminal_rows": 18,
+    "terminal_columns": 80,
+    "selection": [
+      "superpowers"
+    ],
+    "all_nine_defaults_unchecked": true,
+    "official_source_proposal_only": true,
+    "cancel_exit": 130,
+    "post_exit_terminal_mode_check": "not observable after launcher exit: 25",
+    "fake_host_mutations": 0,
+    "real_host_invocations": 0,
+    "external_operations": 0,
+    "model_requests": 0
+  },
+  "tests": {
+    "installer": {
+      "total": 108,
+      "passed": 107,
+      "skipped": 1,
+      "reason": "PowerShell unavailable"
+    },
+    "packages_passed": 14,
+    "config_passed": 15,
+    "catalog_check_exit": 0
+  },
+  "native_r8_installation": "not run",
+  "personal_inventory_failure_cause": "not established",
+  "personal_settings_changes_by_repair": 0,
+  "secret_scan": {
+    "tool": "gitleaks dir",
+    "scope": "fresh exact R8 ZIP extraction",
+    "findings": 0,
+    "exit": 0
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "candidate": "R11",
+  "date": "2026-11-12",
+  "archive": "agent-skills-installer-fe55c04-candidate-r11.zip",
+  "sha256": "c686ec875a61a81793782ec6621e424889ad14d1f643a4a3f52113f0e5a36414",
+  "size": 71532,
+  "zip_entries": 32,
+  "payload_hashes": 31,
+  "input_hashes": 35,
+  "reproducible": true,
+  "provenance_verified": true,
+  "catalog_provider_acceptance_unchanged_from_r10": true,
+  "installer_suite": {
+    "tests": 150,
+    "passed": 149,
+    "skipped": 1,
+    "exit_code": 0
+  },
+  "focused_removal_tests": 22,
+  "package_tests": 14,
+  "config_tests": 15,
+  "catalog_check_exit": 0,
+  "syntax_check": "passed",
+  "gitleaks": {
+    "exit_code": 0,
+    "findings": 0,
+    "scan": "fresh exact R11 archive extraction; default rules, no ignores"
+  },
+  "relocated_removal": {
+    "archive_sha256": "c686ec875a61a81793782ec6621e424889ad14d1f643a4a3f52113f0e5a36414",
+    "entry": "relocated install-macos.command -> install.py -> bundled runtime",
+    "terminal_rows": 20,
+    "terminal_columns": 90,
+    "status": "passed",
+    "cases": [
+      {
+        "case": "empty",
+        "exit_code": 0,
+        "fake_uninstalls": 0,
+        "unchecked_defaults": true,
+        "project_payload_and_data_preserved": true,
+        "journal_notes_records_plugin_data_preserved": true,
+        "raw_json_hidden": true,
+        "no_source_dependency_or_journal_flow": true,
+        "real_host_calls": 0,
+        "external_operations": 0,
+        "model_requests": 0
+      },
+      {
+        "case": "cancel",
+        "exit_code": 130,
+        "fake_uninstalls": 0,
+        "unchecked_defaults": true,
+        "project_payload_and_data_preserved": true,
+        "journal_notes_records_plugin_data_preserved": true,
+        "raw_json_hidden": true,
+        "no_source_dependency_or_journal_flow": true,
+        "real_host_calls": 0,
+        "external_operations": 0,
+        "model_requests": 0
+      },
+      {
+        "case": "success",
+        "exit_code": 0,
+        "fake_uninstalls": 2,
+        "unchecked_defaults": true,
+        "project_payload_and_data_preserved": true,
+        "journal_notes_records_plugin_data_preserved": true,
+        "raw_json_hidden": true,
+        "no_source_dependency_or_journal_flow": true,
+        "real_host_calls": 0,
+        "external_operations": 0,
+        "model_requests": 0
+      }
+    ]
+  },
+  "relocated_installation": {
+    "status": "passed",
+    "archive_sha256": "c686ec875a61a81793782ec6621e424889ad14d1f643a4a3f52113f0e5a36414",
+    "entry": "relocated install-macos.command -> install.py -> bundled runtime",
+    "terminal_rows": 24,
+    "terminal_columns": 100,
+    "packages": [
+      "handoff-mod",
+      "quality-gates",
+      "work-journal"
+    ],
+    "per_package_phase_bars": true,
+    "blank_line_between_package_results": true,
+    "native_no_newline_prompt_visible_before_answer": true,
+    "raw_json_hidden": true,
+    "up_to_date_with_validated_usage_marker": true,
+    "existing_mod_bytes_preserved": true,
+    "existing_journal_reused_without_prompt_or_write": true,
+    "private_extension_hidden": true,
+    "fake_installs": 2,
+    "fake_updates": 1,
+    "real_host_calls": 0,
+    "external_operations": 0,
+    "model_requests": 0,
+    "exit_code": 0
+  },
+  "preservation": {
+    "previous_archives": 10,
+    "previous_archives_unchanged": true,
+    "personal_files": 5,
+    "personal_files_unchanged": true,
+    "head_unchanged": true,
+    "stashes_unchanged": true,
+    "staged_unchanged": true
+  },
+  "claude_removal_cli": "2.1.322 (Claude Code)",
+  "codex_removal": "withheld; personal/project ownership not established",
+  "review": "same-session Codex self-review; commitment and recency bias not fully controlled",
+  "real_host_operations": 0,
+  "model_requests": 0,
+  "commits": 0,
+  "not_verified": [
+    "Native R11 uninstall/install/update",
+    "Native Windows/Linux and PowerShell",
+    "Native saved option/secret cleanup and data retention",
+    "Restarted host/model/hook/MCP workflows",
+    "Atomic protection against concurrent filesystem changes"
+  ]
+}

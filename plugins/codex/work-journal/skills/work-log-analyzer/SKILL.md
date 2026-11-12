@@ -11,9 +11,11 @@ Analyzes the configured activity-logger records and user-supplied work logs to a
 
 Claude Code CLI and Codex CLI resolve the same external `work-journal.json`.
 Use `AGENT_SKILLS_CONFIG_DIR`, then `XDG_CONFIG_HOME/agent-skills`, then the
-current user's `~/.config/agent-skills`. `sources.activities` and a non-empty
-`sources.notes.paths` are required. Relative data paths, including a relative
+current user's `~/.config/agent-skills`. `sources.activities` and
+`sources.notes.paths` are required; the notes list may be empty. Relative data paths, including a relative
 `CLAUDE_ACTIVITIES_DIR` override, resolve from the settings root.
+Add note directories later in `sources.notes.paths` in that settings file and
+restart the query server; preserve any existing paths.
 
 Before local fallback access, run `python3 -m agent_skills_runtime.journal_cli
 activities-dir` with this installation's bundled `runtime/` on `PYTHONPATH`.
