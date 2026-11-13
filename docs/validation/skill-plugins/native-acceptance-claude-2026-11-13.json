@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "surface": "claude-cli",
+  "status": "verified",
+  "observed_client_version": "2.1.323",
+  "artifact_version": "0.1.0",
+  "observed_package_versions": {
+    "quality-gates": "0.2.0",
+    "technical-decisions": "0.1.3",
+    "repo-workflow": "0.3.0",
+    "content-tools": "0.2.0",
+    "work-journal": "0.2.1",
+    "session-preferences": "0.1.6",
+    "skill-toolbox": "0.1.3"
+  },
+  "installation_source": "Local filesystem marketplace rooted at this checkout; the current refresh did not use the remote Git marketplace.",
+  "artifact_bindings": {
+    "quality-gates": {
+      "sha256": "f36ba323be455df409b739a3eb9b8cc9f23c0919299b3aef394fe516aa7ccca1",
+      "resource_count": 20
+    },
+    "technical-decisions": {
+      "sha256": "46e320cae107edb5fe1c24c5666f217483a096fed696ec91163463e23b112fd6",
+      "resource_count": 43
+    },
+    "repo-workflow": {
+      "sha256": "6fa535af73f5ddedfbd75f332cd078b4d45723bf9990471fb2ca53c7c867caf2",
+      "resource_count": 19
+    },
+    "content-tools": {
+      "sha256": "3938562b4abf610d08ba8f293e093d60a33a6c2c3bd865068d3dd365b0d64497",
+      "resource_count": 55
+    },
+    "work-journal": {
+      "sha256": "1baf5f0015f98992ac467edb3020fbe09a90e0ba7b3bc8b9ed698917000f06e2",
+      "resource_count": 3658
+    },
+    "session-preferences": {
+      "sha256": "0bc8a7d010b8cf92799de88c4b3f50f0dfb3745b93bcc622a603bf60f439a864",
+      "resource_count": 24
+    },
+    "skill-toolbox": {
+      "sha256": "5f728b464e3bd6ff3cfbac1796ff3219ba87634f7a0c364abeeccbe62c845891",
+      "resource_count": 23
+    }
+  },
+  "checks": {
+    "installation": "verified",
+    "mcp_round_trip": "verified",
+    "startup": "verified",
+    "resume": "verified",
+    "clear": "verified",
+    "compact": "verified",
+    "preference_off": "verified",
+    "owned_routing": "verified",
+    "manual_invocation": "verified",
+    "superpowers": "verified",
+    "update": "verified",
+    "migration": "verified"
+  },
+  "native_test_environment": "macOS 26.6.2 arm64; isolated native CLI profile; synthetic fixtures only; no personal settings or credentials copied.",
+  "isolation": "Authentication was completed in each isolated profile. Credential contents were not read or copied. Model prompts used synthetic markers only; raw traces are excluded from the repository.",
+  "scenarios": {
+    "installation": {
+      "result": "verified",
+      "observation": "Installed all seven current packages from the isolated local filesystem marketplace. Native inventory versions and every installed cache binding matched the current source artifacts.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        },
+        {
+          "record": "claude sanitized native acceptance refresh summary",
+          "sha256": "dc6e2bd946551853cbb89fbb426550a24f0d8129badfdf17be0e571539969c00",
+          "storage": "Temporary acceptance directory; removed after validation; raw transcripts are excluded from the repository."
+        }
+      ],
+      "refresh_validation": "revalidated_2026-11-13"
+    },
+    "mcp_round_trip": {
+      "result": "verified",
+      "observation": "The installed work-journal server exposed seven tools and wrote then queried a unique synthetic fixture marker.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "startup": {
+      "result": "verified",
+      "observation": "The current session-preferences 0.1.6 SessionStart hook returned the unique isolated preference marker AGENT_SKILLS_PREFS_ONLY_20261113_7D9C6A2B. Built-in tools and session persistence were disabled for the synthetic request.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        },
+        {
+          "record": "claude sanitized native acceptance refresh summary",
+          "sha256": "dc6e2bd946551853cbb89fbb426550a24f0d8129badfdf17be0e571539969c00",
+          "storage": "Temporary acceptance directory; removed after validation; raw transcripts are excluded from the repository."
+        }
+      ],
+      "refresh_validation": "revalidated_2026-11-13"
+    },
+    "resume": {
+      "result": "verified",
+      "observation": "Resumed the observed native session and received the expected fixture marker and preference headers.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "clear": {
+      "result": "verified",
+      "observation": "Used /clear and confirmed the new native session received the expected fixture headers.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "compact": {
+      "result": "verified",
+      "observation": "Used native /compact and recalled the exact synthetic marker afterward.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "preference_off": {
+      "result": "verified",
+      "observation": "With AGENT_SESSION_PREFS=off, the model returned exactly NONE. This current 0.1.6 check used only synthetic fixture data.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        },
+        {
+          "record": "claude sanitized native acceptance refresh summary",
+          "sha256": "dc6e2bd946551853cbb89fbb426550a24f0d8129badfdf17be0e571539969c00",
+          "storage": "Temporary acceptance directory; removed after validation; raw transcripts are excluded from the repository."
+        }
+      ],
+      "refresh_validation": "revalidated_2026-11-13"
+    },
+    "owned_routing": {
+      "result": "verified",
+      "observation": "Native routing selected technical-decisions:brainstorming, quality-gates:code-review-claude, and quality-gates:completion-gate.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "manual_invocation": {
+      "result": "verified",
+      "observation": "Explicit /skill-toolbox:skill-sync invocation loaded the installed instructions and stopped before any command or file change.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "superpowers": {
+      "result": "verified",
+      "observation": "Installed official Superpowers 7.0.0; the selected writing-plans workflow reached its planning boundary without running commands or writing files.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "update": {
+      "result": "verified",
+      "observation": "Remote marketplace refresh and native update reported all seven packages already current; versions and bindings remained unchanged.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "migration": {
+      "result": "verified",
+      "observation": "Applied and restored the synthetic settings migration; original bytes and mode were exact and unrelated fixture settings remained.",
+      "private_evidence": [
+        {
+          "record": "claude isolated native session trace bundle",
+          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    }
+  },
+  "limits": [
+    "Only macOS 26.6.2 arm64 with Claude Code CLI 2.1.323 was exercised; other OS and CLI versions were not tested.",
+    "This refresh installed from a local filesystem marketplace. Remote Git marketplace acceptance for the current 0.1.6 artifact was not performed.",
+    "The previous Claude remote marketplace update evidence applies to the prior 0.1.5 artifact; it does not establish a remote 0.1.6 transition.",
+    "Claude MCP round-trip used an isolated explicit config derived from the installed package entry; automatic plugin MCP discovery under normal settings was not established.",
+    "Superpowers evidence covers the selected writing-plans boundary only, not its full upstream workflow.",
+    "Synthetic prompts consumed model tokens; no private user content was supplied.",
+    "The temporary Claude profile was logged out and removed after validation; raw transcripts are not included in the repository."
+  ],
+  "acceptance_refresh": {
+    "date": "2026-11-13",
+    "previous_record": {
+      "path": "native-acceptance-claude.json",
+      "sha256": "d558523926eb5d015f681ed80e538896e95bbb5a5f0b1013a1705bd4076895ee"
+    },
+    "current_sanitized_evidence_sha256": "dc6e2bd946551853cbb89fbb426550a24f0d8129badfdf17be0e571539969c00",
+    "revalidated_checks": [
+      "installation",
+      "startup",
+      "preference_off"
+    ],
+    "carried_forward_checks": [
+      "mcp_round_trip",
+      "resume",
+      "clear",
+      "compact",
+      "owned_routing",
+      "manual_invocation",
+      "superpowers",
+      "update",
+      "migration"
+    ],
+    "carry_forward_basis": "The 2026-11-12 checks are carried forward for unchanged behavior resources. Across both surfaces, all native bindings except session-preferences are identical; for session-preferences, the only bound-resource change is the native manifest version field (0.1.5 to 0.1.6). Its current installation, startup injection, and preference-off behavior were rechecked.",
+    "artifact_binding_delta": {
+      "changed_packages": [
+        "session-preferences"
+      ],
+      "changed_behavior_resources": []
+    }
+  },
+  "check_provenance": {
+    "installation": "revalidated_2026-11-13",
+    "mcp_round_trip": "carried_forward_2026-11-12",
+    "startup": "revalidated_2026-11-13",
+    "resume": "carried_forward_2026-11-12",
+    "clear": "carried_forward_2026-11-12",
+    "compact": "carried_forward_2026-11-12",
+    "preference_off": "revalidated_2026-11-13",
+    "owned_routing": "carried_forward_2026-11-12",
+    "manual_invocation": "carried_forward_2026-11-12",
+    "superpowers": "carried_forward_2026-11-12",
+    "update": "carried_forward_2026-11-12",
+    "migration": "carried_forward_2026-11-12"
+  }
+}

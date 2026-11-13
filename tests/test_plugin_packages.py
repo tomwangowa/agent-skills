@@ -26,7 +26,7 @@ APPROVED_VERSIONS = {
     'repo-workflow': '0.3.0',
     'content-tools': '0.2.0',
     'work-journal': '0.2.1',
-    'session-preferences': '0.1.5',
+    'session-preferences': '0.1.6',
     'skill-toolbox': '0.1.3',
 }
 

@@ -1,6 +1,6 @@
 # session-preferences
 
-Version 0.1.5; codex CLI.
+Version 0.1.6; codex CLI.
 
 Included skills:
 
