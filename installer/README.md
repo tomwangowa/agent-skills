@@ -1,5 +1,7 @@
 # CLI plugin installer
 
+[English](README.md) | [繁體中文](README.zh.md)
+
 This archive is a reviewable installer candidate, not evidence of native
 platform acceptance. Install Claude Code CLI, Codex CLI, or both first and
 retain the authentication/model-provider setup required by your organization.
