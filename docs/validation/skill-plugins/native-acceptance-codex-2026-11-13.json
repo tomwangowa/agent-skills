@@ -1,0 +1,311 @@
+{
+  "schema_version": 1,
+  "surface": "codex-cli",
+  "status": "verified",
+  "observed_client_version": "0.167.0",
+  "artifact_version": "0.1.0",
+  "observed_package_versions": {
+    "quality-gates": "0.2.0",
+    "technical-decisions": "0.1.3",
+    "repo-workflow": "0.3.0",
+    "content-tools": "0.2.0",
+    "work-journal": "0.2.1",
+    "session-preferences": "0.1.6",
+    "skill-toolbox": "0.1.3"
+  },
+  "installation_source": "Local filesystem marketplace rooted at this checkout; the current refresh did not use the remote Git marketplace.",
+  "artifact_bindings": {
+    "quality-gates": {
+      "sha256": "4ae863413c2168fd143d193f23d61c9ea3684d3dd908617391e39e9478e115a9",
+      "resource_count": 18
+    },
+    "technical-decisions": {
+      "sha256": "2f23d98ccca7779f5e5c2d95f7fc67859abc1022732bbd51ac9c14b0722989ef",
+      "resource_count": 43
+    },
+    "repo-workflow": {
+      "sha256": "8c974993612236650649a3491d98d43885017af34d7afd1aae139294f641d3d2",
+      "resource_count": 19
+    },
+    "content-tools": {
+      "sha256": "7caa00300a88b0e7f7854bb221674dcb0a3487ce4dea468cb77ec7f4e145f094",
+      "resource_count": 55
+    },
+    "work-journal": {
+      "sha256": "92625ac91ecd6d84cf71d5567f547703a093d006912085c1a2f169caa9699d13",
+      "resource_count": 3658
+    },
+    "session-preferences": {
+      "sha256": "dbac218b34889c2ff93717ca7f127c61cdd8376fa04928af4ceb4a73824e9c90",
+      "resource_count": 24
+    },
+    "skill-toolbox": {
+      "sha256": "15de253853e2f55cd7fa2b092672c3d479eadb43589fc798b6455e288752ed36",
+      "resource_count": 20
+    }
+  },
+  "checks": {
+    "installation": "verified",
+    "mcp_round_trip": "verified",
+    "startup": "verified",
+    "resume": "verified",
+    "clear": "verified",
+    "compact": "verified",
+    "preference_off": "verified",
+    "owned_routing": "verified",
+    "manual_invocation": "verified",
+    "superpowers": "verified",
+    "update": "verified",
+    "migration": "verified"
+  },
+  "native_test_environment": "macOS 26.6.2 arm64; isolated native CLI profile; synthetic fixtures only; no personal settings or credentials copied.",
+  "isolation": "Authentication was completed in each isolated profile. Credential contents were not read or copied. Model prompts used synthetic markers only; raw traces are excluded from the repository.",
+  "scenarios": {
+    "installation": {
+      "result": "verified",
+      "observation": "Installed all seven current packages from the isolated local filesystem marketplace. Native inventory versions and every installed cache binding matched the current source artifacts.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "3e95715b3e25483313d6857e7c94d2e41104614f530bdc0044c4872dfbd9d0b5",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        },
+        {
+          "record": "codex sanitized native acceptance refresh summary",
+          "sha256": "b86bf11fda90102cabb9fb3bbb949dad94a0fd41c879c9bd2916ebd9e4e54b61",
+          "storage": "Temporary acceptance directory; removed after validation; raw transcripts are excluded from the repository."
+        }
+      ],
+      "refresh_validation": "revalidated_2026-11-13"
+    },
+    "mcp_round_trip": {
+      "result": "verified",
+      "observation": "The installed work-journal server exposed seven tools and wrote then queried a unique synthetic fixture marker.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "3e95715b3e25483313d6857e7c94d2e41104614f530bdc0044c4872dfbd9d0b5",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "startup": {
+      "result": "verified",
+      "observation": "After native trust review, five SessionStart hooks were active. The ephemeral read-only synthetic request returned AGENT_SKILLS_CODEX_PREFS_ONLY_20261113_9C4E1A27; the JSONL event stream contained no tool calls.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "3e95715b3e25483313d6857e7c94d2e41104614f530bdc0044c4872dfbd9d0b5",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        },
+        {
+          "record": "codex sanitized native acceptance refresh summary",
+          "sha256": "b86bf11fda90102cabb9fb3bbb949dad94a0fd41c879c9bd2916ebd9e4e54b61",
+          "storage": "Temporary acceptance directory; removed after validation; raw transcripts are excluded from the repository."
+        }
+      ],
+      "refresh_validation": "revalidated_2026-11-13"
+    },
+    "resume": {
+      "result": "verified",
+      "observation": "Resumed the observed native session and received the expected fixture marker and preference headers.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "3e95715b3e25483313d6857e7c94d2e41104614f530bdc0044c4872dfbd9d0b5",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "clear": {
+      "result": "verified",
+      "observation": "Used native /clear, opened a new thread, and received the expected fixture headers.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "3e95715b3e25483313d6857e7c94d2e41104614f530bdc0044c4872dfbd9d0b5",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "compact": {
+      "result": "verified",
+      "observation": "Used native /compact and recalled the exact synthetic markers afterward; reinjected instructions were idempotent.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "3e95715b3e25483313d6857e7c94d2e41104614f530bdc0044c4872dfbd9d0b5",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "preference_off": {
+      "result": "verified",
+      "observation": "With AGENT_SESSION_PREFS=off, the ephemeral read-only synthetic request returned exactly NONE; the JSONL event stream contained no tool calls.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "3e95715b3e25483313d6857e7c94d2e41104614f530bdc0044c4872dfbd9d0b5",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        },
+        {
+          "record": "codex sanitized native acceptance refresh summary",
+          "sha256": "b86bf11fda90102cabb9fb3bbb949dad94a0fd41c879c9bd2916ebd9e4e54b61",
+          "storage": "Temporary acceptance directory; removed after validation; raw transcripts are excluded from the repository."
+        }
+      ],
+      "refresh_validation": "revalidated_2026-11-13"
+    },
+    "owned_routing": {
+      "result": "verified",
+      "observation": "Native routing selected installed technical-decisions:brainstorming and quality-gates:code-review-codex; the completion check rejected an unsupported done claim.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "3e95715b3e25483313d6857e7c94d2e41104614f530bdc0044c4872dfbd9d0b5",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "manual_invocation": {
+      "result": "verified",
+      "observation": "The explicit $skill-toolbox:skill-sync call loaded the installed instructions, identified explicit source-folder selection as the first user checkpoint, and stopped before commands or writes.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "7db0a743ffca17a2f39a4a21aa1a5b0c8c1da3d94568f16ca694c7a85f070228",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "superpowers": {
+      "result": "verified",
+      "observation": "Used the locally cached Superpowers 7.0.2 writing-plans workflow; it produced a plan and stopped for approval without running commands or writing files.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "3e95715b3e25483313d6857e7c94d2e41104614f530bdc0044c4872dfbd9d0b5",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "update": {
+      "result": "verified",
+      "observation": "Native add refreshed the seven packages from the local filesystem marketplace without a downgrade; Codex rejected its marketplace-update operation for that filesystem source. Remote Git marketplace update remains unverified.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "3e95715b3e25483313d6857e7c94d2e41104614f530bdc0044c4872dfbd9d0b5",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    },
+    "migration": {
+      "result": "verified",
+      "observation": "Applied and restored the synthetic settings migration; original bytes and mode were exact and unrelated fixture settings remained.",
+      "private_evidence": [
+        {
+          "record": "codex isolated native session trace bundle",
+          "sha256": "3e95715b3e25483313d6857e7c94d2e41104614f530bdc0044c4872dfbd9d0b5",
+          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
+        }
+      ],
+      "refresh_validation": {
+        "status": "carried_forward_2026-11-12",
+        "basis": "Relevant installed behavior resources are unchanged and the scenario remains bound to the historical evidence record."
+      }
+    }
+  },
+  "limits": [
+    "Only macOS 26.6.2 arm64 with Codex CLI 0.167.0 was exercised; other OS and CLI versions were not tested.",
+    "This refresh installed from a local filesystem marketplace. Codex remote Git marketplace install/update for the 0.1.5 to 0.1.6 transition remains unverified pending a pushed candidate.",
+    "The temporary Codex profile also surfaced host-provisioned plugins; none of their tools were invoked during the synthetic checks.",
+    "Superpowers evidence covers the selected writing-plans boundary only, not its full upstream workflow.",
+    "Synthetic prompts consumed model tokens; no private user content was supplied.",
+    "The temporary Codex profile was logged out and removed after validation; raw transcripts are not included in the repository."
+  ],
+  "acceptance_refresh": {
+    "date": "2026-11-13",
+    "previous_record": {
+      "path": "native-acceptance-codex.json",
+      "sha256": "655c9134083de17e2ed5ec9878049337f405fdda2175ca8248bd0b441e44c9ac"
+    },
+    "current_sanitized_evidence_sha256": "b86bf11fda90102cabb9fb3bbb949dad94a0fd41c879c9bd2916ebd9e4e54b61",
+    "revalidated_checks": [
+      "installation",
+      "startup",
+      "preference_off"
+    ],
+    "carried_forward_checks": [
+      "mcp_round_trip",
+      "resume",
+      "clear",
+      "compact",
+      "owned_routing",
+      "manual_invocation",
+      "superpowers",
+      "update",
+      "migration"
+    ],
+    "carry_forward_basis": "The 2026-11-12 checks are carried forward for unchanged behavior resources. Across both surfaces, all native bindings except session-preferences are identical; for session-preferences, the only bound-resource change is the native manifest version field (0.1.5 to 0.1.6). Its current installation, startup injection, and preference-off behavior were rechecked.",
+    "artifact_binding_delta": {
+      "changed_packages": [
+        "session-preferences"
+      ],
+      "changed_behavior_resources": []
+    }
+  },
+  "check_provenance": {
+    "installation": "revalidated_2026-11-13",
+    "mcp_round_trip": "carried_forward_2026-11-12",
+    "startup": "revalidated_2026-11-13",
+    "resume": "carried_forward_2026-11-12",
+    "clear": "carried_forward_2026-11-12",
+    "compact": "carried_forward_2026-11-12",
+    "preference_off": "revalidated_2026-11-13",
+    "owned_routing": "carried_forward_2026-11-12",
+    "manual_invocation": "carried_forward_2026-11-12",
+    "superpowers": "carried_forward_2026-11-12",
+    "update": "carried_forward_2026-11-12",
+    "migration": "carried_forward_2026-11-12"
+  },
+  "native_hook_trust": {
+    "method": "Native Codex /hooks review and trust-all flow",
+    "event": "SessionStart",
+    "installed_hooks": 5,
+    "active_hooks": 5,
+    "scope": "Temporary CODEX_HOME only; profile removed after validation."
+  }
+}

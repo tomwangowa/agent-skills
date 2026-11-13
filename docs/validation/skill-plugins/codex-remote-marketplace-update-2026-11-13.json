@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "status": "verified",
+  "surface": "codex-cli",
+  "observed_client_version": "0.167.0",
+  "environment": "macOS 26.6.2 arm64; isolated CODEX_HOME; working directory /tmp.",
+  "authentication": "No auth.json was present before or after the test. No user credentials or settings were copied, and no model session was started.",
+  "marketplace": {
+    "repository": "https://github.com/tomwangowa/agent-skills.git",
+    "ref": "feat/cross-platform-plugin-installer",
+    "initial_commit": "bba91174dada0b2b2107fc62cb6e84f9eb570cd6",
+    "updated_commit": "a84006cb8e88f15bf4676c9a05ff9e43f92cb819"
+  },
+  "package": "session-preferences",
+  "version_transition": {
+    "from": "0.1.5",
+    "to": "0.1.6"
+  },
+  "operations": {
+    "initial_install": {
+      "result": "verified",
+      "inventory_version": "0.1.5",
+      "installed": true,
+      "enabled": true
+    },
+    "marketplace_upgrade": {
+      "result": "verified",
+      "selected_marketplaces": ["tomwangowa"],
+      "errors": []
+    },
+    "package_update": {
+      "result": "verified",
+      "inventory_version": "0.1.6",
+      "installed": true,
+      "enabled": true
+    }
+  },
+  "content_verification": {
+    "algorithm": "SHA-256 over the canonical JSON mapping of sorted relative file paths to each file's SHA-256.",
+    "file_count_before": 31,
+    "installed_cache_sha256_before": "460b2f419e95d996a3e3930c39ad66a6957ce683cf5c787cc34a2b338f1fb168",
+    "marketplace_source_sha256_before": "460b2f419e95d996a3e3930c39ad66a6957ce683cf5c787cc34a2b338f1fb168",
+    "file_count_after": 31,
+    "installed_cache_sha256_after": "825d032c3fa77d5f1c8a87c0ad326124b842b2c2ef2483f19bd3affb0bea8e34",
+    "marketplace_source_sha256_after": "825d032c3fa77d5f1c8a87c0ad326124b842b2c2ef2483f19bd3affb0bea8e34",
+    "working_tree_package_sha256_after": "825d032c3fa77d5f1c8a87c0ad326124b842b2c2ef2483f19bd3affb0bea8e34"
+  }
+}

@@ -15,6 +15,23 @@ from scripts.build_plugin_installer import build_bundle
 
 
 class BundleTests(unittest.TestCase):
+    def test_bundle_contains_only_macos_launcher(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            archive = build_bundle(ROOT, Path(tmp) / 'bundle.zip')
+            with zipfile.ZipFile(archive) as z:
+                names = z.namelist()
+                macos = 'agent-skills-installer/install-macos.command'
+                self.assertIn(macos, names)
+                self.assertNotIn('agent-skills-installer/install-linux.sh', names)
+                self.assertNotIn('agent-skills-installer/install-windows.ps1', names)
+                self.assertTrue((z.getinfo(macos).external_attr >> 16) & 0o111)
+                readme = z.read('agent-skills-installer/README.md').decode('utf-8')
+                self.assertIn('install-macos.command', readme)
+                for command in ('bash install-linux.sh', './install-windows.ps1',
+                                'python3 install.py', 'python.exe install.py'):
+                    with self.subTest(command=command):
+                        self.assertNotIn(command, readme)
+
     def test_bundle_allowlist_and_provenance(self):
         with tempfile.TemporaryDirectory() as tmp:
             archive = build_bundle(ROOT, Path(tmp) / 'bundle.zip')

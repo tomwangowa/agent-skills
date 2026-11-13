@@ -18,21 +18,21 @@
 
 ## CLI Plugin 套件
 
-七包定義涵蓋 48 個來源 skills，支援 Claude Code CLI 與 Codex CLI。2026-11-12 在 macOS 隔離設定中，以 Claude Code CLI 2.1.322 和 Codex CLI 0.167.0 完成原生驗收；每個平台七包的安裝結果都綁定到實際套件內容。Claude 套件從遠端 GitHub marketplace 安裝；Codex 套件來自隔離的本機 marketplace，因此 Codex 遠端 Git marketplace 的安裝與更新仍未驗證。其他 CLI 版本與作業系統也未涵蓋。詳見[驗收紀錄](docs/validation/skill-plugins/acceptance.json)與 [plugin 文件](docs/plugins/README.md)。來源生命週期保留；standalone hooks 與 journal 工具也需要 bundled runtime 和下方的外部共用設定。
+七包定義涵蓋 48 個來源 skills，支援 Claude Code CLI 與 Codex CLI。2026-11-12 的原生驗收使用 Claude Code CLI 2.1.322 和 Codex CLI 0.167.0；2026-11-13 又在隔離設定中，以 Claude Code CLI 2.1.323 與 Codex CLI 0.167.0 更新驗收紀錄。各套件有效範圍與產物綁定見[驗收紀錄](docs/validation/skill-plugins/acceptance.json)。Claude 舊版套件曾從遠端 GitHub marketplace 安裝；原生刷新由本機 marketplace 安裝。另以 Codex CLI 0.167.0／macOS 26.6.2 arm64，驗證 `session-preferences` 從 0.1.5 經遠端 Git marketplace 更新到 0.1.6；其他 Codex 版本與平台未測。詳見[遠端更新證據](docs/validation/skill-plugins/codex-remote-marketplace-update-2026-11-13.json)與 [plugin 文件](docs/plugins/README.md)。來源生命週期保留；standalone hooks 與 journal 工具也需要 bundled runtime 和下方的外部共用設定。
 
-## 安裝包候選版本
+## macOS 安裝包候選版本
 
 用以下命令產生一份可交給同事的壓縮包；建置過程不下載工具，也不重建 plugins：
 
 ```bash
-python3 scripts/build_plugin_installer.py --output dist/agent-skills-installer.zip
+python3 scripts/build_plugin_installer.py --output dist/agent-skills-installer-macos.zip
 ```
 
-最近一次有紀錄的壓縮包驗收是 [R19](docs/validation/plugin-installer/candidate-r19.md)。ZIP 與校驗檔只存在本機 QA 目錄，沒有放進 repo 或發布。R19 尚未包含此分支後續新增的 Codex 原生移除能力判斷，不能代表目前安裝器原始碼。R19 僅允許 Superpowers 在兩個已逐檔比對的 Claude 官方目錄快照之間變更後通過安裝後驗證；未知快照仍會標示未驗證。首次設定 work-journal 時，工作紀錄預設存到 `~/.agent-skills/activities`，筆記路徑可略過；有效的既有設定會沿用，寫入新設定前也會重新確認已安裝版本。目前原始碼尚不適合交給同事安裝：work-journal 0.2.1 與 session-preferences 0.1.5 目前只存在這個工作目錄，Claude／Codex 原生驗收綁定也已過期。先前候選包與 R11 專屬的原生驗證紀錄均保留。
+目前最新的舊壓縮包驗收紀錄是 [R19](docs/validation/plugin-installer/candidate-r19.md)；它早於後續安裝器修改，只能作為歷史紀錄。此分支將 `session-preferences` 更新為 0.1.6，並建置只含 macOS 入口的 ZIP。Linux 與 Windows 入口仍保留在來源 repo，但不會放入這份 ZIP。本機 ZIP 與發布檢查已通過；ZIP 與 plugin 修改尚未發布。
 
-完整解壓後，macOS 開啟 `install-macos.command`，Ubuntu／Debian 執行 `bash install-linux.sh`，Windows 在既有 PowerShell 政策下執行 `./install-windows.ps1`。需要真正可用的 Python 3.11+，以及已安裝的 Claude Code CLI 或 Codex CLI；入口可透過現有且受支援的管理工具提出 Python 補裝方案，不代裝主程式、套件管理工具或登入認證。操作方式見[壓縮包說明](installer/README.md)，證據範圍見[驗證紀錄](docs/validation/plugin-installer/README.md)。
+在 macOS 解壓後，開啟 `install-macos.command`（或執行 `bash install-macos.command`）。需要真正可用的 Python 3.11+，以及已安裝的 Claude Code CLI 或 Codex CLI；入口可透過現有且受支援的管理工具提出 Python 補裝方案，不代裝主程式、套件管理工具或登入認證。操作方式見[壓縮包說明](installer/README.md)，證據範圍見[驗證紀錄](docs/validation/plugin-installer/README.md)。
 
-選單會分別預覽並確認來源下載、缺少的工具、plugin 安裝與選用的日誌設定。本 repo 適用套件預設勾選；既有 plugins 預設保留，更新要另外選。Superpowers 強烈建議安裝，但不預選。取消會停止後續工作，先前已批准的寫入仍保留。Windows 偏好寫入／遷移仍有 POSIX 鎖限制。**這是安裝包候選版本，尚未完成三平台原生驗收。** Codex 在已檢查的 CLI 0.167.0 上，新增安裝會核對實際 JSON 結果與完整安裝內容；既有安裝仍暫停更新。Superpowers 優先使用各 CLI 官方目錄：Claude 的 `claude-plugins-official` 是 `7.0.0`、來源固定在上游 Git commit；Codex 的 `openai-curated` 或原生選用的 `openai-api-curated` 是 `6.3.0`、內容位於官方目錄內，兩邊版本可以不同。既有 provider（包含 `7.0.2`）一律保留，不更新、啟用、重複安裝或降版。Codex 官方目錄需由原生 `/plugins` 流程準備，安裝器不補寫受管理狀態，也不新增或刷新這個保留目錄。缺少完整內容指紋或精確 CLI／平台／架構驗收時，只暫停 Superpowers 與其依賴補裝；R7 的能力紀錄只開放已驗證的 macOS arm64 Claude 2.1.322 官方目錄與 Codex 0.167.0 API 官方目錄情境，其他環境仍暫停 Superpowers。安裝結果、重啟後入口與實際工作流程分開驗證，後兩項尚未驗證。目前沒有宣稱已發布的下載網址。
+選單會分別預覽並確認來源下載、缺少的工具、plugin 安裝與選用的日誌設定。本 repo 適用套件預設勾選；既有 plugins 預設保留，更新要另外選。Superpowers 強烈建議安裝，但不預選。取消會停止後續工作，先前已批准的寫入仍保留。Codex 在已檢查的 CLI 0.167.0 上，新增安裝會核對實際 JSON 結果與完整安裝內容；既有安裝仍暫停更新。Superpowers 優先使用各 CLI 官方目錄：Claude 的 `claude-plugins-official` 是 `7.0.0`、來源固定在上游 Git commit；Codex 的 `openai-curated` 或原生選用的 `openai-api-curated` 是 `6.3.0`、內容位於官方目錄內，兩邊版本可以不同。既有 provider（包含 `7.0.2`）一律保留，不更新、啟用、重複安裝或降版。Codex 官方目錄需由原生 `/plugins` 流程準備，安裝器不補寫受管理狀態，也不新增或刷新這個保留目錄。缺少完整內容指紋或精確 CLI／平台／架構驗收時，只暫停 Superpowers 與其依賴補裝；R7 的能力紀錄只開放已驗證的 macOS arm64 Claude 2.1.322 官方目錄與 Codex 0.167.0 API 官方目錄情境，其他環境仍暫停 Superpowers。安裝結果、重啟後入口與實際工作流程分開驗證，後兩項尚未驗證。
 
 同事若已透過公司 AI endpoint 使用 Codex、沒有登入 ChatGPT，R7 會依 Codex 原生回報的官方目錄處理，保留既有 endpoint 與認證設定。公司模型服務可用，不代表套件下載來源也可連線。離線測試與 [macOS Codex 0.167.0 原生測試](docs/validation/plugin-installer/codex-no-account-native-results.md)已涵蓋這個情境；原生測試在未登入時成功安裝 Superpowers，並保留假的公司模型設定。真實公司連線與其他平台尚未驗收，R5 尚未包含此修改；操作方式見[公司 endpoint 情境](installer/README.md)。 Claude Code 2.1.322 在 macOS arm64 也已通過[已登入／未登入兩組原生安裝](docs/validation/plugin-installer/claude-login-matrix-results.md)，兩組都是 Superpowers 7.0.0；R7 已納入這些能力紀錄與去除敏感資訊的證據摘要；同一份 ZIP 隨後通過三組 macOS arm64 的[原生安裝與重跑驗收](docs/validation/plugin-installer/r7-native-acceptance-results.md)。
 

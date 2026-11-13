@@ -395,7 +395,7 @@
     {
       "name": "session-preferences",
       "display_name": "Towa: Session Preferences",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "skills": [
         "session-preferences",
         "control-return"
