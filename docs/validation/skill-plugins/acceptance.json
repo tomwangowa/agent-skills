@@ -125,6 +125,19 @@
       ]
     }
   },
+  "remote_git_marketplace_update": {
+    "status": "verified",
+    "surface": "codex-cli",
+    "package": "session-preferences",
+    "from_version": "0.1.5",
+    "to_version": "0.1.6",
+    "observed_client_version": "0.167.0",
+    "environment": "macOS 26.6.2 arm64",
+    "evidence": {
+      "path": "codex-remote-marketplace-update-2026-11-13.json",
+      "sha256": "ae8cf80d76bce82c73610a74b073bf014037051e5681c8010664f01d40318e45"
+    }
+  },
   "native_cleanup": {
     "status": "verified_with_unresolved_native_registry_fingerprints",
     "evidence": [
@@ -136,7 +149,7 @@
   },
   "limits": [
     "The 2026-11-13 native refresh used macOS 26.6.2 arm64 with Claude Code CLI 2.1.323 and Codex CLI 0.167.0; other operating systems and versions were not tested.",
-    "The current refresh installed both hosts from a local filesystem marketplace. Remote Git marketplace acceptance for the current session-preferences 0.1.6 artifact was not performed; Codex remote Git install/update remains unverified.",
+    "The current native refresh installed both hosts from a local filesystem marketplace. A separate remote Git test verified only the Codex 0.167.0 macOS 26.6.2 arm64 session-preferences 0.1.5 to 0.1.6 transition; other remote marketplace versions and platforms remain unverified.",
     "Claude MCP round-trip used an isolated explicit config derived from the installed package entry; automatic plugin MCP discovery under normal settings was not established.",
     "The refresh revalidated installation, startup injection, and preference-off behavior. Nine other native scenarios carry forward from 2026-11-12 because their behavior resources did not change; the session-preferences 0.1.6 manifest version is the only native binding delta.",
     "Synthetic model prompts consumed tokens; no private user content was supplied.",

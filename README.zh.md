@@ -18,7 +18,7 @@
 
 ## CLI Plugin 套件
 
-七包定義涵蓋 48 個來源 skills，支援 Claude Code CLI 與 Codex CLI。2026-11-12 的原生驗收使用 Claude Code CLI 2.1.322 和 Codex CLI 0.167.0；2026-11-13 又在隔離設定中，以 Claude Code CLI 2.1.323 與 Codex CLI 0.167.0 更新驗收紀錄。各套件有效範圍與產物綁定見[驗收紀錄](docs/validation/skill-plugins/acceptance.json)。Claude 舊版套件曾從遠端 GitHub marketplace 安裝；這次更新由本機 marketplace 安裝。Codex 遠端 Git marketplace 對 `session-preferences` 0.1.5 到 0.1.6 的安裝／更新尚未驗證，需推送候選版後才能測試。其他 CLI 版本與作業系統未涵蓋。詳見 [plugin 文件](docs/plugins/README.md)。來源生命週期保留；standalone hooks 與 journal 工具也需要 bundled runtime 和下方的外部共用設定。
+七包定義涵蓋 48 個來源 skills，支援 Claude Code CLI 與 Codex CLI。2026-11-12 的原生驗收使用 Claude Code CLI 2.1.322 和 Codex CLI 0.167.0；2026-11-13 又在隔離設定中，以 Claude Code CLI 2.1.323 與 Codex CLI 0.167.0 更新驗收紀錄。各套件有效範圍與產物綁定見[驗收紀錄](docs/validation/skill-plugins/acceptance.json)。Claude 舊版套件曾從遠端 GitHub marketplace 安裝；原生刷新由本機 marketplace 安裝。另以 Codex CLI 0.167.0／macOS 26.6.2 arm64，驗證 `session-preferences` 從 0.1.5 經遠端 Git marketplace 更新到 0.1.6；其他 Codex 版本與平台未測。詳見[遠端更新證據](docs/validation/skill-plugins/codex-remote-marketplace-update-2026-11-13.json)與 [plugin 文件](docs/plugins/README.md)。來源生命週期保留；standalone hooks 與 journal 工具也需要 bundled runtime 和下方的外部共用設定。
 
 ## macOS 安裝包候選版本
 
@@ -28,7 +28,7 @@
 python3 scripts/build_plugin_installer.py --output dist/agent-skills-installer-macos.zip
 ```
 
-目前最新的舊壓縮包驗收紀錄是 [R19](docs/validation/plugin-installer/candidate-r19.md)；它早於後續安裝器修改，只能作為歷史紀錄。此分支將 `session-preferences` 更新為 0.1.6，並建置只含 macOS 入口的 ZIP。Linux 與 Windows 入口仍保留在來源 repo，但不會放入這份 ZIP。本機 ZIP 與發布檢查已通過；套件尚未發布，Codex 遠端 Git 更新也尚未驗證。
+目前最新的舊壓縮包驗收紀錄是 [R19](docs/validation/plugin-installer/candidate-r19.md)；它早於後續安裝器修改，只能作為歷史紀錄。此分支將 `session-preferences` 更新為 0.1.6，並建置只含 macOS 入口的 ZIP。Linux 與 Windows 入口仍保留在來源 repo，但不會放入這份 ZIP。本機 ZIP 與發布檢查已通過；ZIP 與 plugin 修改尚未發布。
 
 在 macOS 解壓後，開啟 `install-macos.command`（或執行 `bash install-macos.command`）。需要真正可用的 Python 3.11+，以及已安裝的 Claude Code CLI 或 Codex CLI；入口可透過現有且受支援的管理工具提出 Python 補裝方案，不代裝主程式、套件管理工具或登入認證。操作方式見[壓縮包說明](installer/README.md)，證據範圍見[驗證紀錄](docs/validation/plugin-installer/README.md)。
 
