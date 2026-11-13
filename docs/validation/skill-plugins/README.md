@@ -1,25 +1,36 @@
 # CLI plugin runtime validation
 
-Supported surfaces: Claude Code CLI and Codex CLI. The bounded native validation
-recorded on 2026-11-12 used Claude Code CLI 2.1.322 and Codex CLI 0.167.0 on
-macOS with isolated profiles and synthetic project data. The per-host records
-bind each result to the exact seven package artifacts and list the checks and
-limits: [`acceptance.json`](acceptance.json),
-[`native-acceptance-claude.json`](native-acceptance-claude.json), and
-[`native-acceptance-codex.json`](native-acceptance-codex.json).
-All required artifact, native-host and recorded production-security checks pass
-for this evidence set:
+Supported surfaces: Claude Code CLI and Codex CLI. The current native refresh,
+recorded on 2026-11-13, used Claude Code CLI 2.1.323 and Codex CLI 0.167.0 on
+macOS 26.6.2 arm64 with isolated profiles and synthetic data. The records bind
+each result to the exact seven package artifacts:
+[`acceptance.json`](acceptance.json),
+[`native-acceptance-claude-2026-11-13.json`](native-acceptance-claude-2026-11-13.json),
+and [`native-acceptance-codex-2026-11-13.json`](native-acceptance-codex-2026-11-13.json).
+The refresh rechecked installation, startup preference injection, and preference-off
+behavior on both hosts. The other nine scenarios carry forward from 2026-11-12:
+all behavior resources stayed the same, and the only native binding change was
+the `session-preferences` manifest version from 0.1.5 to 0.1.6. The required
+artifact, native-host, and recorded production-security gates pass for this
+evidence set:
 
 ```sh
 python3 scripts/check_plugin_release.py --require-acceptance
 ```
 
-Claude packages were installed from the remote GitHub marketplace. Codex
-packages were installed from the isolated local marketplace; remote Git
-marketplace installation and update for Codex remain unverified. Only the two
-recorded macOS CLI versions were exercised. Synthetic prompts were sent to the
-native models for behavior checks and consumed model tokens; no private user
-content was supplied.
+The current refresh installed both hosts from the local filesystem marketplace
+in this checkout. The 0.1.6 remote Git marketplace install/update was not tested;
+Codex's 0.1.5 to 0.1.6 remote update remains unverified until a candidate is
+pushed. Codex's two synthetic model checks ran ephemeral and read-only after the
+native `/hooks` review trusted five SessionStart hooks in the temporary profile;
+the JSONL output contained no tool calls. Only the two recorded macOS CLI
+versions were exercised. Synthetic prompts consumed model tokens; no private
+user content was supplied.
+
+[`native-acceptance-claude.json`](native-acceptance-claude.json) and
+[`native-acceptance-codex.json`](native-acceptance-codex.json) are the previous
+2026-11-12 snapshots. They remain unchanged and are cited by the dated refresh
+records for the checks carried forward.
 
 The 2026-10-15 and 2026-10-17 records below are historical snapshots and do not
 replace the current per-host acceptance records. The user explicitly removed

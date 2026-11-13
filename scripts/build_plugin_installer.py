@@ -23,6 +23,7 @@ INSTALLER_MODULES = ('__init__.py', '__main__.py', 'models.py', 'catalog.py', 'h
                      'dependencies.py', 'planning.py', 'execution.py', 'journal.py', 'receipts.py', 'providers.py', 'ui.py', 'selection.py', 'progress.py', 'process.py', 'removal.py', 'removal_ui.py')
 SHARED_MODULES = ('__init__.py', 'config.py', 'setup.py')
 LAUNCHERS = {'install-macos.command': 'macos', 'install-linux.sh': 'linux', 'install-windows.ps1': 'windows'}
+ARCHIVE_LAUNCHERS = {'install-macos.command': LAUNCHERS['install-macos.command']}
 ACCEPTANCE_EVIDENCE = {
     'acceptance-evidence/claude-login-matrix-evidence.json': 'docs/validation/plugin-installer/claude-login-matrix-evidence.json',
     'acceptance-evidence/codex-no-account-native-evidence.json': 'docs/validation/plugin-installer/codex-no-account-native-evidence.json',
@@ -107,7 +108,7 @@ def build_bundle(repo_root: Path, output: Path) -> Path:
                                      if k not in ('evidence_root', 'saved_results_hashes')}
                                for name, row in proof['cases'].items()}
         files[record.evidence_ref] = _json(public)
-    for name, platform in LAUNCHERS.items():
+    for name, platform in ARCHIVE_LAUNCHERS.items():
         files[name] = render_bootstrap(read('installer/' + name).decode('utf-8'), platform, dependencies).encode('utf-8')
     for relative in ('scripts/build_plugin_installer.py', 'plugin-packages.json', 'skills-catalog.json',
                      '.claude-plugin/marketplace.json', '.agents/plugins/marketplace.json'):
@@ -123,7 +124,7 @@ def build_bundle(repo_root: Path, output: Path) -> Path:
             info = zipfile.ZipInfo('agent-skills-installer/' + name, (1980, 1, 1, 0, 0, 0))
             info.create_system = 3
             info.compress_type = zipfile.ZIP_DEFLATED
-            executable = name in LAUNCHERS or name == 'install.py'
+            executable = name in ARCHIVE_LAUNCHERS or name == 'install.py'
             info.external_attr = (0o100755 if executable else 0o100644) << 16
             archive.writestr(info, content)
     output.parent.mkdir(parents=True, exist_ok=True)

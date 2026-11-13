@@ -7,16 +7,11 @@ Codex users with a working company AI endpoint do not need a ChatGPT login
 for the verified API-curated installation route. The installer does not configure or
 test model endpoints, install either host or change hook trust.
 
-After extracting the entire archive:
-
-- macOS: open `install-macos.command`, or run `bash install-macos.command`.
-- Ubuntu/Debian: run `bash install-linux.sh`.
-- Windows: run `./install-windows.ps1` in PowerShell under your organization's
-  execution policy. No policy bypass is supplied. If the script is blocked,
-  ask your administrator or review the policy before continuing.
-- With a real Python 3.11+ interpreter: run `python3 install.py` (`python.exe
-  install.py` on Windows). Do not probe Windows `py`/Store aliases to install
-  a runtime without consent.
+After extracting the entire archive on macOS, open `install-macos.command` or
+run `bash install-macos.command`. This ZIP provides only the macOS installer
+entry point; Linux and Windows launchers remain available in the source
+repository but are not included in this archive. The bundled `install.py` is
+used by the macOS launcher and is not a separate supported entry point.
 
 Choose Install/update or Remove packages first; Enter selects Install/update.
 Then choose a numbered host and use Up/Down to move through packages, Space to

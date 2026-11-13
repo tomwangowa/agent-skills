@@ -18,7 +18,7 @@
   "surfaces": {
     "claude-cli": {
       "status": "verified",
-      "observed_client_version": "2.1.322",
+      "observed_client_version": "2.1.323",
       "artifact_bindings": {
         "quality-gates": {
           "sha256": "f36ba323be455df409b739a3eb9b8cc9f23c0919299b3aef394fe516aa7ccca1",
@@ -41,7 +41,7 @@
           "resource_count": 3658
         },
         "session-preferences": {
-          "sha256": "a5ac2ef53433e3f1cbf62996e9d198aba7fb8859d2f8bfcbf50fe7e79435d3e1",
+          "sha256": "0bc8a7d010b8cf92799de88c4b3f50f0dfb3745b93bcc622a603bf60f439a864",
           "resource_count": 24
         },
         "skill-toolbox": {
@@ -65,8 +65,8 @@
       },
       "evidence": [
         {
-          "path": "native-acceptance-claude.json",
-          "sha256": "d558523926eb5d015f681ed80e538896e95bbb5a5f0b1013a1705bd4076895ee"
+          "path": "native-acceptance-claude-2026-11-13.json",
+          "sha256": "99651d87485e8420b42c98582bc697edd4b408ccffe7a6a39ea861cf4f7e0b0a"
         }
       ]
     },
@@ -95,7 +95,7 @@
           "resource_count": 3658
         },
         "session-preferences": {
-          "sha256": "096d5f016d8f52729f2deff68ee02e26a9528f8400f3467c3a214be742b914f6",
+          "sha256": "dbac218b34889c2ff93717ca7f127c61cdd8376fa04928af4ceb4a73824e9c90",
           "resource_count": 24
         },
         "skill-toolbox": {
@@ -119,8 +119,8 @@
       },
       "evidence": [
         {
-          "path": "native-acceptance-codex.json",
-          "sha256": "655c9134083de17e2ed5ec9878049337f405fdda2175ca8248bd0b441e44c9ac"
+          "path": "native-acceptance-codex-2026-11-13.json",
+          "sha256": "56234f80a8d7c5cd8179f9fbe09912a398e7e10439167306ea98e5e57d975f36"
         }
       ]
     }
@@ -135,12 +135,13 @@
     ]
   },
   "limits": [
-    "Native acceptance used macOS with Claude Code CLI 2.1.322 and Codex CLI 0.167.0; other operating systems and versions were not tested.",
-    "Claude packages were installed from the remote GitHub marketplace. Codex packages were installed from a local filesystem marketplace; Codex remote Git marketplace installation/update remains unverified.",
+    "The 2026-11-13 native refresh used macOS 26.6.2 arm64 with Claude Code CLI 2.1.323 and Codex CLI 0.167.0; other operating systems and versions were not tested.",
+    "The current refresh installed both hosts from a local filesystem marketplace. Remote Git marketplace acceptance for the current session-preferences 0.1.6 artifact was not performed; Codex remote Git install/update remains unverified.",
     "Claude MCP round-trip used an isolated explicit config derived from the installed package entry; automatic plugin MCP discovery under normal settings was not established.",
-    "Synthetic model prompts consumed model tokens; no private user content was supplied.",
-    "Superpowers testing covers the selected writing-plans workflow boundary only, not its full upstream workflow.",
-    "Earlier native cleanup left unexplained fingerprint differences in unselected Codex and Claude registry files; selected package entries were absent, but the hash-only record could not attribute the differences.",
-    "Both temporary native profiles were logged out and removed after validation; raw transcripts are excluded from the repository."
+    "The refresh revalidated installation, startup injection, and preference-off behavior. Nine other native scenarios carry forward from 2026-11-12 because their behavior resources did not change; the session-preferences 0.1.6 manifest version is the only native binding delta.",
+    "Synthetic model prompts consumed tokens; no private user content was supplied.",
+    "Superpowers testing covers the selected writing-plans workflow boundary only, not the full upstream workflow.",
+    "Earlier isolated cleanup left unresolved fingerprint differences in unselected Codex and Claude registry files; those hash-only differences remain unattributed.",
+    "Both temporary profiles were logged out and removed after validation; raw transcripts are excluded from the repository."
   ]
 }
