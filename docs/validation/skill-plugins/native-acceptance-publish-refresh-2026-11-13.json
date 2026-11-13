@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-13",
+  "host_versions": {
+    "claude": "2.1.323",
+    "codex": "0.167.0"
+  },
+  "environment": "macOS 26.6.2 arm64; isolated temporary profiles; local filesystem marketplace; synthetic data only",
+  "installed_versions": {
+    "quality-gates": "0.2.1",
+    "technical-decisions": "0.1.4",
+    "repo-workflow": "0.3.1",
+    "content-tools": "0.2.1",
+    "work-journal": "0.2.2",
+    "session-preferences": "0.1.7",
+    "skill-toolbox": "0.1.4"
+  },
+  "install_results": {
+    "claude": {
+      "status": "verified",
+      "package_count": 7,
+      "installed_paths_compared_to_generated_inventory": 7
+    },
+    "codex": {
+      "status": "verified",
+      "package_count": 7,
+      "installed_paths_compared_to_generated_inventory": 7
+    }
+  },
+  "tests": {
+    "claude_startup_marker": "AGENT_SKILLS_PREFS_ONLY_20261113_8A32C1D7",
+    "claude_preferences_off": "NONE",
+    "codex_startup": "carried forward from 2026-11-13 record; behavior resources unchanged",
+    "codex_preferences_off": "carried forward from 2026-11-13 record; behavior resources unchanged"
+  },
+  "limitations": [
+    "No Codex isolated login was completed; Codex model prompts were not rerun.",
+    "All other workflow checks are carried forward from the 2026-11-12 native records because behavior resources are unchanged."
+  ]
+}

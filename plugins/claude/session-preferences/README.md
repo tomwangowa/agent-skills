@@ -1,6 +1,6 @@
 # session-preferences
 
-Version 0.1.6; claude CLI.
+Version 0.1.7; claude CLI.
 
 Included skills:
 

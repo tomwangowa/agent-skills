@@ -54,13 +54,13 @@
       "skill-sync",
       "claude-workflow-designer"
     ],
-    "version": "0.1.3"
+    "version": "0.1.4"
   },
   "resources": {
     "claude-workflow-designer/SKILL.md": "7223029f9c2cf8dc8ad3d2e2f3fbfb4f2c9033ad80484e2f3c6b9d8f38ba6c23",
     "claude-workflow-designer/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
     "claude-workflow-designer/references/successful-patterns.md": "5709640b5bd463ac6ba84787088c5461b638ea1977cd701e2064dfec3ef4d391",
-    "docs/plugins/installation.md": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69",
+    "docs/plugins/installation.md": "7232106e4792aa4dd951f10b86036aa12b8a1acc93533fec67623d933c6b86e8",
     "docs/plugins/migration.md": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16",
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
     "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",

@@ -51,7 +51,7 @@
       "secure-ai-development-gate",
       "review-convergence-gate"
     ],
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "resources": {
     "code-review-claude/README.md": "9dd90f16634e075512f702092f9bcba8f5f8cb32e3c6531ac97a67bad916c90b",
@@ -60,7 +60,7 @@
     "code-review-codex/SKILL.md": "1f64cc575d0c06cf960fd2067263d5a14ad176027a4d30757abdbf1d75222a4f",
     "codebase-audit/SKILL.md": "78a5e8990216743b1850f1b5075af03585537eecf5b93288532a9c8ba3ac571a",
     "completion-gate/SKILL.md": "e8ebc33785fbf42bcd614a002674f7c7d1de0769b550d493bd5bbebba82900bd",
-    "docs/plugins/installation.md": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69",
+    "docs/plugins/installation.md": "7232106e4792aa4dd951f10b86036aa12b8a1acc93533fec67623d933c6b86e8",
     "docs/plugins/migration.md": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16",
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
     "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",

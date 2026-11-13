@@ -7,11 +7,13 @@ each result to the exact seven package artifacts:
 [`acceptance.json`](acceptance.json),
 [`native-acceptance-claude-2026-11-13.json`](native-acceptance-claude-2026-11-13.json),
 and [`native-acceptance-codex-2026-11-13.json`](native-acceptance-codex-2026-11-13.json).
-The refresh rechecked installation, startup preference injection, and preference-off
-behavior on both hosts. The other nine scenarios carry forward from 2026-11-12:
-all behavior resources stayed the same, and the only native binding change was
-the `session-preferences` manifest version from 0.1.5 to 0.1.6. The required
-artifact, native-host, and recorded production-security gates pass for this
+The 2026-11-13 refresh verified all seven newly versioned packages in both
+isolated host profiles and matched every installed file to its generated
+artifact. Claude also rechecked startup preference injection and preference-off
+with synthetic prompts. Behavior checks not repeated for this documentation and
+version-only change are explicitly carried forward; see the per-host records and
+[`sanitized refresh evidence`](native-acceptance-publish-refresh-2026-11-13.json).
+The artifact, native-host and recorded production-security gates pass for this
 evidence set:
 
 ```sh

@@ -1,6 +1,6 @@
 # content-tools
 
-Version 0.2.0; claude CLI.
+Version 0.2.1; claude CLI.
 
 Included skills:
 

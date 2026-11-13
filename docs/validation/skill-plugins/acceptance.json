@@ -21,31 +21,31 @@
       "observed_client_version": "2.1.323",
       "artifact_bindings": {
         "quality-gates": {
-          "sha256": "f36ba323be455df409b739a3eb9b8cc9f23c0919299b3aef394fe516aa7ccca1",
+          "sha256": "969fa7bfbe0a69df50051a554b9ca69ce4d789c6de7eef70247d93d74f0d9a66",
           "resource_count": 20
         },
         "technical-decisions": {
-          "sha256": "46e320cae107edb5fe1c24c5666f217483a096fed696ec91163463e23b112fd6",
+          "sha256": "b745588e80e49b8320d51651e3b3383f38de4b30ecd9e14da0867ea889d07a90",
           "resource_count": 43
         },
         "repo-workflow": {
-          "sha256": "6fa535af73f5ddedfbd75f332cd078b4d45723bf9990471fb2ca53c7c867caf2",
+          "sha256": "096bd050bd107e6d109365e86b7a3f8e5393b5a8d340c325ddc598b89b225a9a",
           "resource_count": 19
         },
         "content-tools": {
-          "sha256": "3938562b4abf610d08ba8f293e093d60a33a6c2c3bd865068d3dd365b0d64497",
+          "sha256": "cb4301ed469366ef37d534990b20173715ba32822fedbd75135a38f84a62c0ff",
           "resource_count": 55
         },
         "work-journal": {
-          "sha256": "1baf5f0015f98992ac467edb3020fbe09a90e0ba7b3bc8b9ed698917000f06e2",
+          "sha256": "070e96f0ea123cfd6431988dec0e7ac1d322732635bbe553acc1e29e40a61000",
           "resource_count": 3658
         },
         "session-preferences": {
-          "sha256": "0bc8a7d010b8cf92799de88c4b3f50f0dfb3745b93bcc622a603bf60f439a864",
+          "sha256": "eb4aff3a84e0eaf0cba8d1ec437c5054d3bd9415a92944394948e02923d95b38",
           "resource_count": 24
         },
         "skill-toolbox": {
-          "sha256": "5f728b464e3bd6ff3cfbac1796ff3219ba87634f7a0c364abeeccbe62c845891",
+          "sha256": "74e18558365a00875f0a0ca8aa1f0a33ee825e6d07afbd7a9ed0ae3bfe70be8a",
           "resource_count": 23
         }
       },
@@ -66,7 +66,7 @@
       "evidence": [
         {
           "path": "native-acceptance-claude-2026-11-13.json",
-          "sha256": "99651d87485e8420b42c98582bc697edd4b408ccffe7a6a39ea861cf4f7e0b0a"
+          "sha256": "b5638e1bc66324a051b65344e623112f9e1d8d64cb43184d235196f15e882eaf"
         }
       ]
     },
@@ -75,31 +75,31 @@
       "observed_client_version": "0.167.0",
       "artifact_bindings": {
         "quality-gates": {
-          "sha256": "4ae863413c2168fd143d193f23d61c9ea3684d3dd908617391e39e9478e115a9",
+          "sha256": "f83572ceb53c9d0ab16f9b56c48ab22491a21e9164a4f2821354c456f1652208",
           "resource_count": 18
         },
         "technical-decisions": {
-          "sha256": "2f23d98ccca7779f5e5c2d95f7fc67859abc1022732bbd51ac9c14b0722989ef",
+          "sha256": "0c5aa78254d26103fba8e575be8759541799c54e3482544c2434397250cb633c",
           "resource_count": 43
         },
         "repo-workflow": {
-          "sha256": "8c974993612236650649a3491d98d43885017af34d7afd1aae139294f641d3d2",
+          "sha256": "10af5a460a94b9f34708e52155059a409659c582c588023f3261b1c0d796155e",
           "resource_count": 19
         },
         "content-tools": {
-          "sha256": "7caa00300a88b0e7f7854bb221674dcb0a3487ce4dea468cb77ec7f4e145f094",
+          "sha256": "f1ffaf78ed05fe21ed4f7d0ed7e8558dcad708276d01f2f351bb48777d3e0786",
           "resource_count": 55
         },
         "work-journal": {
-          "sha256": "92625ac91ecd6d84cf71d5567f547703a093d006912085c1a2f169caa9699d13",
+          "sha256": "06008d9ed9a43e530ff20a879cdddaa9ae05726502e3537561a26d4a1024d060",
           "resource_count": 3658
         },
         "session-preferences": {
-          "sha256": "dbac218b34889c2ff93717ca7f127c61cdd8376fa04928af4ceb4a73824e9c90",
+          "sha256": "cf783d3dc6a1d613f5ba7174a7c91c9eab11b154fd9725aa0cae6caa6472d64a",
           "resource_count": 24
         },
         "skill-toolbox": {
-          "sha256": "15de253853e2f55cd7fa2b092672c3d479eadb43589fc798b6455e288752ed36",
+          "sha256": "5afce6ea86c686efa6bc1aee6d3c4a8b86b6135bf1b5facdac233f26ecfac7cd",
           "resource_count": 20
         }
       },
@@ -120,7 +120,7 @@
       "evidence": [
         {
           "path": "native-acceptance-codex-2026-11-13.json",
-          "sha256": "56234f80a8d7c5cd8179f9fbe09912a398e7e10439167306ea98e5e57d975f36"
+          "sha256": "970ab228f689d6caaaa97ddd69e0aaa69d1083a667df288d94a6e9a01396364c"
         }
       ]
     }

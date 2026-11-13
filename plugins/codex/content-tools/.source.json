@@ -104,13 +104,13 @@
       "qa-to-notes",
       "arxiv-digest"
     ],
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "resources": {
     "arxiv-digest/SKILL.md": "8dea2a17289c1f832169d6433092c67fb1617fcae3dbe647afcdfd635a3aa2c9",
     "arxiv-digest/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
     "arxiv-digest/references/deep-reading-handoff.md": "98165f787334b19f0ca53d0357963c1ed4dad3d71795ed5f2971d1cf62edb3ba",
-    "docs/plugins/installation.md": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69",
+    "docs/plugins/installation.md": "7232106e4792aa4dd951f10b86036aa12b8a1acc93533fec67623d933c6b86e8",
     "docs/plugins/migration.md": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16",
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
     "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",

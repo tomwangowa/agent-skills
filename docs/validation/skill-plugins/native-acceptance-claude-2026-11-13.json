@@ -5,42 +5,42 @@
   "observed_client_version": "2.1.323",
   "artifact_version": "0.1.0",
   "observed_package_versions": {
-    "quality-gates": "0.2.0",
-    "technical-decisions": "0.1.3",
-    "repo-workflow": "0.3.0",
-    "content-tools": "0.2.0",
-    "work-journal": "0.2.1",
-    "session-preferences": "0.1.6",
-    "skill-toolbox": "0.1.3"
+    "quality-gates": "0.2.1",
+    "technical-decisions": "0.1.4",
+    "repo-workflow": "0.3.1",
+    "content-tools": "0.2.1",
+    "work-journal": "0.2.2",
+    "session-preferences": "0.1.7",
+    "skill-toolbox": "0.1.4"
   },
   "installation_source": "Local filesystem marketplace rooted at this checkout; the current refresh did not use the remote Git marketplace.",
   "artifact_bindings": {
     "quality-gates": {
-      "sha256": "f36ba323be455df409b739a3eb9b8cc9f23c0919299b3aef394fe516aa7ccca1",
+      "sha256": "969fa7bfbe0a69df50051a554b9ca69ce4d789c6de7eef70247d93d74f0d9a66",
       "resource_count": 20
     },
     "technical-decisions": {
-      "sha256": "46e320cae107edb5fe1c24c5666f217483a096fed696ec91163463e23b112fd6",
+      "sha256": "b745588e80e49b8320d51651e3b3383f38de4b30ecd9e14da0867ea889d07a90",
       "resource_count": 43
     },
     "repo-workflow": {
-      "sha256": "6fa535af73f5ddedfbd75f332cd078b4d45723bf9990471fb2ca53c7c867caf2",
+      "sha256": "096bd050bd107e6d109365e86b7a3f8e5393b5a8d340c325ddc598b89b225a9a",
       "resource_count": 19
     },
     "content-tools": {
-      "sha256": "3938562b4abf610d08ba8f293e093d60a33a6c2c3bd865068d3dd365b0d64497",
+      "sha256": "cb4301ed469366ef37d534990b20173715ba32822fedbd75135a38f84a62c0ff",
       "resource_count": 55
     },
     "work-journal": {
-      "sha256": "1baf5f0015f98992ac467edb3020fbe09a90e0ba7b3bc8b9ed698917000f06e2",
+      "sha256": "070e96f0ea123cfd6431988dec0e7ac1d322732635bbe553acc1e29e40a61000",
       "resource_count": 3658
     },
     "session-preferences": {
-      "sha256": "0bc8a7d010b8cf92799de88c4b3f50f0dfb3745b93bcc622a603bf60f439a864",
+      "sha256": "eb4aff3a84e0eaf0cba8d1ec437c5054d3bd9415a92944394948e02923d95b38",
       "resource_count": 24
     },
     "skill-toolbox": {
-      "sha256": "5f728b464e3bd6ff3cfbac1796ff3219ba87634f7a0c364abeeccbe62c845891",
+      "sha256": "74e18558365a00875f0a0ca8aa1f0a33ee825e6d07afbd7a9ed0ae3bfe70be8a",
       "resource_count": 23
     }
   },
@@ -63,17 +63,12 @@
   "scenarios": {
     "installation": {
       "result": "verified",
-      "observation": "Installed all seven current packages from the isolated local filesystem marketplace. Native inventory versions and every installed cache binding matched the current source artifacts.",
+      "observation": "All seven versioned packages installed in the isolated profile; native inventory versions and installed files matched the generated artifact inventories.",
       "private_evidence": [
         {
-          "record": "claude isolated native session trace bundle",
-          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
-          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
-        },
-        {
-          "record": "claude sanitized native acceptance refresh summary",
-          "sha256": "dc6e2bd946551853cbb89fbb426550a24f0d8129badfdf17be0e571539969c00",
-          "storage": "Temporary acceptance directory; removed after validation; raw transcripts are excluded from the repository."
+          "record": "native-acceptance-publish-refresh-2026-11-13.json",
+          "sha256": "ff3cc3ae88d6200ae126c23b117026ba7b3bd04d25a763cd673f8c5b3dd87cea",
+          "storage": "Sanitized repository evidence; synthetic marker only; no raw transcripts or credentials."
         }
       ],
       "refresh_validation": "revalidated_2026-11-13"
@@ -95,17 +90,12 @@
     },
     "startup": {
       "result": "verified",
-      "observation": "The current session-preferences 0.1.6 SessionStart hook returned the unique isolated preference marker AGENT_SKILLS_PREFS_ONLY_20261113_7D9C6A2B. Built-in tools and session persistence were disabled for the synthetic request.",
+      "observation": "The session-preferences 0.1.7 SessionStart hook injected the synthetic response-language marker AGENT_SKILLS_PREFS_ONLY_20261113_8A32C1D7; the model returned that exact marker.",
       "private_evidence": [
         {
-          "record": "claude isolated native session trace bundle",
-          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
-          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
-        },
-        {
-          "record": "claude sanitized native acceptance refresh summary",
-          "sha256": "dc6e2bd946551853cbb89fbb426550a24f0d8129badfdf17be0e571539969c00",
-          "storage": "Temporary acceptance directory; removed after validation; raw transcripts are excluded from the repository."
+          "record": "native-acceptance-publish-refresh-2026-11-13.json",
+          "sha256": "ff3cc3ae88d6200ae126c23b117026ba7b3bd04d25a763cd673f8c5b3dd87cea",
+          "storage": "Sanitized repository evidence; synthetic marker only; no raw transcripts or credentials."
         }
       ],
       "refresh_validation": "revalidated_2026-11-13"
@@ -157,17 +147,12 @@
     },
     "preference_off": {
       "result": "verified",
-      "observation": "With AGENT_SESSION_PREFS=off, the model returned exactly NONE. This current 0.1.6 check used only synthetic fixture data.",
+      "observation": "With AGENT_SESSION_PREFS=off, the synthetic model request returned exactly NONE.",
       "private_evidence": [
         {
-          "record": "claude isolated native session trace bundle",
-          "sha256": "af0d99efb6c68ea31dc083a195dcda52c8e0983cc68bdc231000f4e21ce38d40",
-          "storage": "Temporary native profile; logged out and removed after validation; raw trace excluded from repository."
-        },
-        {
-          "record": "claude sanitized native acceptance refresh summary",
-          "sha256": "dc6e2bd946551853cbb89fbb426550a24f0d8129badfdf17be0e571539969c00",
-          "storage": "Temporary acceptance directory; removed after validation; raw transcripts are excluded from the repository."
+          "record": "native-acceptance-publish-refresh-2026-11-13.json",
+          "sha256": "ff3cc3ae88d6200ae126c23b117026ba7b3bd04d25a763cd673f8c5b3dd87cea",
+          "storage": "Sanitized repository evidence; synthetic marker only; no raw transcripts or credentials."
         }
       ],
       "refresh_validation": "revalidated_2026-11-13"
@@ -263,7 +248,6 @@
       "path": "native-acceptance-claude.json",
       "sha256": "d558523926eb5d015f681ed80e538896e95bbb5a5f0b1013a1705bd4076895ee"
     },
-    "current_sanitized_evidence_sha256": "dc6e2bd946551853cbb89fbb426550a24f0d8129badfdf17be0e571539969c00",
     "revalidated_checks": [
       "installation",
       "startup",
@@ -280,12 +264,22 @@
       "update",
       "migration"
     ],
-    "carry_forward_basis": "The 2026-11-12 checks are carried forward for unchanged behavior resources. Across both surfaces, all native bindings except session-preferences are identical; for session-preferences, the only bound-resource change is the native manifest version field (0.1.5 to 0.1.6). Its current installation, startup injection, and preference-off behavior were rechecked.",
+    "carry_forward_basis": "The package version and human-readable installation documents changed; skills, runtime, hooks, MCP server and native execution resources did not. Installation, startup preference injection, and preference-off were rechecked; other behavior checks remain bound to unchanged behavior resources.",
     "artifact_binding_delta": {
       "changed_packages": [
-        "session-preferences"
+        "content-tools",
+        "quality-gates",
+        "repo-workflow",
+        "session-preferences",
+        "skill-toolbox",
+        "technical-decisions",
+        "work-journal"
       ],
       "changed_behavior_resources": []
+    },
+    "current_sanitized_evidence": {
+      "path": "native-acceptance-publish-refresh-2026-11-13.json",
+      "sha256": "ff3cc3ae88d6200ae126c23b117026ba7b3bd04d25a763cd673f8c5b3dd87cea"
     }
   },
   "check_provenance": {

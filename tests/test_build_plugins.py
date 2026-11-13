@@ -229,7 +229,7 @@ class BuildTests(unittest.TestCase):
     def test_shipped_docs_link_to_current_acceptance_record(self):
         # Naming packages in shipped text changes every package whenever one changes, forcing a bump of all seven.
         installation = (ROOT / 'docs/plugins/installation.md').read_text()
-        self.assertIn('那次之後有修改的套件，發布前需要重新驗收', installation)
+        self.assertIn('套件變更後，發布前需要重新驗收', installation)
         self.assertNotIn('在那之後有修改', installation)
         readmes = sorted((ROOT / 'plugins').glob('*/*/README.md'))
         self.assertEqual(len(readmes), 14)

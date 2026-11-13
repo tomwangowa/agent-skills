@@ -21,13 +21,13 @@ APPROVED = {
     'skill-toolbox': 'skill-auditor skill-router skill-sync claude-workflow-designer',
 }
 APPROVED_VERSIONS = {
-    'quality-gates': '0.2.0',
-    'technical-decisions': '0.1.3',
-    'repo-workflow': '0.3.0',
-    'content-tools': '0.2.0',
-    'work-journal': '0.2.1',
-    'session-preferences': '0.1.6',
-    'skill-toolbox': '0.1.3',
+    'quality-gates': '0.2.1',
+    'technical-decisions': '0.1.4',
+    'repo-workflow': '0.3.1',
+    'content-tools': '0.2.1',
+    'work-journal': '0.2.2',
+    'session-preferences': '0.1.7',
+    'skill-toolbox': '0.1.4',
 }
 
 
