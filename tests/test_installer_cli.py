@@ -13,7 +13,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'runtime'))
 from agent_skills_installer.catalog import build_catalog
-from agent_skills_installer.ui import run
+from installer_ui_fixtures import run_with_fixture_hosts as run
 
 
 class Terminal(io.StringIO):
@@ -112,6 +112,14 @@ class CLITests(unittest.TestCase):
         self.assertEqual(code, 130)
         self.assertIn('1. codex', self.output.getvalue())
         self.assertNotIn('claude', self.output.getvalue())
+
+    def test_real_ui_rejects_missing_cli_without_running_native_commands(self):
+        from agent_skills_installer.ui import run as real_run
+        with patch('agent_skills_installer.ui.shutil.which', return_value=None):
+            code = real_run(self.catalog, lambda _: self.fail('No prompt expected'),
+                            self.output, lambda argv: self.fail(f'Unexpected command: {argv}'))
+        self.assertEqual(code, 1)
+        self.assertIn('claude: unavailable', self.output.getvalue())
 
     def test_selection_transcript(self):
         code, native = self.transcript(['1', '', '', 'y'])

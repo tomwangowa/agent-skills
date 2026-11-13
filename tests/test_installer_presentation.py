@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT / 'runtime'))
 from agent_skills_installer.catalog import build_catalog, tree_hash
 from agent_skills_installer.models import Action, InstalledPlugin, Inventory, PluginSpec
 from agent_skills_installer.receipts import verify_claude_install
-from agent_skills_installer.ui import run
+from installer_ui_fixtures import run_with_fixture_hosts as run
 from test_installer_cli import FixtureCLI, Terminal
 
 

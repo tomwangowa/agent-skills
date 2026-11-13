@@ -15,7 +15,7 @@ from agent_skills_installer.catalog import build_catalog
 from agent_skills_installer.hosts import read_inventory
 from agent_skills_installer.models import PluginSpec
 from agent_skills_installer.planning import make_plan
-from agent_skills_installer.ui import run
+from installer_ui_fixtures import run_with_fixture_hosts as run
 from test_installer_cli import FixtureCLI, Terminal
 from test_installer_hosts import NativeRunner
 
