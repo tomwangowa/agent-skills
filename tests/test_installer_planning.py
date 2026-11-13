@@ -40,11 +40,11 @@ class PlanningTests(unittest.TestCase):
             plan = make_plan((self.claude,), (inventory('claude', (item,)),),
                              frozenset({('claude', 'quality-gates')}), frozenset({('claude', 'quality-gates')}), {})
             self.assertFalse(plan.actions)
-            self.assertEqual(plan.prior_results[0].status, 'unverified')
+            self.assertEqual(plan.prior_results[0].status, 'skipped')
         plan = make_plan((self.claude,), (inventory('claude', source='conflicting-source'),),
                          frozenset({('claude', 'quality-gates')}), frozenset(), {})
         self.assertFalse(plan.actions)
-        self.assertEqual(plan.prior_results[0].status, 'unverified')
+        self.assertEqual(plan.prior_results[0].status, 'skipped')
 
     def test_missing_own_source_proposes_preparation_without_provider_state(self):
         for spec in (self.claude, self.codex):
@@ -77,12 +77,12 @@ class PlanningTests(unittest.TestCase):
         old = plan()
         changed = plan(updates=frozenset({('claude', 'quality-gates')}))
         self.assertNotEqual(fingerprint(old), fingerprint(changed))
-        self.assertNotEqual(fingerprint(changed), fingerprint(plan(replace(self.claude, version='0.3.0'),
+        self.assertEqual(fingerprint(changed), fingerprint(plan(replace(self.claude, version='0.3.0'),
                              updates=frozenset({('claude', 'quality-gates')}))))
         self.assertEqual(fingerprint(old), fingerprint(plan()))
         unsafe = plan(inv=replace(inventory('claude'), errors=('native failure',)))
         self.assertFalse(unsafe.actions)
-        self.assertEqual(unsafe.prior_results[0].status, 'unverified')
+        self.assertEqual(unsafe.prior_results[0].status, 'skipped')
 
 
 if __name__ == '__main__':

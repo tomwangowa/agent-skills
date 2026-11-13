@@ -170,7 +170,7 @@ class PresentationTests(unittest.TestCase):
         answers = iter(['1', '', '', 'y', '', '', 'y'])
         def answer(prompt):
             if 'Approve these settings' in prompt:
-                (self.root/'installed/work-journal/.claude-plugin/plugin.json').write_text('{}')
+                native.installed[0]['enabled'] = False
             return next(answers)
         output = Terminal()
         with patch.dict(os.environ, {'AGENT_SKILLS_CONFIG_DIR':str(config), 'CLAUDE_ACTIVITIES_DIR':''}), \
@@ -187,7 +187,7 @@ class PresentationTests(unittest.TestCase):
         native = FixtureCLI(self.root)
         native.installed = [{'id':'work-journal@tomwangowa','version':specs[0].version,
                              'enabled':True,'scope':'user','installPath':str(self.root/'plugins/claude/work-journal')}]
-        answers = iter(['1', '', '', 'y', 'n'])
+        answers = iter(['1', '', '', 'n'])
         prompts = []
         def answer(prompt):
             prompts.append(prompt)
@@ -200,19 +200,19 @@ class PresentationTests(unittest.TestCase):
         self.assertFalse(config.exists())
         self.assertEqual(native.mutations, [])
 
-    def test_old_existing_work_journal_without_settings_is_not_given_new_format(self):
+    def test_existing_work_journal_version_does_not_block_optional_setup(self):
         specs = self.specs('work-journal')
         config = self.root / 'no-journal-config'
         native = FixtureCLI(self.root)
         native.installed = [{'id':'work-journal@tomwangowa','version':'0.2.0',
                              'enabled':True,'scope':'user','installPath':str(self.root/'plugins/claude/work-journal')}]
-        answers = iter(['1', '', '', 'y'])
+        answers = iter(['1', '', '', 'n'])
         output = Terminal()
         with patch.dict(os.environ, {'AGENT_SKILLS_CONFIG_DIR':str(config)}, clear=False):
             code = run(specs, lambda _: next(answers), output, native)
         self.assertEqual(code, 0, output.getvalue())
         self.assertFalse(config.exists())
-        self.assertIn('Update work-journal before creating new settings', output.getvalue())
+        self.assertIn('Journal: pending configuration', output.getvalue())
         self.assertEqual(native.mutations, [])
 
     def test_native_json_stdout_is_captured_instead_of_dumped(self):

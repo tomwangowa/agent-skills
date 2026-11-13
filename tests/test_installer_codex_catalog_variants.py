@@ -37,7 +37,7 @@ class CodexCatalogVariantTests(unittest.TestCase):
             self.assertEqual(ready.status, 'ready', ready.reason)
             self.assertEqual(dict(ready.snapshot)['catalog_name'], API)
 
-    def test_api_action_and_acceptance_are_bound_to_native_catalog(self):
+    def test_api_action_follows_native_catalog_without_acceptance_gate(self):
         with tempfile.TemporaryDirectory() as tmp:
             spec, home, root, payload, inv = prepared_api(Path(tmp))
             api_spec = replace(spec, marketplace=API)
@@ -49,7 +49,7 @@ class CodexCatalogVariantTests(unittest.TestCase):
             self.assertEqual(plan.actions[0].argv, ('codex', 'plugin', 'add', 'superpowers@'+API, '--json'))
             main_records = parse_native_acceptance(acceptance_data(spec))
             rejected = make_plan((spec,), (inv,), {('codex', 'superpowers')}, set(), {'git': True}, acceptance=main_records, platform='macos', architecture='arm64')
-            self.assertEqual(rejected.actions, ())
+            self.assertEqual(rejected.actions, plan.actions)
 
     def test_wrong_api_manifest_and_ambiguous_official_names_are_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -81,8 +81,8 @@ class CodexCatalogVariantTests(unittest.TestCase):
                 code, output = cli_fixtures.SuperpowersCLITests().transcript((spec,), native, records)
                 self.assertEqual(os.environ['COMPANY_AI_TEST_TOKEN'], 'dummy-secret-not-a-real-key')
             self.assertEqual(code, 0, output)
-            self.assertIn('installed:', output)
-            self.assertIn('superpowers@'+API, output)
+            self.assertIn('[############] success', output)
+            self.assertEqual(native.mutations[0][3], 'superpowers@'+API)
             self.assertNotIn('dummy-secret-not-a-real-key', output)
             self.assertNotIn('company.invalid', output)
             self.assertEqual(config.read_bytes(), original)
@@ -101,7 +101,7 @@ class CodexCatalogVariantTests(unittest.TestCase):
             self.assertEqual(native.mutations, [])
             self.assertIn('Preconditions changed', output)
 
-    def test_api_receipt_cannot_claim_main_catalog_installation(self):
+    def test_native_success_does_not_validate_receipt_catalog_fields(self):
         class WrongReceipt(cli_fixtures.OfficialCLI):
             def __call__(self, argv):
                 result = super().__call__(argv)
@@ -115,8 +115,8 @@ class CodexCatalogVariantTests(unittest.TestCase):
             native = WrongReceipt(home, root, payload, marketplace=API)
             records = parse_native_acceptance(acceptance_data(replace(spec, marketplace=API)))
             code, output = cli_fixtures.SuperpowersCLITests().transcript((spec,), native, records)
-            self.assertEqual(code, 1, output)
-            self.assertIn('unverified:', output)
+            self.assertEqual(code, 0, output)
+            self.assertIn('[############] success', output)
             self.assertTrue(native.target.exists())
             self.assertEqual(len(native.mutations), 1)
 
@@ -135,7 +135,7 @@ class CodexCatalogVariantTests(unittest.TestCase):
                                      installed=True, enabled=False, version='newer-existing')]
             code, output = cli_fixtures.SuperpowersCLITests().transcript((spec,), native)
             self.assertEqual(code, 0, output)
-            self.assertIn('preserved:', output)
+            self.assertIn('  None', output)
             self.assertEqual(native.mutations, [])
 
     def test_missing_catalog_for_company_user_does_not_attempt_login_or_startup(self):

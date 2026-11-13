@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
-from dataclasses import replace
+from dataclasses import replace, asdict
 from pathlib import Path
 from agent_skills_installer.hosts import inspect_provider
 from agent_skills_installer.models import Inventory, Marketplace, InstalledPlugin
@@ -26,7 +26,8 @@ class SuperpowersVerifyTests(unittest.TestCase):
         plugin = InstalledPlugin('codex', 'superpowers', 'openai-curated', None, COMMIT[:8], None, True, None)
         inv = replace(inv, plugins=(plugin,))
         data = dict(pluginId='superpowers@openai-curated', name='superpowers', marketplaceName='openai-curated', version=COMMIT[:8], installedPath=str(target), authPolicy='ON_INSTALL')
-        return spec, plan.actions[0], inv, ready, target, data
+        action = replace(plan.actions[0], preconditions=plan.actions[0].preconditions + (('version', spec.version), ('cli_version', inv.cli_version), ('provider_target', json.dumps(asdict(spec.provider), sort_keys=True, separators=(',', ':'))), ('provider_state', json.dumps(ready.snapshot, separators=(',', ':')))))
+        return spec, action, inv, ready, target, data
 
     def test_codex_catalog_sha_version_is_not_manifest_version(self):
         with tempfile.TemporaryDirectory() as tmp:
