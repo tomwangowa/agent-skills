@@ -1,69 +1,52 @@
-# 安裝、設定與更新
+# 安裝與設定 CLI 套件
 
-支援 Claude Code CLI 與 Codex CLI，桌面版不在範圍內。2026-10-15 的原生驗收在 macOS 隔離 fixture 上，以 Claude Code 2.1.300、Codex 0.162.1 測過七包的安裝、hooks、MCP、路由、更新與 fixture 遷移；那次之後有修改的套件，發布前需要重新驗收，哪些套件的驗收紀錄仍有效以 `acceptance.json` 為準。2026-10-17 另以 Claude Code 2.1.302 驗證 GitHub marketplace 安裝、刷新和更新檢查；Codex CLI 的遠端 Git marketplace 尚未測試。正向版本升級使用本機暫存 Git 遠端，不代表 GitHub 已發布新版。完整範圍見 `docs/validation/skill-plugins/remote-marketplace-validation.md` 與 `acceptance.json`。以下安裝指令供產物核准發布後使用；目前可供維護者審查的是 worktree 內的生成目錄。
+本指南說明 Claude Code 和 Codex 的命令列版本（CLI）如何安裝及管理套件，不包含桌面版。Marketplace 是套件目錄；照[中文 README 的指令](https://github.com/tomwangowa/agent-skills/blob/main/README.zh.md#直接從-marketplace-安裝)加入目錄，再安裝想用的套件即可。加入目錄後，每條套件安裝指令一次安裝一包，不必全裝。套件用途見[套件清單](https://github.com/tomwangowa/agent-skills/blob/main/docs/plugins/README.md)；不確定要選哪些，可先看[使用情境範例](https://github.com/tomwangowa/agent-skills/blob/main/docs/plugins/usage-examples-zh.md)。安裝或更新後，重新啟動 CLI 才會載入新內容。
 
-## 選擇並安裝
+## 設定 work-journal
 
-不必一次裝七包。以下以 work-journal 為例；其他選擇把套件名稱替換為 README 表中的名字。
+`work-journal` 可以記錄工作，也能搜尋活動紀錄和你選定的筆記。設定時必須指定活動紀錄資料夾，建議放在 `~/.agent-skills/activities`；筆記資料夾可不填，填入時查詢也會搜尋那些筆記。
+
+第一次設定會在 `~/.config/agent-skills/` 建立 `work-journal.json`，並建立尚不存在的活動紀錄和筆記資料夾。它不會搬動或讀取資料夾裡已有的內容。如果你已經有活動紀錄，請在設定時選原本的資料夾。兩套 CLI 共用這份設定；若已有 `work-journal.json`，設定程式會保留原內容，不會覆蓋。之後要加入筆記資料夾，請把路徑加到檔案的 `sources.notes.paths`，再重新啟動 CLI。
+
+若已設定 `AGENT_SKILLS_CONFIG_DIR`，會使用它指定的資料夾；若只有設定 `XDG_CONFIG_HOME`，則使用 `$XDG_CONFIG_HOME/agent-skills/`。語言偏好檔也放在同一個設定根目錄。
+
+執行設定需要 Python 3；MCP 查詢工具需要 Node.js。先安裝 `work-journal`，再選一段符合你所用 CLI 的指令。將已安裝的套件位置存到 `AGENT_SKILLS_PLUGIN_ROOT`，供後面的設定命令使用。範例依照 README 的個人安裝方式查找套件，並使用 Bash；Windows PowerShell 的原生設定流程尚未驗收。
 
 Claude Code：
 
 ```bash
-claude plugin marketplace add tomwangowa/agent-skills --scope user
-claude plugin install work-journal@tomwangowa --scope user
-claude plugin list
+export AGENT_SKILLS_PLUGIN_ROOT="$(
+  claude plugin list --json |
+  python3 -c 'import json,sys; print(next(p["installPath"] for p in json.load(sys.stdin) if p["id"] == "work-journal@tomwangowa" and p["scope"] == "user"))'
+)"
 ```
 
-Codex：
+Codex：先執行 `codex plugin list --marketplace tomwangowa --json` 查看已安裝的 `work-journal` 版本，再把下面的 `<version>` 換成該版本：
 
 ```bash
-codex plugin marketplace add tomwangowa/agent-skills --ref main
-codex plugin add work-journal@tomwangowa
-codex plugin list --marketplace tomwangowa --json
+export AGENT_SKILLS_PLUGIN_ROOT="${CODEX_HOME:-$HOME/.codex}/plugins/cache/tomwangowa/work-journal/<version>"
 ```
 
-先完成需要的資料設定，再重新啟動 CLI。有 hooks 的套件是 quality-gates、technical-decisions、skill-toolbox、session-preferences。檢視本次安裝的實際程式與資源；Codex 用正常 `/hooks` 對選定的新 hooks 完成信任。不要改寫信任 state 或跳過 review。此處沒有自動安裝 Superpowers；相關分支按相容性文件檢查。
-
-## 首次 work-journal 設定
-
-設定根目錄優先序是 `AGENT_SKILLS_CONFIG_DIR` → `$XDG_CONFIG_HOME/agent-skills` → `~/.config/agent-skills`。它在 plugin 快取外，兩個 CLI 與 shell 共用。可直接引用既有活動／筆記資料，不必搬移。活動目錄須可讀、可寫與可搜尋；notes 至少指定一個非空路徑；首次 setup 建立不存在的目錄。啟動時尚未檢查筆記目錄是否存在，不存在的筆記目錄目前會回傳空集合。
-
-從原生 plugin inventory 找到目前 work-journal 的實際根目錄，再將下面三個示例路徑替換為你的選擇：
+先預覽活動紀錄會存在哪裡：
 
 ```bash
-export AGENT_SKILLS_PLUGIN_ROOT="/absolute/installed/work-journal"
-export AGENT_SKILLS_CONFIG_DIR="$HOME/.config/agent-skills"
 PYTHONPATH="$AGENT_SKILLS_PLUGIN_ROOT/runtime" python3 -m agent_skills_runtime.setup \
-  --activities "/absolute/activities" --notes "/absolute/notes" --preview
+  --activities "$HOME/.agent-skills/activities" --preview
 ```
 
-確認預覽後，用相同參數移除 `--preview` 執行一次。既有設定不會被覆蓋。設定檔形狀為：
+若也要搜尋筆記，在指令中加入 `--notes "$HOME/你的筆記資料夾"`；多個資料夾可以一起列在 `--notes` 後面。預覽確認路徑正確後，用相同指令再執行一次，並移除 `--preview`。這時程式會建立設定檔和缺少的資料夾。
 
-```json
-{
-  "sources": {
-    "activities": "/absolute/activities",
-    "notes": {"paths": ["/absolute/notes"], "recursive": true, "exclude_hidden": true}
-  }
-}
-```
+`work-journal` 套件附有 MCP 查詢工具（讓 CLI 呼叫資料查詢服務的連線方式）。設定後重新啟動 CLI，再確認工具是否出現；若沒有出現，先確認套件已啟用並查看[驗收紀錄](https://github.com/tomwangowa/agent-skills/blob/main/docs/validation/skill-plugins/README.md)。不要另外新增全域 MCP 設定，以免和套件內的設定重複。
 
-`CLAUDE_ACTIVITIES_DIR` 可明確覆寫活動路徑；相對值以設定根目錄為準。使用覆寫時，Python 與 MCP 程序必須繼承相同環境。設定變更後重新啟動 MCP／CLI；不要新增會與 plugin 重複的全域 MCP entry。
+## 檢查 hooks
 
-```bash
-PYTHONPATH="$AGENT_SKILLS_PLUGIN_ROOT/runtime" python3 -m agent_skills_runtime.doctor \
-  --commands node python3 jq bash --config work-journal
-```
+Hooks 是 CLI 在工作階段開始或執行特定操作時，自動執行的小命令。`quality-gates`、`technical-decisions`、`skill-toolbox` 和 `session-preferences` 含有 hooks。
 
-缺少設定不回退到私人 config。安裝產物帶已編譯 server 與 production dependencies，啟動時不使用 tsx、不下載依賴、不編譯原始碼。
+如果 CLI 要求檢視或信任 hooks，先看清楚它會執行什麼，再依 CLI 的提示決定。Codex 可用 `/hooks` 檢視 hooks；不要略過宿主提供的檢查，也不要手動改信任設定。
 
-## 偏好設定
+## 預設回應語言（選用）
 
-session-preferences 的個人模組存於設定根目錄的 `preferences/`，整份取代同名預設；control-return 是獨立模組。先讀該包 SKILL 的載入／預覽／確認流程，確認後使用 bundled CLI 寫入個人副本，保留 base hash 與 expected hash。不要直接修改快取內的 references。
-
-### 一般回應語言
-
-使用上節的共用設定根目錄優先序（`AGENT_SKILLS_CONFIG_DIR` → `$XDG_CONFIG_HOME/agent-skills` → `~/.config/agent-skills`），在該根目錄的 `agent-skills.json` 加入：
+安裝並啟用 `session-preferences` 後，若想讓新工作階段預設使用繁體中文回覆，可以在 `~/.config/agent-skills/agent-skills.json` 加入以下設定。若檔案已有其他內容，只加入 `session_preferences` 欄位，不要整份覆蓋：
 
 ```json
 {
@@ -73,64 +56,54 @@ session-preferences 的個人模組存於設定根目錄的 `preferences/`，整
 }
 ```
 
-`response_language` 可填語言標籤或名稱，例如 `ja`、`zh`、`繁體中文`、`法語`。讀取時會移除前後空白；值需為可用 UTF-8 編碼的非空單行文字，且不超過 80 個 Unicode 碼位。未設定時沿用現有語言指示；若指示也沒指定語言，就跟隨當次訊息。設定值優先於其他來源的一般語言預設，但只改語言，語氣、格式、術語和任務規則仍生效；當次明確的語言要求優先於設定值。
+設定會在新工作階段載入；目前工作階段可執行 Claude Code 的 `/session-preferences` 或 Codex 的 `$session-preferences` 立即重載。你在當次訊息明確指定其他語言時，會以當次要求為準。個人偏好與更新細節見 [session-preferences 使用手冊](https://github.com/tomwangowa/agent-skills/blob/main/plugins/claude/session-preferences/skills/session-preferences/README.md)。
 
-新工作階段啟動時自動載入。若設定檔、結構或值無效，hook 會回報警告、略過語言預設，仍載入可讀的偏好模組；未認得的欄位會忽略。修改設定後，可在目前工作階段執行 `$session-preferences` 或 `/session-preferences` 立即重載，從當次回應開始套用。每次手動重載都取代先前載入的語言預設；移除設定或修正無效設定後重載，會清除舊預設並回到其他有效指示。檔案不會被即時監看。
+## 更新套件
 
-僅此一次停用偏好可從新 session 啟動：
-
-```bash
-AGENT_SESSION_PREFS=off codex
-AGENT_SESSION_PREFS=off claude
-```
-
-這不移除工程套件的路由。工程套件需要 Python；work-journal 另外需要 Node、jq、bash；toolbox 的 standalone sync 需要 rsync。實測環境為 macOS、Node v23.7.0、Python 3.14.6；最低版本、Linux／WSL 的完整 native 行為尚未驗證。個人規則與遷移寫入採 POSIX locks，不支援原生 Windows 寫入。
-
-## 更新、停用與移除
-
-更新前保存舊版本的 hook 資源供比對，保留外部設定與個人副本。以下只操作選定 marketplace／plugin：
+先更新 Marketplace 清單，再更新套件。以下以 `work-journal` 為例；若要更新其他套件，換成該套件名稱。Claude Code 會在更新後要求重新啟動，才能套用新版本：
 
 ```bash
 claude plugin marketplace update tomwangowa
 claude plugin update work-journal@tomwangowa --scope user
+```
+
+Codex 從 GitHub 套件目錄更新目前只驗證過 `session-preferences`；其他套件、版本和平台尚未驗證。Windows、Linux 和其他 CLI 版本也尚未完成原生驗收，完整紀錄見[驗收說明](https://github.com/tomwangowa/agent-skills/blob/main/docs/validation/skill-plugins/README.md)。以下是已驗證情況使用的指令：
+
+```bash
 codex plugin marketplace upgrade tomwangowa
-codex plugin add work-journal@tomwangowa
+codex plugin add session-preferences@tomwangowa
 ```
 
-Codex 的 add 是原生安裝入口；再次 add 會更新套件快取，這點已在本機 marketplace fixture 驗證過（見下文）；遠端 Git marketplace 上的更新尚未驗證，不能先宣稱快取已更新。重啟後核對實際版本、資源、七個 MCP 工具及設定根目錄。Session-preferences 更新後，先把 `AGENT_SKILLS_PLUGIN_ROOT` 改成該包目前的根目錄，再用它的 runtime：
 
-```bash
-PYTHONPATH="$AGENT_SKILLS_PLUGIN_ROOT/runtime" python3 -m agent_skills_runtime.migration updates \
-  --config-root "$AGENT_SKILLS_CONFIG_DIR" \
-  --defaults "$AGENT_SKILLS_PLUGIN_ROOT/skills/session-preferences/references"
-```
+## 停用或移除套件
 
-預設變更只提示，不覆蓋個人模組。Native fixture 驗收確認兩平台升級後仍保留個人覆寫與活動設定。Codex 0.162.1 在本機 marketplace fixture 上透過再次 `plugin add` 更新套件快取；本機目錄來源的 `marketplace upgrade` 不受支援。Codex CLI 的遠端 Git marketplace 升級尚未實測；Claude Code 的遠端檢查結果見驗證紀錄。比對舊／新版 hooks：
+以下以 `work-journal` 為例；處理其他套件時，換成該套件名稱。停用會讓套件保持安裝、但暫時不載入；移除則會解除安裝。這些操作不會刪除活動紀錄、筆記或共用設定。
 
-```bash
-PYTHONPATH="$AGENT_SKILLS_PLUGIN_ROOT/runtime" python3 -m agent_skills_runtime.migration hooks \
-  --previous "/absolute/old-plugin" --current "$AGENT_SKILLS_PLUGIN_ROOT"
-```
-
-它只回報資源差異，不修改 native trust。若 hook 命令有變，到 Codex 正常 `/hooks` 檢視內容並依 CLI 提示重新信任；本次只驗證隔離 fixture 中已審查命令的正常信任流程。
-
-Claude 停用／移除：
+Claude Code：
 
 ```bash
 claude plugin disable work-journal@tomwangowa --scope user
+```
+
+要移除時執行：
+
+```bash
 claude plugin uninstall work-journal@tomwangowa --scope user --keep-data
 ```
 
-Codex 此次啟動停用：
+Codex 要長期停用時，在 `~/.codex/config.toml` 將該套件的 `enabled` 設為 `false`；要重新啟用時改回 `true`：
 
-```bash
-codex -c 'plugins.work-journal@tomwangowa.enabled=false'
+```toml
+[plugins."work-journal@tomwangowa"]
+enabled = false
 ```
 
-持續停用則備份並檢視 config.toml 後，把 `[plugins."work-journal@tomwangowa"]` 的 `enabled` 設為 `false`；重新啟用設 `true`。CLI override key 不要內嵌 literal quotes；TOML table 的 quoted key 則遵守 TOML 語法。移除用：
+移除 Codex 套件：
 
 ```bash
 codex plugin remove work-journal@tomwangowa
 ```
 
-移除套件不包含刪除外部活動資料、筆記或個人設定。舊入口的回復按 migration 文件，不用重建或刪除資料目錄。
+要搬移或恢復舊版設定，請看[遷移與恢復指南](migration.md)。
+
+套件的原生驗收結果適用於紀錄中列出的版本；套件變更後，發布前需要重新驗收。詳見[驗收紀錄](https://github.com/tomwangowa/agent-skills/blob/main/docs/validation/skill-plugins/acceptance.json)。

@@ -2,19 +2,19 @@
   "files": {
     ".claude-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "cee938d313ad84dc325e4b17413bddb5873eca65e3abf89ffda765719f802a54"
+      "sha256": "85971712f7e32c25d891e0ea32e32f537659fe956774d958ccc777d162b0aa25"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "6e9d33acc5b57b0d9b2a5397e4d545574a31be064ff236fb21598fe89a14ed0b"
+      "sha256": "25491275af752da2c282ae96b2e2bf96cd11364788d2b4cecac1aa0682211f91"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "f813fe1fa05750ffc3fbe5bf5a4a617e487ee24eeb32c99d5a9e427195677052"
+      "sha256": "30b4ed492a37b14812993855061efa95a5a7782d6a2607b44c1425834471e36e"
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69"
+      "sha256": "7232106e4792aa4dd951f10b86036aa12b8a1acc93533fec67623d933c6b86e8"
     },
     "migration.md": {
       "mode": 420,

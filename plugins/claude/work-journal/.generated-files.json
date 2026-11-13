@@ -2,7 +2,7 @@
   "files": {
     ".claude-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "0595029285d25d90557c8a1085fcf63206f9c5cbbc8834fef542d6c43e438262"
+      "sha256": "a864e47c266e368cc1b0fc98672e26d3038ac299808e0484c3a3a3a35a63951e"
     },
     ".mcp.json": {
       "mode": 420,
@@ -10,15 +10,15 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "fc46a4c2b870315c2815d0c43c5fc308701e42538f329ffd87bdc8f51474f2ea"
+      "sha256": "b675d4eda35691289c593726d98b482b7ea071fcce56406c04c7acc23f2603e1"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "ed9e4d07ce31e3e3d02c6f3b408a764cb5459ebbad2b90dfb580345a1c7c4701"
+      "sha256": "84016d2729286cdee6d7f9246f2d5b3b9726f4312a2676eb1ae8d87f58fcb4fd"
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69"
+      "sha256": "7232106e4792aa4dd951f10b86036aa12b8a1acc93533fec67623d933c6b86e8"
     },
     "migration.md": {
       "mode": 420,

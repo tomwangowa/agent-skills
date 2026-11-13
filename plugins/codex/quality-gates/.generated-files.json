@@ -2,15 +2,15 @@
   "files": {
     ".codex-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "b4489b17f0b21b1ada8919c444b51ab41321d24aad3dab45cf454f0bd053651d"
+      "sha256": "b0e802d1b3886203e7542c04130e80333373c4566b8ee2db56082b7ab8125122"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "92e651f096d409621383fc837655aa906d8f7a479f47f8efb1bc1266f29c95e2"
+      "sha256": "622e9ea3d13ac6f1659f7e250414897acda7d530e2ac9e245f28e66272e2faf6"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "4c0cbfb76a4aaa1239a713f063781d53d35e3c630a4e00ae7ed9d0f3afa5b0e0"
+      "sha256": "8f2aff23ffb9b0abcd9f9baf50d6b43e4430643b95a5571da3ae12a6dd8793e1"
     },
     "hooks/hooks.json": {
       "mode": 420,
@@ -26,7 +26,7 @@
     },
     "installation.md": {
       "mode": 420,
-      "sha256": "a7d98a2bda6c076ca5c8e069da31e81c30eb78b56bb74e2b5178898457a75c69"
+      "sha256": "7232106e4792aa4dd951f10b86036aa12b8a1acc93533fec67623d933c6b86e8"
     },
     "migration.md": {
       "mode": 420,

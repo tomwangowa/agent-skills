@@ -1,6 +1,6 @@
 # repo-workflow
 
-Version 0.3.0; claude CLI.
+Version 0.3.1; claude CLI.
 
 Included skills:
 
