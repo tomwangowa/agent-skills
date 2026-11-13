@@ -16,75 +16,29 @@
 
 ---
 
-## CLI Plugin 套件
+## 安裝並開始使用 CLI plugins
 
-七包定義涵蓋 48 個來源 skills，支援 Claude Code CLI 與 Codex CLI。2026-11-12 的原生驗收使用 Claude Code CLI 2.1.322 和 Codex CLI 0.167.0；2026-11-13 又在隔離設定中，以 Claude Code CLI 2.1.323 與 Codex CLI 0.167.0 更新驗收紀錄。各套件有效範圍與產物綁定見[驗收紀錄](docs/validation/skill-plugins/acceptance.json)。Claude 舊版套件曾從遠端 GitHub marketplace 安裝；原生刷新由本機 marketplace 安裝。另以 Codex CLI 0.167.0／macOS 26.6.2 arm64，驗證 `session-preferences` 從 0.1.5 經遠端 Git marketplace 更新到 0.1.6；其他 Codex 版本與平台未測。詳見[遠端更新證據](docs/validation/skill-plugins/codex-remote-marketplace-update-2026-11-13.json)與 [plugin 文件](docs/plugins/README.md)。來源生命週期保留；standalone hooks 與 journal 工具也需要 bundled runtime 和下方的外部共用設定。
+### 在 macOS 安裝
 
-## macOS 安裝包候選版本
+[下載 macOS 試用版安裝包](https://github.com/tomwangowa/agent-skills/releases/download/installer-macos-trial-2026-11-13/agent-skills-installer-macos-trial-2026-11-13.zip)。這是供手動測試的 GitHub 預發布版本，這份 ZIP 尚未透過真實宿主完成安裝驗收；內容與 SHA-256 檔案校驗值見[發布說明](https://github.com/tomwangowa/agent-skills/releases/tag/installer-macos-trial-2026-11-13)。
 
-用以下命令產生一份可交給同事的壓縮包；建置過程不下載工具，也不重建 plugins：
+1. 先確認已安裝 Claude Code CLI 或 Codex CLI。安裝器需要可執行的 Python 3.11 以上版本；若缺少，會依支援的既有工具提供安裝選項。
+2. 解壓 ZIP，開啟 `install-macos.command`。
+3. 選擇 Claude Code 或 Codex，再選套件；閱讀各步驟提示後，確認要進行的操作。
 
-```bash
-python3 scripts/build_plugin_installer.py --output dist/agent-skills-installer-macos.zip
-```
+適用的套件預設會勾選。Superpowers 強烈建議用在開發工作，但屬於選用項目，預設不勾選。已安裝的套件會保留；畫面提供更新選項時，再另外選取。若要移除，選 `Remove packages`；清單中的套件預設都不勾選。
 
-目前最新的舊壓縮包驗收紀錄是 [R19](docs/validation/plugin-installer/candidate-r19.md)；它早於後續安裝器修改，只能作為歷史紀錄。此分支將 `session-preferences` 更新為 0.1.6，並建置只含 macOS 入口的 ZIP。Linux 與 Windows 入口仍保留在來源 repo，但不會放入這份 ZIP。本機 ZIP 與發布檢查已通過；ZIP 與 plugin 修改尚未發布。
+這份 ZIP 只含 macOS 安裝入口，沒有收錄 Windows 或 Linux 安裝入口。
 
-在 macOS 解壓後，開啟 `install-macos.command`（或執行 `bash install-macos.command`）。需要真正可用的 Python 3.11+，以及已安裝的 Claude Code CLI 或 Codex CLI；入口可透過現有且受支援的管理工具提出 Python 補裝方案，不代裝主程式、套件管理工具或登入認證。操作方式見[壓縮包說明](installer/README.md)，證據範圍見[驗證紀錄](docs/validation/plugin-installer/README.md)。
+### 從工作開始
 
-選單會分別預覽並確認來源下載、缺少的工具、plugin 安裝與選用的日誌設定。本 repo 適用套件預設勾選；既有 plugins 預設保留，更新要另外選。Superpowers 強烈建議安裝，但不預選。取消會停止後續工作，先前已批准的寫入仍保留。Codex 在已檢查的 CLI 0.167.0 上，新增安裝會核對實際 JSON 結果與完整安裝內容；既有安裝仍暫停更新。Superpowers 優先使用各 CLI 官方目錄：Claude 的 `claude-plugins-official` 是 `7.0.0`、來源固定在上游 Git commit；Codex 的 `openai-curated` 或原生選用的 `openai-api-curated` 是 `6.3.0`、內容位於官方目錄內，兩邊版本可以不同。既有 provider（包含 `7.0.2`）一律保留，不更新、啟用、重複安裝或降版。Codex 官方目錄需由原生 `/plugins` 流程準備，安裝器不補寫受管理狀態，也不新增或刷新這個保留目錄。缺少完整內容指紋或精確 CLI／平台／架構驗收時，只暫停 Superpowers 與其依賴補裝；R7 的能力紀錄只開放已驗證的 macOS arm64 Claude 2.1.322 官方目錄與 Codex 0.167.0 API 官方目錄情境，其他環境仍暫停 Superpowers。安裝結果、重啟後入口與實際工作流程分開驗證，後兩項尚未驗證。
+大多數情況直接用白話描述需求即可。若要指定某個 skill，Claude Code 使用 `/package:skill`，Codex 使用 `$package:skill`。[使用範例](docs/plugins/usage-examples-zh.md)列出常見工作情境、適合的套件，以及可以直接改寫的提示。
 
-同事若已透過公司 AI endpoint 使用 Codex、沒有登入 ChatGPT，R7 會依 Codex 原生回報的官方目錄處理，保留既有 endpoint 與認證設定。公司模型服務可用，不代表套件下載來源也可連線。離線測試與 [macOS Codex 0.167.0 原生測試](docs/validation/plugin-installer/codex-no-account-native-results.md)已涵蓋這個情境；原生測試在未登入時成功安裝 Superpowers，並保留假的公司模型設定。真實公司連線與其他平台尚未驗收，R5 尚未包含此修改；操作方式見[公司 endpoint 情境](installer/README.md)。 Claude Code 2.1.322 在 macOS arm64 也已通過[已登入／未登入兩組原生安裝](docs/validation/plugin-installer/claude-login-matrix-results.md)，兩組都是 Superpowers 7.0.0；R7 已納入這些能力紀錄與去除敏感資訊的證據摘要；同一份 ZIP 隨後通過三組 macOS arm64 的[原生安裝與重跑驗收](docs/validation/plugin-installer/r7-native-acceptance-results.md)。
+完整套件清單見 [Skills Catalog](SKILLS_CATALOG.md)；安裝器操作細節見[安裝器說明](installer/README.zh.md)。
 
-## 從工作場景選套件
+### 驗收與歷程
 
-R5 已在 macOS 26.6.2 arm64／Claude Code 2.1.322 與 Codex 0.167.0 分輪驗證
-全部 16 個自有套件安裝項目：Claude 九包、Codex 七包。實測見
-[quality-gates 紀錄](docs/validation/plugin-installer/macos-r5-native-results.md)與
-[其餘套件紀錄](docs/validation/plugin-installer/macos-r5-remaining-results.md)。
-範圍限於安裝與完整檔案內容；Superpowers、其他平台與 hooks／MCP／skills 執行仍未驗證。
-
-以下使用實際打包的入口。Claude Code 用 `/套件:skill`，Codex 用 `$套件:skill`；明列入口的例子要由使用者親自呼叫，流程推薦另一包不代表已安裝，也不等於已經手動呼叫。
-
-### 場景：把模糊需求做成可驗證的修改
-
-需求還像「幫同事加一個入門流程」時，搭配 `technical-decisions`、Superpowers 與 `quality-gates`。先說：「實作前先釐清需求與替代方案，一次問一個問題。」核准設計後，再選計畫與執行方式；修改後請 agent 審查，會依目前宿主使用 `code-review-claude` 或 `code-review-codex`。預期取得已核准設計、工作計畫、審查過的修改，以及驗證證據與缺口。Superpowers 步驟要另外安裝並確認可用；沒裝時，其他兩包仍有獨立的研究與審查用途。查資料、模型呼叫與專案測試依選定流程確認範圍。
-
-### 場景：看懂陌生專案，下次能接著做
-
-動不熟悉的模組之前，先用 `repo-workflow`。手動執行 `/repo-workflow:understand-repo <路徑>` 或 `$repo-workflow:understand-repo <路徑>`，再用 `/repo-workflow:task-bootstrap <任務>` 或 `$repo-workflow:task-bootstrap <任務>` 預覽新分支與 worktree。離開前手動呼叫這包的 `handoff`，下次呼叫 `session-start`，例如 `$repo-workflow:session-start`。預期取得有原始碼依據的專案理解、隔離的工作目錄與重驗前提的交接。需要 Git；建立分支、複製本機檔案有各自的預覽，這些手動入口不會因流程推薦就自行執行。
-
-### 場景：長時間使用 Claude Code，回來時看得懂進度
-
-在 Claude Code 加裝 `attention-mod` 與 `handoff-mod`。`/attention` 開啟注意事項面板，`/handoff-mod:handoff` 手動建立交接，`/handoff-resume` 列出可接續的工作。預期看到進度面板與留給下個 session 的紀錄。Attention 摘要會把對話／工具節錄交給 `haiku`，消耗模型 token；handoff mod 本身不呼叫模型，手動執行其 skill 才使用目前 session 的模型。自動筆記、store 寫入與遮蔽限制見[交接說明](plugins/handoff-mod/README.md)。Attention 需要 Claude Code 2.1.312+；兩包仍是原型，不列為 Codex 選項，也和 `repo-workflow` 的交接入口分開。
-
-### 場景：把工作紀錄整理成週報
-
-用 `work-journal` 說：「記錄今天已完成的工作與實際參考過的文件」，之後再問：「整理本週工作，包含決定與未完成事項。」預期取得帶日期的活動紀錄與可回查來源的報告。首次設定時，工作紀錄預設存到 `~/.agent-skills/activities`；加入自己的筆記資料夾後，`work-log-analyzer` 也能和工作紀錄一起搜尋筆記。筆記路徑可略過，既有設定會沿用，安裝器不會搬移或讀取資料夾內容。查詢需要 Node.js／Python 與已宣告的命令工具；MCP 註冊改變後要重啟宿主。需要把報告做成簡報時，再搭配 `content-tools`。
-
-### 場景：把技術工作講給不同對象聽
-
-用 `content-tools` 說：「依這份大綱，替新同事規劃十分鐘的簡報」，或手動呼叫 `/content-tools:presentation-planner`／`$content-tools:presentation-planner` 並附上內容。預期先取得按聽眾需求安排的投影片計畫，再產生選定格式。說「把這份 Markdown 翻成英文與繁體中文」會用 `md-translate`，保留程式碼與連結。可搭配 `work-journal` 的工作證據，或 `technical-decisions` 的技術分析。Office 內容抽取可能需要 markitdown 與另行批准的依賴下載；發布與外部服務是另外的動作。
-
-### 場景：讓回應規則前後一致
-
-想固定語言、說明深度或歸還控制權時的選項，用 `session-preferences`。手動呼叫 `/session-preferences:session-preferences` 或 `$session-preferences:session-preferences` 重新檢視／套用規則，也可以提出新偏好；`control-return` 管理後續選項的呈現方式。預期取得本 session 的指示，需要儲存個人覆寫時再另外確認。共用設定放在 plugin 快取外；這次安裝器不提供原生 Windows 的偏好寫入／遷移修補。
-
-### 場景：找適合的 skill，或檢查自己寫的 skill
-
-用 `skill-toolbox` 說：「列出我的 skills，分清楚已安裝、可取得與不可用」，或呼叫 `/skill-toolbox:skill-router list`／`$skill-toolbox:skill-router list`。自己寫了 skill，可以請 `skill-auditor` 審查，取得問題與逐項處理結果。清單有名字不代表已安裝。`skill-sync` 是另一個必須手動執行的 standalone 鏡像同步流程，可能刪除目的端檔案；安裝器不會執行。`claude-workflow-designer` 僅供 Claude，Codex 套件不包含它。
-
-| 套件 | 使用場景 |
-| --- | --- |
-| `technical-decisions` | 釐清需求、形成設計，也可替內容提供技術分析 |
-| Superpowers | 選定的計畫、TDD 與執行步驟，需另外安裝／確認 |
-| `quality-gates` | 審查修改與驗證結果 |
-| `repo-workflow` | 理解專案、開新任務、交接與接續 |
-| `attention-mod`、`handoff-mod` | Claude Code 進度面板與 session 交接 |
-| `work-journal` | 活動紀錄與週報 |
-| `content-tools` | 簡報、翻譯與對外文字 |
-| `session-preferences` | 回應規則與後續選項 |
-| `skill-toolbox` | 尋找 skills 與審查品質 |
+各版本、已測試的平台與安裝器驗收結果，整理在 [plugin 驗收紀錄](docs/validation/skill-plugins/acceptance.json)和[安裝器歷程](docs/validation/plugin-installer/README.md)。
 
 ## Skills Catalog
 

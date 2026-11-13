@@ -1,18 +1,25 @@
 # Plugin installer validation
 
-## Latest validated archive: R19
+## Current published archive: macOS trial (2026-11-13)
 
-[R19](candidate-r19.md) allows post-install Superpowers verification only
-across two independently compared Claude catalog snapshots; unknown revisions
-remain unverified. First-use work-journal configuration uses
-`~/.agent-skills/activities` by default and allows an empty notes list. The
-installer rechecks the installed work-journal runtime before writing settings.
-The extracted launcher passed fake-host smoke checks for both existing-setting
-reuse and first-use optional-note setup. R19 is a local candidate only: the
-updated plugin versions exist only in this worktree, and Claude/Codex native
-acceptance bindings are stale. R19 predates the branch's Codex removal
-capability update, so it does not represent the current installer source. Its
-ZIP is a local QA artifact and is not included in this repository.
+[Download the trial ZIP](https://github.com/tomwangowa/agent-skills/releases/download/installer-macos-trial-2026-11-13/agent-skills-installer-macos-trial-2026-11-13.zip); see the [GitHub release notes](https://github.com/tomwangowa/agent-skills/releases/tag/installer-macos-trial-2026-11-13).
+This pre-release was built from merged main commit
+`23282d8d8d04f1627deea7fb8cc677e8b6b1bca7`, contains only the macOS launcher,
+and includes `session-preferences` 0.1.6. Its SHA-256 is
+`9f1904929e1058fc9c14a2fdbee16c1dedb0f27503fe10cde343d94ef1a3ea99`.
+It was published for manual testing; the exact ZIP has not been installed
+through a real host. The R7 native results below apply only to the R7 bytes,
+not to this release asset.
+
+## Preserved R19 local-candidate evidence
+
+[R19](candidate-r19.md) is a local QA candidate, not the current published ZIP.
+It verifies a later Superpowers post-install check and optional work-journal
+notes setup with fake hosts. Its package versions and native acceptance bindings
+were stale at the time; its ZIP SHA-256 was
+`8f3b1add3557ed8917651738f179304139b4e34ba5521959af2db1483811cbb6`.
+Keep its results tied to that candidate only. R19 predates the Codex removal
+capability update and does not represent the current installer source.
 
 ## Preserved R17 evidence
 
