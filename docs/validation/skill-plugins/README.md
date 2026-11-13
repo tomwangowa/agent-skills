@@ -18,14 +18,19 @@ evidence set:
 python3 scripts/check_plugin_release.py --require-acceptance
 ```
 
-The current refresh installed both hosts from the local filesystem marketplace
-in this checkout. The 0.1.6 remote Git marketplace install/update was not tested;
-Codex's 0.1.5 to 0.1.6 remote update remains unverified until a candidate is
-pushed. Codex's two synthetic model checks ran ephemeral and read-only after the
-native `/hooks` review trusted five SessionStart hooks in the temporary profile;
-the JSONL output contained no tool calls. Only the two recorded macOS CLI
-versions were exercised. Synthetic prompts consumed model tokens; no private
-user content was supplied.
+The current native refresh installed both hosts from the local filesystem
+marketplace in this checkout. A separate unauthenticated Codex CLI 0.167.0 test
+on macOS 26.6.2 arm64 installed `session-preferences` 0.1.5 from the remote Git
+branch, refreshed that marketplace after it advanced, and verified the native
+inventory and installed cache at 0.1.6. The cache's 31 file hashes matched both
+the refreshed marketplace source and this working tree; see the
+[`codex-remote-marketplace-update-2026-11-13.json`](codex-remote-marketplace-update-2026-11-13.json)
+record. This covers only that package/version transition and CLI/platform pair.
+Codex's two synthetic model checks ran ephemeral and read-only after the native
+`/hooks` review trusted five SessionStart hooks in the temporary profile; the
+JSONL output contained no tool calls. Only the two recorded macOS CLI versions
+were exercised for the native refresh. Synthetic prompts consumed model tokens;
+no private user content was supplied.
 
 [`native-acceptance-claude.json`](native-acceptance-claude.json) and
 [`native-acceptance-codex.json`](native-acceptance-codex.json) are the previous
@@ -110,6 +115,6 @@ npm --prefix skills-query-server run smoke -- --contract \
 
 The current production and development dependency audits have zero reported
 vulnerabilities. This does not certify other platforms, minimum tool versions,
-Codex CLI remote Git marketplace installation/update, a positive version
-transition from GitHub, or a full third-party legal review. Commit, push and
-publication each still require explicit user approval.
+remote Git marketplace transitions beyond the recorded Codex package/version,
+or a full third-party legal review. Commit, push and publication each still
+require explicit user approval.

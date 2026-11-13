@@ -247,9 +247,10 @@ class BuildTests(unittest.TestCase):
         readme_en = (ROOT / 'README.md').read_text()
         readme_zh = (ROOT / 'README.zh.md').read_text()
         plugin_docs = (ROOT / 'docs/plugins/README.md').read_text()
-        self.assertIn('native validation recorded on 2026-11-12', readme_en)
-        self.assertIn('Claude packages were installed from the remote GitHub marketplace', readme_en)
-        self.assertIn('Codex packages were installed from an isolated local marketplace', readme_en)
+        self.assertIn('The 2026-11-13 refresh used isolated macOS profiles', readme_en)
+        self.assertIn("Claude's earlier packages were installed from the remote GitHub marketplace", readme_en)
+        self.assertIn('the refresh installed both hosts from a local marketplace', readme_en)
+        self.assertIn('A separate remote Git test verified the `session-preferences` 0.1.5 to 0.1.6 update', readme_en)
         self.assertIn('2026-11-12', readme_zh)
         self.assertIn('GitHub marketplace', readme_zh)
         self.assertIn('本機 marketplace', readme_zh)
@@ -257,7 +258,7 @@ class BuildTests(unittest.TestCase):
 
         acceptance = json.loads((ROOT / 'docs/validation/skill-plugins/acceptance.json').read_text())
         self.assertEqual(acceptance['status'], 'verified')
-        self.assertEqual(acceptance['surfaces']['claude-cli']['observed_client_version'], '2.1.322')
+        self.assertEqual(acceptance['surfaces']['claude-cli']['observed_client_version'], '2.1.323')
         self.assertEqual(acceptance['surfaces']['codex-cli']['observed_client_version'], '0.167.0')
         for record in acceptance['surfaces'].values():
             self.assertEqual(record['status'], 'verified')
