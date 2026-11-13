@@ -30,6 +30,40 @@
 
 這份 ZIP 只含 macOS 安裝入口，沒有收錄 Windows 或 Linux 安裝入口。
 
+### 直接從 Marketplace 安裝
+
+如果不想使用安裝器，也可以透過 CLI 的 marketplace 安裝套件。先新增 marketplace 一次，再只執行需要的套件命令；每一條安裝命令會安裝一個套件。Windows 與 Linux 使用者可直接使用以下指令，不必下載 macOS ZIP；這兩個平台尚未完成原生安裝驗收。
+
+**Claude Code**
+
+```bash
+claude plugin marketplace add tomwangowa/agent-skills --scope user
+claude plugin install quality-gates@tomwangowa --scope user
+claude plugin install technical-decisions@tomwangowa --scope user
+claude plugin install repo-workflow@tomwangowa --scope user
+claude plugin install content-tools@tomwangowa --scope user
+claude plugin install work-journal@tomwangowa --scope user
+claude plugin install session-preferences@tomwangowa --scope user
+claude plugin install skill-toolbox@tomwangowa --scope user
+claude plugin install handoff-mod@tomwangowa --scope user
+claude plugin install attention-mod@tomwangowa --scope user
+```
+
+**Codex**
+
+```bash
+codex plugin marketplace add tomwangowa/agent-skills --ref main
+codex plugin add quality-gates@tomwangowa
+codex plugin add technical-decisions@tomwangowa
+codex plugin add repo-workflow@tomwangowa
+codex plugin add content-tools@tomwangowa
+codex plugin add work-journal@tomwangowa
+codex plugin add session-preferences@tomwangowa
+codex plugin add skill-toolbox@tomwangowa
+```
+
+套件用途見[套件清單](docs/plugins/README.md)；work-journal MCP 設定、hooks 檢視等細節見[安裝與設定指南](docs/plugins/installation.md)。
+
 ### 從工作開始
 
 大多數情況直接用白話描述需求即可。若要指定某個 skill，Claude Code 使用 `/package:skill`，Codex 使用 `$package:skill`。[使用範例](docs/plugins/usage-examples-zh.md)列出常見工作情境、適合的套件，以及可以直接改寫的提示。
