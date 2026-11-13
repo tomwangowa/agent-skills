@@ -30,6 +30,40 @@ Applicable packages are selected by default. Superpowers is strongly recommended
 
 This ZIP contains the macOS installer only. Windows and Linux installers are not included.
 
+### Install directly from a marketplace
+
+If you prefer not to use the installer, install packages through your CLI marketplace. Add the marketplace once, then run only the commands for the packages you want; each install command installs one package. Windows and Linux users can use these commands without the macOS ZIP, but native installation on those platforms has not yet been verified.
+
+**Claude Code**
+
+```bash
+claude plugin marketplace add tomwangowa/agent-skills --scope user
+claude plugin install quality-gates@tomwangowa --scope user
+claude plugin install technical-decisions@tomwangowa --scope user
+claude plugin install repo-workflow@tomwangowa --scope user
+claude plugin install content-tools@tomwangowa --scope user
+claude plugin install work-journal@tomwangowa --scope user
+claude plugin install session-preferences@tomwangowa --scope user
+claude plugin install skill-toolbox@tomwangowa --scope user
+claude plugin install handoff-mod@tomwangowa --scope user
+claude plugin install attention-mod@tomwangowa --scope user
+```
+
+**Codex**
+
+```bash
+codex plugin marketplace add tomwangowa/agent-skills --ref main
+codex plugin add quality-gates@tomwangowa
+codex plugin add technical-decisions@tomwangowa
+codex plugin add repo-workflow@tomwangowa
+codex plugin add content-tools@tomwangowa
+codex plugin add work-journal@tomwangowa
+codex plugin add session-preferences@tomwangowa
+codex plugin add skill-toolbox@tomwangowa
+```
+
+See the [package catalog](docs/plugins/README.md) for descriptions and the [installation guide](docs/plugins/installation.md) for details such as work-journal MCP setup and hook review.
+
 ### Start with a task
 
 For most work, describe what you need in plain language. To call a specific skill directly, use `/package:skill` in Claude Code or `$package:skill` in Codex. The [usage examples](docs/plugins/usage-examples-en.md) show which package fits common tasks and give prompts you can adapt.
