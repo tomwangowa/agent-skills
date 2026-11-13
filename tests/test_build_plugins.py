@@ -247,14 +247,15 @@ class BuildTests(unittest.TestCase):
         readme_en = (ROOT / 'README.md').read_text()
         readme_zh = (ROOT / 'README.zh.md').read_text()
         plugin_docs = (ROOT / 'docs/plugins/README.md').read_text()
-        self.assertIn('The 2026-11-13 refresh used isolated macOS profiles', readme_en)
-        self.assertIn("Claude's earlier packages were installed from the remote GitHub marketplace", readme_en)
-        self.assertIn('the refresh installed both hosts from a local marketplace', readme_en)
-        self.assertIn('A separate remote Git test verified the `session-preferences` 0.1.5 to 0.1.6 update', readme_en)
-        self.assertIn('2026-11-12', readme_zh)
-        self.assertIn('GitHub marketplace', readme_zh)
-        self.assertIn('本機 marketplace', readme_zh)
-        self.assertIn('原生驗收紀錄', plugin_docs)
+        # Keep quick-start READMEs brief and route acceptance details to their records.
+        for path in (
+                'docs/validation/skill-plugins/README.md',
+                'docs/validation/skill-plugins/acceptance.json',
+                'docs/validation/plugin-installer/README.md'):
+            self.assertIn(f']({path})', readme_en)
+            self.assertIn(f']({path})', readme_zh)
+        self.assertIn('](../validation/skill-plugins/README.md)', plugin_docs)
+        self.assertIn('](../validation/skill-plugins/acceptance.json)', plugin_docs)
 
         acceptance = json.loads((ROOT / 'docs/validation/skill-plugins/acceptance.json').read_text())
         self.assertEqual(acceptance['status'], 'verified')

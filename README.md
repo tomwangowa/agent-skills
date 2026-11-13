@@ -38,7 +38,7 @@ For the complete package inventory, see [Skills Catalog](SKILLS_CATALOG.md). For
 
 ### History and validation
 
-For the tested app versions, supported platforms, and installer results, see the [plugin acceptance record](docs/validation/skill-plugins/acceptance.json) and [installer history](docs/validation/plugin-installer/README.md).
+For acceptance details, see the [validation guide](docs/validation/skill-plugins/README.md), [structured results](docs/validation/skill-plugins/acceptance.json), and [installer history](docs/validation/plugin-installer/README.md).
 
 ## Skills Catalog
 

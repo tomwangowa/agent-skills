@@ -18,6 +18,6 @@
 
 ## 驗收與歷程
 
-各宿主的 CLI 版本、平台、套件內容與已驗收行為見[plugin 驗收紀錄](../validation/skill-plugins/acceptance.json)。安裝器候選版本與歷史結果見[安裝器驗收索引](../validation/plugin-installer/README.md)。Codex 0.167.0 上的遠端 Git marketplace 更新另有[獨立證據](../validation/skill-plugins/codex-remote-marketplace-update-2026-11-13.json)。
+各宿主的驗收範圍、版本與逐項結果，見[驗收說明](../validation/skill-plugins/README.md)和[結構化紀錄](../validation/skill-plugins/acceptance.json)。安裝器候選版本與歷史結果見[安裝器驗收索引](../validation/plugin-installer/README.md)。Codex 0.167.0 上的遠端 Git marketplace 更新另有[獨立證據](../validation/skill-plugins/codex-remote-marketplace-update-2026-11-13.json)。
 
 安裝與遷移細節見[安裝與設定](installation.md)、[遷移與恢復](migration.md)及[Superpowers 相容性](superpowers-compatibility.md)。Plugins 從 main 的完整產物經 marketplace 發布；standalone skills 仍走 main→production→skill-sync 流程。Plugin tag 使用 `<plugin-name>-v<version>`。

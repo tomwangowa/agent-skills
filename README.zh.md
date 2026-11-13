@@ -38,7 +38,7 @@
 
 ### 驗收與歷程
 
-各版本、已測試的平台與安裝器驗收結果，整理在 [plugin 驗收紀錄](docs/validation/skill-plugins/acceptance.json)和[安裝器歷程](docs/validation/plugin-installer/README.md)。
+plugin 驗收說明、逐項結果與安裝器歷程，請見[驗收說明](docs/validation/skill-plugins/README.md)、[驗收資料](docs/validation/skill-plugins/acceptance.json)和[安裝器歷程](docs/validation/plugin-installer/README.md)。
 
 ## Skills Catalog
 
