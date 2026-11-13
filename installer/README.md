@@ -20,8 +20,9 @@ Then choose a numbered host and use Up/Down to move through packages, Space to
 check or uncheck any package, and Enter to confirm. The scrolling selection
 screen lists only package names and their skill names. Press `q` or Ctrl+C to
 cancel. Unchecking every package exits without installing anything.
-Superpowers is strongly recommended but unchecked. Existing installations are
-kept by default; choose updates separately. Review source preparation,
+Superpowers is strongly recommended but unchecked. Claude Code offers an
+update choice only for one identified personal installation; existing Codex
+installations and Superpowers are kept by this installer. Review source preparation,
 dependency installation and plugin installation at their separate prompts.
 Enter at a yes/no prompt means no. `q` or EOF cancels; `b` at installation
 approval returns to package selection. Earlier approved writes remain.
@@ -72,115 +73,21 @@ unknown provider is kept, never treated as a trusted install or removal target.
 Missing required inventory fields and unknown own-marketplace metadata still
 stop writes; an unreadable list never means no plugins are installed.
 
-Claude Code versions besides `2.1.322` remain withheld pending
-removal-adapter validation. Codex versions are eligible only when their native
+For removal only, Claude Code versions besides `2.1.322` remain withheld pending
+removal-adapter validation. Codex removal is offered only when its native
 help, inventory and installed cache satisfy the checked interface; an unknown
 layout remains withheld. Offline/fake-host checks do not constitute native
 removal acceptance on macOS, Linux or Windows.
 
-Each selected package has its own progress bar: checking the current state,
-running the native command, then checking the installed files/version. These
-are completed phases, not download percentages. A finished package and its
-messages form one block, with a blank line before the next package. JSON
-command results are captured for verification instead of printed verbatim;
-native permission/input prompts on stderr remain visible immediately, with
-stdin inherited. Failures include the native error message when provided and
-are never retried automatically. A verified native `up_to_date` result is
-shown as already up to date.
+Each package that runs has its own progress bar. It shows the native Claude Code or Codex command running; it is not a download percentage. If that command exits successfully, the installer reports success. If it exits with an error, the installer reports failure. It does not retry or roll back automatically.
 
-A Claude plugin installed for both your account and a project is kept in both
-places; it does not block unrelated packages. This installer never chooses a
-copy to replace. Only one enabled, identified user-owned copy is offered for
-an update; ambiguous copies stay unchanged. If the installed-plugin list truly
-cannot be read, the installer explains which app is affected and stops that
-app before asking for updates or installation. A healthy selected app can
-continue independently. Keep the displayed error details for troubleshooting;
-removing existing plugins is not a recovery step.
+For plugin installs and updates, the installer does not check the Claude Code or Codex version, the Superpowers version, or the installed files after the native command succeeds. A success message means the host command reported success; it does not confirm that the plugin appears after a restart or that every skill works.
 
-The bundle catalogs exact local plugin payload hashes and versions. A changed
-marketplace is withheld for review rather than installed using stale content
-descriptions. Sources may still move during a native install; post-install
-checks cannot eliminate that race. No native acceptance is implied.
+Plugins are downloaded by Claude Code or Codex from the configured marketplace. The installer does not compare marketplace files with the copies packaged in this ZIP, so the marketplace may provide a different or newer package. The preview lists only the packages the installer plans to install or update. Existing installations are kept unless you select an update; an existing Superpowers installation is always kept by this installer.
 
-Codex new-install verification is limited to the audited CLI 0.167.0. It checks
-the native JSON installation receipt, the previewed CODEX_HOME settings/cache
-target (default `~/.codex`), effective enabled state, manifest version and exact
-installed payload hash. Receipt stdout is captured; native stderr and stdin
-remain interactive (stderr is forwarded immediately). Cache version and manifest version are checked separately.
-This does not establish project/managed configuration ownership or runtime skill
-behavior. Existing entries remain preserved and marked unverified; updates are
-blocked. Unregistered caches and symlinked cache parents are also preserved.
-Other Codex versions are withheld pending adapter validation. Native Windows
-preference writes/migration still require POSIX locks; shell workflows need
-separately supplied tools.
+Superpowers is strongly recommended for development work, but is optional and unchecked by default. Claude Code uses its official `claude-plugins-official` catalog. Codex uses the official catalog prepared through its native `/plugins` screen; if more than one official Superpowers catalog is configured, choose one there before running the installer. The installer does not compare Superpowers versions or restrict installation to the CLI versions used in earlier acceptance runs.
 
-Superpowers uses each host's official catalog, without requiring equal versions:
-Claude `claude-plugins-official`, observed manifest `7.0.0`, points to
-`https://github.com/obra/superpowers.git` pinned at
-`bb92a77741419a4ab5f06e711a283343f1ada0c3`; Codex `openai-curated`, observed
-manifest `6.3.0`, points to `./plugins/superpowers` within its native-managed
-catalog. This candidate also recognizes native `openai-api-curated`
-using `.agents/plugins/api_marketplace.json`; native inventory chooses the
-route, not the configured model endpoint URL or a guessed login state. Exactly
-one official catalog must be exposed. Each catalog needs its own exact native
-acceptance; evidence for one name never authorizes the other. R5 predates this
-adapter change and the capability records below. Catalog origin and payload origin are checked separately. An existing
-provider always remains, even if newer, disabled or from another catalog.
-
-Codex official setup uses native `/plugins`; no ordinary Git marketplace-add
-or refresh can initialize that reserved catalog. The installer only reads a
-native-prepared catalog and commit receipt. A missing raw source URL stays
-absent in native inventory; catalog identity/path/commit/entry/payload evidence
-must corroborate managed origin. Missing or uncertain state affects only
-Superpowers; an actual global inventory failure stops the affected host.
-
-For a colleague already using a company AI endpoint: keep the existing
-`model_provider`, provider `base_url`, authentication environment variables and
-organization policy. No endpoint URL, key or login is requested by this
-installer. If Codex exposes `openai-api-curated`, the adapter checks that
-catalog. If no official catalog is prepared, use the native `/plugins` flow;
-the installer does not launch a model conversation or initialize it silently.
-Access to a company model endpoint does not imply access to GitHub/plugin
-download hosts. When those sources are blocked or native policy disables
-plugins, report the actual restriction and ask the administrator; this
-installer supplies no mirror, proxy, certificate bypass or policy override.
-Company endpoint connectivity and actual installation remain separate checks.
-
-`provider-acceptance.json` includes exactly two native capability records with
-verified payload hashes. Automatic Superpowers proposals are enabled only for:
-
-| Host / CLI | Platform / architecture | Catalog | Native manifest / account state tested |
-| --- | --- | --- | --- |
-| Claude Code `2.1.322 (Claude Code)` | macOS arm64 | `claude-plugins-official` | 7.0.0; logged in and logged out |
-| Codex `codex-cli 0.167.0` | macOS arm64 | `openai-api-curated` | 6.3.0; no account login, synthetic company provider preserved |
-
-The two sanitized source summaries are included under `acceptance-evidence/`
-and referenced directly by each record. They prove native CLI capability, not
-a native run of this exact ZIP. Windows/Linux, other architectures/CLI versions,
-and Codex `openai-curated` have no transferable record: Superpowers and its
-dependency proposals remain withheld there. Other independently eligible
-packages can continue. A Claude catalog already in unsupported archive form
-also remains withheld; the verified cases used native Git catalogs. No archive
-trust exception was added.
-
-Enablement requires the exact CLI version, platform, architecture, catalog,
-entry, manifest version and complete payload hash. A historical catalog commit
-change alone does not invalidate an unchanged proven payload, but any observed
-source change after consent stops that operation. Codex's native cache version
-must equal the current catalog SHA's first eight characters, separately from
-the manifest version. No state/cache repair, retry or rollback is performed.
-
-Installation, exposed entries in a restarted host, and real behavior of the
-seven workflows are separate evidence layers. Neither metadata presence nor a
-synthetic test proves model behavior. The native and functional proposals in
-the repository require separate approval before external operations.
-
-Claude Code 2.1.322 creates `.in_use/<pid>` files in a plugin cache while a
-session uses it. Post-install verification recognizes only the inspected
-non-executable regular-file marker schema for that exact CLI version; unknown
-marker entries, symlinks, payload changes and other extra files still fail.
-Catalog/source hashes are unchanged, and existing session markers are not
-removed. Other CLI versions do not receive this exception.
+A Claude plugin installed for both your account and a project is kept in both places; it does not block unrelated packages. This installer never chooses a copy to replace. Only one enabled, identified user-owned copy is offered for an update; ambiguous copies stay unchanged. If the installed-plugin list truly cannot be read, the installer explains which app is affected and stops that app before asking for updates or installation. A healthy selected app can continue independently.
 
 Optional `work-journal` configuration uses `~/.agent-skills/activities` for new
 work records unless an existing `CLAUDE_ACTIVITIES_DIR` override is set. Adding
@@ -189,12 +96,12 @@ work records; notes are optional and can be added later in `work-journal.json`.
 `report-generator` uses those skills for reports. Existing
 valid settings are displayed and reused without asking for paths or writing
 anything; private extension fields are not displayed. Invalid settings are
-preserved and reported. New settings with optional notes are created only
-after the selected host's compatible work-journal runtime is verified; older
-installed versions must be updated first. Without settings, setup explains these uses before
+preserved and reported. New settings with optional notes are created only when the host reports one
+enabled work-journal installation; the installer does not check its version or
+files. Without settings, setup explains these uses before
 asking for an optional notes directory, previews settings/directory writes,
 and requires separate approval. It never replaces an existing settings file
-and never moves or reads activity/note contents.
-Installation status, configuration and hook authorization are
-reported separately. Review `provenance.json` for the source revision and exact
-input/payload hashes. The archive contains no credentials or personal settings.
+and never moves or reads activity/note contents. Journal setup is optional and
+separate from plugin installation. The installer does not change hook trust.
+Review `provenance.json` for the source revision and exact input/payload hashes.
+The archive contains no credentials or personal settings.

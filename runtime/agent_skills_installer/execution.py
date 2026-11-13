@@ -29,7 +29,7 @@ def execute(plan, approved_fingerprint, runner, recheck, verify, *, on_event=Non
         started = False
         receipt = None
         try:
-            emit('checking', action)
+            emit('preparing', action)
             if cancelled:
                 detail = 'Cancelled; no further command executed.'
             elif any(states.get(key) not in ('installed', 'updated') for key in action.requires):
@@ -48,6 +48,15 @@ def execute(plan, approved_fingerprint, runner, recheck, verify, *, on_event=Non
                             detail += ' ' + ''.join(c for c in ' '.join(message.split()) if c.isprintable())[:400]
                     except (ValueError, TypeError, AttributeError):
                         pass
+                elif action.kind in ('install', 'update'):
+                    status = 'updated' if action.kind == 'update' else 'installed'
+                    detail = 'Update succeeded.' if action.kind == 'update' else 'Installation succeeded.'
+                    if action.kind == 'update':
+                        try:
+                            if json.loads(result.stdout).get('updateOutcome') == 'up_to_date':
+                                detail = 'Already up to date.'
+                        except (ValueError, TypeError, AttributeError):
+                            pass
                 else:
                     emit('verifying', action)
                     verified = verify(action, result)
@@ -59,25 +68,25 @@ def execute(plan, approved_fingerprint, runner, recheck, verify, *, on_event=Non
                     else:
                         receipt = verified if isinstance(verified, InstallReceipt) else None
                         status = 'removed' if action.kind == 'remove' else 'updated' if action.kind == 'update' else 'installed'
-                        detail = 'Installed files and version checked.'
+                        detail = 'Command completed successfully.'
                         if action.kind == 'remove':
                             detail = ('Codex shared cache and user entry removed; other plugins checked, project configs unchanged and plugin data kept.'
                                       if action.host == 'codex' else
                                       'Personal installation removed; other registered installations checked and plugin data kept.')
-                        elif action.kind == 'update':
-                            detail = 'Update completed; installed files and version checked.'
-                            try:
-                                if json.loads(result.stdout).get('updateOutcome') == 'up_to_date':
-                                    detail = 'Already up to date; installed files and version checked.'
-                            except (ValueError, TypeError, AttributeError):
-                                pass
         except KeyboardInterrupt:
             cancelled = True
-            status = 'unverified' if started else 'skipped'
-            detail = 'Cancelled; current command may have written data.' if started else 'Cancelled before execution.'
+            if started and action.kind in ('install', 'update'):
+                status, detail = 'failed', 'Interrupted before the native command reported success; check the host before retrying.'
+            else:
+                status = 'unverified' if started else 'skipped'
+                detail = 'Cancelled; current command may have written data.' if started else 'Cancelled before execution.'
         except (OSError, subprocess.SubprocessError, ValueError) as error:
-            status = 'unverified' if started else 'skipped'
-            detail = f'{type(error).__name__}; inspect actual state before a new attempt.'
+            if started and action.kind in ('install', 'update'):
+                status = 'failed'
+                detail = f'{type(error).__name__}; the native command did not report success.'
+            else:
+                status = 'unverified' if started else 'skipped'
+                detail = f'{type(error).__name__}; inspect actual state before a new attempt.'
         outcome = Outcome(action.id, status, detail, cancelled=cancelled, receipt=receipt)
         results.append(outcome)
         states[action.id] = status

@@ -13,7 +13,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'runtime'))
 from agent_skills_installer.catalog import build_catalog
-from agent_skills_installer.ui import run
+from installer_ui_fixtures import run_with_fixture_hosts as run
 
 
 class Terminal(io.StringIO):
@@ -104,13 +104,30 @@ class CLITests(unittest.TestCase):
         code = run(self.catalog, lambda prompt: next(items), self.output, native)
         return code, native
 
+    def test_host_menu_omits_hosts_without_catalog_packages(self):
+        codex_specs = tuple(spec for spec in self.quality_specs if spec.host == 'codex')
+        with patch('agent_skills_installer.ui.shutil.which', return_value='/fake/cli'):
+            code = run(codex_specs, lambda _: 'q', self.output,
+                       lambda argv: self.fail(f'Unexpected native command: {argv}'))
+        self.assertEqual(code, 130)
+        self.assertIn('1. codex', self.output.getvalue())
+        self.assertNotIn('claude', self.output.getvalue())
+
+    def test_real_ui_rejects_missing_cli_without_running_native_commands(self):
+        from agent_skills_installer.ui import run as real_run
+        with patch('agent_skills_installer.ui.shutil.which', return_value=None):
+            code = real_run(self.catalog, lambda _: self.fail('No prompt expected'),
+                            self.output, lambda argv: self.fail(f'Unexpected command: {argv}'))
+        self.assertEqual(code, 1)
+        self.assertIn('claude: unavailable', self.output.getvalue())
+
     def test_selection_transcript(self):
         code, native = self.transcript(['1', '', '', 'y'])
         self.assertEqual(code, 0, self.output.getvalue())
         self.assertEqual(len(native.mutations), 1)
         self.assertEqual(native.mutations[0], ('claude', 'plugin', 'install', 'quality-gates@tomwangowa', '--scope', 'user', '--json'))
         self.assertTrue((self.root / 'installed/quality-gates/.claude-plugin/plugin.json').is_file())
-        self.assertIn('installed:', self.output.getvalue())
+        self.assertIn('[############] success', self.output.getvalue())
 
     def test_clearing_selection_after_back_reports_prior_source_writes(self):
         code, native = self.transcript(['1', '', '', 'y', 'b', 'none'],
@@ -157,8 +174,8 @@ class CLITests(unittest.TestCase):
                 with patch.dict(os.environ, {'CODEX_HOME': str(root / 'codex home')}):
                     code = run(specs, answer, output, native, acceptance=())
                 self.assertEqual(code, 1, output.getvalue())
-                self.assertEqual(len(prompts), 5)
-                self.assertIn('Approve installation', prompts[-1])
+                self.assertEqual(len(prompts), 4)
+                self.assertFalse(any('Approve installation' in p for p in prompts))
                 self.assertIn('skipped:', output.getvalue())
                 self.assertIn('Source preparation requires separate consent', output.getvalue())
                 self.assertNotIn('installed:', output.getvalue())
@@ -176,7 +193,7 @@ class CLITests(unittest.TestCase):
         self.assertEqual(code, 1, self.output.getvalue())
         self.assertEqual(claude.mutations,
                          [('claude', 'plugin', 'install', 'quality-gates@tomwangowa', '--scope', 'user', '--json')])
-        self.assertIn('installed:', self.output.getvalue())
+        self.assertIn('[############] success', self.output.getvalue())
         self.assertIn('skipped:', self.output.getvalue())
         self.assertTrue((self.root / 'installed/quality-gates/.claude-plugin/plugin.json').is_file())
         self.assertFalse((self.root / 'codex home').exists())
@@ -203,7 +220,7 @@ class CLITests(unittest.TestCase):
             self.assertEqual(run(self.catalog, lambda _: 'q', output, FixtureCLI(self.root)), 130)
             self.assertIn('Python manager was attempted.', output.getvalue())
 
-    def test_catalog_change_after_consent_stops_installation(self):
+    def test_marketplace_content_change_does_not_block_installation(self):
         native = FixtureCLI(self.root)
         answers = iter(['1', '', '', 'y'])
         def answer(prompt):
@@ -212,8 +229,8 @@ class CLITests(unittest.TestCase):
                 file.write_text('{"name":"quality-gates","version":"9.0.0"}')
             return next(answers)
         code = run(self.catalog, answer, self.output, native)
-        self.assertEqual(code, 1)
-        self.assertFalse(native.mutations)
+        self.assertEqual(code, 0)
+        self.assertEqual(len(native.mutations), 1)
 
     def test_execution_interrupt_returns_cancelled_exit(self):
         native = FixtureCLI(self.root)
@@ -223,7 +240,7 @@ class CLITests(unittest.TestCase):
             return native(argv)
         code, _ = self.transcript(['1', '', '', 'y'], interrupted)
         self.assertEqual(code, 130, self.output.getvalue())
-        self.assertIn('unverified:', self.output.getvalue())
+        self.assertIn('failed:', self.output.getvalue())
 
     def test_journal_conflict_reports_incomplete_operation(self):
         providers = json.loads((ROOT / 'installer/providers.json').read_text())

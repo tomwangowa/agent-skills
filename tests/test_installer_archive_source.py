@@ -3,7 +3,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from dataclasses import replace
+from dataclasses import replace, asdict
 from unittest.mock import patch
 from agent_skills_installer.catalog import tree_hash
 from agent_skills_installer.hosts import inspect_provider
@@ -45,7 +45,8 @@ class ArchiveSourceTest(unittest.TestCase):
         inv = replace(self.inv, provider_readiness=(ready,))
         plan = make_plan((self.spec,), (inv,), {('claude','superpowers')}, set(), {'git': True}, acceptance=records, platform='macos', architecture='arm64')
         self.assertEqual(len(plan.actions), 1)
-        self.assertTrue(provider_state_matches(plan.actions[0], self.spec, ready))
+        action = replace(plan.actions[0], preconditions=plan.actions[0].preconditions + (('version', self.spec.version), ('cli_version', self.inv.cli_version), ('provider_target', json.dumps(asdict(self.spec.provider), sort_keys=True, separators=(',', ':'))), ('provider_state', json.dumps(ready.snapshot, separators=(',', ':')))))
+        self.assertTrue(provider_state_matches(action, self.spec, ready))
         (self.root/'other.txt').write_text('changed')
         changed = inspect_provider(self.spec,self.inv)
         self.assertNotEqual(changed.status,'ready')
@@ -61,7 +62,7 @@ class ArchiveSourceTest(unittest.TestCase):
         plan = make_plan((spec,), (replace(self.inv, provider_readiness=(before,)),),
                          {('claude','superpowers')}, set(), {'git':True}, acceptance=records,
                          platform='macos', architecture='arm64')
-        action = plan.actions[0]
+        action = replace(plan.actions[0], preconditions=plan.actions[0].preconditions + (('version', spec.version), ('cli_version', self.inv.cli_version), ('provider_target', json.dumps(asdict(spec.provider), sort_keys=True, separators=(',', ':'))), ('provider_state', json.dumps(before.snapshot, separators=(',', ':')))))
         new_commit = 'c' * 40
         with patch('agent_skills_installer.hosts.CLAUDE_ARCHIVE_TREES',
                    {self.commit:self.trusted, new_commit:self.trusted}):

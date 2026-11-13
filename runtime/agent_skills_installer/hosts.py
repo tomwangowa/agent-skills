@@ -86,7 +86,7 @@ def _json(runner, argv):
     return json.loads(result.stdout)
 
 
-def read_inventory(host, runner, *, provider_specs=()) -> Inventory:
+def read_inventory(host, runner, *, provider_specs=(), include_version=True, include_provider_details=True) -> Inventory:
     """Treat malformed/native failure as uncertainty, never an empty installation."""
     if host not in ('claude', 'codex'):
         raise ValueError('Unknown host')
@@ -96,10 +96,11 @@ def read_inventory(host, runner, *, provider_specs=()) -> Inventory:
     try:
         if host == 'codex':
             config_root = codex_config_root()
-        result = runner((host, '--version'))
-        if result.returncode:
-            raise ValueError('CLI version unavailable')
-        version = result.stdout.strip()
+        if include_version:
+            result = runner((host, '--version'))
+            if result.returncode:
+                raise ValueError('CLI version unavailable')
+            version = result.stdout.strip()
         data = _json(runner, (host, 'plugin', 'marketplace', 'list', '--json'))
         rows = data if host == 'claude' else data['marketplaces']
         if not isinstance(rows, list):
@@ -132,18 +133,20 @@ def read_inventory(host, runner, *, provider_specs=()) -> Inventory:
                 name, marketplace = identity
                 source = next((m.source for m in markets if m.name == marketplace), None)
                 if name == 'superpowers' and not all((isinstance(row.get('enabled'), bool), isinstance(row.get('scope'), str),
-                                                       isinstance(row.get('version'), str), isinstance(row.get('installPath'), str))):
+                                                       (not include_version or isinstance(row.get('version'), str)),
+                                                       isinstance(row.get('installPath'), str))):
                     plugins.append(InstalledPlugin(host, name, marketplace, source,
-                        row.get('version') if isinstance(row.get('version'), str) else None,
+                        row.get('version') if include_version and isinstance(row.get('version'), str) else None,
                         row.get('installPath') if isinstance(row.get('installPath'), str) else None,
                         row.get('enabled') if isinstance(row.get('enabled'), bool) else None,
                         row.get('scope') if isinstance(row.get('scope'), str) else None))
                     local_uncertainty = True
                     continue
                 if (not isinstance(row['enabled'], bool) or not isinstance(row['scope'], str)
-                        or not isinstance(row['version'], str) or not isinstance(row['installPath'], str)):
+                        or (include_version and not isinstance(row['version'], str))
+                        or not isinstance(row['installPath'], str)):
                     raise ValueError('Incomplete plugin metadata')
-                if name == 'superpowers':
+                if name == 'superpowers' and include_provider_details:
                     root = Path(row.get('readFromFolder') or row['installPath'])
                     try:
                         manifest = json.loads((root / '.claude-plugin/plugin.json').read_text())
@@ -156,7 +159,8 @@ def read_inventory(host, runner, *, provider_specs=()) -> Inventory:
                 # Local/file/unknown origins stay untrusted, but their complete
                 # records still protect existing installs. Target planners can
                 # keep that package without blocking unrelated known sources.
-                plugins.append(InstalledPlugin(host, name, marketplace, source, row['version'],
+                plugin_version = row.get('version') if include_version and isinstance(row.get('version'), str) else None
+                plugins.append(InstalledPlugin(host, name, marketplace, source, plugin_version,
                                                row.get('readFromFolder') or row['installPath'], row['enabled'], row['scope']))
         else:
             # A scoped query avoids the authenticated remote global catalog.
@@ -164,7 +168,7 @@ def read_inventory(host, runner, *, provider_specs=()) -> Inventory:
             for market in markets:
                 try:
                     data = _json(runner, (host, 'plugin', 'list', '--marketplace', market.name, '--json'))
-                    observed = _codex_plugins(data, market)
+                    observed = _codex_plugins(data, market, include_version=include_version)
                 except (ValueError, KeyError, TypeError, AttributeError, OSError, subprocess.SubprocessError):
                     if market.name == 'tomwangowa':
                         raise
@@ -189,7 +193,7 @@ def read_inventory(host, runner, *, provider_specs=()) -> Inventory:
     return replace(inv, provider_readiness=readiness)
 
 
-def _codex_plugins(data, market):
+def _codex_plugins(data, market, *, include_version=True):
     if not isinstance(data, dict) or not isinstance(data.get('installed'), list) or not isinstance(data.get('available'), list):
         raise ValueError('Unknown Codex plugin schema')
     observed = []
@@ -201,7 +205,8 @@ def _codex_plugins(data, market):
                 or (market.source is not None and normalize_source(row.get('marketplaceSource', {}).get('source')) != market.source)):
             raise ValueError('Conflicting Codex plugin metadata')
         # source.path is a catalog path, never an installed cache root/scope.
-        observed.append(InstalledPlugin('codex', row['name'], market.name, market.source, row.get('version'), None, row['enabled'], None))
+        version = row.get('version') if include_version and isinstance(row.get('version'), str) else None
+        observed.append(InstalledPlugin('codex', row['name'], market.name, market.source, version, None, row['enabled'], None))
     return observed
 
 
@@ -214,7 +219,7 @@ def plugin_action(spec: PluginSpec, kind: str) -> Action:
     argv = ((spec.host, 'plugin', 'install' if kind == 'install' else 'update', selector, '--scope', 'user', '--json')
             if spec.host == 'claude' else ('codex', 'plugin', 'add', selector, '--json'))
     return Action(f'{spec.host}/{spec.source}/{spec.name}', kind, spec.host, selector, argv,
-                  preconditions=(('source', spec.source), ('version', spec.version)))
+                  preconditions=(('source', spec.source),))
 
 
 def source_action(host: str, source: str, kind: str) -> Action:

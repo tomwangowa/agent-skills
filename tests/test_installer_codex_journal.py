@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 from agent_skills_installer.catalog import build_catalog
-from agent_skills_installer.ui import run
+from installer_ui_fixtures import run_with_fixture_hosts as run
 from test_installer_codex_receipts import CodexCLI, Terminal, ROOT
 
 

@@ -15,7 +15,7 @@ from agent_skills_installer.catalog import build_catalog
 from agent_skills_installer.hosts import read_inventory
 from agent_skills_installer.models import PluginSpec
 from agent_skills_installer.planning import make_plan
-from agent_skills_installer.ui import run
+from installer_ui_fixtures import run_with_fixture_hosts as run
 from test_installer_cli import FixtureCLI, Terminal
 from test_installer_hosts import NativeRunner
 
@@ -56,7 +56,7 @@ class ScopedInventoryTests(unittest.TestCase):
                          {('claude', 'quality-gates')}, {})
         self.assertEqual([(a.kind, a.target) for a in plan.actions], [('install', 'work-journal@tomwangowa')])
         self.assertEqual(len(inv.plugins), 2)
-        self.assertEqual(plan.prior_results[0].status, 'unverified')
+        self.assertEqual(plan.prior_results[0].status, 'skipped')
         self.assertIn('quality-gates', plan.prior_results[0].detail)
         self.assertIn('All copies will be kept', plan.prior_results[0].detail)
 
@@ -117,7 +117,7 @@ class ScopedInventoryUITests(unittest.TestCase):
         self.assertEqual(len(prompts), 2, prompts)
         self.assertNotIn('Updates (', output.getvalue())
         self.assertIn('installed plugins', output.getvalue())
-        self.assertIn('Close this installer', output.getvalue())
+        self.assertIn('Other selected hosts can continue', output.getvalue())
         self.assertFalse(any('install' in argv or 'update' in argv for argv in native.calls))
 
     def test_failed_host_does_not_block_healthy_host(self):

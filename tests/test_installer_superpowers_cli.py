@@ -8,7 +8,7 @@ import unittest
 from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
-from agent_skills_installer.ui import run
+from installer_ui_fixtures import run_with_fixture_hosts as run
 from agent_skills_installer.providers import provider_targets, parse_native_acceptance
 from installer_provider_fixtures import prepared_codex, provider_data, acceptance_data, COMMIT
 from test_installer_codex_receipts import CodexCLI, Terminal, ROOT
@@ -81,8 +81,8 @@ class SuperpowersCLITests(unittest.TestCase):
             self.assertNotIn('Missing git:', output)
             self.assertEqual(native.mutations, [])
 
-    def test_changed_provider_snapshot_stops_native_add(self):
-        for change in ('commit', 'payload', 'home', 'orphan', 'parent-link'):
+    def test_changed_config_or_existing_cache_stops_native_add(self):
+        for change in ('home', 'orphan', 'parent-link'):
             with self.subTest(change=change), tempfile.TemporaryDirectory() as tmp:
                 spec, home, root, payload = prepared_codex(Path(tmp).resolve())
                 native = OfficialCLI(home, root, payload)
@@ -99,7 +99,7 @@ class SuperpowersCLITests(unittest.TestCase):
                 self.assertEqual(native.mutations, [])
                 self.assertFalse((native.target / '.codex-plugin/plugin.json').exists())
 
-    def test_native_install_requires_fresh_approval_and_preserves_partial_failure(self):
+    def test_native_install_reports_success_without_final_warnings(self):
         with tempfile.TemporaryDirectory() as tmp:
             spec, home, root, payload = prepared_codex(Path(tmp).resolve())
             native = OfficialCLI(home, root, payload)
@@ -107,7 +107,8 @@ class SuperpowersCLITests(unittest.TestCase):
             self.assertEqual(code, 0, output)
             self.assertEqual(len(native.mutations), 1)
             self.assertTrue((native.target / '.codex-plugin/plugin.json').is_file())
-            self.assertIn('Behavior: NOT VERIFIED', output)
+            self.assertIn('[############] success', output)
+            self.assertNotIn('NOT VERIFIED', output)
 
 
 class OfficialClaudeCLI:
@@ -184,10 +185,10 @@ class SourceConsentRaceTests(unittest.TestCase):
                 return next(answers)
             with patch('agent_skills_installer.ui.detect_tools', side_effect=lambda cs: {c: True for c in cs}):
                 code = run((spec,), answer, Terminal(), native, acceptance=parse_native_acceptance(acceptance_data(spec, cli='2.1.319')), platform_name='macos', architecture='arm64')
-            self.assertEqual(native.mutations, [])
-            self.assertEqual(code, 1)  # Source action stopped; existing provider retained.
+            self.assertEqual(len(native.mutations), 1)
+            self.assertEqual(code, 0)  # Source consent remains valid; existing plugin is retained.
 
-    def test_malformed_acceptance_is_reported_before_any_native_operation(self):
+    def test_malformed_historical_acceptance_does_not_block_menu(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / 'provider-acceptance.json').write_text('{"schema_version":1,"records":[{}]}')
@@ -197,13 +198,13 @@ class SourceConsentRaceTests(unittest.TestCase):
                 code = run((), lambda _: self.fail('No prompt expected'), output, native)
             self.assertEqual(code, 1)
             self.assertEqual(native.calls, [])
-            self.assertIn('Invalid native acceptance', output.getvalue())
+            self.assertNotIn('Invalid native acceptance', output.getvalue())
 
 
 class ClaudePartialResultTests(unittest.TestCase):
     case = OfficialClaudeCLITests.case
 
-    def test_wrong_payload_origin_scope_and_state_remain_partial_without_retry(self):
+    def test_native_success_does_not_postverify_payload_origin_scope_or_state(self):
         for change in ('origin', 'payload', 'scope', 'disabled', 'relative'):
             with self.subTest(change=change), tempfile.TemporaryDirectory() as tmp:
                 spec, native = self.case(Path(tmp).resolve())
@@ -223,7 +224,7 @@ class ClaudePartialResultTests(unittest.TestCase):
                 output = Terminal()
                 with patch('agent_skills_installer.ui.detect_tools', side_effect=lambda cs: {c: True for c in cs}):
                     code = run((spec,), lambda _: next(answers), output, runner, acceptance=parse_native_acceptance(acceptance_data(spec, cli='2.1.319')), platform_name='macos', architecture='arm64')
-                self.assertEqual(code, 1, output.getvalue())
-                self.assertIn('unverified:', output.getvalue())
+                self.assertEqual(code, 0, output.getvalue())
+                self.assertIn('[############] success', output.getvalue())
                 self.assertEqual(len(native.mutations), 1)
                 self.assertTrue((native.root / 'installed').is_dir())

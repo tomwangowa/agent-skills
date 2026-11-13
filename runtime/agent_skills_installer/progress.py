@@ -15,7 +15,7 @@ class PackageProgress:
         except (AttributeError, OSError, ValueError):
             self.dynamic = False
         self.active = None
-        self.stage = 'checking'
+        self.stage = 'preparing'
         self.line_width = 0
         self.message_open = False
         self.last_pulse = 0
@@ -38,12 +38,14 @@ class PackageProgress:
         label = self.active.target.split('@', 1)[0]
         if self.active.kind not in ('install', 'update', 'remove'):
             label = ('Tool / ' if self.active.kind == 'dependency' else 'Source / ') + label
-        completed = {'checking': 0, 'running': 4, 'verifying': 8}[self.stage]
+        completed = {'preparing': 0, 'running': 4, 'verifying': 8}[self.stage]
         if finished and finished.status in ('installed', 'updated', 'removed'):
             completed = 12
         bar = '#' * completed + '.' * (12 - completed)
+        status = ('success' if finished and finished.status in ('installed', 'updated')
+                  else finished.status if finished else self.stage)
         text = f'{label} [{bar}] '
-        text += f'{finished.status}: {finished.detail}' if finished else self.stage
+        text += (status if status == 'success' else f'{status}:') if finished else self.stage
         if self.dynamic:
             self._clear()
             if not finished:
@@ -52,15 +54,19 @@ class PackageProgress:
             # Completion details get their own line so they remain readable in
             # narrow terminals rather than disappearing at a truncation boundary.
             if finished:
-                text = f'{label} [{bar}] {finished.status}:'
+                text = f'{label} [{bar}] {status}' if status == 'success' else f'{label} [{bar}] {status}:'
             text = text[:width]
             self.output.write(text)
             self.line_width = len(text)
             if finished:
-                self.output.write('\n  ' + finished.detail + '\n')
+                if status != 'success':
+                    self.output.write('\n  ' + finished.detail)
+                self.output.write('\n')
                 self.line_width = 0
         else:
             self.output.write(text + '\n')
+            if finished and status != 'success':
+                self.output.write('  ' + finished.detail + '\n')
         if finished:
             if finished.receipt:
                 self.output.write('  Installed root: ' + finished.receipt.root + '\n')

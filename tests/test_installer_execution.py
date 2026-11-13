@@ -28,7 +28,7 @@ class ExecutionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             execute(forged, plan.fingerprint, calls.append, lambda a: True, lambda a, result: True)
 
-    def test_recheck_and_postverify(self):
+    def test_recheck_and_native_success(self):
         calls = []
         def runner(argv):
             calls.append(argv)
@@ -36,7 +36,7 @@ class ExecutionTests(unittest.TestCase):
         plan = self.plan()
         results = execute(plan, plan.fingerprint, runner, lambda a: a.id != 'a', lambda a, result: False)
         self.assertEqual(calls, [('fake', 'independent')])
-        self.assertEqual([r.status for r in results], ['preserved', 'skipped', 'unverified', 'skipped'])
+        self.assertEqual([r.status for r in results], ['preserved', 'skipped', 'installed', 'skipped'])
         with self.assertRaises(ValueError):
             execute(plan, plan.fingerprint, runner, lambda a: True, lambda a, result: True)
 
@@ -54,7 +54,7 @@ class ExecutionTests(unittest.TestCase):
             results = execute(plan, plan.fingerprint, runner, lambda a: True, lambda a, result: True)
             self.assertEqual(calls.count(('fake', 'first')), 1)
             self.assertEqual(results[0].status, 'preserved')
-            self.assertEqual(results[1].status, 'failed' if exception is None else 'unverified')
+            self.assertEqual(results[1].status, 'failed')
             self.assertEqual(results[2].status, 'skipped' if isinstance(exception, KeyboardInterrupt) else 'installed')
             self.assertEqual(results[3].status, 'skipped')
             self.assertFalse(any('remove' in arg or 'rollback' in arg for argv in calls for arg in argv))

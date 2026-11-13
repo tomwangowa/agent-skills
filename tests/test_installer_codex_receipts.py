@@ -13,7 +13,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'runtime'))
 from agent_skills_installer.catalog import build_catalog
-from agent_skills_installer.ui import run
+from installer_ui_fixtures import run_with_fixture_hosts as run
 
 
 class Terminal(io.StringIO):
@@ -83,23 +83,24 @@ class CodexReceiptTests(unittest.TestCase):
             code = run((self.spec,), lambda _: next(answers), output, native)
         return code, output.getvalue()
 
-    def test_new_install_uses_receipt_with_unknown_inventory_scope_and_root(self):
+    def test_new_install_reports_native_success_without_receipt_check(self):
         native = CodexCLI(self.root, self.spec)
         code, output = self.transcript(native)
         self.assertEqual(code, 0, output)
-        self.assertIn('installed:', output)
+        self.assertIn('[############] success', output)
         self.assertEqual(len(native.mutations), 1)
         self.assertTrue((native.target / '.codex-plugin/plugin.json').is_file())
-        self.assertIn('Installed root: ' + str(native.target), output)
+        self.assertNotIn('Installed root:', output)
+        self.assertNotIn(('codex', '--version'), native.calls)
 
-    def test_cache_version_is_checked_separately_from_manifest_version(self):
+    def test_cache_version_does_not_gate_installation(self):
         native = CodexCLI(self.root, self.spec)
         native.cache_version = 'local'
         native.target = native.target.parent / 'local'
         code, output = self.transcript(native)
         self.assertEqual(code, 0, output)
 
-    def test_invalid_receipts_never_verify_or_retry(self):
+    def test_native_exit_status_controls_success_without_receipt_verification(self):
         def modified_manifest(n, d):
             (n.target / '.codex-plugin/plugin.json').write_text('{"name":"quality-gates","version":"9.0.0"}')
             return d
@@ -148,16 +149,17 @@ class CodexReceiptTests(unittest.TestCase):
             with self.subTest(case=name):
                 native = CodexCLI(self.root / name, self.spec, change)
                 code, output = self.transcript(native)
-                self.assertEqual(code, 1, output)
-                self.assertIn('failed:' if name == 'native-nonzero' else 'unverified:', output)
+                self.assertEqual(code, 1 if name == 'native-nonzero' else 0, output)
+                self.assertIn('failed:' if name == 'native-nonzero' else '[############] success', output)
                 self.assertEqual(len(native.mutations), 1)
                 self.assertFalse(any('remove' in a or 'uninstall' in a for a in native.calls))
 
-    def test_unsupported_cli_is_blocked_before_installation(self):
+    def test_newer_cli_is_not_version_gated(self):
         native = CodexCLI(self.root, self.spec, version='codex-cli 9.0.0')
         code, output = self.transcript(native)
-        self.assertEqual(code, 1, output)
-        self.assertEqual(native.mutations, [])
+        self.assertEqual(code, 0, output)
+        self.assertEqual(len(native.mutations), 1)
+        self.assertNotIn(('codex', '--version'), native.calls)
 
     def test_config_target_change_after_approval_blocks_installation(self):
         native = CodexCLI(self.root, self.spec)
@@ -184,7 +186,7 @@ class CodexReceiptTests(unittest.TestCase):
             code = run((self.spec,), lambda _: next(answers), output, native)
         self.assertEqual(code, 1, output.getvalue())
         self.assertIn('Choose valid comma-separated numbers', output.getvalue())
-        self.assertIn('unverified:', output.getvalue())
+        self.assertIn('skipped:', output.getvalue())
         self.assertEqual(native.mutations, [])
 
     def test_unregistered_cache_is_preserved_before_native_install(self):

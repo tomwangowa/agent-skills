@@ -21,15 +21,15 @@ class SuperpowersPlanTests(unittest.TestCase):
         spec = provider_targets(provider_data())[1]
         plan = self.plan(spec, Inventory('codex', 'codex-cli 0.167.0', config_root='/home'), parse_native_acceptance(acceptance_data(spec)))
         self.assertFalse(plan.actions)
-        self.assertEqual(plan.prior_results[0].status, 'unverified')
+        self.assertEqual(plan.prior_results[0].status, 'skipped')
         for source in (CODEX_CATALOG, 'https://github.com/obra/superpowers.git', 'https://github.com/obra/superpowers-marketplace.git'):
             with self.assertRaises(ValueError):
                 source_action('codex', source, 'add_marketplace')
 
-    def test_claude_source_add_requires_target_acceptance(self):
+    def test_claude_source_add_does_not_require_version_acceptance(self):
         spec = provider_targets(provider_data())[0]
         inv = Inventory('claude', '2.1.319')
-        self.assertFalse(self.plan(spec, inv).actions)
+        self.assertEqual(len(self.plan(spec, inv).actions), 1)
         accepted = parse_native_acceptance(acceptance_data(spec, cli=inv.cli_version))
         actions = self.plan(spec, inv, accepted).actions
         self.assertEqual(len(actions), 1)
@@ -50,20 +50,20 @@ class SuperpowersPlanTests(unittest.TestCase):
                 self.assertEqual(calls, [])
                 self.assertEqual(plan.prior_results[0].status, 'preserved')
 
-    def test_empty_acceptance_blocks_only_superpowers(self):
+    def test_missing_official_catalog_skips_only_superpowers(self):
         external = provider_targets(provider_data())[1]
         own = PluginSpec('codex', 'quality-gates', 'tomwangowa', SOURCE, '0.2.0')
         plan = make_plan((external, own), (inventory('codex'),), {('codex', p.name) for p in (own, external)}, set(), {})
         self.assertEqual([a.target for a in plan.actions], ['quality-gates@tomwangowa'])
-        self.assertEqual(plan.prior_results[0].status, 'unverified')
+        self.assertEqual(plan.prior_results[0].status, 'skipped')
 
     def test_planning_never_reads_provider_files(self):
         spec = provider_targets(provider_data())[1]
         with patch('pathlib.Path.is_absolute', side_effect=AssertionError('Unexpected filesystem inspection')):
             plan = self.plan(spec, Inventory('codex', 'codex-cli 0.167.0', marketplaces=(Marketplace(spec.marketplace, None, '/home/.tmp/plugins'),), config_root='/home'))
-        self.assertFalse(plan.actions)
+        self.assertEqual(len(plan.actions), 1)
 
-    def test_commit_change_invalidates_approval(self):
+    def test_catalog_commit_change_does_not_version_gate_plan(self):
         with tempfile.TemporaryDirectory() as tmp:
             spec, home, root, payload = prepared_codex(Path(tmp).resolve())
             inv = Inventory('codex', 'codex-cli 0.167.0', marketplaces=(Marketplace('openai-curated', None, str(root)),), config_root=str(home))
@@ -74,5 +74,5 @@ class SuperpowersPlanTests(unittest.TestCase):
             self.assertEqual(len(old.actions), 1)
             (home / '.tmp/plugins.sha').write_text('b' * 40)
             new = self.plan(spec, replace(inv, provider_readiness=(inspect_provider(spec, inv),)), records)
-            self.assertNotEqual(old.fingerprint, new.fingerprint)
-            self.assertIn('provider_state', dict(old.actions[0].preconditions))
+            self.assertEqual(old.fingerprint, new.fingerprint)
+            self.assertNotIn('provider_state', dict(old.actions[0].preconditions))

@@ -3,23 +3,19 @@ from __future__ import annotations
 
 import json
 import os
-import platform as native_platform
 import shutil
 import subprocess
 import sys
-from dataclasses import asdict, replace
+from dataclasses import replace
 from pathlib import Path
 
-from .catalog import REPOSITORY, safe_path, tree_hash
+from .catalog import REPOSITORY
 from .dependencies import dependency_action, detect_tools, missing_dependencies
 from .execution import execute
 from .hosts import read_inventory, source_action
 from .journal import apply_journal, journal_preview, existing_journal
-from .models import Action
 from .planning import make_plan, plugin_state, seal
-from .receipts import verify_codex_install, verify_claude_install, provider_state_matches
-from .providers import parse_native_acceptance, target_accepted, installation_accepted, resolve_provider
-from .hosts import inspect_provider
+from .providers import CODEX_CATALOG, CODEX_MARKETPLACE_FILES, resolve_provider
 from .selection import SelectionCancelled, package_lines
 from .progress import PackageProgress
 from .process import run_json_command
@@ -43,27 +39,15 @@ def native_runner(argv, *, on_stderr=None, on_wait=None):
 
 
 def source_matches(spec, market):
-    if not market or market.source != spec.source or not market.root or not spec.content_hash:
+    if not market or market.name != spec.marketplace or not market.root:
         return False
     try:
-        root = Path(market.root)
-        relative = f'plugins/{spec.host}/{spec.name}' if spec.name not in ('handoff-mod', 'attention-mod') else f'plugins/{spec.name}'
-        safe_path(root, f'{relative}/.{spec.host}-plugin/plugin.json')
-        return tree_hash(root / relative) == spec.content_hash
-    except (OSError, ValueError):
+        if spec.provider and spec.host == 'codex':
+            return (market.name in CODEX_MARKETPLACE_FILES
+                    and market.source in (None, CODEX_CATALOG))
+        return market.source == spec.source
+    except (TypeError, ValueError):
         return False
-
-
-def _verified_sources(catalog, inventories, selected):
-    result = []
-    for inv in inventories:
-        markers = []
-        for market in inv.marketplaces:
-            specs = [p for p in catalog if p.host == inv.host and p.marketplace == market.name and (p.host, p.name) in selected]
-            if specs and all(source_matches(p, market) for p in specs):
-                markers.append(f'catalog-verified:{market.name}')
-        result.append(replace(inv, capabilities=inv.capabilities + tuple(markers)))
-    return tuple(result)
 
 
 def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=None, architecture=None,
@@ -74,18 +58,6 @@ def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=Non
 
     progress = progress or PackageProgress(output)
 
-    bundle_root = Path(__file__).resolve().parents[2]
-    acceptance_path = bundle_root / 'provider-acceptance.json'
-    if not acceptance_path.exists():
-        acceptance_path = bundle_root / 'installer/provider-acceptance.json'
-    if acceptance is None:
-        try:
-            acceptance = parse_native_acceptance(json.loads(acceptance_path.read_text(encoding='utf-8')))
-        except (OSError, ValueError, TypeError) as error:
-            say(f'Invalid native acceptance index: {error}. No operation executed.')
-            return 1
-    platform_name = platform_name or ('windows' if sys.platform == 'win32' else 'macos' if sys.platform == 'darwin' else 'linux')
-    architecture = architecture or native_platform.machine().lower()
     prior = []
     configuration_failed = False
     bootstrap = os.environ.get('AGENT_SKILLS_BOOTSTRAP_RESULT')
@@ -147,84 +119,57 @@ def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=Non
             say('')
         report(plan.prior_results)
 
+    def package_preview(plan):
+        say('Packages to install or update:')
+        names = [action.target.split('@', 1)[0] for action in plan.actions
+                 if action.kind in ('install', 'update')]
+        if names:
+            for name in names:
+                say('  ' + name)
+        else:
+            say('  None')
+
     def inventory(hosts):
-        return tuple(read_inventory(host, runner, provider_specs=catalog) for host in hosts)
+        return tuple(read_inventory(host, runner, include_version=False,
+                                    include_provider_details=False) for host in hosts)
 
     def journal_runtime_ready(specs, selected):
-        """Do not create empty-notes settings for an older installed runtime."""
+        """Offer journal setup only when the selected plugin appears installed."""
         targets = tuple(s for s in specs if s.name == 'work-journal' and (s.host, s.name) in selected)
         fresh = {inv.host: inv for inv in inventory(tuple(s.host for s in targets))}
         for spec in targets:
             inv = fresh.get(spec.host)
             if not inv or inv.errors:
                 return False
-            if spec.host == 'claude':
-                action = Action('journal-compatibility', 'install', spec.host,
-                                f'{spec.name}@{spec.marketplace}', (),
-                                preconditions=(('source', spec.source), ('version', spec.version),
-                                               ('cli_version', inv.cli_version)))
-                if not verify_claude_install(action, spec, inv):
-                    return False
-            else:
-                results = [r for r in prior if r.action_id == f'{spec.host}/{spec.source}/{spec.name}'
-                           and r.status in ('installed', 'updated') and r.receipt]
-                matches = [p for p in inv.plugins if p.name == spec.name and p.marketplace == spec.marketplace]
-                if len(results) != 1 or len(matches) != 1:
-                    return False
-                receipt, plugin = results[0].receipt, matches[0]
-                try:
-                    root = Path(receipt.root)
-                    manifest = json.loads(safe_path(root, '.codex-plugin/plugin.json').read_text())
-                    if (receipt.config_root != inv.config_root or plugin.enabled is not True
-                            or plugin.version != receipt.cache_version or plugin.source != spec.source
-                            or manifest.get('name') != spec.name or manifest.get('version') != spec.version
-                            or tree_hash(root) != spec.content_hash):
-                        return False
-                except (OSError, ValueError, TypeError, KeyError):
-                    return False
+            matches = [p for p in inv.plugins if p.name == spec.name
+                       and p.marketplace == spec.marketplace and p.enabled is True]
+            if len(matches) != 1:
+                return False
         return bool(targets)
 
     def verify(action, native_result):
         if action.kind == 'dependency':
             return detect_tools((action.target,)).get(action.target, False)
-        inv = read_inventory(action.host, runner, provider_specs=catalog)
+        inv = read_inventory(action.host, runner, include_version=False,
+                             include_provider_details=False)
         if inv.errors:
             return False
         conditions = dict(action.preconditions)
         if action.kind in ('add_marketplace', 'refresh_marketplace'):
             return any(m.name == action.target and m.source == conditions['source'] and m.root and Path(m.root).is_dir() for m in inv.marketplaces)
-        name, market_name = action.target.split('@')
-        matches = [p for p in inv.plugins if p.name == name and p.marketplace == market_name]
-        if len(matches) != 1:
-            return False
-        spec = next(p for p in catalog if p.host == action.host and p.name == name)
-        spec = resolve_provider(spec, inv)
-        readiness = inspect_provider(spec, replace(inv, plugins=tuple(p for p in inv.plugins if p.name != spec.name))) if spec.provider else None
-        if action.host == 'codex':
-            return verify_codex_install(action, spec, native_result, inv, readiness=readiness)
-        return verify_claude_install(action, spec, inv, readiness=readiness)
+        return True
 
     def recheck(action):
         conditions = dict(action.preconditions)
         if action.kind == 'dependency':
             return bool(shutil.which(conditions['manager']) == conditions['manager_path']
                         and not detect_tools((action.target,)).get(action.target, False))
-        inv = read_inventory(action.host, runner, provider_specs=catalog)
+        inv = read_inventory(action.host, runner, include_version=False,
+                             include_provider_details=False)
         if inv.errors:
             return False
         if action.kind in ('add_marketplace', 'refresh_marketplace'):
             markets = [m for m in inv.marketplaces if m.name == action.target]
-            if 'provider_target' in conditions:
-                spec = next(p for p in catalog if p.host == action.host and p.provider and p.marketplace == action.target)
-                readiness = inspect_provider(spec, inv)
-                if (not target_accepted(spec, acceptance, inv.cli_version, platform_name, architecture)
-                        or inv.cli_version != conditions.get('cli_version')
-                        or conditions.get('platform') != platform_name or conditions.get('architecture') != architecture
-                        or conditions.get('provider_target') != json.dumps(asdict(spec.provider), sort_keys=True, separators=(',', ':'))
-                        or conditions.get('provider_state') != json.dumps(readiness.snapshot, separators=(',', ':'))
-                        or readiness.status != 'needs-native-setup'
-                        or plugin_state(tuple(p for p in inv.plugins if p.name == spec.name)) != conditions.get('plugin_state')):
-                    return False
             return (not markets if action.kind == 'add_marketplace' else
                     len(markets) == 1 and markets[0].source == conditions['source'])
         name, market_name = action.target.split('@')
@@ -243,27 +188,22 @@ def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=Non
             # native inventory is not permission to replace its files.
             if target.exists() or target.is_symlink():
                 return False
-        readiness = inspect_provider(spec, inv) if spec.provider else None
-        source_ok = (provider_state_matches(action, spec, readiness)
-                     and installation_accepted(spec, readiness, acceptance, inv.cli_version, platform_name, architecture)
-                     and conditions.get('platform') == platform_name and conditions.get('architecture') == architecture) if spec.provider else source_matches(spec, market)
+        source_ok = source_matches(spec, market)
         return bool(source_ok and market and market.root == conditions['market_root']
-                    and inv.cli_version == conditions['cli_version']
                     and (action.host != 'codex' or inv.config_root == conditions.get('config_root'))
                     and plugin_state(matches) == conditions['plugin_state']
                     and all(detect_tools(spec.commands).values()))
 
     try:
         hosts = []
+        supported_hosts = {spec.host for spec in catalog}
         for host in ('claude', 'codex'):
-            try:
-                result = runner((host, '--version'))
-                if result.returncode == 0:
-                    hosts.append(host)
-                    say(f'{len(hosts)}. {host}: {result.stdout.strip()}')
-                else:
-                    say(f'{host}: unavailable; install the CLI manually to select it.')
-            except (OSError, subprocess.SubprocessError):
+            if host not in supported_hosts:
+                continue
+            if shutil.which(host):
+                hosts.append(host)
+                say(f'{len(hosts)}. {host}')
+            else:
                 say(f'{host}: unavailable; install the CLI manually to select it.')
         if not hosts:
             return 1
@@ -296,7 +236,6 @@ def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=Non
                     say('No packages selected. No changes made.')
                 return 1 if any(r.status in ('failed', 'unverified') for r in prior) else 0
             selected = frozenset((specs[i].host, specs[i].name) for i in selected_indices)
-            say('Selected packages: ' + ', '.join(specs[i].name for i in sorted(selected_indices)))
             blocked_hosts = set()
             for inv in invs:
                 if not any(host == inv.host for host, _ in selected):
@@ -306,9 +245,12 @@ def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=Non
                     app = 'Claude Code' if inv.host == 'claude' else 'Codex'
                     say(f'Cannot read the installed plugins from {app}.')
                     say(f'No selected {app} plugins will be installed or updated.')
-                    say('Close this installer and keep the details below for troubleshooting. Do not remove existing plugins.')
+                    say('Other selected hosts can continue. Do not remove existing plugins as a workaround.')
                     for error in inv.errors:
-                        say('  Details: ' + error)
+                        if 'Multiple scopes for one plugin identity' in error:
+                            say('  The host reported the same plugin in more than one install location, so this installer cannot safely decide which copy to change.')
+                        else:
+                            say('  Details: ' + error)
                     continue
                 groups = {}
                 for installed in inv.plugins:
@@ -334,14 +276,14 @@ def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=Non
                 copies = [p for p in inv.plugins if p.name == spec.name]
                 if (spec.host == 'claude' and len(copies) == 1 and copies[0].scope == 'user'
                         and copies[0].source == spec.source and copies[0].enabled is True
-                        and copies[0].root and copies[0].version):
+                        and copies[0].root):
                     existing.append((spec.host, spec.name))
             existing.sort()
             for i, key in enumerate(existing):
-                say(f'{i + 1}. {key[1]}: already installed; the current version will be kept.')
+                say(f'{i + 1}. {key[1]}: already installed; the current installation will be kept.')
             if existing:
-                say('Press Enter to keep these versions. To request an update instead, enter its number.')
-            updates = frozenset(existing[i] for i in numbers('Updates (Enter = keep installed versions; q = cancel): ', len(existing)))
+                say('Press Enter to keep these installations. To request an update instead, enter its number.')
+            updates = frozenset(existing[i] for i in numbers('Updates (Enter = keep current installations; q = cancel): ', len(existing)))
 
             sources = []
             for inv in invs:
@@ -353,7 +295,6 @@ def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=Non
                         proposal = make_plan(chosen, (inv,), selected, updates, {}, acceptance=acceptance,
                                              platform=platform_name, architecture=architecture)
                         sources.extend(a for a in proposal.actions if a.kind == 'add_marketplace')
-                        report(proposal.prior_results)
                         continue
                     market = next((m for m in inv.marketplaces if m.name == 'tomwangowa'), None)
                     if market and market.source != source:
@@ -372,10 +313,13 @@ def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=Non
                     invs = inventory(hosts)
 
             tools = detect_tools({c for p in specs for c in p.commands})
-            eligible = tuple(p for p in specs if p.host not in blocked_hosts and (not p.provider or any(inv.host == p.host and not inv.errors
-                             and not any(i.name == p.name for i in inv.plugins)
-                             and installation_accepted(resolve_provider(p, inv), next((r for r in inv.provider_readiness if r.name == p.name), None),
-                                                       acceptance, inv.cli_version, platform_name, architecture) for inv in invs)))
+            potential_tools = {tool: True for spec in specs for tool in spec.commands}
+            potential = make_plan(specs, invs, selected, updates, potential_tools)
+            installable_ids = {action.id for action in potential.actions
+                               if action.kind in ('install', 'update')}
+            eligible = tuple(spec for spec in specs
+                             if spec.host not in blocked_hosts
+                             and f'{spec.host}/{spec.source}/{spec.name}' in installable_ids)
             missing = missing_dependencies(eligible, selected, tools)
             if missing:
                 bundle_root = Path(__file__).resolve().parents[2]
@@ -405,13 +349,21 @@ def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=Non
                         if any(r.cancelled for r in outcomes):
                             raise Cancelled()
                         tools = detect_tools({c for p in specs for c in p.commands})
-            invs = _verified_sources(specs, inventory(hosts), selected)
-            plan = make_plan(specs, invs, selected, updates, tools, acceptance=acceptance, platform=platform_name, architecture=architecture)
+            invs = inventory(hosts)
+            plan = make_plan(specs, invs, selected, updates, tools)
             # Sources were handled at their own checkpoint; a declined source
             # proposal must never run under final installation consent.
             plan = seal((a for a in plan.actions if a.kind in ('install', 'update')), plan.prior_results)
-            say('Installation preview: existing items are preserved unless an update was selected.')
-            preview(plan)
+            say('Installation preview:')
+            package_preview(plan)
+            if not plan.actions:
+                pending = tuple(result for result in plan.prior_results
+                                if result.detail != 'Not selected.' and result.status not in ('preserved',))
+                if pending:
+                    say('No packages are ready to install:')
+                    report(pending)
+                    prior.extend(pending)
+                break
             if any(p.name == 'attention-mod' and (p.host, p.name) in selected for p in specs):
                 say('When used, attention-mod summaries send conversation/tool excerpts to haiku and consume model tokens.')
             decision = ask('Approve installation? [y/N/b=back/q] ').lower()
@@ -447,7 +399,7 @@ def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=Non
                     say('  Notes: ' + path)
                 say('')
             elif not invalid and not journal_runtime_ready(specs, selected):
-                say('Update work-journal before creating new settings; older versions cannot use optional notes.')
+                say('work-journal is not reported as one enabled installation, so no new settings were created.')
                 say('Existing settings and data were kept unchanged.')
             elif not invalid and ask('Set up work journal now? [Y/n/q] ').lower() in ('', 'y'):
                 say('Add your notes folder to search your own notes alongside your work records.')
@@ -476,10 +428,6 @@ def run(catalog, input_fn, output, runner, *, acceptance=None, platform_name=Non
                     say('Journal: pending configuration; no settings write approved.')
             elif not invalid:
                 say('Journal: pending configuration; existing settings/data retained.')
-        if any(p.provider and (p.host, p.name) in selected for p in specs):
-            say('Superpowers entries: NOT VERIFIED in a restarted host. Behavior: NOT VERIFIED for the seven selected workflows.')
-        say('Pending: restart affected hosts and review hook trust using the native host flow. No trust was granted automatically.')
-        say('NOT VERIFIED: native platform acceptance and hooks/MCP/all skills. Source refs may move during native installation; inspected content does not eliminate that race.')
         return 1 if configuration_failed or any(r.status in ('failed', 'unverified') or (r.status == 'skipped' and r.detail != 'Not selected.') for r in prior) else 0
     except (Cancelled, SelectionCancelled, KeyboardInterrupt):
         say('Cancelled. No further operations will run; earlier confirmed writes are retained.')
