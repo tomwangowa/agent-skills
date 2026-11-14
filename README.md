@@ -20,7 +20,7 @@ These principles don't require you to agree with my approach — they're indepen
 
 ### Install on macOS
 
-[Download the macOS trial installer](https://github.com/tomwangowa/agent-skills/releases/download/installer-macos-trial-2026-11-13/agent-skills-installer-macos-trial-2026-11-13.zip). This GitHub pre-release is for manual testing; this exact ZIP has not yet been installed through a real host. See the [release notes](https://github.com/tomwangowa/agent-skills/releases/tag/installer-macos-trial-2026-11-13) for its contents and checksum.
+[Download the macOS trial installer](https://github.com/tomwangowa/agent-skills/releases/download/installer-macos-trial-2026-11-14/agent-skills-installer-macos-trial-2026-11-14.zip). This GitHub pre-release is for manual testing; this exact ZIP has not yet been installed through a real host. See the [release notes](https://github.com/tomwangowa/agent-skills/releases/tag/installer-macos-trial-2026-11-14) for its contents and checksum.
 
 1. Have Claude Code CLI or Codex CLI installed. The launcher needs a working Python 3.11+ interpreter; if it is missing, it can offer installation through an already-installed supported manager.
 2. Extract the ZIP and open `install-macos.command`.
