@@ -20,7 +20,7 @@
 
 ### 在 macOS 安裝
 
-[下載 macOS 試用版安裝包](https://github.com/tomwangowa/agent-skills/releases/download/installer-macos-trial-2026-11-13/agent-skills-installer-macos-trial-2026-11-13.zip)。這是供手動測試的 GitHub 預發布版本，這份 ZIP 尚未透過真實宿主完成安裝驗收；內容與 SHA-256 檔案校驗值見[發布說明](https://github.com/tomwangowa/agent-skills/releases/tag/installer-macos-trial-2026-11-13)。
+[下載 macOS 試用版安裝包](https://github.com/tomwangowa/agent-skills/releases/download/installer-macos-trial-2026-11-14/agent-skills-installer-macos-trial-2026-11-14.zip)。這是供手動測試的 GitHub 預發布版本，這份 ZIP 尚未透過真實宿主完成安裝驗收；內容與 SHA-256 檔案校驗值見[發布說明](https://github.com/tomwangowa/agent-skills/releases/tag/installer-macos-trial-2026-11-14)。
 
 1. 先確認已安裝 Claude Code CLI 或 Codex CLI。安裝器需要可執行的 Python 3.11 以上版本；若缺少，會依支援的既有工具提供安裝選項。
 2. 解壓 ZIP，開啟 `install-macos.command`。
