@@ -83,16 +83,16 @@ Followed by markdown content containing:
 
 ### Meta
 
-- **skill-sync** — one-way **mirror** of `~/.claude/skills/` to other agent folders (codex, gemini, cursor, antigravity, omp) via `rsync --delete` (target files not in source are removed); dry-run preview shows deletion count before `y/N` confirmation (defaults N); configurable via `.skill-sync-targets` (gitignored) and `.skill-sync-ignore` (committed, defaults include symlink protection for `spec-generator`)
+- **skill-sync** — Optional, standalone (non-plugin) workflow; plugin users on Claude Code or Codex do not need it. One-way **mirror** of `~/.claude/skills/` to other agent folders (codex, gemini, cursor, antigravity, omp) via `rsync --delete` (target files not in source are removed); dry-run preview shows deletion count before `y/N` confirmation (defaults N); configurable via `.skill-sync-targets` (gitignored) and `.skill-sync-ignore` (committed, defaults include symlink protection for `spec-generator`)
 - **skill-auditor** — Audit skills for quality, security, and best practices
 - **skill-router** — Unified skill discovery and routing: smart match, category browse, workflow browse
 
 ## Deployment
 
-- `~/.claude/skills` is a symlink to the `agent-skills-production` worktree (branch `production`). Changes on `main` take effect only after they are merged into `production`.
-- `~/.codex/skills` and `~/.omp/agent/skills` are rsync mirrors written by `skill-sync`. After `production` changes, run `skill-sync --dry-run`, review every write and deletion, and sync only after confirmation.
+- The `agent-skills-production` worktree (branch `production`) lives at `~/Development/harness/agent-skills-production`. Changes on `main` take effect only after they are merged into `production`. As of 2026-11-14, `~/.claude/skills` is no longer a symlink to it: it is a regular directory holding Claude-managed `synced/` buckets. Standalone entries that still point at `~/.claude/skills/...` (for example the old `skills-query` MCP server) are stale; the installed plugins replace them.
+- Plugin users on Claude Code and Codex get skills through plugins and do not need `skill-sync`. Any existing `~/.codex/skills` and `~/.omp/agent/skills` contents are legacy rsync mirrors written earlier by `skill-sync` and are no longer maintained by this workflow. Only if you still use the standalone mirror: after `production` changes, run `skill-sync --dry-run`, review every write and deletion, and sync only after confirmation.
 - New or modified Codex hooks (`~/.codex/hooks.json`) run only after they are approved in Codex.
-- SessionStart hooks for `session-preferences` and `control-return` read the runtime's own installed copy, so a Codex rule change is live only after `skill-sync`.
+- SessionStart hooks for `session-preferences` and `control-return` read the runtime's own installed copy, so a rule change is live only after the installed plugin is updated (or, for a standalone mirror, after `skill-sync`).
 - A plugin under `plugins/<name>/` is installed through the `tomwangowa` marketplace, which reads `main`; it does not go through `production`. After a merge, users update with `claude plugin marketplace update tomwangowa` and `claude plugin update <name>@tomwangowa`, then start a new session.
 - A plugin release under `plugins/<name>/` is tagged `<name>-v<version>` (for example `handoff-mod-v0.2.0`), because one repository holds several skills and plugins with separate version numbers.
 
