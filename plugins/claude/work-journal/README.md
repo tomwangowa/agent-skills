@@ -1,6 +1,6 @@
 # work-journal
 
-Version 0.2.3; claude CLI.
+Version 0.2.4; claude CLI.
 
 Included skills:
 

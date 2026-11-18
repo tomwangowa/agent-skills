@@ -202,6 +202,12 @@ With none of them set, each record gets an id of its own
 `.session_id` file in the activity directory is ignored, and
 `init_activities.sh reset` removes it.
 
+The work-journal MCP server's `log_activity` tool takes the id in the same order
+from the environment it was started with. Claude Code starts it with
+`CLAUDE_CODE_SESSION_ID`; Codex passes `CODEX_THREAD_ID` only to shell commands,
+so under Codex the tool's records fall back to `mcp_<time>` unless
+`CLAUDE_SESSION_ID` is set for the server.
+
 ## Error Handling
 
 - Missing bundled runtime, missing `work-journal.json`, invalid JSON or empty

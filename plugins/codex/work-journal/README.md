@@ -1,6 +1,6 @@
 # work-journal
 
-Version 0.2.3; codex CLI.
+Version 0.2.4; codex CLI.
 
 Included skills:
 
