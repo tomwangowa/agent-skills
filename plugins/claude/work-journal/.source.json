@@ -102,10 +102,10 @@
       "work-log-analyzer",
       "report-generator"
     ],
-    "version": "0.2.3"
+    "version": "0.2.4"
   },
   "resources": {
-    "activity-logger/SKILL.md": "845ab4cc242b8959d51e2a1060d141950124ea9cdd5367c2a7c26cf31475d26c",
+    "activity-logger/SKILL.md": "97c7482a24f8aaa54d8ca52dea26fd2dcba1cf951fe726942564212fbd0e57d6",
     "activity-logger/scripts/init_activities.sh": "4af075257dd6a8fbc7eec9147e96a27184e548f8f96114ea87241759a2a2224b",
     "activity-logger/scripts/log_activity.sh": "2c83420b47a72c3854fb87aa5f637d3b33359099e45cc305282970770e2ef2a6",
     "docs/plugins/installation.md": "7232106e4792aa4dd951f10b86036aa12b8a1acc93533fec67623d933c6b86e8",
@@ -129,7 +129,7 @@
     "skills-query-server/src/sources/activities.ts": "42ac03fb997d13181d0852da3babae3b192cc6ec78eaa580bbdd0133ff833fc1",
     "skills-query-server/src/sources/notes.ts": "0797f73be659f621b26fa5ab1aed2de04607dc8d3f914914669ce8fb1350d3ad",
     "skills-query-server/src/tools/dashboard.ts": "d501d0d1414159916cc054974e22f572b43d9ea0aac8f2a69b35dc15bfcaf130",
-    "skills-query-server/src/tools/log-activity.ts": "ddf2b7cd399783e7edc3ef36e38ab92b36f1c660aeab9c9452b105f78f0250a6",
+    "skills-query-server/src/tools/log-activity.ts": "86528e541bebd489dd8755857a7579ce216361cdedf67160d93971eabac3d74b",
     "skills-query-server/src/tools/query-activities.ts": "3af4fb07a362bca200579e83853cb211ea96da341c62d853f62fe70ce18473e6",
     "skills-query-server/src/tools/query-decisions.ts": "537cc8b9672b0e0033b8da8aa421dad882bf458d667fd23ae82e326eb711694c",
     "skills-query-server/src/tools/query-timeline.ts": "fb9635f543c48a52048055764ea7e750f4940b1f71b2f3d53a911e664e3900da",

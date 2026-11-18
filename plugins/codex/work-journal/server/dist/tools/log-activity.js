@@ -1,6 +1,18 @@
 import { z } from 'zod';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
+/**
+ * The session a record belongs to, in the order `activity-logger/scripts/log_activity.sh` uses:
+ * an explicit `CLAUDE_SESSION_ID`, then the host session in the server's environment (Claude
+ * Code starts its MCP servers with `CLAUDE_CODE_SESSION_ID`; Codex passes `CODEX_THREAD_ID` to
+ * shell commands, not to MCP servers), else an `mcp_` id of this record's time.
+ */
+export function activitySessionId(env, now) {
+    return (env.CLAUDE_SESSION_ID ||
+        env.CLAUDE_CODE_SESSION_ID ||
+        env.CODEX_THREAD_ID ||
+        `mcp_${now.toISOString().replace(/[:-]/g, '').slice(0, 15)}`);
+}
 export function registerLogActivity(server, config) {
     server.registerTool('log_activity', {
         title: 'Log Activity',
@@ -18,7 +30,7 @@ export function registerLogActivity(server, config) {
         }),
     }, async ({ description, type, project_name, project_path, git_branch, context, tags }) => {
         const now = new Date();
-        const sessionId = `mcp_${now.toISOString().replace(/[:-]/g, '').slice(0, 15)}`;
+        const sessionId = activitySessionId(process.env, now);
         const filename = `${sessionId}_${now.toISOString().replace(/:/g, '')}.json`;
         const entry = {
             session_id: sessionId,

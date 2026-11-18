@@ -25,7 +25,7 @@ APPROVED_VERSIONS = {
     'technical-decisions': '0.1.4',
     'repo-workflow': '0.3.1',
     'content-tools': '0.2.1',
-    'work-journal': '0.2.3',
+    'work-journal': '0.2.4',
     'session-preferences': '0.1.7',
     'skill-toolbox': '0.1.4',
 }

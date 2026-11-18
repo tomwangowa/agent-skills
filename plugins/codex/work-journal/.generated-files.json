@@ -2,7 +2,7 @@
   "files": {
     ".codex-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "4736d64537395394de3c188afa7cccce1cec536d092df50a8e9e75e8ee0cd6d7"
+      "sha256": "5ccabaf734c3faefde6e5ea657b97e333fb06a4778e5a23bbdb165f57f909075"
     },
     ".mcp.json": {
       "mode": 420,
@@ -10,11 +10,11 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "90567d2dcc409bf287631a79e2aa547a71a6e17790bfaa2732d779579679e33b"
+      "sha256": "cf4bc6b0bf4ad63b95c5e03ff49dbd9721eb86fa06d0da4ab86f265d90cfd4bb"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "b35ac553386d0e92d294d39a998239148b0a6ee88f228e6d80f457dd37ca8169"
+      "sha256": "06f2b12ff8e9def20a2b9c63e82cad3daf30bd6e03f1dce7362f476e1b45e38f"
     },
     "installation.md": {
       "mode": 420,
@@ -78,7 +78,7 @@
     },
     "server/dist/tools/log-activity.js": {
       "mode": 420,
-      "sha256": "cb264723bdfaf292809445794d04cf352dea798eab26e95f6d42eebde58bcedf"
+      "sha256": "8b5829d9b70a8f18ef34066963512b35d9fd229fb8b2b1c428a764187248da8c"
     },
     "server/dist/tools/query-activities.js": {
       "mode": 420,
@@ -14598,7 +14598,7 @@
     },
     "skills/activity-logger/SKILL.md": {
       "mode": 420,
-      "sha256": "845ab4cc242b8959d51e2a1060d141950124ea9cdd5367c2a7c26cf31475d26c"
+      "sha256": "97c7482a24f8aaa54d8ca52dea26fd2dcba1cf951fe726942564212fbd0e57d6"
     },
     "skills/activity-logger/scripts/init_activities.sh": {
       "mode": 493,

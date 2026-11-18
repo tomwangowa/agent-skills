@@ -1,6 +1,6 @@
 /** Exercise the compiled server and shell logger using only disposable shared data. */
 import { afterEach, describe, expect, it } from 'vitest';
-import { cpSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync, realpathSync, chmodSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, mkdirSync, readdirSync, readFileSync, writeFileSync, rmSync, symlinkSync, realpathSync, chmodSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
@@ -54,6 +54,23 @@ describe('production stdio shared configuration', () => {
     expect(result.tools).toContain('log_activity');
     expect(result.tools).toContain('query_activities');
     expect(result.roundTrip).toBe(true);
+  }, 15000);
+
+  it('files a record under the Claude Code session that started the server', async () => {
+    const f = fixture();
+    delete f.env.CLAUDE_SESSION_ID;
+    delete f.env.CODEX_THREAD_ID;
+    f.env.CLAUDE_CODE_SESSION_ID = 'claude-host-session';
+    const client = new Client({ name: 'session-id-fixture', version: '1.0.0' });
+    try {
+      await client.connect(new StdioClientTransport({ command: process.execPath, args: [f.entry], env: f.env, cwd: f.cwd }));
+      const result = await client.callTool({ name: 'log_activity', arguments: { description: 'host session', type: 'documentation' } });
+      expect(result.isError).not.toBe(true);
+    } finally { await client.close(); }
+    const files = readdirSync(f.activities).filter((name) => name.endsWith('.json'));
+    expect(files).toHaveLength(1);
+    expect(files[0].startsWith('claude-host-session_')).toBe(true);
+    expect(JSON.parse(readFileSync(join(f.activities, files[0]), 'utf8')).session_id).toBe('claude-host-session');
   }, 15000);
 
   for (const surface of ['claude', 'codex']) {
