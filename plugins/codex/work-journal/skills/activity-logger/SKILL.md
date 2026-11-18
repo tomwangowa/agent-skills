@@ -28,7 +28,7 @@ When triggered, this skill will:
 
 1. **Collect session information:**
    - Resolve the shared settings and activity directory before any data access
-   - Generate or retrieve session ID
+   - Take the session ID from the host session (see Environment Variables)
    - Record current timestamp
    - Identify current project (from git repo or directory name)
    - Get current working directory
@@ -171,7 +171,7 @@ and processed directories; it does not create legacy private configuration.
 ```
 <settings-root>/work-journal.json
 <selected-activity-directory>/
-├── session_*.json
+├── <session_id>_<timestamp>.json
 └── processed/
 ```
 
@@ -193,7 +193,14 @@ The `work-log-analyzer` `referenced-documents` query uses the structured
 - `AGENT_SKILLS_CONFIG_DIR` - Explicit shared settings root
 - `XDG_CONFIG_HOME` - Fallback settings parent when no explicit root is selected
 - `CLAUDE_ACTIVITIES_DIR` - Override the shared selected activity directory
-- `CLAUDE_SESSION_ID` - Provide custom session ID (auto-generated if not set)
+- `CLAUDE_SESSION_ID` - Provide custom session ID; it wins over the host's
+- `CLAUDE_CODE_SESSION_ID` - Set by Claude Code; used when `CLAUDE_SESSION_ID` is unset
+- `CODEX_THREAD_ID` - Set by Codex; used when neither of the above is set
+
+With none of them set, each record gets an id of its own
+(`session_<date>_<time>_<random>`). No session id is kept on disk; an old
+`.session_id` file in the activity directory is ignored, and
+`init_activities.sh reset` removes it.
 
 ## Error Handling
 
@@ -243,7 +250,7 @@ The `work-log-analyzer` `referenced-documents` query uses the structured
 
 The skill implementation:
 1. Creates directory structure if it doesn't exist
-2. Generates a session ID based on timestamp + random string
+2. Takes the session ID from the host session, else makes one for this record (timestamp + random string)
 3. Uses git commands when available to gather context
 4. Falls back to directory scanning if not in a git repo
 5. Validates JSON output before saving
