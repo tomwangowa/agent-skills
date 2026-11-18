@@ -20,7 +20,6 @@ resolve_journal_paths() {
         return 1
     fi
     ACTIVITIES_DIR=$(PYTHONPATH="$runtime_dir${PYTHONPATH:+:$PYTHONPATH}" python3 -m agent_skills_runtime.journal_cli activities-dir) || return 1
-    SESSION_FILE="$ACTIVITIES_DIR/.session_id"
     PROCESSED_DIR="$ACTIVITIES_DIR/processed"
 }
 
@@ -87,23 +86,16 @@ generate_random_hex() {
     fi
 }
 
-# Generate or get session ID
+# The session this record belongs to: an explicit CLAUDE_SESSION_ID, else the host's own
+# session (Claude Code's CLAUDE_CODE_SESSION_ID, Codex's CODEX_THREAD_ID), else a new id
+# for this record alone. Nothing is kept on disk: the old `.session_id` file outlived every
+# session and put a whole journal under one id, so it is no longer read or written.
 get_session_id() {
-    if [[ -n "${CLAUDE_SESSION_ID:-}" ]]; then
-        echo "$CLAUDE_SESSION_ID"
-    elif [[ -f "$SESSION_FILE" ]]; then
-        cat "$SESSION_FILE"
+    local host_id="${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-}}}"
+    if [[ -n "$host_id" ]]; then
+        echo "$host_id"
     else
-        # Generate new session ID: timestamp + random string
-        local random_hex
-        random_hex=$(generate_random_hex)
-        local session_id="session_$(date +%Y%m%d_%H%M%S)_${random_hex}"
-
-        # Atomic write to prevent race condition
-        echo "$session_id" > "${SESSION_FILE}.tmp"
-        mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
-
-        echo "$session_id"
+        echo "session_$(date +%Y%m%d_%H%M%S)_$(generate_random_hex)"
     fi
 }
 
@@ -525,6 +517,9 @@ Options:
 Environment Variables:
   CLAUDE_ACTIVITIES_DIR   Override the shared selected activity directory
   CLAUDE_SESSION_ID       Use custom session ID
+  CLAUDE_CODE_SESSION_ID  Claude Code's session, used when CLAUDE_SESSION_ID is unset
+  CODEX_THREAD_ID         Codex's session, used when neither of the above is set
+                          With none of them, each record gets an id of its own.
 
 Examples:
   log_activity.sh -d "Implemented OAuth2 login"

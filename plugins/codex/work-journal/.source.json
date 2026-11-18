@@ -102,12 +102,12 @@
       "work-log-analyzer",
       "report-generator"
     ],
-    "version": "0.2.2"
+    "version": "0.2.3"
   },
   "resources": {
-    "activity-logger/SKILL.md": "78f5a76517e6185019630d09f1d2ab706bd6c3139c5ae0cb6ebe5e6ec7841fa3",
-    "activity-logger/scripts/init_activities.sh": "467bca995ed8b33db8a145fa84efb56f0ef71e8a174b1b10dd85d8151b944b31",
-    "activity-logger/scripts/log_activity.sh": "2e9105646731d9919765f60ff707b1cc969f1124d60af11922a2c045466148ad",
+    "activity-logger/SKILL.md": "845ab4cc242b8959d51e2a1060d141950124ea9cdd5367c2a7c26cf31475d26c",
+    "activity-logger/scripts/init_activities.sh": "4af075257dd6a8fbc7eec9147e96a27184e548f8f96114ea87241759a2a2224b",
+    "activity-logger/scripts/log_activity.sh": "2c83420b47a72c3854fb87aa5f637d3b33359099e45cc305282970770e2ef2a6",
     "docs/plugins/installation.md": "7232106e4792aa4dd951f10b86036aa12b8a1acc93533fec67623d933c6b86e8",
     "docs/plugins/migration.md": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16",
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",

@@ -68,13 +68,10 @@ init_dirs() {
     log_info "Initialization complete"
 }
 
-# Get current session ID
+# The host session that log_activity.sh files records under (same order as there)
 get_session_id() {
-    if [[ -f "$SESSION_FILE" ]]; then
-        cat "$SESSION_FILE"
-    else
-        echo "No active session"
-    fi
+    local host_id="${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-${CODEX_THREAD_ID:-}}}"
+    echo "${host_id:-No host session}"
 }
 
 # List all activities
@@ -107,18 +104,11 @@ show_session_info() {
     local session_id
     session_id=$(get_session_id)
     echo "Session ID: $session_id"
-
-    if [[ -f "$SESSION_FILE" ]]; then
-        local created
-        created=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M:%S" "$SESSION_FILE" 2>/dev/null || stat -c "%y" "$SESSION_FILE" 2>/dev/null || echo "Unknown")
-        echo "Session Started: $created"
-    fi
-
     echo "Activities Dir: $ACTIVITIES_DIR"
 
     # Count activities in this session efficiently
     local session_count=0
-    if [[ "$session_id" != "No active session" ]]; then
+    if [[ "$session_id" != "No host session" ]]; then
         session_count=$(find "$ACTIVITIES_DIR" -maxdepth 1 -name "${session_id}*.json" 2>/dev/null | wc -l | tr -d ' ')
     fi
     echo "Activities in this session: $session_count"
@@ -128,9 +118,9 @@ show_session_info() {
 reset_session() {
     if [[ -f "$SESSION_FILE" ]]; then
         rm "$SESSION_FILE"
-        log_info "Session reset. A new session ID will be generated on next activity log."
+        log_info "Removed the old .session_id file; it is no longer read."
     else
-        log_warn "No active session to reset"
+        log_info "Nothing to reset: session ids come from the host session."
     fi
 }
 
@@ -236,7 +226,7 @@ Commands:
   init              Initialize directory structure (default)
   info              Show current session information
   list              List all activity records
-  reset             Reset current session ID
+  reset             Remove the old .session_id file (no longer read)
   archive [DAYS]    Archive activities older than DAYS (default: 30)
   stats             Show activity statistics
   help              Show this help message
