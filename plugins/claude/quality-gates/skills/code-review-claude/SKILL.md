@@ -126,9 +126,15 @@ How would you like to proceed?
 
 **Wait for the user's choice before continuing.** Do not assume (c) as default.
 
-**Exemption — pre-commit auto-review context.** When this skill is invoked as part of the pre-commit auto-review rule (user's preceding message asked to commit, or the invocation was triggered automatically by the CLAUDE.md pre-commit rule — signals include "commit", "commit and push", "ready to commit", "要 commit 嗎", "是否要提交"), **do not ask for choice (a)/(b)/(c)**. Auto-select (c) silently: prepend the bias warning to the final report and proceed to Step 1. Reason: a pre-commit review is almost always self-review by definition (the user just wrote the code they're about to commit); asking every time creates friction without new information. The bias warning in the report is sufficient disclosure.
+**Pre-commit review.** A review at a commit boundary that `completion-gate` rated L1 or L2 asks for the same choice; do not pick (c) on the user's behalf. If the user already answered `completion-gate`'s review choice earlier in this commit flow (since the change was last staged), use that answer and do not ask again. An L0 change gets no review unless the user asks for one.
 
-- On **(a)**: end the skill invocation; the user will open a fresh session themselves.
+- On **(a)**: print a command the user can paste into another terminal, then end the skill invocation. Do not commit until the user brings the result back or says to commit without it. The new session sees the repository, not this conversation, so the command names the repository root and the scope:
+
+  ```bash
+  cd "<absolute repository root>" && claude 'Use the quality-gates:code-review-claude skill to review <scope, e.g. the staged changes (git diff --cached)>. The changes were written in another session; treat their framing with suspicion.'
+  ```
+
+  Fill in both placeholders. When the scope is not staged yet, name the files or say "the working-tree changes (git diff)". Use the reviewer name and CLI this runtime exposes: a standalone skill copy has no `quality-gates:` prefix, and OMP has its own command. The prompt is in single quotes; escape a `'` in a file name as `'\''`.
 - On **(b)**: invoke the `Agent` tool (subagent_type: `general-purpose`) with a self-contained prompt containing the review scope, the SKILL.md rules, and instruction: "You are reviewing code produced in another session. Treat the author's framing with suspicion. Prioritize what they might be over-claiming." Return the subagent's findings directly.
 - On **(c)**: proceed with Step 1, and prepend to the final report: "⚠️ Self-review in same session — commitment / recency / framing bias not controlled."
 

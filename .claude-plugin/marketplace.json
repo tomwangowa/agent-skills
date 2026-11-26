@@ -22,7 +22,7 @@
       "displayName": "Towa: Quality Gates",
       "name": "quality-gates",
       "source": "./plugins/claude/quality-gates",
-      "version": "0.2.1"
+      "version": "0.2.2"
     },
     {
       "description": "technical-decisions skills",

@@ -4,7 +4,7 @@
     {
       "name": "quality-gates",
       "display_name": "Towa: Quality Gates",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "skills": [
         "code-review-claude",
         "code-review-codex",

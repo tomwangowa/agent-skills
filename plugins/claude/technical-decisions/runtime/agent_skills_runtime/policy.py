@@ -48,6 +48,8 @@ def render_policy(package: dict, surface: str, installed: dict) -> tuple[str, li
         reviewer = 'code-review-codex' if surface == 'codex' else 'code-review-claude'
         lines.extend([f'For generic code review, first use {name}:{reviewer}.',
                       f'Before a completion claim, use {name}:completion-gate and report actual evidence.',
+                      f'Before proposing a commit, load {name}:completion-gate in that turn. At L1/L2, ask where',
+                      'the review runs (this session, a subagent, or a new session) before reviewing.',
                       'The Gemini reviewer is retired; do not invoke it or send it a diff.',
                       'An external reviewer requires explicit model selection and approved diff/data scope.',
                       'Preference-off does not disable these engineering checks.'])

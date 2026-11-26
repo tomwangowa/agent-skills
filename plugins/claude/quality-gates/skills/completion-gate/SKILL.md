@@ -72,6 +72,31 @@ extension, and directory name are not sufficient evidence by themselves.
 Runtime reviewer mapping is fixed: Codex uses `code-review-codex`; Claude Code
 and OMP use `code-review-claude`. Do not automatically run both reviewers.
 
+### Review choice at L1 and L2
+
+Before running the native reviewer at L1 or L2, ask the user where the review
+runs and wait for the answer. The code under review was usually written in this
+session, so each option trades speed against independence:
+
+1. **New session**: the most independent. Print the paste-ready command from
+   the reviewer skill and do not commit until the user brings the result back
+   or says to commit without it.
+2. **Subagent**: an isolated reviewer that does not see this session's
+   reasoning, at extra token cost. List it only when the runtime exposes a
+   subagent tool.
+3. **This session**: fastest; the report carries the self-review bias warning.
+
+The reviewer skills list the same options in the same order. Recommend one with
+a reason: the subagent for L1 when it is available, the new session for L2.
+Pass the answer to the reviewer skill so it does not ask again, even when the
+answer arrives in a later turn. At L0, do not ask; review only when the user
+requests it.
+
+Record where the review ran in the report, for example `native review:
+code-review-claude (new session, findings pasted by the user)`. Findings brought
+back from a new session count as review evidence only for the diff that session
+reviewed; re-ask when the staged change has moved since.
+
 ### Escalation rules
 
 - An L1 change without a relevant test or checker escalates to L2.
@@ -92,7 +117,7 @@ REASON: changed executable behavior
 
 CHECKS:
 - targeted tests: passed
-- native review: code-review-codex
+- native review: code-review-codex (subagent)
 
 ESCALATED: no
 

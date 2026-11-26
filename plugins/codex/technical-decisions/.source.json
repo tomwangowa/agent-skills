@@ -115,7 +115,7 @@
     "role-pm/SKILL.md": "1cda3a937c770d54ac0caf197520643eaf7a54987d41e466451a54e386c8b8a5",
     "role-rd/SKILL.md": "8d9971be6149c03b70e276fa9483effa5c94996a2323ff6b716d2e89f366bd2a",
     "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
-    "runtime/agent_skills_runtime/policy.py": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a",
+    "runtime/agent_skills_runtime/policy.py": "608b32a8e7992a9d6b944df5a688214f63c9eb1c3e94339d945c8e74dc6b7d81",
     "spec-gap-finder/SKILL.md": "afc142e0877e8e7b06b8286dccfb3b1dc201a5eb009cdb01c773a70644da9189",
     "spec-gap-finder/references/checklist.md": "a9c65f20cbe11394b36b4d481c8a60766e1fef900ef3de82c59b828c98723521",
     "tech-feasibility/SKILL.md": "af4b0403ef1e7e1a170b544e7c90b97e344be20be16e95746ae8cadc45ddac1d",

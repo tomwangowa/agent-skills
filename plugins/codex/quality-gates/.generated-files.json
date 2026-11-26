@@ -2,15 +2,15 @@
   "files": {
     ".codex-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "b0e802d1b3886203e7542c04130e80333373c4566b8ee2db56082b7ab8125122"
+      "sha256": "ce57b45823f82e4340e361f8c7a3682c16ada74ee87932b85d50ecbc5be4ab8a"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "622e9ea3d13ac6f1659f7e250414897acda7d530e2ac9e245f28e66272e2faf6"
+      "sha256": "b602bd7db8f9d53f9097a85026779c0e8e5cd06aaa310886bf227749dd293b70"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "8f2aff23ffb9b0abcd9f9baf50d6b43e4430643b95a5571da3ae12a6dd8793e1"
+      "sha256": "e3c34b0ce51975525653b369a86db94f3e19b725abaf1e79d2ec209dc92790e9"
     },
     "hooks/hooks.json": {
       "mode": 420,
@@ -18,7 +18,7 @@
     },
     "hooks/policy.md": {
       "mode": 420,
-      "sha256": "f6ba0676bef45a0b5427d75d5451855e1a64d029a1049ad221a6226cac4bf508"
+      "sha256": "cc0ef3fab2e7bea7834258208549aca78fe156c1e9db5a96130d548d54f9b6a2"
     },
     "hooks/policy.py": {
       "mode": 420,
@@ -38,11 +38,11 @@
     },
     "runtime/agent_skills_runtime/policy.py": {
       "mode": 420,
-      "sha256": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a"
+      "sha256": "608b32a8e7992a9d6b944df5a688214f63c9eb1c3e94339d945c8e74dc6b7d81"
     },
     "skills/code-review-codex/SKILL.md": {
       "mode": 420,
-      "sha256": "1f64cc575d0c06cf960fd2067263d5a14ad176027a4d30757abdbf1d75222a4f"
+      "sha256": "8ffa49921452d37bc95d02cf78732b309f7ee99d96cd2b3c685c11b993510a18"
     },
     "skills/codebase-audit/SKILL.md": {
       "mode": 420,
@@ -50,7 +50,7 @@
     },
     "skills/completion-gate/SKILL.md": {
       "mode": 420,
-      "sha256": "e8ebc33785fbf42bcd614a002674f7c7d1de0769b550d493bd5bbebba82900bd"
+      "sha256": "37424c6dd3cd209d572a2445cdb3ab500addf750ff01211c18c4034126087387"
     },
     "skills/pr-review-assistant/README.md": {
       "mode": 420,

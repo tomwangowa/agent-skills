@@ -65,7 +65,7 @@
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
     "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",
     "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",
-    "runtime/agent_skills_runtime/policy.py": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a",
+    "runtime/agent_skills_runtime/policy.py": "608b32a8e7992a9d6b944df5a688214f63c9eb1c3e94339d945c8e74dc6b7d81",
     "skill-auditor/README.md": "ed7fb84f75473b4f3559f75994851fb79fdb1069bc1766b4947df6c128d2710b",
     "skill-auditor/SKILL.md": "d7382693ce25c5ffc34fca877a7c23aa7b2a1a4e3f6838b41c7a4af8a81501fb",
     "skill-auditor/examples/README.md": "0c2afbac0538b8697d08d3a8b58d8a501361ddd7769f2ae3e32bb10cc9b2dda1",
