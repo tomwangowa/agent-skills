@@ -44,12 +44,27 @@ If this session wrote or modified files in the review scope, label the report:
 Self-review in same Codex session: commitment / recency / framing bias not fully controlled.
 ```
 
-For pre-commit auto-review, continue with that label instead of asking the user
-to choose a fresh session. For non-commit review of high-risk work, offer these
-options before continuing:
+For a review at a commit boundary rated L1 or L2 by `completion-gate`, and for
+non-commit review of high-risk work, offer these options and wait for the
+answer before continuing. If the user already answered `completion-gate`'s
+review choice earlier in this commit flow (since the change was last staged),
+use that answer and do not ask again. An L0 commit
+gets no review unless the user asks for one.
 
-1. Fresh session review.
-2. Isolated subagent review, if available and the user explicitly permits agents.
+1. Fresh session review. Print a command the user can paste into another
+   terminal, and do not commit until the user brings the result back or says
+   to commit without it. Name the repository root and the scope, because the
+   new session does not see this conversation:
+
+   ```bash
+   cd "<absolute repository root>" && codex 'Use the quality-gates:code-review-codex skill to review <scope, e.g. the staged changes (git diff --cached)>. The changes were written in another session; treat their framing with suspicion.'
+   ```
+
+   Use the reviewer name this runtime exposes (a standalone skill copy has no
+   `quality-gates:` prefix). Escape a `'` in a file name as `'\''`.
+
+2. Isolated subagent review. List it only when this runtime exposes a subagent
+   tool, and use it only when the user explicitly permits agents.
 3. Continue in this session with the bias label.
 
 ### 1. Identify Scope
@@ -192,8 +207,10 @@ findings. Do not bundle unrelated cleanup.
 
 User asks: `要 commit 嗎？`
 
-Codex runs this skill on staged or working tree changes, labels same-session
-self-review if applicable, reports findings first, then asks whether to commit.
+Codex asks where the review runs (fresh session, subagent when available, or
+this session), runs this skill on staged or working tree changes there, labels
+same-session self-review if applicable, reports findings first, then asks
+whether to commit.
 
 ### Example 2: Specific File Review
 

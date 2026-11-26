@@ -21,7 +21,7 @@ Native code reviewer for Claude Code. Runs inside the Claude Code session — no
 
 ✅ **Use in Claude Code:**
 - Daily development review of staged / unstaged changes
-- Pre-commit auto-review in Claude Code
+- Pre-commit review in Claude Code (L1/L2 changes)
 - Specific file, recent commit, or pasted snippet
 - Self-review after writing code (Step 0 auto-detects self-review bias)
 
@@ -85,7 +85,7 @@ Files: 2 | High: 1 | Medium: 1 | Adversarial: 1 | Assumptions: 2
 
 ### Workflow (see SKILL.md for the exact steps)
 
-- **Step 0 — Self-review detection** — If this session just edited files in the review scope, it either asks how to proceed (fresh session / subagent / warning-and-continue) or, under the pre-commit auto-review rule, silently prepends a bias warning and continues.
+- **Step 0 — Self-review detection** — If this session just edited files in the review scope, it asks how to proceed (fresh session / subagent / warning-and-continue). At a commit boundary rated L1/L2 it asks the same choice, or reuses the answer already given to `completion-gate`.
 - **Step 3.3 — Hallucination guard** — Before claiming any syntax / whitespace / regex / character-class finding, mandatorily runs a language-matched syntax checker (`python3 -c ast.parse`, `bash -n`, `node --check`, `php -l`, `gofmt -e`, `ruby -c`, `jq empty`, …). If the checker passes, the finding is dropped or reclassified. If Bash is unavailable, syntax-class findings get `[UNVERIFIED-SYNTAX]` and capped severity.
 - **Step 3.4 — Language-specific checklists** — Consults `references/language-checklists.md` for known-gap patterns the benchmark exposed (Python `body` dispatch, JS socket-idle vs overall timeout, Shell `&& true` suppression, etc.).
 - **Step 3.5 — Adversarial quick check** — Applies a 4-item checklist per function / change: Assumption exposed? / Mirror test? / Suppression not fix? / What breaks this?
@@ -108,7 +108,7 @@ Files: 2 | High: 1 | Medium: 1 | Adversarial: 1 | Assumptions: 2
 "review my staged changes"
 ```
 
-Reviews all files staged with `git add`. This is the default pre-commit auto-review path.
+Reviews all files staged with `git add`. This is the default pre-commit review scope.
 
 ### Review a specific file
 
@@ -161,7 +161,7 @@ Six HTTP retry clients in Java / Python / JS / TS / PHP / Shell were reviewed by
 |---|---|
 | Generic review in Claude Code | `code-review-claude` |
 | Generic review in Codex | `code-review-codex` |
-| Pre-commit auto-review | Native reviewer of the active runtime |
+| Pre-commit review | Native reviewer of the active runtime |
 | Compliance / security-critical last-mile check | Qualified human or specialist review |
 
 ---

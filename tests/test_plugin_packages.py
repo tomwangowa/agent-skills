@@ -21,7 +21,7 @@ APPROVED = {
     'skill-toolbox': 'skill-auditor skill-router skill-sync claude-workflow-designer',
 }
 APPROVED_VERSIONS = {
-    'quality-gates': '0.2.1',
+    'quality-gates': '0.2.2',
     'technical-decisions': '0.1.4',
     'repo-workflow': '0.3.1',
     'content-tools': '0.2.1',

@@ -6,6 +6,8 @@ Check invocation_intent in exposed metadata or the scoped catalog. A user-only s
 manual checkpoint: require explicit user invocation; workflow confirmation is not that invocation.
 For generic code review, first use quality-gates:code-review-codex.
 Before a completion claim, use quality-gates:completion-gate and report actual evidence.
+Before proposing a commit, load quality-gates:completion-gate in that turn. At L1/L2, ask where
+the review runs (this session, a subagent, or a new session) before reviewing.
 The Gemini reviewer is retired; do not invoke it or send it a diff.
 An external reviewer requires explicit model selection and approved diff/data scope.
 Preference-off does not disable these engineering checks.

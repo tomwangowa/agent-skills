@@ -2,15 +2,15 @@
   "files": {
     ".claude-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "fb75b413e14757924f57f2940e2552827e97ecae83a2e9454960654f1c552015"
+      "sha256": "9f5337b24b5f589d74327b76547b423e2124cf1ded6c2b7ac390ac8c0f9f034c"
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "622e9ea3d13ac6f1659f7e250414897acda7d530e2ac9e245f28e66272e2faf6"
+      "sha256": "b602bd7db8f9d53f9097a85026779c0e8e5cd06aaa310886bf227749dd293b70"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "bf7af42ef62baa55045c40a57d8d941b46a6e811f548c32d32a582cbf00db13b"
+      "sha256": "ec1f8970b73ad70216e0b925073fc377d09b0ef8cfedfc60e48a0bfcda12d3ac"
     },
     "hooks/hooks.json": {
       "mode": 420,
@@ -18,7 +18,7 @@
     },
     "hooks/policy.md": {
       "mode": 420,
-      "sha256": "2a2abac68558148cad50a7c69e6eea65673df6b8d94b42642a4fa66eccd93164"
+      "sha256": "3c8bb2c91504fa035684cdda1fc17e6d050e61ad0841b2e443d251a2de1a379c"
     },
     "hooks/policy.py": {
       "mode": 420,
@@ -38,15 +38,15 @@
     },
     "runtime/agent_skills_runtime/policy.py": {
       "mode": 420,
-      "sha256": "560b21981fc6e9822d5a1ecf9dbb30f8f65d793984c238a985c5717b32dea82a"
+      "sha256": "608b32a8e7992a9d6b944df5a688214f63c9eb1c3e94339d945c8e74dc6b7d81"
     },
     "skills/code-review-claude/README.md": {
       "mode": 420,
-      "sha256": "9dd90f16634e075512f702092f9bcba8f5f8cb32e3c6531ac97a67bad916c90b"
+      "sha256": "19d494b39a88125fd20683f7413d9d28d7ad3d907190d1dcb9e06249428ceb7f"
     },
     "skills/code-review-claude/SKILL.md": {
       "mode": 420,
-      "sha256": "1cb6818d64e4ba980134e4d570ae8e7e4dd27ac237a01fcd4b1aae0f0086949f"
+      "sha256": "4ca702aa1393a927bacd38f1ac43f342e9a87e8a14694433d51d91cf249541a9"
     },
     "skills/code-review-claude/references/language-checklists.md": {
       "mode": 420,
@@ -58,7 +58,7 @@
     },
     "skills/completion-gate/SKILL.md": {
       "mode": 420,
-      "sha256": "e8ebc33785fbf42bcd614a002674f7c7d1de0769b550d493bd5bbebba82900bd"
+      "sha256": "37424c6dd3cd209d572a2445cdb3ab500addf750ff01211c18c4034126087387"
     },
     "skills/pr-review-assistant/README.md": {
       "mode": 420,
