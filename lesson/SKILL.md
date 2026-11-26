@@ -14,7 +14,7 @@ Each lesson is one markdown file with a one-line `rule` (loaded at session start
 ## Always
 
 - Never write, retire, promote or migrate without the user's explicit confirmation of the exact draft.
-- Never store lesson data inside the skills repository. The lessons folder is set by `config.json` (gitignored); do not print or commit its path.
+- Never store lesson data inside the skills repository or a plugin folder. The lessons folder is set by `lesson.json` in the agent-skills settings root (see Configuration); do not print or commit its path.
 - Reply in the user's language. Lesson text follows the language the user used.
 - Do not put secrets, tokens or customer data into a lesson. The script rejects obvious patterns; you still have to judge.
 
@@ -52,7 +52,7 @@ At wrap-up, `activity-logger` includes lesson proposals in its own closing quest
 
 ## Other commands
 
-- `/lesson setup`: ask which folder to use (suggest `~/lessons`; any folder works, including one inside a note vault). Run `<script> setup --dir <path>` (add `--create` only if the user agrees to create it). Then run `<script> snippet` and show the result. For each agent entry file that exists (`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.gemini/GEMINI.md`), show the exact addition and append it only after the user confirms that file.
+- `/lesson setup`: ask which folder to use (suggest `~/lessons`; any folder works, including one inside a note vault). Run `<script> setup --dir <path>` (add `--create` only if the user agrees to create it). In Claude Code and Codex the work-journal plugin loads the digest at session start, so no entry-file edit is needed; if `~/.claude/CLAUDE.md` or `~/.codex/AGENTS.md` still has an older `## Lessons` block that runs `lesson.py`, offer to remove it (after the user confirms) so the digest does not load twice or from a stale path. Only for an agent without plugin hooks (for example `~/.gemini/GEMINI.md`), run `snippet` from a standalone copy of this skill (not the plugin folder, whose path changes with each update; `snippet` warns there), show the exact addition and append it after the user confirms that file.
 - `/lesson list [project]`: run `<script> list [--project NAME]` and show the result. Mention conflict copies and unparsable files if any.
 - `/lesson retire <file> [reason]`: run `<script> retire <file> --reason "<reason>"` after the user confirms which lesson.
 - `/lesson promote <file>`: only for project-scope lessons. Draft a de-identified version (remove personal paths, names, internal hostnames, customer details), show it, and append it to the project's own doc (default `docs/lessons.md`) only after the user confirms. De-identification is best effort, so tell the user to read it. The source lesson stays unchanged.
@@ -65,7 +65,11 @@ At wrap-up, `activity-logger` includes lesson proposals in its own closing quest
 
 ## Session start
 
-Agents run `<script> digest` as their first action (via the entry-file snippet) and quote its first line in the first reply. If that line starts with `lessons: ⚠` or says setup is missing, tell the user in one sentence and continue.
+In Claude Code and Codex, the work-journal plugin's SessionStart hook (`scripts/session_start_hook.py`) runs the digest and loads it with an instruction to quote its first line in the first reply; after a resume or compaction it loads the rules again without asking for the quote. Codex runs the hook only after the user approves it in `/hooks`. The hook prints nothing until `lesson.json` exists, so lessons stay off until `/lesson setup`. A `lesson.json` that exists but cannot be used, or a settings root that cannot be resolved, gives a `lesson digest not loaded` message, which you relay in one sentence. Other agents run `<script> digest` as their first action through the entry-file snippet. If the first line starts with `lessons: ⚠`, tell the user in one sentence and continue.
+
+## Configuration
+
+`lesson.json` lives in the agent-skills settings root, next to `work-journal.json`: `AGENT_SKILLS_CONFIG_DIR`, otherwise `XDG_CONFIG_HOME/agent-skills`, otherwise `~/.config/agent-skills`. `LESSON_CONFIG` names another file explicitly. Plugin updates replace the skill folder, so the configuration never lives there. An older `config.json` inside the skill folder is no longer read; `digest` says when it finds one. Move it with the user's confirmation (`<script> setup --dir <same folder>` writes a new one). A standalone copy without the bundled runtime resolves the same settings root.
 
 ## Examples
 
@@ -95,7 +99,8 @@ Agent: (runs migrate --apply with the confirmed mapping)
 ## Error Handling
 
 - `error: ...` on stderr from the script is a real failure. Show it to the user; do not retry with different input silently.
-- No `config.json`: every command except `setup` stops and points to `/lesson setup`.
+- No `lesson.json`: every command except `setup` stops and points to `/lesson setup` (or to the old `config.json` it found); the session-start hook stays silent when the settings root itself resolves.
+- `lesson.json` unreadable, or the settings root not resolvable (a relative `AGENT_SKILLS_CONFIG_DIR` or `XDG_CONFIG_HOME`, or one inside a plugin folder): `digest` prints a `lessons: ⚠` line and the hook gives a `lesson digest not loaded` message. Tell the user; do not overwrite `lesson.json` without confirmation.
 - Lessons folder missing or unreadable (a sync folder that is not mounted is the usual cause): `digest` prints `lessons: ⚠ 讀不到資料夾`, `add` exits with an error. Say so instead of creating a folder.
 - Files that cannot be parsed (empty, half-synced, broken frontmatter): `digest` skips them and shows `⚠ 略過 N 個`. Report the count; do not try to repair them.
 - Invalid entry (empty or multi-line rule, rule over 120 characters, missing project for project scope, secret-looking text): `add` exits with code 2 and a message. Fix the draft with the user, then run it again.
@@ -104,10 +109,10 @@ Agent: (runs migrate --apply with the confirmed mapping)
 
 ## Security Considerations
 
-- **Data location**: lessons live in the folder named by `config.json`, never inside the skills repository. `config.json` is gitignored and may contain an account name in its path, so do not print or commit it.
+- **Data location**: lessons live in the folder named by `lesson.json`, never inside the skills repository or a plugin folder. `lesson.json` sits in the personal settings root and may contain an account name in its path, so do not print or commit it.
 - **Input safety**: entries arrive as JSON on stdin and are parsed with `json.loads` only. `add` validates every entry (single-line rule, length, scope, project) before it writes anything. Nothing is evaluated or interpolated into a shell command; pass entries through a quoted heredoc (`<<'EOF'`).
 - **Secret scan**: `add` rejects text that matches common API key, token, password and private key patterns. The list is best effort, so still judge the text yourself.
-- **File path safety**: `retire` accepts a bare `.md` file name and rejects anything containing `/` or `\`. `add` writes only inside the configured folder and never overwrites an existing file. `setup` will not replace an existing `config.json` without `--force`.
+- **File path safety**: `retire` accepts a bare `.md` file name and rejects anything containing `/` or `\`. `add` writes only inside the configured folder and never overwrites an existing file. `setup` will not replace an existing `lesson.json` without `--force`, and refuses a lessons folder inside a plugin folder.
 - **Frontmatter integrity**: values are quoted and escaped, so a rule containing quotes or colons cannot break the file structure.
 - **Trust boundary**: `digest` output is loaded into the agent as instructions, so anyone who can write to the lessons folder can steer every session. Keep the folder private. `digest` cuts any rule longer than 120 characters, but it does not otherwise filter content.
 - **Network**: the script makes no network calls and calls no external service.

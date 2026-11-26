@@ -51,7 +51,7 @@ When triggered, this skill will:
 
 ### Lesson proposals (optional)
 
-If the `lesson` skill is installed and configured (`lesson/config.json` exists) and this session hit a lesson-worthy event (a pitfall fixed, an assumption disproved, or the user correcting the agent), draft at most two lessons following the `lesson` skill's capture flow and include them in the same closing message as the activity summary, so the user answers once. Write a lesson only after the user confirms it. If the `lesson` skill is missing or not configured, skip this step without comment.
+If the `lesson` skill (bundled with work-journal) is configured (`lesson.json` exists in the agent-skills settings root; `lesson.py digest` does not report 尚未設定) and this session hit a lesson-worthy event (a pitfall fixed, an assumption disproved, or the user correcting the agent), draft at most two lessons following the `lesson` skill's capture flow and include them in the same closing message as the activity summary, so the user answers once. Write a lesson only after the user confirms it. If the `lesson` skill is missing or not configured, skip this step without comment.
 
 ## Activity Record Format
 
@@ -250,7 +250,7 @@ so under Codex the tool's records fall back to `mcp_<time>` unless
 
 ### Optional
 - `openssl` - For secure random ID generation (falls back to `/dev/urandom` or `$RANDOM` if not available)
-- `lesson` skill - when installed and configured, wrap-up also offers lesson proposals (see "Lesson proposals")
+- `lesson` skill (bundled) - when configured, wrap-up also offers lesson proposals (see "Lesson proposals")
 
 ## Implementation Notes
 

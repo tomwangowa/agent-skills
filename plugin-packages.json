@@ -292,11 +292,12 @@
     {
       "name": "work-journal",
       "display_name": "Towa: Work Journal",
-      "version": "0.2.4",
+      "version": "0.3.0",
       "skills": [
         "activity-logger",
         "work-log-analyzer",
-        "report-generator"
+        "report-generator",
+        "lesson"
       ],
       "platforms": [
         "claude",
@@ -312,6 +313,10 @@
         "work-log-analyzer/scripts/aggregate_activities.sh",
         "work-log-analyzer/scripts/find_referenced_documents.py",
         "report-generator/agents/openai.yaml",
+        "lesson/README.md",
+        "lesson/scripts/lesson.py",
+        "lesson/scripts/session_start_hook.py",
+        "lesson/templates/entry-snippet.md",
         "runtime/agent_skills_runtime/__init__.py",
         "runtime/agent_skills_runtime/config.py",
         "runtime/agent_skills_runtime/doctor.py",
@@ -354,15 +359,6 @@
         ]
       },
       "dependencies": [
-        {
-          "kind": "optional",
-          "provider": "external",
-          "skills": [
-            "lesson"
-          ],
-          "condition": "Record lessons only when explicitly requested and installed",
-          "tested_versions": []
-        },
         {
           "kind": "optional",
           "provider": "content-tools",

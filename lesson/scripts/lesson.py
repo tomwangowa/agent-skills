@@ -15,7 +15,8 @@ from datetime import date, datetime
 from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parent.parent
-DEFAULT_CONFIG = SKILL_DIR / "config.json"
+CONFIG_NAME = "lesson.json"
+PLUGIN_MANIFESTS = (".claude-plugin/plugin.json", ".codex-plugin/plugin.json")
 DEFAULTS = {"cap_global": 50, "cap_project": 20}
 RULE_MAX = 120
 CONFLICT_RE = re.compile(r"\(\d+\)|conflicted copy", re.IGNORECASE)
@@ -35,13 +36,82 @@ SECRET_RES = [
 
 # ---------------------------------------------------------------- config
 
+def inside_plugin(path):
+    """True when path is in a plugin folder, which a plugin update replaces."""
+    resolved = Path(path).resolve()
+    return any(
+        (parent / marker).is_file()
+        for parent in (resolved, *resolved.parents)
+        for marker in (*PLUGIN_MANIFESTS, "plugin.json")
+    )
+
+
+def fallback_config_root():
+    """resolve_config_root for a standalone copy without the bundled runtime.
+
+    Keep it aligned with runtime/agent_skills_runtime/config.py: the
+    lesson plugin tests compare the two.
+    """
+    home = Path.home()
+    explicit = os.environ.get("AGENT_SKILLS_CONFIG_DIR")
+    value = explicit or os.environ.get("XDG_CONFIG_HOME")
+    if not value:
+        root = home / ".config/agent-skills"
+    else:
+        if value == "~":
+            root = home
+        elif value.startswith("~/"):
+            root = home / value[2:]
+        elif Path(value).is_absolute():
+            root = Path(value)
+        else:
+            raise ValueError("Config root must be an absolute or ~/ path")
+        if not explicit:
+            root = root / "agent-skills"
+    root = Path(os.path.abspath(os.path.normpath(root)))
+    if inside_plugin(root):
+        raise ValueError("Personal settings and data must be outside plugin caches")
+    return root
+
+
+def shared_config_root():
+    """Resolve the agent-skills settings root.
+
+    The skill folder may be a plugin cache that an update replaces, so the
+    configuration lives in the same settings root as work-journal.json. The
+    bundled runtime decides when present; a standalone copy uses the same
+    precedence through fallback_config_root.
+    """
+    package_root = SKILL_DIR.parent
+    if package_root.name == "skills" and any(
+            (package_root.parent / marker).is_file() for marker in PLUGIN_MANIFESTS):
+        package_root = package_root.parent
+    runtime = package_root / "runtime"
+    if not (runtime / "agent_skills_runtime/config.py").is_file():
+        return fallback_config_root()
+    if str(runtime) not in sys.path:
+        sys.path.insert(0, str(runtime))
+    from agent_skills_runtime.config import resolve_config_root
+    return resolve_config_root(os.environ, Path.home())
+
+
 def config_path():
-    return Path(os.environ.get("LESSON_CONFIG") or DEFAULT_CONFIG)
+    explicit = os.environ.get("LESSON_CONFIG")
+    if explicit:
+        return Path(explicit)
+    return shared_config_root() / CONFIG_NAME
 
 
 def load_config():
-    """Return the merged config, or None when missing or unusable."""
-    path = config_path()
+    """Return the merged config, or None when missing or unusable.
+
+    Callers that must tell "not set up" from "set up but broken" check
+    config_path() themselves (see _digest and the session-start hook).
+    """
+    try:
+        path = config_path()
+    except (RuntimeError, ValueError, ImportError):
+        return None
     if not path.is_file():
         return None
     try:
@@ -237,6 +307,24 @@ def need_config():
 
 # -------------------------------------------------------------- commands
 
+def describe_error(exc):
+    """Name an error without a path: ValueError text here is fixed wording, the rest is not."""
+    return str(exc) if type(exc) is ValueError else type(exc).__name__
+
+
+def missing_config_message():
+    """Say why load_config() returned None: not set up, old setup, or broken."""
+    try:
+        path = config_path()
+    except (RuntimeError, ValueError, ImportError, OSError) as exc:
+        return f"⚠ 找不到設定位置（{describe_error(exc)}）"
+    if path.is_file():
+        return "⚠ lesson.json 無法讀取或沒有 lessons_dir，請檢查它或重跑 /lesson setup"
+    if (SKILL_DIR / "config.json").is_file():
+        return "尚未設定；找到舊的 config.json，請用同一個資料夾執行 /lesson setup"
+    return "尚未設定，請執行 /lesson setup"
+
+
 def cmd_digest(args):
     try:
         return _digest(args)
@@ -248,7 +336,7 @@ def cmd_digest(args):
 def _digest(args):
     cfg = load_config()
     if cfg is None:
-        print("lessons: 尚未設定，請執行 /lesson setup")
+        print(f"lessons: {missing_config_message()}")
         return 0
     try:
         valid, bad, conflicts = scan(cfg["lessons_dir"])
@@ -453,16 +541,24 @@ def cmd_migrate(args):
 
 
 def cmd_setup(args):
-    path = config_path()
+    try:
+        path = config_path()
+    except (RuntimeError, ValueError, ImportError) as exc:
+        print(f"error: settings root not resolved: {exc}", file=sys.stderr)
+        return 1
     if path.exists() and not args.force:
         print(f"error: {path} already exists (use --force)", file=sys.stderr)
         return 1
     target = Path(os.path.expanduser(args.dir))
+    if inside_plugin(target):
+        print("error: the lessons folder must be outside a plugin folder", file=sys.stderr)
+        return 1
     if not target.is_dir():
         if not args.create:
             print(f"error: {target} does not exist (use --create)", file=sys.stderr)
             return 1
         target.mkdir(parents=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
     stored = args.dir if args.dir.startswith("~") else os.path.abspath(args.dir)
     path.write_text(
         json.dumps({"lessons_dir": stored, **DEFAULTS}, ensure_ascii=False, indent=2)
@@ -474,6 +570,10 @@ def cmd_setup(args):
 
 
 def cmd_snippet(_args):
+    if inside_plugin(SKILL_DIR):
+        print("warning: this copy is inside a plugin folder that the next update "
+              "replaces; run snippet from a standalone copy of lesson instead",
+              file=sys.stderr)
     template = (SKILL_DIR / "templates" / "entry-snippet.md").read_text(encoding="utf-8")
     script = f"python3 {shlex.quote(str(Path(__file__).resolve()))}"
     print(template.replace("{{SCRIPT}}", script), end="")
