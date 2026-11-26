@@ -57,6 +57,4 @@ Before sending, ask: can the reader decide the next step from this message alone
 - **Session 結束前**: 當使用者表示要結束工作（「結束」「收工」「done」「先這樣」「今天到這」），MUST invoke `activity-logger` 記錄本次 session 的工作脈絡，再讓使用者離開。提醒使用者：「記得用 /activity-logger 記錄再走」。寫入後要確認輸出含 `Activity logged successfully`，或寫入的 session 檔案路徑；兩者都沒有，就不能告訴使用者已記錄。
 
 ## Lessons
-- 開工第一個動作：執行 `python3 ~/.claude/skills/lesson/scripts/lesson.py digest`，並在第一則回覆開頭原樣帶出輸出的第一行。輸出的規則本 session 都要遵守。
-- 遇到「踩坑修好」「假設被推翻」「被使用者糾正」時，在自然停頓點提議記錄，一次最多兩條，使用者確認才寫（流程見 /lesson）。
-- 沒有 /lesson 可用時，把 JSON（rule、scope、project、why、background、slug）用標準輸入傳給 `python3 ~/.claude/skills/lesson/scripts/lesson.py add --json -` 寫入；rule 限一行、不超過 120 字。
+- lessons 由 work-journal plugin 的 SessionStart hook 載入（`/lesson setup` 之後才啟用），這裡不要另外執行 `lesson.py`。
