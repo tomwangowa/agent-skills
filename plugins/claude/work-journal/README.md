@@ -1,12 +1,13 @@
 # work-journal
 
-Version 0.2.4; claude CLI.
+Version 0.3.0; claude CLI.
 
 Included skills:
 
 - `work-journal:activity-logger`
 - `work-journal:work-log-analyzer`
 - `work-journal:report-generator`
+- `work-journal:lesson`
 
 Read [installation and setup](installation.md), [migration and recovery](migration.md),
 [Superpowers compatibility](superpowers-compatibility.md) and [team instructions](team-instructions.md).

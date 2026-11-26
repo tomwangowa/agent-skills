@@ -16,7 +16,7 @@ APPROVED = {
     'technical-decisions': 'brainstorming assumption-extractor critical-research deep-reading micro-poc-validator narrative-auditor research-cross-validator research-synthesis tech-feasibility tech-research-pipeline role-orchestrator role-pm role-rd spec-gap-finder technical-proposal-review ui-design-analyzer',
     'repo-workflow': 'code-story-teller repo-sync handoff session-start task-bootstrap understand-file understand-function understand-repo',
     'content-tools': 'presentation-planner interactive-presentation-generator sepia md-translate pptx-to-md newsletter-digest qa-to-notes arxiv-digest',
-    'work-journal': 'activity-logger work-log-analyzer report-generator',
+    'work-journal': 'activity-logger work-log-analyzer report-generator lesson',
     'session-preferences': 'session-preferences control-return',
     'skill-toolbox': 'skill-auditor skill-router skill-sync claude-workflow-designer',
 }
@@ -25,7 +25,7 @@ APPROVED_VERSIONS = {
     'technical-decisions': '0.1.4',
     'repo-workflow': '0.3.1',
     'content-tools': '0.2.1',
-    'work-journal': '0.2.4',
+    'work-journal': '0.3.0',
     'session-preferences': '0.1.7',
     'skill-toolbox': '0.1.4',
 }
@@ -40,7 +40,7 @@ class PackageTests(unittest.TestCase):
         self.assertEqual({p['name']: p['skills'] for p in self.packages},
                          {name: skills.split() for name, skills in APPROVED.items()})
         members = [s for p in self.packages for s in p['skills']]
-        self.assertEqual((len(members), len(set(members))), (48, 48))
+        self.assertEqual((len(members), len(set(members))), (49, 49))
         self.assertEqual(validate_packages(self.packages, self.catalog), [])
         self.assertEqual({p['name']: p['version'] for p in self.packages}, APPROVED_VERSIONS)
         lifecycles = {s['id']: s['lifecycle'] for s in self.catalog}

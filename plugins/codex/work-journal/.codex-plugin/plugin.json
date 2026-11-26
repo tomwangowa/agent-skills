@@ -3,7 +3,8 @@
     "name": "Tom Wang"
   },
   "description": "work-journal skills for codex CLI",
+  "hooks": "./hooks/hooks.json",
   "name": "work-journal",
   "skills": "./skills/",
-  "version": "0.2.4"
+  "version": "0.3.0"
 }

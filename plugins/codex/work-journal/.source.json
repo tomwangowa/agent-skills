@@ -4,15 +4,6 @@
   "package": {
     "dependencies": [
       {
-        "condition": "Record lessons only when explicitly requested and installed",
-        "kind": "optional",
-        "provider": "external",
-        "skills": [
-          "lesson"
-        ],
-        "tested_versions": []
-      },
-      {
         "condition": "Only when the user requests presentation conversion and the provider is installed",
         "kind": "optional",
         "provider": "content-tools",
@@ -67,6 +58,10 @@
       "work-log-analyzer/scripts/aggregate_activities.sh",
       "work-log-analyzer/scripts/find_referenced_documents.py",
       "report-generator/agents/openai.yaml",
+      "lesson/README.md",
+      "lesson/scripts/lesson.py",
+      "lesson/scripts/session_start_hook.py",
+      "lesson/templates/entry-snippet.md",
       "runtime/agent_skills_runtime/__init__.py",
       "runtime/agent_skills_runtime/config.py",
       "runtime/agent_skills_runtime/doctor.py",
@@ -100,18 +95,24 @@
     "skills": [
       "activity-logger",
       "work-log-analyzer",
-      "report-generator"
+      "report-generator",
+      "lesson"
     ],
-    "version": "0.2.4"
+    "version": "0.3.0"
   },
   "resources": {
-    "activity-logger/SKILL.md": "97c7482a24f8aaa54d8ca52dea26fd2dcba1cf951fe726942564212fbd0e57d6",
+    "activity-logger/SKILL.md": "a28f61bb2e138337d75d2277ddf1a7c606016e6896452bf991285a581bff984d",
     "activity-logger/scripts/init_activities.sh": "4af075257dd6a8fbc7eec9147e96a27184e548f8f96114ea87241759a2a2224b",
     "activity-logger/scripts/log_activity.sh": "2c83420b47a72c3854fb87aa5f637d3b33359099e45cc305282970770e2ef2a6",
     "docs/plugins/installation.md": "7232106e4792aa4dd951f10b86036aa12b8a1acc93533fec67623d933c6b86e8",
     "docs/plugins/migration.md": "490e73b51ce147e8c1f10c790f0d14ce7fb5d1eca09ca536711185d214d5ee16",
     "docs/plugins/superpowers-compatibility.md": "bc5ef47bcaef98cb60c179dc301b8b4aeba5f03b38dba6e5733016c76f9c0b2a",
     "docs/plugins/team-instructions.md": "ae64c5535cbbefc4157477330eb2fff15e9185ac30f980a7913a3a6b96abd1a0",
+    "lesson/README.md": "2f7aac5518f7df408029852d2acc680632d8a0bbc21f582d4ae34e4868031481",
+    "lesson/SKILL.md": "38ce63139cf628b0997952c0331d5b025376ea99384e57c26166ea112ed94477",
+    "lesson/scripts/lesson.py": "ce3a1fdeed031325991b42bca9ddfb3bc52b308a4270de3389ef87d1f52a52dc",
+    "lesson/scripts/session_start_hook.py": "90966b0ca13df5c73f533f2b3d0b3c2d604dd12182f44909ff0a77e0ccf3c948",
+    "lesson/templates/entry-snippet.md": "32fad6e10dcfb7d2fbe19d41b8d400c2e6524b50535c35b3bfe13f77f3c599c4",
     "report-generator/SKILL.md": "321a7d1dc221bfe4a1540f54a0eac50bf4699e18a36390b0adf02fc761664264",
     "report-generator/agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
     "runtime/agent_skills_runtime/__init__.py": "8f2d6d55ca37334c64a3e9f7e64ecf0bd7aa791a485cda6c90f8d8272d44d6fd",

@@ -2,7 +2,7 @@
   "files": {
     ".claude-plugin/plugin.json": {
       "mode": 420,
-      "sha256": "d61e40c5e0ab15157a7568ddd04ea8e9e45433226e951fdf8f13ca34dbe464e6"
+      "sha256": "841bed3aca2b1eadc7ff3b3f8b0e37e4561f3fc6058cecfa10a9cac32bf7b3de"
     },
     ".mcp.json": {
       "mode": 420,
@@ -10,11 +10,15 @@
     },
     ".source.json": {
       "mode": 420,
-      "sha256": "cf4bc6b0bf4ad63b95c5e03ff49dbd9721eb86fa06d0da4ab86f265d90cfd4bb"
+      "sha256": "a243d98751a74b76ec18e3eee8e05a94ced53e9b8cac59915969386aa0987f68"
     },
     "README.md": {
       "mode": 420,
-      "sha256": "bc37c0eddaf7d1c0a40eaea71f941cc0c87ea56fdcf6b4f2da8bb23fba0c3e8d"
+      "sha256": "2de02c62406d1f5c97c757bb440ba2df10cf89a3c1d0eaa25f23448ce01b6996"
+    },
+    "hooks/hooks.json": {
+      "mode": 420,
+      "sha256": "3aba42fb1caadb2dba7752b1459e173271c78c2fbfa00f917c5809fcdaae1655"
     },
     "installation.md": {
       "mode": 420,
@@ -14598,7 +14602,7 @@
     },
     "skills/activity-logger/SKILL.md": {
       "mode": 420,
-      "sha256": "97c7482a24f8aaa54d8ca52dea26fd2dcba1cf951fe726942564212fbd0e57d6"
+      "sha256": "a28f61bb2e138337d75d2277ddf1a7c606016e6896452bf991285a581bff984d"
     },
     "skills/activity-logger/scripts/init_activities.sh": {
       "mode": 493,
@@ -14607,6 +14611,26 @@
     "skills/activity-logger/scripts/log_activity.sh": {
       "mode": 493,
       "sha256": "2c83420b47a72c3854fb87aa5f637d3b33359099e45cc305282970770e2ef2a6"
+    },
+    "skills/lesson/README.md": {
+      "mode": 420,
+      "sha256": "2f7aac5518f7df408029852d2acc680632d8a0bbc21f582d4ae34e4868031481"
+    },
+    "skills/lesson/SKILL.md": {
+      "mode": 420,
+      "sha256": "38ce63139cf628b0997952c0331d5b025376ea99384e57c26166ea112ed94477"
+    },
+    "skills/lesson/scripts/lesson.py": {
+      "mode": 493,
+      "sha256": "ce3a1fdeed031325991b42bca9ddfb3bc52b308a4270de3389ef87d1f52a52dc"
+    },
+    "skills/lesson/scripts/session_start_hook.py": {
+      "mode": 420,
+      "sha256": "90966b0ca13df5c73f533f2b3d0b3c2d604dd12182f44909ff0a77e0ccf3c948"
+    },
+    "skills/lesson/templates/entry-snippet.md": {
+      "mode": 420,
+      "sha256": "32fad6e10dcfb7d2fbe19d41b8d400c2e6524b50535c35b3bfe13f77f3c599c4"
     },
     "skills/report-generator/SKILL.md": {
       "mode": 420,
@@ -14618,7 +14642,7 @@
     },
     "skills/skills-catalog.json": {
       "mode": 420,
-      "sha256": "1e4acb6c5ab6129c2e6332b73e8fdee58ae39aadbac99542bccd6959f1b810e9"
+      "sha256": "cbd8cbc70980edff9a3a359d64ed8ab9fde42c91dc6a678b887f7abcdc7d8f14"
     },
     "skills/work-log-analyzer/README.md": {
       "mode": 420,

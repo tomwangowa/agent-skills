@@ -577,6 +577,20 @@
     },
     {
       "availability": "available_to_install",
+      "category": "productivity-tracking",
+      "id": "lesson",
+      "invocation_intent": "model",
+      "lifecycle": "experimental",
+      "package": "work-journal",
+      "provider": "work-journal:lesson",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
+      "availability": "available_to_install",
       "category": "tools-meta",
       "id": "session-preferences",
       "invocation_intent": "user",

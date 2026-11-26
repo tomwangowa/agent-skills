@@ -110,6 +110,9 @@ def render_package(repo_root: Path, package: dict, surface: str, destination: Pa
     if package['name'] == 'session-preferences':
         hooks = ['skills/session-preferences/scripts/session_start_hook.py',
                  'skills/control-return/scripts/session_start_hook.py']
+    elif package['name'] == 'work-journal':
+        # Lessons stay off until lesson.json exists; the hook is silent before that.
+        hooks = ['skills/lesson/scripts/session_start_hook.py']
     policy, _ = render_policy(package, surface, {})
     if policy:
         (destination / 'hooks').mkdir(parents=True, exist_ok=True)

@@ -13,6 +13,17 @@
       }
     },
     {
+      "category": "productivity-tracking",
+      "id": "lesson",
+      "invocation_intent": "model",
+      "lifecycle": "experimental",
+      "surfaces": {
+        "listed_in_readme": false,
+        "routable": true,
+        "sync": true
+      }
+    },
+    {
       "category": "content-generation",
       "id": "report-generator",
       "invocation_intent": "user",
